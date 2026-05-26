@@ -3985,7 +3985,10 @@ function openRQList(){
     span.style.cursor='pointer';
     span.addEventListener('click',()=>{
       document.getElementById('rq-list-panel').classList.remove('on');
-      RQ.idx+=offset;
+      /* 선택한 국가를 현재 위치로 옮기고 나머지 순서 보존 */
+      const actualIdx=RQ.idx+offset;
+      RQ.list.splice(actualIdx,1);
+      RQ.list.splice(RQ.idx,0,iso);
       RQ.submitted=false;
       showRQCard();
     });
