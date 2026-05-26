@@ -3450,6 +3450,7 @@ body.mob-mode main{padding-bottom:72px}
       <div class="rq-wrong-label">🔴 틀린 나라들</div>
       <div id="rq-wrong-list"></div>
     </div>
+    <button class="reb" id="rq-retry-btn" onclick="retryWrongRQ()" style="display:none;background:rgba(248,81,73,.15);border-color:rgba(248,81,73,.4);color:var(--wr)">🔁 틀린 것만 다시 풀기</button>
     <button class="reb" onclick="restartReligionQuiz()">다시 시작</button>
     <button class="reb secondary" onclick="document.getElementById('rq-end').classList.remove('on');document.getElementById('rq-screen').classList.remove('on')">닫기</button>
   </div>
@@ -3948,7 +3949,7 @@ function checkRQ(){
     document.getElementById('rq-reveal').style.display='block';
     document.getElementById('rq-fb').textContent='틀렸습니다';document.getElementById('rq-fb').className='rq-fb ng';
     const ci=COUNTRIES[iso];
-    RQ.wrongItems.push({country:ci?ci.k:d.n,answer:ans,yours:buildYoursText(r1v,p1v,r2v,p2v,d.mode)});
+    RQ.wrongItems.push({iso,country:ci?ci.k:d.n,answer:ans,yours:buildYoursText(r1v,p1v,r2v,p2v,d.mode)});
   }
   saveRQ();
 }
@@ -4009,7 +4010,17 @@ function endReligionQuiz(){
     wl.appendChild(div);
   });
   document.getElementById('rq-wrong-wrap').style.display=RQ.wrongItems.length?'block':'none';
+  document.getElementById('rq-retry-btn').style.display=RQ.wrongItems.length?'block':'none';
   document.getElementById('rq-end').classList.add('on');
+}
+function retryWrongRQ(){
+  const isos=RQ.wrongItems.map(w=>w.iso).filter(Boolean);
+  if(!isos.length)return;
+  document.getElementById('rq-end').classList.remove('on');
+  RQ.list=isos.sort(()=>Math.random()-.5);
+  RQ.idx=0;RQ.correct=0;RQ.errors=0;RQ.skipped=0;RQ.wrongItems=[];RQ.submitted=false;RQ.attempts=0;
+  localStorage.removeItem(RQ_SAVE_KEY);
+  showRQCard();
 }
 
 /* ── Map Init ── */
