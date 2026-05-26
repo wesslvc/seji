@@ -129,7 +129,8 @@ main{flex:1;position:relative;overflow:hidden}
 .rq-pf{height:100%;background:linear-gradient(90deg,#3fb950,#58a6ff);transition:width .4s;width:0%}
 .rq-body{flex:1;display:flex;align-items:center;justify-content:center;padding:1.5rem;overflow-y:auto}
 .rq-card{background:var(--sf);border:1px solid var(--bd);border-radius:16px;width:100%;max-width:520px;padding:1.8rem}
-.rq-flag{font-size:3.5rem;text-align:center;margin-bottom:.5rem;line-height:1.2}
+.rq-flag{text-align:center;margin-bottom:.5rem;line-height:1.2}
+.rq-flag img{height:64px;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.3);object-fit:cover}
 .rq-country{text-align:center;margin-bottom:1.2rem}
 .rq-country-name{font-size:1.3rem;font-weight:700;margin-bottom:.15rem}
 .rq-country-en{font-size:.8rem;color:var(--tx2)}
@@ -3844,7 +3845,12 @@ function showRQCard(){
   if(RQ.idx>=RQ.list.length){endReligionQuiz();return;}
   const iso=RQ.list[RQ.idx];RQ.cur=iso;RQ.submitted=false;
   const d=RELIGION_DATA[iso],ci=COUNTRIES[iso];
-  document.getElementById('rq-flag').textContent=flagEmoji(iso);
+  const flagEl=document.getElementById('rq-flag');
+  const img=document.createElement('img');
+  img.src='https://flagcdn.com/w160/'+iso+'.png';
+  img.alt=iso.toUpperCase();
+  img.onerror=function(){flagEl.textContent=flagEmoji(iso);};
+  flagEl.textContent='';flagEl.appendChild(img);
   document.getElementById('rq-cname').textContent=ci?ci.k:d.n;
   document.getElementById('rq-cen').textContent=ci?ci.e:d.n;
   clearRQInputs();
