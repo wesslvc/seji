@@ -92,6 +92,13 @@ main{flex:1;position:relative;overflow:hidden}
 .hbtn{background:rgba(33,38,45,.8);border:1px solid var(--bd);border-radius:6px;padding:.3rem .65rem;font-size:.72rem;color:var(--tx2);cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:.15s;white-space:nowrap}
 .hbtn:hover{color:var(--tx)}
 .hbtn.saved{color:#3fb950;border-color:#3fb950}
+.hbtn.mode-mobile{color:#3fb950;border-color:rgba(63,185,80,.4)}
+@media(max-width:600px){
+  header{padding:.4rem .8rem}
+  .logo span{display:none}
+  .stats{gap:.5rem}
+  .hbtn{font-size:.65rem;padding:.25rem .45rem}
+}
 /* Country list panel */
 #cl-panel{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:650;display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
 #cl-panel.on{display:flex}
@@ -163,6 +170,7 @@ main{flex:1;position:relative;overflow:hidden}
     <button class="hbtn" id="ui-save" onclick="saveGame()">💾 저장</button>
     <button class="hbtn" onclick="openCountryList()" style="color:var(--ac);border-color:rgba(88,166,255,.3)">📋 국가 목록</button>
     <button class="hbtn" onclick="openReligionQuiz()" style="color:var(--gd);border-color:rgba(210,153,34,.3)">✝ 종교 퀴즈</button>
+    <button class="hbtn" id="ui-mode-btn" onclick="toggleMode()">💻 PC</button>
   </div>
 </header>
 <div class="pb"><div class="pf" id="ui-pf"></div></div>
@@ -3313,6 +3321,8 @@ main{flex:1;position:relative;overflow:hidden}
   </div>
 </main>
 <div id="ui-next" style="display:none"></div>
+<!-- Mobile next button -->
+<button id="ui-mob-next" onclick="goRandom()" style="display:none;position:fixed;bottom:1.2rem;right:1rem;z-index:190;width:56px;height:56px;border-radius:50%;background:var(--ac2);border:none;color:#fff;font-size:1.4rem;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.4);transition:.15s">→</button>
 
 <!-- Map Quiz End Screen -->
 <div id="ui-end">
@@ -3420,6 +3430,20 @@ main{flex:1;position:relative;overflow:hidden}
 </div>
 
 <script>
+/* ── Mode (PC / Mobile) ── */
+const MODE_KEY='wq_mode';
+let isMobile=localStorage.getItem(MODE_KEY)==='mobile'||(localStorage.getItem(MODE_KEY)===null&&('ontouchstart' in window||navigator.maxTouchPoints>0));
+function applyModeUI(){
+  const btn=document.getElementById('ui-mode-btn');
+  const mob=document.getElementById('ui-mob-next');
+  if(isMobile){btn.textContent='📱 모바일';btn.classList.add('mode-mobile');if(mob&&!modalOpen)mob.style.display='flex';document.body.style.touchAction='none';}
+  else{btn.textContent='💻 PC';btn.classList.remove('mode-mobile');if(mob)mob.style.display='none';document.body.style.touchAction='';}
+}
+function toggleMode(){
+  isMobile=!isMobile;
+  localStorage.setItem(MODE_KEY,isMobile?'mobile':'pc');
+  applyModeUI();
+}
 const MOBILE=false;
 const COUNTRIES={"af":{"k":"아프가니스탄","e":"Afghanistan","x":["islamic republic of afghanistan"]},"al":{"k":"알바니아","e":"Albania","x":[]},"dz":{"k":"알제리","e":"Algeria","x":[]},"ad":{"k":"안도라","e":"Andorra","x":[]},"ao":{"k":"앙골라","e":"Angola","x":[]},"ag":{"k":"앤티가 바부다","e":"Antigua and Barbuda","x":["antigua"]},"ar":{"k":"아르헨티나","e":"Argentina","x":["아르헨티나공화국","argentine republic"]},"am":{"k":"아르메니아","e":"Armenia","x":[]},"au":{"k":"오스트레일리아","e":"Australia","x":["호주","commonwealth of australia"]},"at":{"k":"오스트리아","e":"Austria","x":[]},"az":{"k":"아제르바이잔","e":"Azerbaijan","x":[]},"bs":{"k":"바하마","e":"Bahamas","x":[]},"bh":{"k":"바레인","e":"Bahrain","x":[]},"bd":{"k":"방글라데시","e":"Bangladesh","x":["방글라데시인민공화국"]},"bb":{"k":"바베이도스","e":"Barbados","x":[]},"by":{"k":"벨라루스","e":"Belarus","x":[]},"be":{"k":"벨기에","e":"Belgium","x":["벨기에왕국"]},"bz":{"k":"벨리즈","e":"Belize","x":[]},"bj":{"k":"베냉","e":"Benin","x":[]},"bt":{"k":"부탄","e":"Bhutan","x":[]},"bo":{"k":"볼리비아","e":"Bolivia","x":["plurinational state of bolivia"]},"ba":{"k":"보스니아 헤르체고비나","e":"Bosnia and Herzegovina","x":["보스니아헤르체고비나"]},"bw":{"k":"보츠와나","e":"Botswana","x":[]},"br":{"k":"브라질","e":"Brazil","x":["브라질연방공화국","federative republic of brazil"]},"bn":{"k":"브루나이","e":"Brunei","x":["brunei darussalam"]},"bg":{"k":"불가리아","e":"Bulgaria","x":[]},"bf":{"k":"부르키나파소","e":"Burkina Faso","x":[]},"bi":{"k":"부룬디","e":"Burundi","x":[]},"cv":{"k":"카보베르데","e":"Cabo Verde","x":["cape verde"]},"kh":{"k":"캄보디아","e":"Cambodia","x":[]},"cm":{"k":"카메룬","e":"Cameroon","x":[]},"ca":{"k":"캐나다","e":"Canada","x":[]},"cf":{"k":"중앙아프리카공화국","e":"Central African Republic","x":["중앙아프리카","car"]},"td":{"k":"차드","e":"Chad","x":[]},"cl":{"k":"칠레","e":"Chile","x":[]},"cn":{"k":"중국","e":"China","x":["중화인민공화국","people's republic of china","prc"]},"co":{"k":"콜롬비아","e":"Colombia","x":[]},"km":{"k":"코모로","e":"Comoros","x":[]},"cd":{"k":"콩고민주공화국","e":"Congo, Dem. Rep.","x":["democratic republic of the congo","drc"]},"cg":{"k":"콩고공화국","e":"Congo, Rep.","x":["republic of the congo"]},"cr":{"k":"코스타리카","e":"Costa Rica","x":[]},"ci":{"k":"코트디부아르","e":"Côte d'Ivoire","x":["ivory coast","cote d'ivoire"]},"hr":{"k":"크로아티아","e":"Croatia","x":[]},"cu":{"k":"쿠바","e":"Cuba","x":[]},"cy":{"k":"키프로스","e":"Cyprus","x":[]},"cz":{"k":"체코","e":"Czechia","x":["czech republic","체코공화국"]},"dk":{"k":"덴마크","e":"Denmark","x":[]},"dj":{"k":"지부티","e":"Djibouti","x":[]},"dm":{"k":"도미니카","e":"Dominica","x":[]},"do":{"k":"도미니카공화국","e":"Dominican Republic","x":[]},"ec":{"k":"에콰도르","e":"Ecuador","x":[]},"eg":{"k":"이집트","e":"Egypt","x":["이집트아랍공화국"]},"sv":{"k":"엘살바도르","e":"El Salvador","x":[]},"gq":{"k":"적도기니","e":"Equatorial Guinea","x":[]},"er":{"k":"에리트레아","e":"Eritrea","x":[]},"ee":{"k":"에스토니아","e":"Estonia","x":[]},"sz":{"k":"에스와티니","e":"Eswatini","x":["swaziland"]},"et":{"k":"에티오피아","e":"Ethiopia","x":[]},"fj":{"k":"피지","e":"Fiji","x":[]},"fi":{"k":"핀란드","e":"Finland","x":[]},"fr":{"k":"프랑스","e":"France","x":["프랑스공화국","french republic"]},"ga":{"k":"가봉","e":"Gabon","x":[]},"gm":{"k":"감비아","e":"Gambia","x":[]},"ge":{"k":"조지아","e":"Georgia","x":[]},"de":{"k":"독일","e":"Germany","x":["독일연방공화국","federal republic of germany"]},"gh":{"k":"가나","e":"Ghana","x":[]},"gr":{"k":"그리스","e":"Greece","x":["hellenic republic"]},"gd":{"k":"그레나다","e":"Grenada","x":[]},"gt":{"k":"과테말라","e":"Guatemala","x":[]},"gn":{"k":"기니","e":"Guinea","x":[]},"gw":{"k":"기니비사우","e":"Guinea-Bissau","x":[]},"gy":{"k":"가이아나","e":"Guyana","x":[]},"ht":{"k":"아이티","e":"Haiti","x":[]},"hn":{"k":"온두라스","e":"Honduras","x":[]},"hu":{"k":"헝가리","e":"Hungary","x":[]},"is":{"k":"아이슬란드","e":"Iceland","x":[]},"in":{"k":"인도","e":"India","x":["인도공화국","republic of india","bharat"]},"id":{"k":"인도네시아","e":"Indonesia","x":["인도네시아공화국"]},"ir":{"k":"이란","e":"Iran","x":["이란이슬람공화국","islamic republic of iran"]},"iq":{"k":"이라크","e":"Iraq","x":[]},"ie":{"k":"아일랜드","e":"Ireland","x":[]},"il":{"k":"이스라엘","e":"Israel","x":[]},"it":{"k":"이탈리아","e":"Italy","x":["이탈리아공화국","italian republic"]},"jm":{"k":"자메이카","e":"Jamaica","x":[]},"jp":{"k":"일본","e":"Japan","x":["일본국","nippon"]},"jo":{"k":"요르단","e":"Jordan","x":[]},"kz":{"k":"카자흐스탄","e":"Kazakhstan","x":[]},"ke":{"k":"케냐","e":"Kenya","x":[]},"ki":{"k":"키리바시","e":"Kiribati","x":[]},"kp":{"k":"조선민주주의인민공화국","e":"North Korea","x":["북한","dprk"]},"kr":{"k":"대한민국","e":"South Korea","x":["한국","republic of korea"]},"kw":{"k":"쿠웨이트","e":"Kuwait","x":[]},"kg":{"k":"키르기스스탄","e":"Kyrgyzstan","x":[]},"la":{"k":"라오스","e":"Laos","x":["라오인민민주공화국"]},"lv":{"k":"라트비아","e":"Latvia","x":[]},"lb":{"k":"레바논","e":"Lebanon","x":[]},"ls":{"k":"레소토","e":"Lesotho","x":[]},"lr":{"k":"라이베리아","e":"Liberia","x":[]},"ly":{"k":"리비아","e":"Libya","x":[]},"li":{"k":"리히텐슈타인","e":"Liechtenstein","x":[]},"lt":{"k":"리투아니아","e":"Lithuania","x":[]},"lu":{"k":"룩셈부르크","e":"Luxembourg","x":[]},"mg":{"k":"마다가스카르","e":"Madagascar","x":[]},"mw":{"k":"말라위","e":"Malawi","x":[]},"my":{"k":"말레이시아","e":"Malaysia","x":[]},"mv":{"k":"몰디브","e":"Maldives","x":[]},"ml":{"k":"말리","e":"Mali","x":[]},"mt":{"k":"몰타","e":"Malta","x":[]},"mh":{"k":"마셜제도","e":"Marshall Islands","x":[]},"mr":{"k":"모리타니","e":"Mauritania","x":[]},"mu":{"k":"모리셔스","e":"Mauritius","x":[]},"mx":{"k":"멕시코","e":"Mexico","x":["멕시코합중국"]},"fm":{"k":"미크로네시아","e":"Micronesia","x":[]},"md":{"k":"몰도바","e":"Moldova","x":[]},"mc":{"k":"모나코","e":"Monaco","x":[]},"mn":{"k":"몽골","e":"Mongolia","x":[]},"me":{"k":"몬테네그로","e":"Montenegro","x":[]},"ma":{"k":"모로코","e":"Morocco","x":[]},"mz":{"k":"모잠비크","e":"Mozambique","x":[]},"mm":{"k":"미얀마","e":"Myanmar","x":["burma"]},"na":{"k":"나미비아","e":"Namibia","x":[]},"nr":{"k":"나우루","e":"Nauru","x":[]},"np":{"k":"네팔","e":"Nepal","x":[]},"nl":{"k":"네덜란드","e":"Netherlands","x":["holland"]},"nz":{"k":"뉴질랜드","e":"New Zealand","x":[]},"ni":{"k":"니카라과","e":"Nicaragua","x":[]},"ne":{"k":"니제르","e":"Niger","x":[]},"ng":{"k":"나이지리아","e":"Nigeria","x":["나이지리아연방공화국"]},"mk":{"k":"북마케도니아","e":"North Macedonia","x":["macedonia"]},"no":{"k":"노르웨이","e":"Norway","x":[]},"om":{"k":"오만","e":"Oman","x":[]},"pk":{"k":"파키스탄","e":"Pakistan","x":["파키스탄이슬람공화국"]},"pw":{"k":"팔라우","e":"Palau","x":[]},"pa":{"k":"파나마","e":"Panama","x":[]},"pg":{"k":"파푸아뉴기니","e":"Papua New Guinea","x":[]},"py":{"k":"파라과이","e":"Paraguay","x":[]},"pe":{"k":"페루","e":"Peru","x":[]},"ph":{"k":"필리핀","e":"Philippines","x":["필리핀공화국"]},"pl":{"k":"폴란드","e":"Poland","x":[]},"pt":{"k":"포르투갈","e":"Portugal","x":[]},"qa":{"k":"카타르","e":"Qatar","x":[]},"ro":{"k":"루마니아","e":"Romania","x":[]},"ru":{"k":"러시아","e":"Russia","x":["러시아연방","russian federation"]},"rw":{"k":"르완다","e":"Rwanda","x":[]},"kn":{"k":"세인트키츠 네비스","e":"Saint Kitts and Nevis","x":["saint kitts"]},"lc":{"k":"세인트루시아","e":"Saint Lucia","x":[]},"vc":{"k":"세인트빈센트 그레나딘","e":"Saint Vincent and the Grenadines","x":["saint vincent"]},"ws":{"k":"사모아","e":"Samoa","x":[]},"sm":{"k":"산마리노","e":"San Marino","x":[]},"st":{"k":"상투메 프린시페","e":"Sao Tome and Principe","x":[]},"sa":{"k":"사우디아라비아","e":"Saudi Arabia","x":["사우디아라비아왕국"]},"sn":{"k":"세네갈","e":"Senegal","x":[]},"rs":{"k":"세르비아","e":"Serbia","x":[]},"sc":{"k":"세이셸","e":"Seychelles","x":[]},"sl":{"k":"시에라리온","e":"Sierra Leone","x":[]},"sg":{"k":"싱가포르","e":"Singapore","x":[]},"sk":{"k":"슬로바키아","e":"Slovakia","x":[]},"si":{"k":"슬로베니아","e":"Slovenia","x":[]},"sb":{"k":"솔로몬제도","e":"Solomon Islands","x":[]},"so":{"k":"소말리아","e":"Somalia","x":[]},"za":{"k":"남아프리카공화국","e":"South Africa","x":["남아프리카"]},"ss":{"k":"남수단","e":"South Sudan","x":[]},"es":{"k":"스페인","e":"Spain","x":["스페인왕국"]},"lk":{"k":"스리랑카","e":"Sri Lanka","x":[]},"sd":{"k":"수단","e":"Sudan","x":[]},"sr":{"k":"수리남","e":"Suriname","x":[]},"se":{"k":"스웨덴","e":"Sweden","x":[]},"ch":{"k":"스위스","e":"Switzerland","x":["스위스연방"]},"sy":{"k":"시리아","e":"Syria","x":["시리아아랍공화국"]},"tw":{"k":"대만","e":"Taiwan","x":["중화민국","republic of china","roc"]},"tj":{"k":"타지키스탄","e":"Tajikistan","x":[]},"tz":{"k":"탄자니아","e":"Tanzania","x":[]},"th":{"k":"태국","e":"Thailand","x":[]},"tl":{"k":"동티모르","e":"Timor-Leste","x":["east timor"]},"tg":{"k":"토고","e":"Togo","x":[]},"to":{"k":"통가","e":"Tonga","x":[]},"tt":{"k":"트리니다드 토바고","e":"Trinidad and Tobago","x":["trinidad"]},"tn":{"k":"튀니지","e":"Tunisia","x":[]},"tr":{"k":"튀르키예","e":"Turkey","x":["터키","turkiye"]},"tm":{"k":"투르크메니스탄","e":"Turkmenistan","x":[]},"tv":{"k":"투발루","e":"Tuvalu","x":[]},"ug":{"k":"우간다","e":"Uganda","x":[]},"ua":{"k":"우크라이나","e":"Ukraine","x":[]},"ae":{"k":"아랍에미리트","e":"United Arab Emirates","x":["uae"]},"gb":{"k":"영국","e":"United Kingdom","x":["uk","britain","great britain"]},"us":{"k":"미국","e":"United States","x":["usa","america","united states of america","아메리카합중국"]},"uy":{"k":"우루과이","e":"Uruguay","x":[]},"uz":{"k":"우즈베키스탄","e":"Uzbekistan","x":[]},"vu":{"k":"바누아투","e":"Vanuatu","x":[]},"ve":{"k":"베네수엘라","e":"Venezuela","x":[]},"vn":{"k":"베트남","e":"Vietnam","x":["베트남사회주의공화국"]},"ye":{"k":"예멘","e":"Yemen","x":[]},"zm":{"k":"잠비아","e":"Zambia","x":[]},"zw":{"k":"짐바브웨","e":"Zimbabwe","x":[]},"ps":{"k":"팔레스타인","e":"Palestine","x":["state of palestine"]},"va":{"k":"바티칸","e":"Vatican City","x":["holy see","바티칸시국"]},"xk":{"k":"코소보","e":"Kosovo","x":[]},"eh":{"k":"서사하라","e":"Western Sahara","x":["sahrawi arab democratic republic"]}};
 const CIRCLE_POS={"ad":{"cx":1317.9,"cy":330.8},"ag":{"cx":840.7,"cy":543.9},"bb":{"cx":851.8,"cy":585.0},"bh":{"cx":1675.6,"cy":470.5},"bn":{"cx":2175.7,"cy":660.0},"bs":{"cx":732.9,"cy":495.2},"cv":{"cx":1118.7,"cy":559.5},"dm":{"cx":842.7,"cy":564.2},"fj":{"cx":2640.1,"cy":840.0},"fm":{"cx":2508.0,"cy":635.0},"gd":{"cx":830.5,"cy":594.9},"gm":{"cx":1184.4,"cy":582.5},"jm":{"cx":720.4,"cy":541.5},"ki":{"cx":2627.5,"cy":682.2},"km":{"cx":1633.8,"cy":801.8},"kn":{"cx":820.2,"cy":555.7},"kw":{"cx":1653.3,"cy":444.1},"lb":{"cx":1563.8,"cy":405.0},"lc":{"cx":834.1,"cy":576.6},"li":{"cx":1373.2,"cy":291.9},"mc":{"cx":1357.2,"cy":320.3},"me":{"cx":1440.7,"cy":329.2},"mh":{"cx":2604.1,"cy":639.7},"mu":{"cx":1730.8,"cy":872.4},"mv":{"cx":1844.2,"cy":669.4},"nr":{"cx":2562.7,"cy":680.5},"ps":{"cx":1564.3,"cy":422.4},"pw":{"cx":2322.4,"cy":630.1},"qa":{"cx":1682.5,"cy":481.0},"sc":{"cx":1725.2,"cy":734.0},"sg":{"cx":2095.1,"cy":687.1},"sm":{"cx":1394.4,"cy":319.7},"st":{"cx":1353.0,"cy":690.6},"sz":{"cx":1536.8,"cy":928.4},"tl":{"cx":2260.8,"cy":775.7},"to":{"cx":2687.3,"cy":881.4},"tt":{"cx":834.5,"cy":607.2},"tv":{"cx":2658.6,"cy":769.5},"va":{"cx":1394.5,"cy":337.1},"vc":{"cx":840.2,"cy":587.7},"vu":{"cx":2568.4,"cy":840.7},"ws":{"cx":2724.5,"cy":816.0}};
@@ -3602,6 +3626,7 @@ function openModal(iso){
   /* blink */
   setColor(iso,'blink');
   if(CIRCLE_ISOS.has(iso))setRingStatus(iso,'blink');
+  const mob=document.getElementById('ui-mob-next');if(mob)mob.style.display='none';
 }
 function closeModal(){
   modalOpen=false;
@@ -3609,6 +3634,7 @@ function closeModal(){
   document.getElementById('ui-gi').blur();
   if(S.cur&&!S.status[S.cur])clearBlink(S.cur);
   S.cur=null;
+  const mob=document.getElementById('ui-mob-next');if(mob&&isMobile)mob.style.display='flex';
 }
 
 let _lastSubmit=0;
@@ -3774,12 +3800,30 @@ function animateTo(tx,ty,sc,dur,cb){
 
 /* ── Religion Quiz ── */
 const RQ={list:[],idx:0,correct:0,errors:0,skipped:0,wrongItems:[],cur:null,submitted:false};
+const RQ_SAVE_KEY='wq_rq_state_v1';
+function saveRQ(){
+  if(RQ.idx===0&&RQ.correct===0)return;
+  localStorage.setItem(RQ_SAVE_KEY,JSON.stringify({list:RQ.list,idx:RQ.idx,correct:RQ.correct,errors:RQ.errors,skipped:RQ.skipped,wrongItems:RQ.wrongItems}));
+}
+function loadRQ(){
+  try{const raw=localStorage.getItem(RQ_SAVE_KEY);if(!raw)return false;
+    const d=JSON.parse(raw);
+    RQ.list=d.list||[];RQ.idx=d.idx||0;RQ.correct=d.correct||0;
+    RQ.errors=d.errors||0;RQ.skipped=d.skipped||0;RQ.wrongItems=d.wrongItems||[];RQ.submitted=false;
+    return RQ.list.length>0&&RQ.idx<RQ.list.length;
+  }catch(e){return false;}
+}
 function buildRQList(){
   RQ.list=Object.keys(RELIGION_DATA).sort(()=>Math.random()-.5);
   RQ.idx=0;RQ.correct=0;RQ.errors=0;RQ.skipped=0;RQ.wrongItems=[];RQ.submitted=false;
+  localStorage.removeItem(RQ_SAVE_KEY);
 }
-function openReligionQuiz(){buildRQList();document.getElementById('rq-screen').classList.add('on');showRQCard();}
-function closeReligionQuiz(){document.getElementById('rq-screen').classList.remove('on');document.getElementById('rq-end').classList.remove('on');}
+function openReligionQuiz(){
+  document.getElementById('rq-screen').classList.add('on');
+  if(loadRQ()){showRQCard();}
+  else{buildRQList();showRQCard();}
+}
+function closeReligionQuiz(){saveRQ();document.getElementById('rq-screen').classList.remove('on');document.getElementById('rq-end').classList.remove('on');}
 function restartReligionQuiz(){document.getElementById('rq-end').classList.remove('on');buildRQList();showRQCard();}
 function updateRQStats(){
   document.getElementById('rq-cor').textContent=RQ.correct;
@@ -3840,6 +3884,7 @@ function checkRQ(){
     const ci=COUNTRIES[iso];
     RQ.wrongItems.push({country:ci?ci.k:d.n,answer:ans,yours:buildYoursText(r1v,r2v,p2v,d.mode)});
   }
+  saveRQ();
 }
 function shake(id){const el=document.getElementById(id);el.classList.add('shake');setTimeout(()=>el.classList.remove('shake'),400);}
 function mark(id,ok){const el=document.getElementById(id);el.classList.remove('correct','wrong');el.classList.add(ok?'correct':'wrong');}
@@ -3937,13 +3982,51 @@ function initMap(){
   document.querySelector('.modal').addEventListener('click',e=>e.stopPropagation());
   document.getElementById('ui-ov').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
   document.addEventListener('keydown',function(e){
-    if(e.key==='Enter'&&!modalOpen&&!document.getElementById('rq-screen').classList.contains('on'))goRandom();
+    const rqOn=document.getElementById('rq-screen').classList.contains('on');
+    if(e.key==='Enter'&&!modalOpen&&!rqOn)goRandom();
+    if(e.key==='Enter'&&rqOn&&RQ.submitted){e.preventDefault();RQ.idx++;showRQCard();}
   });
   document.getElementById('rq-bsub').addEventListener('click',checkRQ);
   document.getElementById('rq-bskip').addEventListener('click',skipRQ);
   ['rq-r1','rq-r2','rq-p2'].forEach(id=>{
     document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();checkRQ();}});
   });
+  /* touch pan/zoom for mobile mode */
+  let _tc=null;
+  mw.addEventListener('touchstart',function(e){
+    if(!isMobile)return;
+    if(e.touches.length===1){
+      _tc={x:e.touches[0].clientX-_x,y:e.touches[0].clientY-_y,pinch:false};
+    }else if(e.touches.length===2){
+      const dx=e.touches[0].clientX-e.touches[1].clientX;
+      const dy=e.touches[0].clientY-e.touches[1].clientY;
+      _tc={pinch:true,dist:Math.hypot(dx,dy),s0:_s,
+        mx:(e.touches[0].clientX+e.touches[1].clientX)/2-mw.getBoundingClientRect().left,
+        my:(e.touches[0].clientY+e.touches[1].clientY)/2-mw.getBoundingClientRect().top,
+        x0:_x,y0:_y};
+    }
+    e.preventDefault();
+  },{passive:false});
+  mw.addEventListener('touchmove',function(e){
+    if(!isMobile||!_tc)return;
+    if(!_tc.pinch&&e.touches.length===1){
+      _x=e.touches[0].clientX-_tc.x;_y=e.touches[0].clientY-_tc.y;applyT();
+    }else if(_tc.pinch&&e.touches.length===2){
+      const dx=e.touches[0].clientX-e.touches[1].clientX;
+      const dy=e.touches[0].clientY-e.touches[1].clientY;
+      const nd=Math.hypot(dx,dy);
+      const ns=Math.min(Math.max(_tc.s0*nd/_tc.dist,0.3),15);
+      _x=_tc.mx-(_tc.mx-_tc.x0)*ns/_tc.s0;
+      _y=_tc.my-(_tc.my-_tc.y0)*ns/_tc.s0;
+      _s=ns;applyT();
+    }
+    e.preventDefault();
+  },{passive:false});
+  mw.addEventListener('touchend',function(e){
+    if(!isMobile)return;
+    if(e.touches.length===0)_tc=null;
+  },{passive:false});
+  applyModeUI();
 }
 window.addEventListener('load',initMap);
 </script>
