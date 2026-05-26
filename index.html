@@ -171,6 +171,7 @@ main{flex:1;position:relative;overflow:hidden}
     <div class="stat"><div class="sv" style="color:#3fb950" id="ui-cor">0</div><div class="sl">정답</div></div>
     <div class="stat"><div class="sv" style="color:var(--wr)" id="ui-rev">0</div><div class="sl">공개</div></div>
     <button class="hbtn" id="ui-save" onclick="saveGame()">💾 저장</button>
+    <button class="hbtn" onclick="resetMapQuiz()" style="color:var(--wr);border-color:rgba(248,81,73,.3)">🔄 초기화</button>
     <button class="hbtn" onclick="openCountryList()" style="color:var(--ac);border-color:rgba(88,166,255,.3)">📋 국가 목록</button>
     <button class="hbtn" onclick="openReligionQuiz()" style="color:var(--gd);border-color:rgba(210,153,34,.3)">✝ 종교 퀴즈</button>
     <button class="hbtn" id="ui-mode-btn" onclick="toggleMode()">💻 PC</button>
@@ -3376,6 +3377,7 @@ main{flex:1;position:relative;overflow:hidden}
       <div class="rq-stat"><div class="sv" style="color:var(--wr)" id="rq-err">0</div><div class="sl">오답</div></div>
       <div class="rq-stat"><div class="sv" style="color:var(--tx2)" id="rq-rem">0</div><div class="sl">남은</div></div>
       <button class="hbtn" onclick="openRQList()" style="margin-left:.5rem">📋 목록</button>
+      <button class="hbtn" onclick="resetReligionQuiz()" style="margin-left:.5rem;color:var(--wr);border-color:rgba(248,81,73,.3)">🔄 초기화</button>
       <button class="hbtn" onclick="closeReligionQuiz()" style="margin-left:.5rem">✕ 종료</button>
     </div>
   </div>
@@ -3601,6 +3603,16 @@ function loadGame(){
     Object.assign(S.status,d.status||{});Object.assign(S.wrong,d.wrong||{});
     S.correct=d.correct||0;S.revealed=d.revealed||0;return true;
   }catch(e){return false;}
+}
+function resetMapQuiz(){
+  if(!confirm('지도 퀴즈 진행 상황을 모두 초기화할까요?'))return;
+  localStorage.removeItem(SAVE_KEY);
+  S.correct=0;S.revealed=0;S.wrong={};S.status={};S.cur=null;
+  Object.keys(colors).forEach(k=>delete colors[k]);
+  paint();
+  if(typeof initRingLayer==='function')initRingLayer();
+  closeModal();
+  stats();
 }
 
 const dyn=document.createElement('style');document.head.appendChild(dyn);
@@ -3834,8 +3846,13 @@ function loadRQ(){
 }
 function buildRQList(){
   RQ.list=Object.keys(RELIGION_DATA).sort(()=>Math.random()-.5);
-  RQ.idx=0;RQ.correct=0;RQ.errors=0;RQ.skipped=0;RQ.wrongItems=[];RQ.submitted=false;
+  RQ.idx=0;RQ.correct=0;RQ.errors=0;RQ.skipped=0;RQ.wrongItems=[];RQ.submitted=false;RQ.attempts=0;
   localStorage.removeItem(RQ_SAVE_KEY);
+}
+function resetReligionQuiz(){
+  if(!confirm('종교 퀴즈 진행 상황을 초기화할까요?'))return;
+  buildRQList();
+  showRQCard();
 }
 function openReligionQuiz(){
   document.getElementById('rq-screen').classList.add('on');
