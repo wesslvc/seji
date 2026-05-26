@@ -3636,18 +3636,44 @@ function paint(){
   let css='';
   const bright={c1:'#388bfd',c2:'#3fb950',c3:'#d29922',cr:'#f85149'};
   for(const[iso,cls]of Object.entries(colors)){
+    if(cls==='blink')continue; /* JS 타이머가 inline style로 처리 */
     const s=selCSS(iso);
-    if(cls==='blink'){
-      css+=s+'{animation:blink .5s ease infinite!important;stroke:#0d1117;stroke-width:.5}';
-      continue;
-    }
     css+=s+'{fill:'+COLOR_MAP[cls]+'!important;stroke:#0d1117;stroke-width:.5}';
     css+=s+':hover{fill:'+bright[cls]+'!important}';
   }
   dyn.textContent=css;
 }
-function setColor(iso,cls){colors[iso]=cls;paint();}
-function clearBlink(iso){if(colors[iso]==='blink'){delete colors[iso];paint();if(CIRCLE_ISOS.has(iso))setRingStatus(iso,null);}}
+/* JS 블링크: CSS @keyframes fill은 !important fill에 지므로
+   inline style setProperty('fill',…,'important')로 직접 덮어씀 */
+const _blinkTimers={};
+function startJsBlink(iso){
+  stopJsBlink(iso);
+  const els=els4iso(iso).filter(el=>el.closest('#world-svg'));
+  if(!els.length)return;
+  let phase=true;
+  function tick(){
+    const c=phase?'#ffffff':'#58a6ff';
+    els.forEach(el=>el.style.setProperty('fill',c,'important'));
+    phase=!phase;
+    _blinkTimers[iso]=setTimeout(tick,250);
+  }
+  tick();
+}
+function stopJsBlink(iso){
+  clearTimeout(_blinkTimers[iso]);delete _blinkTimers[iso];
+  els4iso(iso).filter(el=>el.closest('#world-svg')).forEach(el=>el.style.removeProperty('fill'));
+}
+function setColor(iso,cls){
+  colors[iso]=cls;
+  if(cls==='blink')startJsBlink(iso);else stopJsBlink(iso);
+  paint();
+}
+function clearBlink(iso){
+  if(colors[iso]==='blink'){
+    stopJsBlink(iso);delete colors[iso];paint();
+    if(CIRCLE_ISOS.has(iso))setRingStatus(iso,null);
+  }
+}
 
 function stats(){
   const d=S.correct+S.revealed;
@@ -4128,9 +4154,22 @@ function initMap(){
   mw.addEventListener('touchend',function(e){
     if(!isMobile)return;
     if(e.touches.length===0){
-      /* swipe up (fast flick upward) → next country */
-      if(!_swipeMoved&&_tc&&!_tc.pinch&&!modalOpen){
-        /* tap handled by click */
+      if(!_swipeMoved&&_tc&&!_tc.pinch){
+        /* 탭 처리: e.preventDefault()가 click을 막으므로 여기서 직접 실행 */
+        const touch=e.changedTouches[0];
+        if(touch){
+          const el=document.elementFromPoint(touch.clientX,touch.clientY);
+          if(el){
+            const rg=el.closest('.ring-g');
+            if(rg){
+              const iso=rg.dataset.iso;
+              if(iso){if(S.status[iso]==='cr')showAnswer(iso,touch.clientX,touch.clientY-10);else if(!done(iso))openModal(iso);}
+            }else{
+              const cel=findCountryEl(el);
+              if(cel){const iso=iso4el(cel);if(iso){if(S.status[iso]==='cr')showAnswer(iso,touch.clientX,touch.clientY-10);else if(!done(iso))openModal(iso);}}
+            }
+          }
+        }
       }else if(_swipeMoved&&_tc&&!_tc.pinch&&!modalOpen){
         const dy=(_swipeStartY-(e.changedTouches[0]?e.changedTouches[0].clientY:_swipeStartY));
         const dx=Math.abs(e.changedTouches[0]?e.changedTouches[0].clientX-_swipeStartX:0);
