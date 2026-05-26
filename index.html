@@ -102,6 +102,8 @@ main{flex:1;position:relative;overflow:hidden}
 /* Country list panel */
 #cl-panel{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:650;display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
 #cl-panel.on{display:flex}
+#rq-list-panel{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:800;display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
+#rq-list-panel.on{display:flex}
 .cl-card{background:var(--sf);border:1px solid var(--bd);border-radius:16px;width:94%;max-width:700px;max-height:90vh;display:flex;flex-direction:column}
 .cl-head{padding:1rem 1.2rem .7rem;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .cl-head h2{font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:600}
@@ -3373,6 +3375,7 @@ main{flex:1;position:relative;overflow:hidden}
       <div class="rq-stat"><div class="sv" style="color:#3fb950" id="rq-cor">0</div><div class="sl">정답</div></div>
       <div class="rq-stat"><div class="sv" style="color:var(--wr)" id="rq-err">0</div><div class="sl">오답</div></div>
       <div class="rq-stat"><div class="sv" style="color:var(--tx2)" id="rq-rem">0</div><div class="sl">남은</div></div>
+      <button class="hbtn" onclick="openRQList()" style="margin-left:.5rem">📋 목록</button>
       <button class="hbtn" onclick="closeReligionQuiz()" style="margin-left:.5rem">✕ 종료</button>
     </div>
   </div>
@@ -3411,6 +3414,20 @@ main{flex:1;position:relative;overflow:hidden}
   </div>
 </div>
 
+<div id="rq-list-panel">
+  <div class="cl-card">
+    <div class="cl-head">
+      <div>
+        <h2>📋 종교퀴즈 국가 목록</h2>
+        <div style="font-size:.8rem;color:var(--tx2);margin-top:.3rem">남은 국가: <span id="rql-rem-cnt">0</span></div>
+      </div>
+      <button class="cl-close" onclick="document.getElementById('rq-list-panel').classList.remove('on')">✕</button>
+    </div>
+    <div class="cl-body">
+      <div class="cl-grid" id="rql-grid"></div>
+    </div>
+  </div>
+</div>
 <!-- Religion Quiz End -->
 <div id="rq-end">
   <div class="rq-end-card">
@@ -3801,7 +3818,7 @@ function animateTo(tx,ty,sc,dur,cb){
 }
 
 /* ── Religion Quiz ── */
-const RQ={list:[],idx:0,correct:0,errors:0,skipped:0,wrongItems:[],cur:null,submitted:false};
+const RQ={list:[],idx:0,correct:0,errors:0,skipped:0,wrongItems:[],cur:null,submitted:false,attempts:0};
 const RQ_SAVE_KEY='wq_rq_state_v1';
 function saveRQ(){
   if(RQ.idx===0&&RQ.correct===0)return;
@@ -3843,7 +3860,7 @@ function clearRQInputs(){
 }
 function showRQCard(){
   if(RQ.idx>=RQ.list.length){endReligionQuiz();return;}
-  const iso=RQ.list[RQ.idx];RQ.cur=iso;RQ.submitted=false;
+  const iso=RQ.list[RQ.idx];RQ.cur=iso;RQ.submitted=false;RQ.attempts=0;
   const d=RELIGION_DATA[iso],ci=COUNTRIES[iso];
   const flagEl=document.getElementById('rq-flag');
   const img=document.createElement('img');
@@ -3881,13 +3898,18 @@ function checkRQ(){
   if(d.mode===3){const p1ok=parseInt(p1v)===d.rp1;mark('rq-p1',p1ok);if(!p1ok)correct=false;}
   if(d.mode>=2){const r2ok=matchRel(r2v,d.r2);mark('rq-r2',r2ok);if(!r2ok)correct=false;}
   if(d.mode===3){const p2ok=parseInt(p2v)===d.rp2;mark('rq-p2',p2ok);if(!p2ok)correct=false;}
-  RQ.submitted=true;
-  document.getElementById('rq-bsub').textContent='다음 →';
   if(correct){
+    RQ.submitted=true;
     RQ.correct++;
+    document.getElementById('rq-bsub').textContent='다음 →';
     document.getElementById('rq-fb').textContent='정답! ✓';document.getElementById('rq-fb').className='rq-fb ok';
+  }else if(RQ.attempts<1){
+    RQ.attempts++;
+    document.getElementById('rq-fb').textContent='틀렸습니다 · 한 번 더 남았습니다';document.getElementById('rq-fb').className='rq-fb ng';
   }else{
+    RQ.submitted=true;
     RQ.errors++;
+    document.getElementById('rq-bsub').textContent='다음 →';
     const ans=buildAnsText(d);
     document.getElementById('rq-reveal-text').textContent=ans;
     document.getElementById('rq-reveal').style.display='block';
@@ -3913,13 +3935,30 @@ function buildYoursText(r1v,p1v,r2v,p2v,mode){
 }
 function skipRQ(){
   if(RQ.submitted){RQ.idx++;showRQCard();return;}
-  const d=RELIGION_DATA[RQ.cur];
-  document.getElementById('rq-reveal-text').textContent=buildAnsText(d);
-  document.getElementById('rq-reveal').style.display='block';
-  document.getElementById('rq-fb').textContent='건너뜀';document.getElementById('rq-fb').className='rq-fb';
-  RQ.skipped++;RQ.submitted=true;
-  document.getElementById('rq-bsub').textContent='다음 →';
-  setTimeout(()=>{RQ.idx++;showRQCard();},900);
+  RQ.skipped++;
+  RQ.idx++;
+  showRQCard();
+}
+function openRQList(){
+  const grid=document.getElementById('rql-grid');
+  grid.innerHTML='';
+  const remaining=RQ.list.slice(RQ.idx);
+  document.getElementById('rql-rem-cnt').textContent=remaining.length;
+  remaining.forEach((iso,offset)=>{
+    const d=RELIGION_DATA[iso],ci=COUNTRIES[iso];
+    const span=document.createElement('span');
+    span.className='cl-tag remain';
+    span.textContent=ci?ci.k:d.n;
+    span.style.cursor='pointer';
+    span.addEventListener('click',()=>{
+      document.getElementById('rq-list-panel').classList.remove('on');
+      RQ.idx+=offset;
+      RQ.submitted=false;
+      showRQCard();
+    });
+    grid.appendChild(span);
+  });
+  document.getElementById('rq-list-panel').classList.add('on');
 }
 function endReligionQuiz(){
   const total=RQ.list.length;
@@ -4002,7 +4041,7 @@ function initMap(){
   document.getElementById('rq-bsub').addEventListener('click',checkRQ);
   document.getElementById('rq-bskip').addEventListener('click',skipRQ);
   ['rq-r1','rq-p1','rq-r2','rq-p2'].forEach(id=>{
-    document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();checkRQ();}});
+    document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();e.stopPropagation();checkRQ();}});
   });
   /* touch pan/zoom for mobile mode */
   let _tc=null;
