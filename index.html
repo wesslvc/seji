@@ -3602,7 +3602,6 @@ function openModal(iso){
   /* blink */
   setColor(iso,'blink');
   if(CIRCLE_ISOS.has(iso))setRingStatus(iso,'blink');
-  setTimeout(()=>clearBlink(iso),2000);
 }
 function closeModal(){
   modalOpen=false;
