@@ -47,7 +47,8 @@ body.mob-mode main{padding-bottom:72px}
 #ui-tip{position:fixed;background:var(--sf2);border:1px solid var(--bd);border-radius:6px;padding:3px 9px;font-size:.7rem;color:var(--tx2);pointer-events:none;display:none;z-index:300}
 #ui-popup{position:fixed;background:rgba(22,27,34,.97);border:1px solid #9e2020;border-radius:10px;padding:.7rem 1.1rem;font-size:.9rem;color:var(--gd);font-weight:500;display:none;z-index:500;pointer-events:none;backdrop-filter:blur(8px);white-space:nowrap;transform:translate(-50%,-110%)}
 .ui-ov{position:fixed;inset:0;display:flex;align-items:flex-end;justify-content:center;padding-bottom:1.2rem;z-index:200;pointer-events:none;opacity:0;transition:opacity .2s}
-.ui-ov.on{opacity:1;pointer-events:all}
+.ui-ov.on{opacity:1}
+.ui-ov.on .modal{pointer-events:all}
 .modal{background:rgba(22,27,34,.95);border:1px solid var(--bd);border-radius:14px;width:430px;max-width:94vw;backdrop-filter:blur(18px);transform:translateY(10px);transition:transform .22s}
 .ui-ov.on .modal{transform:translateY(0)}
 .mb{padding:.9rem 1.1rem 1rem}
@@ -129,7 +130,8 @@ body.mob-mode #kr-main{padding-bottom:72px}
 #korea-svg path[data-kid]:hover{fill:#4a5568}
 #korea-svg .kr-inset path{fill:none!important;stroke:var(--bd)!important;pointer-events:none}
 #kr-ov{position:fixed;inset:0;display:flex;align-items:flex-end;justify-content:center;padding-bottom:1.2rem;z-index:720;pointer-events:none;opacity:0;transition:opacity .2s}
-#kr-ov.on{opacity:1;pointer-events:all}
+#kr-ov.on{opacity:1}
+#kr-ov.on .modal{pointer-events:all}
 body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 #kr-end{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:760;display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
 #kr-end.on{display:flex}
@@ -213,11 +215,21 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 </head>
 <body>
 <div id="landing-overlay">
-  <h2>🌍 세계 지리 퀴즈</h2>
-  <p>모드를 선택하세요</p>
-  <div class="land-choices">
-    <button class="land-btn" id="land-pc"><span class="land-icon">💻</span>PC 모드<div class="land-sub">마우스 조작 / 전체 화면</div></button>
-    <button class="land-btn" id="land-mob"><span class="land-icon">📱</span>모바일 모드<div class="land-sub">터치 조작 / 모바일 최적화</div></button>
+  <div id="land-step1">
+    <h2 style="text-align:center">🌍 지리 퀴즈</h2>
+    <p style="text-align:center;margin:.4rem 0 1.2rem">모드를 선택하세요</p>
+    <div class="land-choices">
+      <button class="land-btn" id="land-pc"><span class="land-icon">💻</span>PC 모드<div class="land-sub">마우스 조작 / 전체 화면</div></button>
+      <button class="land-btn" id="land-mob"><span class="land-icon">📱</span>모바일 모드<div class="land-sub">터치 조작 / 모바일 최적화</div></button>
+    </div>
+  </div>
+  <div id="land-step2" style="display:none">
+    <h2 style="text-align:center">어떤 퀴즈를 할까요?</h2>
+    <p style="text-align:center;margin:.4rem 0 1.2rem">퀴즈를 선택하세요</p>
+    <div class="land-choices">
+      <button class="land-btn" id="land-world"><span class="land-icon">🌍</span>세계 지리<div class="land-sub">나라 맞추기 / 종교 퀴즈</div></button>
+      <button class="land-btn" id="land-korea"><span class="land-icon">🇰🇷</span>한국 지리<div class="land-sub">시·군 맞추기</div></button>
+    </div>
   </div>
 </div>
 <header>
@@ -4620,7 +4632,6 @@ let isMobile=localStorage.getItem(MODE_KEY)==='mobile'||(localStorage.getItem(MO
   function pickMode(mob){
     localStorage.setItem(MODE_KEY,mob?'mobile':'pc');
     isMobile=mob;
-    overlay.style.display='none';
     applyModeUI();
     // 모드에 따라 지도 비율 다시 맞추기
     try{
@@ -4632,9 +4643,18 @@ let isMobile=localStorage.getItem(MODE_KEY)==='mobile'||(localStorage.getItem(MO
       }
       if(typeof KR!=='undefined'&&KR.inited&&typeof krFit==='function')krFit();
     }catch(err){}
+    /* 2단계: 퀴즈 선택 */
+    document.getElementById('land-step1').style.display='none';
+    document.getElementById('land-step2').style.display='block';
+  }
+  function pickQuiz(korea){
+    overlay.style.display='none';
+    if(korea){try{openKoreaQuiz();}catch(err){}}
   }
   document.getElementById('land-pc').addEventListener('click',function(){pickMode(false);});
   document.getElementById('land-mob').addEventListener('click',function(){pickMode(true);});
+  document.getElementById('land-world').addEventListener('click',function(){pickQuiz(false);});
+  document.getElementById('land-korea').addEventListener('click',function(){pickQuiz(true);});
 })();
 function applyModeUI(){
   const btn=document.getElementById('ui-mode-btn');
@@ -4666,6 +4686,14 @@ document.addEventListener('touchend',function(e){
   if(!isMobile)return;
   const t=e.changedTouches[0];if(!t)return;
   if(Math.abs(t.clientX-_tapX)>12||Math.abs(t.clientY-_tapY)>12)return;
+  /* 입력창 탭 → 사용자 제스처 안에서 직접 focus해 가상 키보드가 뜨게 함 */
+  const inp=e.target.closest('input, textarea');
+  if(inp){
+    if(e.cancelable)e.preventDefault();
+    inp.focus();
+    try{inp.setSelectionRange(inp.value.length,inp.value.length);}catch(err){}
+    return;
+  }
   const el=e.target.closest('button, .cl-tag, .cl-tab');
   if(!el)return;
   if(e.cancelable)e.preventDefault();
@@ -4774,8 +4802,17 @@ function loadGame(){
   try{
     const raw=localStorage.getItem(SAVE_KEY);if(!raw)return false;
     const d=JSON.parse(raw);
-    Object.assign(S.status,d.status||{});Object.assign(S.wrong,d.wrong||{});
-    S.correct=d.correct||0;S.revealed=d.revealed||0;return true;
+    /* COUNTRIES에 없는 키는 버리고 카운트를 상태 기준으로 재계산 */
+    let cor=0,rev=0;
+    for(const[k,v]of Object.entries(d.status||{})){
+      if(!COUNTRIES[k])continue;
+      S.status[k]=v;
+      if(v==='cr')rev++;else cor++;
+    }
+    for(const[k,v]of Object.entries(d.wrong||{})){
+      if(COUNTRIES[k])S.wrong[k]=v;
+    }
+    S.correct=cor;S.revealed=rev;return true;
   }catch(e){return false;}
 }
 function resetMapQuiz(){
@@ -5241,6 +5278,13 @@ function initKorea(){
   KR.inited=true;
   document.getElementById('kr-map').innerHTML=document.getElementById('korea-svg-tpl').innerHTML;
   const svg=document.getElementById('korea-svg');
+  /* 세종특별자치시는 <g>가 아닌 최상위 <path>로 존재 */
+  svg.querySelectorAll(':scope > path[id]').forEach(p=>{
+    const prov=krNorm(p.id);
+    if(!prov)return;
+    p.dataset.kid=prov;
+    if(!KR.units[prov])KR.units[prov]={n:prov,p:prov};
+  });
   svg.querySelectorAll(':scope > g').forEach(g=>{
     const prov=krNorm(g.id);
     if(!prov||prov.indexOf('레이어')===0){g.classList.add('kr-inset');return;}
@@ -5518,7 +5562,7 @@ function bindKoreaEvents(){
     if(kDragged)return;
     const el=e.target.closest('[data-kid]');if(!el)return;
     const kid=el.dataset.kid;
-    if(!krDone(kid))krOpenModal(kid);
+    if(!krDone(kid))krZoomTo(kid,true);
   });
   const tip=document.getElementById('ui-tip');
   svg.addEventListener('mouseover',function(e){
@@ -5604,7 +5648,7 @@ function bindKoreaEvents(){
         if(t){
           const el=document.elementFromPoint(t.clientX,t.clientY);
           const kel=el&&el.closest?el.closest('[data-kid]'):null;
-          if(kel&&!krDone(kel.dataset.kid)){krOpenModal(kel.dataset.kid);}
+          if(kel&&!krDone(kel.dataset.kid)){krZoomTo(kel.dataset.kid,true);}
           else if(!kel){
             /* 빈 곳 더블탭 → 확대 */
             const now=Date.now();
@@ -5653,7 +5697,7 @@ function initMap(){
     const cel=findCountryEl(e.target);if(!cel)return;
     const iso=iso4el(cel);if(!iso)return;
     if(S.status[iso]==='cr'){showAnswer(iso,e.clientX,e.clientY-10);return;}
-    if(!done(iso))openModal(iso);
+    if(!done(iso)){openModal(iso);centerCountry(iso);}
   });
   const tip=document.getElementById('ui-tip');
   svg.addEventListener('mouseover',function(e){
@@ -5756,7 +5800,7 @@ function initMap(){
           let hit=false;
           if(el){
             const cel=findCountryEl(el);
-            if(cel){const iso=iso4el(cel);if(iso){hit=true;if(S.status[iso]==='cr')showAnswer(iso,touch.clientX,touch.clientY-10);else if(!done(iso))openModal(iso);}}
+            if(cel){const iso=iso4el(cel);if(iso){hit=true;if(S.status[iso]==='cr')showAnswer(iso,touch.clientX,touch.clientY-10);else if(!done(iso)){openModal(iso);centerCountry(iso);}}}
           }
           if(!hit){
             /* 빈 곳 더블탭 → 확대 */
