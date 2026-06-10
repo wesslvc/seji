@@ -34,12 +34,7 @@ body.mob-mode main{padding-bottom:72px}
 #world-svg .eh.landxx{fill:var(--land)!important;pointer-events:all;cursor:pointer}
 #world-svg .landxx:hover,#world-svg .xk.limitxx:hover,#world-svg .xz.limitxx:hover,#world-svg .eh.landxx:hover{fill:#556070}
 @keyframes blink{0%,100%{fill:#ffffff}50%{fill:var(--ac)}}
-@keyframes ring-blink{0%,100%{stroke:#ffffff;stroke-opacity:1}50%{stroke:var(--ac);stroke-opacity:1}}
-#ring-layer{position:absolute;top:0;left:0;pointer-events:none;overflow:visible}
-.ring-g{cursor:pointer;pointer-events:all}
-.ring-g .ring-bg{fill:var(--land);stroke:#0d1117;stroke-width:.8}
-.ring-g .ring-outline{fill:none;stroke:transparent;stroke-width:2.5;pointer-events:none}
-.ring-g:hover .ring-bg{fill:#556070}
+
 .ctrls{position:absolute;bottom:1rem;right:1rem;display:flex;flex-direction:column;gap:5px;z-index:10}
 .cb{width:32px;height:32px;background:rgba(22,27,34,.92);border:1px solid var(--bd);border-radius:7px;color:var(--tx2);font-size:.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);transition:.15s}
 .cb:hover{color:var(--tx);background:var(--sf2)}
@@ -57,7 +52,7 @@ body.mob-mode main{padding-bottom:72px}
 .mb{padding:.9rem 1.1rem 1rem}
 .dots{display:flex;gap:6px;justify-content:center;margin-bottom:.8rem}
 .dot{width:11px;height:11px;border-radius:50%;background:var(--bd);transition:background .2s}
-.dot.ok{background:#3fb950}.dot.ng{background:var(--wr)}
+.dot.ok{background:#3fb950}.dot.ng{background:var(--wr)}.dot.win{background:#388bfd}
 #ui-gi{width:100%;padding:.6rem .85rem;background:rgba(33,38,45,.85);border:1px solid var(--bd);border-radius:8px;color:var(--tx);font-size:1rem;font-family:'Noto Sans KR',sans-serif;outline:none;transition:border-color .2s;margin-bottom:.6rem}
 #ui-gi:focus{border-color:var(--ac)}
 #ui-gi.shake{animation:shk .35s ease;border-color:var(--wr)}
@@ -193,9 +188,25 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 .wi-country{font-weight:600}
 .wi-ans{color:#3fb950;margin-left:6px}
 .wi-yours{color:var(--wr);margin-left:6px}
+#landing-overlay{position:fixed;inset:0;background:rgba(13,17,23,.98);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2rem}
+#landing-overlay h2{font-family:'Space Grotesk',sans-serif;font-size:1.7rem;font-weight:600;color:var(--tx)}
+#landing-overlay p{font-size:.9rem;color:var(--tx2);margin-top:-.4rem}
+.land-choices{display:flex;gap:1.2rem;flex-wrap:wrap;justify-content:center}
+.land-btn{padding:1.2rem 2rem;border-radius:12px;border:2px solid var(--bd);background:var(--sf2);color:var(--tx);font-family:'Noto Sans KR',sans-serif;font-size:.95rem;font-weight:600;cursor:pointer;transition:.2s;min-width:150px;text-align:center}
+.land-btn:hover{border-color:var(--ac);color:var(--ac)}
+.land-icon{font-size:2.2rem;display:block;margin-bottom:.5rem}
+.land-sub{font-size:.72rem;color:var(--tx2);font-weight:400;margin-top:.3rem}
 </style>
 </head>
 <body>
+<div id="landing-overlay">
+  <h2>🌍 세계 지리 퀴즈</h2>
+  <p>모드를 선택하세요</p>
+  <div class="land-choices">
+    <button class="land-btn" id="land-pc"><span class="land-icon">💻</span>PC 모드<div class="land-sub">마우스 조작 / 전체 화면</div></button>
+    <button class="land-btn" id="land-mob"><span class="land-icon">📱</span>모바일 모드<div class="land-sub">터치 조작 / 모바일 최적화</div></button>
+  </div>
+</div>
 <header>
   <div class="logo">세계 지리 퀴즈 <span>/ World Quiz</span></div>
   <div class="stats">
@@ -206,7 +217,7 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
     <button class="hbtn" onclick="resetMapQuiz()" style="color:var(--wr);border-color:rgba(248,81,73,.3)">🔄 초기화</button>
     <button class="hbtn" onclick="openCountryList()" style="color:var(--ac);border-color:rgba(88,166,255,.3)">📋 국가 목록</button>
     <button class="hbtn" onclick="openReligionQuiz()" style="color:var(--gd);border-color:rgba(210,153,34,.3)">✝ 종교 퀴즈</button>
-    <button class="hbtn" onclick="openKoreaQuiz()" style="color:#3fb950;border-color:rgba(63,185,80,.3)">🗾 한국지리</button>
+    <button class="hbtn" onclick="openKoreaQuiz()" style="color:#3fb950;border-color:rgba(63,185,80,.3)">🇰🇷 한국지리</button>
     <button class="hbtn" id="ui-mode-btn" onclick="toggleMode()">💻 PC</button>
   </div>
 </header>
@@ -3409,7 +3420,7 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 <!-- ═══ Korea Quiz Screen ═══ -->
 <div id="kr-screen">
   <div class="kr-header">
-    <div class="kr-title">🗾 한국지리 — 시·군·구 맞추기</div>
+    <div class="kr-title">🇰🇷 한국지리 — 시·도 맞추기</div>
     <div class="kr-stats">
       <div><div class="sv" style="color:#3fb950" id="kr-cor">0</div><div class="sl">정답</div></div>
       <div><div class="sv" style="color:var(--wr)" id="kr-rev">0</div><div class="sl">공개</div></div>
@@ -3468,7 +3479,7 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 </div>
 <div id="kr-end">
   <div class="rq-end-card">
-    <div style="font-size:2rem">🗾</div>
+    <div style="font-size:2rem">🇰🇷</div>
     <h1>한국지리 완료!</h1>
     <div class="esc" id="kr-escore">0%</div>
     <div class="eg">
@@ -4590,6 +4601,19 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 /* ── Mode (PC / Mobile) ── */
 const MODE_KEY='wq_mode';
 let isMobile=localStorage.getItem(MODE_KEY)==='mobile'||(localStorage.getItem(MODE_KEY)===null&&('ontouchstart' in window||navigator.maxTouchPoints>0));
+// Landing overlay — shown only when no mode has been chosen yet
+(function(){
+  const overlay=document.getElementById('landing-overlay');
+  if(localStorage.getItem(MODE_KEY)!==null){overlay.style.display='none';return;}
+  function pickMode(mob){
+    localStorage.setItem(MODE_KEY,mob?'mobile':'pc');
+    isMobile=mob;
+    overlay.style.display='none';
+    applyModeUI();
+  }
+  document.getElementById('land-pc').addEventListener('click',function(){pickMode(false);});
+  document.getElementById('land-mob').addEventListener('click',function(){pickMode(true);});
+})();
 function applyModeUI(){
   const btn=document.getElementById('ui-mode-btn');
   const mob=document.getElementById('ui-mob-bar');
@@ -4670,61 +4694,6 @@ function check(input,iso){
 const CIRCLE_ISOS=new Set(Object.keys(CIRCLE_POS));
 const COLOR_MAP={c1:'#1a4a8a',c2:'#196c2e',c3:'#7a6000',cr:'#6e1515'};
 
-let ringLayer=null;
-function initRingLayer(){
-  const ns='http://www.w3.org/2000/svg';
-  ringLayer=document.createElementNS(ns,'svg');
-  ringLayer.id='ring-layer';
-  ringLayer.style.cssText='position:absolute;top:0;left:0;pointer-events:none;overflow:visible;';
-  for(const[iso,pos]of Object.entries(CIRCLE_POS)){
-    const g=document.createElementNS(ns,'g');
-    g.classList.add('ring-g');g.dataset.iso=iso;
-    const bg=document.createElementNS(ns,'circle');
-    bg.classList.add('ring-bg');bg.setAttribute('cx',pos.cx);bg.setAttribute('cy',pos.cy);bg.setAttribute('r',5);
-    const ring=document.createElementNS(ns,'circle');
-    ring.classList.add('ring-outline');ring.setAttribute('cx',pos.cx);ring.setAttribute('cy',pos.cy);ring.setAttribute('r',7);
-    g.appendChild(bg);g.appendChild(ring);
-    g.addEventListener('click',function(e){
-      const iso=this.dataset.iso;
-      if(S.status[iso]==='cr'){showAnswer(iso,e.clientX,e.clientY-10);return;}
-      if(!done(iso))openModal(iso);
-    });
-    g.addEventListener('mouseenter',function(){
-      const iso=this.dataset.iso,s=S.status[iso];
-      const tip=document.getElementById('ui-tip');
-      tip.textContent=s==='cr'?'📖 클릭→정답':s?'✓ '+COUNTRIES[iso].k:'? 클릭하여 맞춰보기';
-      tip.style.display='block';
-    });
-    g.addEventListener('mousemove',e=>{const t=document.getElementById('ui-tip');t.style.left=(e.clientX+12)+'px';t.style.top=(e.clientY-24)+'px';});
-    g.addEventListener('mouseleave',()=>document.getElementById('ui-tip').style.display='none');
-    ringLayer.appendChild(g);
-  }
-  document.getElementById('ui-map').appendChild(ringLayer);
-  syncRingLayer();
-}
-function syncRingLayer(){
-  if(!ringLayer)return;
-  const wsvg=document.getElementById('world-svg');
-  const r=wsvg.getBoundingClientRect(),mr=document.getElementById('ui-map').getBoundingClientRect();
-  ringLayer.style.left=(r.left-mr.left)+'px';ringLayer.style.top=(r.top-mr.top)+'px';
-  ringLayer.style.width=wsvg.style.width;ringLayer.style.height=wsvg.style.height;
-  ringLayer.style.transform=wsvg.style.transform;
-}
-function setRingStatus(iso,cls){
-  if(!ringLayer)return;
-  const g=ringLayer.querySelector('[data-iso="'+iso+'"]');
-  if(!g)return;
-  const bg=g.querySelector('.ring-bg'),ring=g.querySelector('.ring-outline');
-  if(cls==='blink'){
-    bg.style.animation='blink .5s ease infinite';
-    ring.style.animation='ring-blink .5s ease infinite';
-    return;
-  }
-  bg.style.animation='';ring.style.animation='';
-  const bright={c1:'#388bfd',c2:'#3fb950',c3:'#d29922',cr:'#f85149'};
-  if(cls&&COLOR_MAP[cls]){bg.style.fill=COLOR_MAP[cls];ring.style.stroke=bright[cls]||'transparent';ring.style.strokeOpacity='1';}
-  else{bg.style.fill='';ring.style.stroke='transparent';}
-}
 
 function iso4el(el){
   if(!el)return null;
@@ -4739,7 +4708,7 @@ function iso4el(el){
   return null;
 }
 function els4iso(iso){
-  return Array.from(document.querySelectorAll('#world-svg [data-iso="'+iso+'"], #ring-layer [data-iso="'+iso+'"]'));
+  return Array.from(document.querySelectorAll('#world-svg [data-iso="'+iso+'"]'));
 }
 function selCSS(iso){
   return '#world-svg [data-iso="'+iso+'"]';
@@ -4791,7 +4760,6 @@ function resetMapQuiz(){
   S.correct=0;S.revealed=0;S.wrong={};S.status={};S.cur=null;
   Object.keys(colors).forEach(k=>delete colors[k]);
   paint();
-  if(typeof initRingLayer==='function')initRingLayer();
   closeModal();
   stats();
 }
@@ -4837,7 +4805,6 @@ function setColor(iso,cls){
 function clearBlink(iso){
   if(colors[iso]==='blink'){
     stopJsBlink(iso);delete colors[iso];paint();
-    if(CIRCLE_ISOS.has(iso))setRingStatus(iso,null);
   }
 }
 
@@ -4865,7 +4832,6 @@ function openModal(iso){
   setTimeout(()=>gi.focus(),50);
   /* blink */
   setColor(iso,'blink');
-  if(CIRCLE_ISOS.has(iso))setRingStatus(iso,'blink');
   const mob=document.getElementById('ui-mob-bar');if(mob)mob.style.display='none';
 }
 function closeModal(){
@@ -4887,10 +4853,11 @@ function submit(){
   if(check(val,iso)){
     const cls=['c1','c2','c3'][w];
     clearBlink(iso);
-    setColor(iso,cls);if(CIRCLE_ISOS.has(iso))setRingStatus(iso,cls);
+    setColor(iso,cls);
     S.status[iso]=cls;S.correct++;
     gi.value='';
     document.getElementById('ui-fb').textContent='정답! ✓';document.getElementById('ui-fb').className='fb ok';
+    document.getElementById('ui-d'+w).classList.add('win');
     setTimeout(()=>{closeModal();stats();},400);
   }else{
     S.wrong[iso]=(w+1);
@@ -4900,7 +4867,7 @@ function submit(){
       for(let i=0;i<3;i++)document.getElementById('ui-d'+i).className='dot'+((i<w+1)?' ng':'');
     }else{
       clearBlink(iso);
-      setColor(iso,'cr');if(CIRCLE_ISOS.has(iso))setRingStatus(iso,'cr');
+      setColor(iso,'cr');
       S.status[iso]='cr';S.revealed++;
       document.getElementById('ui-an').textContent=COUNTRIES[iso].k+' ('+COUNTRIES[iso].e+')';
       document.getElementById('ui-ab').style.display='block';
@@ -5027,7 +4994,6 @@ function applyT(){
   const svg=document.getElementById('world-svg');
   svg.style.width=SW*_s+'px';svg.style.height=SH*_s+'px';
   svg.style.transform='translate('+_x+'px,'+_y+'px)';
-  syncRingLayer();
 }
 function animateTo(tx,ty,sc,dur,cb){
   const x0=_x,y0=_y,s0=_s,t0=performance.now();
@@ -5242,6 +5208,15 @@ function closeKoreaQuiz(){
   document.getElementById('kr-mob-bar').style.display='none';
   applyModeUI();
 }
+const KR_ALIASES={
+  '서울특별시':['서울'],'부산광역시':['부산'],'인천광역시':['인천'],
+  '광주광역시':['광주'],'대전광역시':['대전'],'울산광역시':['울산'],
+  '세종특별자치시':['세종'],'경기도':['경기'],'강원도':['강원'],
+  '강원특별자치도':['강원'],'충청북도':['충북'],'충청남도':['충남'],
+  '전라북도':['전북'],'전북특별자치도':['전북'],'전라남도':['전남'],
+  '경상북도':['경북'],'경상남도':['경남'],'제주특별자치도':['제주'],
+  '대구광역시':['대구']
+};
 function initKorea(){
   if(KR.inited){krFit();return;}
   KR.inited=true;
@@ -5250,20 +5225,9 @@ function initKorea(){
   svg.querySelectorAll(':scope > g').forEach(g=>{
     const prov=krNorm(g.id);
     if(!prov||prov.indexOf('레이어')===0){g.classList.add('kr-inset');return;}
-    Array.from(g.children).forEach(ch=>{
-      const tag=ch.tagName.toLowerCase();
-      if(tag==='path'){
-        const name=krNorm(ch.id);if(!name)return;
-        const kid=prov+'|'+name;
-        ch.dataset.kid=kid;
-        if(!KR.units[kid])KR.units[kid]={n:name,p:prov};
-      }else if(tag==='g'){
-        const name=krNorm(ch.id);if(!name)return;
-        const kid=prov+'|'+name;
-        if(!KR.units[kid])KR.units[kid]={n:name,p:prov};
-        ch.querySelectorAll('path').forEach(p=>p.dataset.kid=kid);
-      }
-    });
+    const kid=prov;
+    if(!KR.units[kid])KR.units[kid]={n:prov,p:prov};
+    g.querySelectorAll('path').forEach(p=>p.dataset.kid=kid);
   });
   KR.total=Object.keys(KR.units).length;
   krFit();
@@ -5370,7 +5334,9 @@ function krCheckAnswer(input,kid){
   const u=KR.units[kid];if(!u)return false;
   const a=input.replace(/\s+/g,'');
   if(a===u.n)return true;
-  if(u.n.length>=3&&/[시군구도]$/.test(u.n)&&a===u.n.slice(0,-1))return true;
+  const aliases=KR_ALIASES[u.n]||[];
+  if(aliases.some(x=>a===x))return true;
+  if(u.n.length>=3&&/[시도]$/.test(u.n)&&a===u.n.slice(0,-1))return true;
   return false;
 }
 let _kLastSubmit=0;
@@ -5387,6 +5353,7 @@ function krSubmit(){
     KR.status[kid]=cls;KR.correct++;
     gi.value='';
     document.getElementById('kr-fb').textContent='정답! ✓';document.getElementById('kr-fb').className='fb ok';
+    document.getElementById('kr-d'+w).classList.add('win');
     saveKR();
     setTimeout(()=>{krCloseModal();krStats();},400);
   }else{
@@ -5400,7 +5367,7 @@ function krSubmit(){
       setKColor(kid,'cr');
       KR.status[kid]='cr';KR.revealed++;
       const u=KR.units[kid];
-      document.getElementById('kr-an').textContent=u.n+' ('+u.p+')';
+      document.getElementById('kr-an').textContent=u.n;
       document.getElementById('kr-ab').style.display='block';
       gi.value='';
       saveKR();
@@ -5436,7 +5403,7 @@ function krEndScreen(){
   for(const[kid,cls]of Object.entries(KR.status)){
     if(cls!=='cr')continue;
     const u=KR.units[kid];
-    const span=document.createElement('span');span.className='wrong-tag';span.textContent=u.n+' ('+u.p+')';
+    const span=document.createElement('span');span.className='wrong-tag';span.textContent=u.n;
     tags.appendChild(span);n++;
   }
   document.getElementById('kr-wrong-wrap').style.display=n?'block':'none';
@@ -5461,7 +5428,7 @@ function updateKLPanel(){
 }
 function renderKLGrid(){
   const grid=document.getElementById('kl-grid');grid.innerHTML='';
-  const label=kid=>KR.units[kid].n+' ('+KR.units[kid].p.slice(0,2)+')';
+  const label=kid=>KR.units[kid].n;
   if(klTab==='done'){
     const sorted=Object.entries(KR.status).sort((a,b)=>label(a[0]).localeCompare(label(b[0])));
     sorted.forEach(([kid,cls])=>{
@@ -5586,10 +5553,10 @@ function initMap(){
   assignOwnership();
   _s=Math.min(mw.clientWidth/SW,mw.clientHeight/SH);
   _x=(mw.clientWidth-SW*_s)/2;_y=(mw.clientHeight-SH*_s)/2;
-  applyT();initRingLayer();
+  applyT();
   if(loadGame()){
     for(const[iso,cls]of Object.entries(S.status)){
-      setColor(iso,cls);if(CIRCLE_ISOS.has(iso))setRingStatus(iso,cls);
+      setColor(iso,cls);
     }
   }
   stats();
