@@ -32,7 +32,7 @@ body.mob-mode main{padding-bottom:72px}
 #world-svg .circlexx,#world-svg .subxx,#world-svg .noxx,#world-svg .unxx{opacity:0;pointer-events:none}
 #world-svg circle{opacity:0!important;pointer-events:none!important}
 #world-svg .xk.limitxx,#world-svg .xz.limitxx{fill:var(--land);stroke:#0d1117;stroke-width:.5;pointer-events:all;opacity:1}
-#world-svg .eh.landxx{fill:var(--land)!important;pointer-events:all;cursor:pointer}
+#world-svg .eh.landxx{fill:var(--land);pointer-events:all;cursor:pointer}
 #world-svg .landxx:hover,#world-svg .xk.limitxx:hover,#world-svg .xz.limitxx:hover,#world-svg .eh.landxx:hover{fill:#556070}
 @keyframes blink{0%,100%{fill:#ffffff}50%{fill:var(--ac)}}
 
@@ -4774,6 +4774,8 @@ function assignOwnership(){
     /* 분쟁지역 마커 원(circle)은 항상 숨김 유지 */
     if(el.tagName.toLowerCase()==='circle')return;
     let owner=null;
+    /* 그린란드는 덴마크 영토로 취급 */
+    if(el.classList.contains('gl'))owner='dk';
     for(const cc of el.classList)if(COUNTRIES[cc])owner=cc;
     if(owner){
       el.dataset.iso=owner;
@@ -4952,7 +4954,11 @@ function centerCountry(iso,instant){
     ns=Math.min(Math.max(isMobile?4:6,Math.min(pw/100,availH/80)),12);
   }else{
     let minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9;
-    els4iso(iso).forEach(el=>{try{const b=el.getBBox();minX=Math.min(minX,b.x);minY=Math.min(minY,b.y);maxX=Math.max(maxX,b.x+b.width);maxY=Math.max(maxY,b.y+b.height);}catch(e){}} );
+    els4iso(iso).forEach(el=>{
+      /* 덴마크 줌은 그린란드를 제외하고 본토 기준 */
+      if(iso==='dk'&&(el.classList.contains('gl')||el.closest('#gl')))return;
+      try{const b=el.getBBox();minX=Math.min(minX,b.x);minY=Math.min(minY,b.y);maxX=Math.max(maxX,b.x+b.width);maxY=Math.max(maxY,b.y+b.height);}catch(e){}
+    });
     if(minX>=1e9)return;
     cx=(minX+maxX)/2;cy=(minY+maxY)/2;
     /* 모바일은 여백을 넉넉히 줘서 좀 더 멀리서 보여줌 */
