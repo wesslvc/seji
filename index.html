@@ -103,6 +103,10 @@ body.mob-mode main{padding-bottom:72px}
   .kr-hbtns::-webkit-scrollbar{display:none}
   .kr-stats{gap:.5rem;flex-shrink:0}
 }
+/* 모바일: 줌 버튼을 하단바 위로, 터치하기 좋게 크게 */
+body.mob-mode .ctrls{bottom:90px}
+body.mob-mode #kr-main .ctrl{bottom:90px!important}
+body.mob-mode .cb{width:44px;height:44px;font-size:1.25rem}
 /* 모바일: 모달을 상단에 — 가상 키보드가 하단 모달(닫기 버튼)을 덮는 문제 방지 */
 body.mob-mode .ui-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 body.mob-mode .btn{padding:.85rem;font-size:.95rem}
@@ -3455,7 +3459,7 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
   <div class="modal">
     <div class="mb">
       <div class="dots"><div class="dot" id="kr-d0"></div><div class="dot" id="kr-d1"></div><div class="dot" id="kr-d2"></div></div>
-      <input type="text" id="kr-gi" placeholder="지역 이름을 입력하세요... (예: 강동구)" autocomplete="off" style="width:100%;padding:.6rem .85rem;background:rgba(33,38,45,.85);border:1px solid var(--bd);border-radius:8px;color:var(--tx);font-size:1rem;font-family:'Noto Sans KR',sans-serif;outline:none;margin-bottom:.6rem"/>
+      <input type="text" id="kr-gi" placeholder="지역 이름을 입력하세요... (예: 수원시, 서울)" autocomplete="off" style="width:100%;padding:.6rem .85rem;background:rgba(33,38,45,.85);border:1px solid var(--bd);border-radius:8px;color:var(--tx);font-size:1rem;font-family:'Noto Sans KR',sans-serif;outline:none;margin-bottom:.6rem"/>
       <div class="br">
         <button class="btn bp" id="kr-bsub">확인</button>
         <button class="btn bs" id="kr-bskip">닫기</button>
@@ -4609,15 +4613,24 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 /* ── Mode (PC / Mobile) ── */
 const MODE_KEY='wq_mode';
 let isMobile=localStorage.getItem(MODE_KEY)==='mobile'||(localStorage.getItem(MODE_KEY)===null&&('ontouchstart' in window||navigator.maxTouchPoints>0));
-// Landing overlay — shown only when no mode has been chosen yet
+// Landing overlay — 매번 접속할 때마다 모드 선택
 (function(){
   const overlay=document.getElementById('landing-overlay');
-  if(localStorage.getItem(MODE_KEY)!==null){overlay.style.display='none';return;}
   function pickMode(mob){
     localStorage.setItem(MODE_KEY,mob?'mobile':'pc');
     isMobile=mob;
     overlay.style.display='none';
     applyModeUI();
+    // 모드에 따라 지도 비율 다시 맞추기
+    try{
+      const mw=document.getElementById('ui-map');
+      if(mw&&typeof applyT==='function'&&typeof SW!=='undefined'){
+        _s=Math.min(mw.clientWidth/SW,mw.clientHeight/SH);
+        _x=(mw.clientWidth-SW*_s)/2;_y=(mw.clientHeight-SH*_s)/2;
+        applyT();
+      }
+      if(typeof KR!=='undefined'&&KR.inited&&typeof krFit==='function')krFit();
+    }catch(err){}
   }
   document.getElementById('land-pc').addEventListener('click',function(){pickMode(false);});
   document.getElementById('land-mob').addEventListener('click',function(){pickMode(true);});
@@ -4885,26 +4898,35 @@ function submit(){
   }
 }
 
+function centerCountry(iso,instant){
+  const mw=document.getElementById('ui-map');
+  const pw=mw.clientWidth,ph=mw.clientHeight;
+  /* 모바일: 상단 모달이 지도를 가리므로 그 아래 영역 기준으로 중앙 정렬 */
+  const topPad=(isMobile&&modalOpen)?180:0;
+  const availH=Math.max(ph-topPad,120);
+  let cx,cy,ns;
+  if(CIRCLE_ISOS.has(iso)){
+    const pos=CIRCLE_POS[iso];cx=pos.cx;cy=pos.cy;
+    ns=Math.min(Math.max(isMobile?4:6,Math.min(pw/100,availH/80)),12);
+  }else{
+    let minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9;
+    els4iso(iso).forEach(el=>{try{const b=el.getBBox();minX=Math.min(minX,b.x);minY=Math.min(minY,b.y);maxX=Math.max(maxX,b.x+b.width);maxY=Math.max(maxY,b.y+b.height);}catch(e){}} );
+    if(minX>=1e9)return;
+    cx=(minX+maxX)/2;cy=(minY+maxY)/2;
+    /* 모바일은 여백을 넉넉히 줘서 좀 더 멀리서 보여줌 */
+    const pad=isMobile?160:80;
+    ns=Math.min(Math.max(Math.min(pw/((maxX-minX)+pad),availH/((maxY-minY)+pad)),0.5),isMobile?8:12);
+  }
+  const tx=pw/2-cx*ns,ty=topPad+availH/2-cy*ns;
+  if(instant){_x=tx;_y=ty;_s=ns;applyT();}
+  else animateTo(tx,ty,ns,500);
+}
 function goRandom(){
   const list=Object.keys(COUNTRIES).filter(i=>!done(i));
   if(!list.length)return;
   const iso=list[Math.floor(Math.random()*list.length)];
   openModal(iso);
-  const mw=document.getElementById('ui-map');
-  const pw=mw.clientWidth,ph=mw.clientHeight;
-  if(CIRCLE_ISOS.has(iso)){
-    const pos=CIRCLE_POS[iso];
-    const ns=Math.min(Math.max(6,Math.min(pw/100,ph/80)),12);
-    animateTo(pw/2-pos.cx*ns,ph/2-pos.cy*ns,ns,500);
-  }else{
-    let minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9;
-    els4iso(iso).forEach(el=>{try{const b=el.getBBox();minX=Math.min(minX,b.x);minY=Math.min(minY,b.y);maxX=Math.max(maxX,b.x+b.width);maxY=Math.max(maxY,b.y+b.height);}catch(e){}} );
-    if(minX<1e9){
-      const cx=(minX+maxX)/2,cy=(minY+maxY)/2;
-      const ns=Math.min(Math.max(Math.min(pw/((maxX-minX)+80),ph/((maxY-minY)+80)),0.5),12);
-      animateTo(pw/2-cx*ns,ph/2-cy*ns,ns,500);
-    }
-  }
+  centerCountry(iso);
 }
 
 function showAnswer(iso,x,y){
@@ -5413,12 +5435,16 @@ function krSubmit(){
 function krZoomTo(kid,open){
   const mw=document.getElementById('kr-map');
   const pw=mw.clientWidth,ph=mw.clientHeight;
+  /* 모바일: 상단 모달을 피해서, 여백을 넉넉히 줘 좀 더 멀리서 보여줌 */
+  const topPad=(isMobile&&(open||krModalOpen))?180:0;
+  const availH=Math.max(ph-topPad,120);
   let minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9;
   kEls(kid).forEach(el=>{try{const b=el.getBBox();minX=Math.min(minX,b.x);minY=Math.min(minY,b.y);maxX=Math.max(maxX,b.x+b.width);maxY=Math.max(maxY,b.y+b.height);}catch(e){}});
   if(minX<1e9){
     const cx=(minX+maxX)/2,cy=(minY+maxY)/2;
-    k_s=Math.min(Math.max(Math.min(pw/((maxX-minX)+60),ph/((maxY-minY)+60)),1),20);
-    k_x=pw/2-cx*k_s;k_y=ph/2-cy*k_s;
+    const pad=isMobile?140:60;
+    k_s=Math.min(Math.max(Math.min(pw/((maxX-minX)+pad),availH/((maxY-minY)+pad)),1),isMobile?12:20);
+    k_x=pw/2-cx*k_s;k_y=topPad+availH/2-cy*k_s;
     applyKT();
   }
   if(open)krOpenModal(kid);
@@ -5539,11 +5565,11 @@ function bindKoreaEvents(){
       ktc={x:e.touches[0].clientX-k_x,y:e.touches[0].clientY-k_y,pinch:false};
       kSwX=e.touches[0].clientX;kSwY=e.touches[0].clientY;kSwMoved=false;
     }else if(e.touches.length===2){
-      const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY;
-      ktc={pinch:true,dist:Math.hypot(dx,dy),s0:k_s,
-        mx:(e.touches[0].clientX+e.touches[1].clientX)/2-mw.getBoundingClientRect().left,
-        my:(e.touches[0].clientY+e.touches[1].clientY)/2-mw.getBoundingClientRect().top,
-        x0:k_x,y0:k_y};
+      const r=mw.getBoundingClientRect();
+      ktc={pinch:true,
+        ldist:Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY),
+        lmx:(e.touches[0].clientX+e.touches[1].clientX)/2-r.left,
+        lmy:(e.touches[0].clientY+e.touches[1].clientY)/2-r.top};
     }
     e.preventDefault();
   },{passive:false});
@@ -5554,21 +5580,44 @@ function bindKoreaEvents(){
       if(Math.abs(dx)>6||Math.abs(dy)>6)kSwMoved=true;
       k_x=e.touches[0].clientX-ktc.x;k_y=e.touches[0].clientY-ktc.y;applyKT();
     }else if(ktc.pinch&&e.touches.length===2){
-      const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY;
-      const ns=Math.min(Math.max(ktc.s0*Math.hypot(dx,dy)/ktc.dist,0.5),25);
-      k_x=ktc.mx-(ktc.mx-ktc.x0)*ns/ktc.s0;k_y=ktc.my-(ktc.my-ktc.y0)*ns/ktc.s0;k_s=ns;applyKT();
+      /* 증분 핀치: 매 프레임 직전 상태 기준으로 줌+이동을 함께 처리 */
+      const r=mw.getBoundingClientRect();
+      const nd=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+      const mx=(e.touches[0].clientX+e.touches[1].clientX)/2-r.left;
+      const my=(e.touches[0].clientY+e.touches[1].clientY)/2-r.top;
+      const ns=Math.min(Math.max(k_s*nd/ktc.ldist,0.5),25);
+      k_x=mx-(ktc.lmx-k_x)*ns/k_s;k_y=my-(ktc.lmy-k_y)*ns/k_s;k_s=ns;applyKT();
+      ktc.ldist=nd;ktc.lmx=mx;ktc.lmy=my;
     }
     e.preventDefault();
   },{passive:false});
+  let kLastTap=0,kLastTapX=0,kLastTapY=0;
   mw.addEventListener('touchend',function(e){
     if(!isMobile)return;
+    if(e.touches.length===1&&ktc&&ktc.pinch){
+      /* 핀치 중 한 손가락만 떼면 남은 손가락으로 바로 이동 가능 */
+      ktc={x:e.touches[0].clientX-k_x,y:e.touches[0].clientY-k_y,pinch:false};
+      kSwX=e.touches[0].clientX;kSwY=e.touches[0].clientY;kSwMoved=true;
+      return;
+    }
     if(e.touches.length===0){
       if(!kSwMoved&&ktc&&!ktc.pinch){
         const t=e.changedTouches[0];
         if(t){
           const el=document.elementFromPoint(t.clientX,t.clientY);
           const kel=el&&el.closest?el.closest('[data-kid]'):null;
-          if(kel&&!krDone(kel.dataset.kid))krOpenModal(kel.dataset.kid);
+          if(kel&&!krDone(kel.dataset.kid)){krOpenModal(kel.dataset.kid);}
+          else if(!kel){
+            /* 빈 곳 더블탭 → 확대 */
+            const now=Date.now();
+            if(now-kLastTap<350&&Math.abs(t.clientX-kLastTapX)<40&&Math.abs(t.clientY-kLastTapY)<40){
+              const r=mw.getBoundingClientRect();
+              const mx=t.clientX-r.left,my=t.clientY-r.top;
+              const ns=Math.min(k_s*1.8,25);
+              k_x=mx-(mx-k_x)*ns/k_s;k_y=my-(my-k_y)*ns/k_s;k_s=ns;applyKT();
+              kLastTap=0;
+            }else{kLastTap=now;kLastTapX=t.clientX;kLastTapY=t.clientY;}
+          }
         }
       }else if(kSwMoved&&ktc&&!ktc.pinch&&!krModalOpen){
         const t=e.changedTouches[0];
@@ -5578,7 +5627,12 @@ function bindKoreaEvents(){
       ktc=null;
     }
   },{passive:false});
-  window.addEventListener('resize',()=>{if(document.getElementById('kr-screen').classList.contains('on'))applyKT();});
+  window.addEventListener('resize',()=>{
+    if(!document.getElementById('kr-screen').classList.contains('on'))return;
+    /* 키보드가 열려 화면이 줄면 출제 지역이 가려지지 않게 다시 정렬 */
+    if(isMobile&&krModalOpen&&KR.cur)krZoomTo(KR.cur,false);
+    else applyKT();
+  });
 }
 
 /* ── Map Init ── */
@@ -5660,12 +5714,11 @@ function initMap(){
       _tc={x:e.touches[0].clientX-_x,y:e.touches[0].clientY-_y,pinch:false};
       _swipeStartX=e.touches[0].clientX;_swipeStartY=e.touches[0].clientY;_swipeMoved=false;
     }else if(e.touches.length===2){
-      const dx=e.touches[0].clientX-e.touches[1].clientX;
-      const dy=e.touches[0].clientY-e.touches[1].clientY;
-      _tc={pinch:true,dist:Math.hypot(dx,dy),s0:_s,
-        mx:(e.touches[0].clientX+e.touches[1].clientX)/2-mw.getBoundingClientRect().left,
-        my:(e.touches[0].clientY+e.touches[1].clientY)/2-mw.getBoundingClientRect().top,
-        x0:_x,y0:_y};
+      const r=mw.getBoundingClientRect();
+      _tc={pinch:true,
+        ldist:Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY),
+        lmx:(e.touches[0].clientX+e.touches[1].clientX)/2-r.left,
+        lmy:(e.touches[0].clientY+e.touches[1].clientY)/2-r.top};
     }
     e.preventDefault();
   },{passive:false});
@@ -5676,33 +5729,47 @@ function initMap(){
       if(Math.abs(dx)>6||Math.abs(dy)>6)_swipeMoved=true;
       _x=e.touches[0].clientX-_tc.x;_y=e.touches[0].clientY-_tc.y;applyT();
     }else if(_tc.pinch&&e.touches.length===2){
-      const dx=e.touches[0].clientX-e.touches[1].clientX;
-      const dy=e.touches[0].clientY-e.touches[1].clientY;
-      const nd=Math.hypot(dx,dy);
-      const ns=Math.min(Math.max(_tc.s0*nd/_tc.dist,0.3),15);
-      _x=_tc.mx-(_tc.mx-_tc.x0)*ns/_tc.s0;
-      _y=_tc.my-(_tc.my-_tc.y0)*ns/_tc.s0;
-      _s=ns;applyT();
+      /* 증분 핀치: 줌과 이동을 동시에 */
+      const r=mw.getBoundingClientRect();
+      const nd=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+      const mx=(e.touches[0].clientX+e.touches[1].clientX)/2-r.left;
+      const my=(e.touches[0].clientY+e.touches[1].clientY)/2-r.top;
+      const ns=Math.min(Math.max(_s*nd/_tc.ldist,0.3),15);
+      _x=mx-(_tc.lmx-_x)*ns/_s;_y=my-(_tc.lmy-_y)*ns/_s;_s=ns;applyT();
+      _tc.ldist=nd;_tc.lmx=mx;_tc.lmy=my;
     }
     e.preventDefault();
   },{passive:false});
+  let _lastTap=0,_lastTapX=0,_lastTapY=0;
   mw.addEventListener('touchend',function(e){
     if(!isMobile)return;
+    if(e.touches.length===1&&_tc&&_tc.pinch){
+      /* 핀치 중 한 손가락만 떼면 남은 손가락으로 바로 이동 가능 */
+      _tc={x:e.touches[0].clientX-_x,y:e.touches[0].clientY-_y,pinch:false};
+      _swipeStartX=e.touches[0].clientX;_swipeStartY=e.touches[0].clientY;_swipeMoved=true;
+      return;
+    }
     if(e.touches.length===0){
       if(!_swipeMoved&&_tc&&!_tc.pinch){
         /* 탭 처리: e.preventDefault()가 click을 막으므로 여기서 직접 실행 */
         const touch=e.changedTouches[0];
         if(touch){
           const el=document.elementFromPoint(touch.clientX,touch.clientY);
+          let hit=false;
           if(el){
-            const rg=el.closest('.ring-g');
-            if(rg){
-              const iso=rg.dataset.iso;
-              if(iso){if(S.status[iso]==='cr')showAnswer(iso,touch.clientX,touch.clientY-10);else if(!done(iso))openModal(iso);}
-            }else{
-              const cel=findCountryEl(el);
-              if(cel){const iso=iso4el(cel);if(iso){if(S.status[iso]==='cr')showAnswer(iso,touch.clientX,touch.clientY-10);else if(!done(iso))openModal(iso);}}
-            }
+            const cel=findCountryEl(el);
+            if(cel){const iso=iso4el(cel);if(iso){hit=true;if(S.status[iso]==='cr')showAnswer(iso,touch.clientX,touch.clientY-10);else if(!done(iso))openModal(iso);}}
+          }
+          if(!hit){
+            /* 빈 곳 더블탭 → 확대 */
+            const now=Date.now();
+            if(now-_lastTap<350&&Math.abs(touch.clientX-_lastTapX)<40&&Math.abs(touch.clientY-_lastTapY)<40){
+              const r=mw.getBoundingClientRect();
+              const mx=touch.clientX-r.left,my=touch.clientY-r.top;
+              const ns=Math.min(_s*1.8,15);
+              _x=mx-(mx-_x)*ns/_s;_y=my-(my-_y)*ns/_s;_s=ns;applyT();
+              _lastTap=0;
+            }else{_lastTap=now;_lastTapX=touch.clientX;_lastTapY=touch.clientY;}
           }
         }
       }else if(_swipeMoved&&_tc&&!_tc.pinch&&!modalOpen){
@@ -5713,6 +5780,10 @@ function initMap(){
       _tc=null;
     }
   },{passive:false});
+  /* 가상 키보드가 열려 화면이 줄어들면 영토가 가려지지 않게 다시 중앙 정렬 */
+  window.addEventListener('resize',function(){
+    if(isMobile&&modalOpen&&S.cur)centerCountry(S.cur,true);
+  });
   applyModeUI();
 }
 window.addEventListener('load',initMap);
