@@ -4894,7 +4894,8 @@ function openModal(iso){
   document.getElementById('ui-fb').textContent='';document.getElementById('ui-fb').className='fb';
   document.getElementById('ui-ab').style.display='none';
   document.getElementById('ui-ov').classList.add('on');
-  setTimeout(()=>gi.focus(),50);
+  /* 모바일 Safari/Chrome: 가상 키보드는 사용자 제스처 동기 맥락에서만 열림 — setTimeout 없이 즉시 focus */
+  gi.focus();
   /* blink */
   setColor(iso,'blink');
   const mob=document.getElementById('ui-mob-bar');if(mob)mob.style.display='none';
@@ -5136,7 +5137,7 @@ function showRQCard(){
   document.getElementById('rq-bsub').textContent='확인';
   document.getElementById('rq-bskip').textContent='건너뛰기';
   updateRQStats();
-  setTimeout(()=>document.getElementById('rq-r1').focus(),50);
+  document.getElementById('rq-r1').focus();
 }
 function checkRQ(){
   if(RQ.submitted){RQ.idx++;showRQCard();return;}
@@ -5418,7 +5419,7 @@ function krOpenModal(kid){
   document.getElementById('kr-fb').textContent='';document.getElementById('kr-fb').className='fb';
   document.getElementById('kr-ab').style.display='none';
   document.getElementById('kr-ov').classList.add('on');
-  setTimeout(()=>gi.focus(),50);
+  gi.focus();
   setKColor(kid,'blink');
   document.getElementById('kr-mob-bar').style.display='none';
 }
@@ -5499,6 +5500,7 @@ function krZoomTo(kid,open,instant){
     if(instant){k_x=tx;k_y=ty;k_s=ns;applyKT();}
     else krAnimateTo(tx,ty,ns,500);
   }
+  /* 모달/focus는 즉시 열어야 모바일 키보드가 뜸 — 애니메이션 끝을 기다리지 않음 */
   if(open)krOpenModal(kid);
 }
 function krRandom(){
