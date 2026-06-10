@@ -30,6 +30,7 @@ body.mob-mode main{padding-bottom:72px}
 #world-svg .antxx{fill:#252a30;cursor:default;pointer-events:none}
 #world-svg .limitxx{fill:transparent;stroke:none;pointer-events:none}
 #world-svg .circlexx,#world-svg .subxx,#world-svg .noxx,#world-svg .unxx{opacity:0;pointer-events:none}
+#world-svg circle{opacity:0!important;pointer-events:none!important}
 #world-svg .xk.limitxx,#world-svg .xz.limitxx{fill:var(--land);stroke:#0d1117;stroke-width:.5;pointer-events:all;opacity:1}
 #world-svg .eh.landxx{fill:var(--land)!important;pointer-events:all;cursor:pointer}
 #world-svg .landxx:hover,#world-svg .xk.limitxx:hover,#world-svg .xz.limitxx:hover,#world-svg .eh.landxx:hover{fill:#556070}
@@ -4742,6 +4743,8 @@ function isClickable(el){
 /* 모든 SVG 요소에 소유 국가(data-iso) 부여 — 분쟁지역 공유 경로는 마지막 클래스가 소유자 */
 function assignOwnership(){
   document.querySelectorAll('#world-svg [class]').forEach(el=>{
+    /* 분쟁지역 마커 원(circle)은 항상 숨김 유지 */
+    if(el.tagName.toLowerCase()==='circle')return;
     let owner=null;
     for(const cc of el.classList)if(COUNTRIES[cc])owner=cc;
     if(owner){
@@ -4994,21 +4997,7 @@ function renderCLGrid(){
         document.getElementById('cl-panel').classList.remove('on');
         setTimeout(()=>{
           openModal(iso);
-          const mw=document.getElementById('ui-map');
-          const pw=mw.clientWidth,ph=mw.clientHeight;
-          if(CIRCLE_ISOS.has(iso)){
-            const pos=CIRCLE_POS[iso];
-            const ns=Math.min(Math.max(6,Math.min(pw/100,ph/80)),12);
-            animateTo(pw/2-pos.cx*ns,ph/2-pos.cy*ns,ns,500);
-          }else{
-            let minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9;
-            els4iso(iso).forEach(el=>{try{const b=el.getBBox();minX=Math.min(minX,b.x);minY=Math.min(minY,b.y);maxX=Math.max(maxX,b.x+b.width);maxY=Math.max(maxY,b.y+b.height);}catch(e){}} );
-            if(minX<1e9){
-              const cx=(minX+maxX)/2,cy=(minY+maxY)/2;
-              const ns=Math.min(Math.max(Math.min(pw/((maxX-minX)+80),ph/((maxY-minY)+80)),0.5),12);
-              animateTo(pw/2-cx*ns,ph/2-cy*ns,ns,500);
-            }
-          }
+          centerCountry(iso);
         },200);
       });
       grid.appendChild(span);
@@ -5432,7 +5421,15 @@ function krSubmit(){
     }
   }
 }
-function krZoomTo(kid,open){
+function krAnimateTo(tx,ty,sc,dur){
+  const x0=k_x,y0=k_y,s0=k_s,t0=performance.now();
+  (function step(now){
+    const p=Math.min((now-t0)/dur,1),e=p<.5?2*p*p:1-(-2*p+2)**2/2;
+    k_x=x0+(tx-x0)*e;k_y=y0+(ty-y0)*e;k_s=s0+(sc-s0)*e;applyKT();
+    if(p<1)requestAnimationFrame(step);
+  })(t0);
+}
+function krZoomTo(kid,open,instant){
   const mw=document.getElementById('kr-map');
   const pw=mw.clientWidth,ph=mw.clientHeight;
   /* 모바일: 상단 모달을 피해서, 여백을 넉넉히 줘 좀 더 멀리서 보여줌 */
@@ -5443,9 +5440,10 @@ function krZoomTo(kid,open){
   if(minX<1e9){
     const cx=(minX+maxX)/2,cy=(minY+maxY)/2;
     const pad=isMobile?140:60;
-    k_s=Math.min(Math.max(Math.min(pw/((maxX-minX)+pad),availH/((maxY-minY)+pad)),1),isMobile?12:20);
-    k_x=pw/2-cx*k_s;k_y=topPad+availH/2-cy*k_s;
-    applyKT();
+    const ns=Math.min(Math.max(Math.min(pw/((maxX-minX)+pad),availH/((maxY-minY)+pad)),1),isMobile?12:20);
+    const tx=pw/2-cx*ns,ty=topPad+availH/2-cy*ns;
+    if(instant){k_x=tx;k_y=ty;k_s=ns;applyKT();}
+    else krAnimateTo(tx,ty,ns,500);
   }
   if(open)krOpenModal(kid);
 }
@@ -5630,7 +5628,7 @@ function bindKoreaEvents(){
   window.addEventListener('resize',()=>{
     if(!document.getElementById('kr-screen').classList.contains('on'))return;
     /* 키보드가 열려 화면이 줄면 출제 지역이 가려지지 않게 다시 정렬 */
-    if(isMobile&&krModalOpen&&KR.cur)krZoomTo(KR.cur,false);
+    if(isMobile&&krModalOpen&&KR.cur)krZoomTo(KR.cur,false,true);
     else applyKT();
   });
 }
