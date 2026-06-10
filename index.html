@@ -9,7 +9,7 @@
 <style>
 :root{--bg:#0d1117;--sf:#161b22;--sf2:#21262d;--bd:#30363d;--tx:#e6edf3;--tx2:#8b949e;--ac:#58a6ff;--ac2:#1f6feb;--wr:#f85149;--gd:#d29922;--land:#3d4451;--c1:#1a4a8a;--c2:#196c2e;--c3:#7a6000;}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--tx);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--tx);height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
 header{padding:.6rem 1.5rem;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;background:var(--sf);flex-shrink:0}
 .logo{font-family:'Space Grotesk',sans-serif;font-size:.95rem;font-weight:600;color:var(--ac)}
 .logo span{color:var(--tx2);font-weight:400}
@@ -69,7 +69,7 @@ body.mob-mode main{padding-bottom:72px}
 .ab .an{font-size:.98rem;font-weight:500;color:var(--gd)}
 /* End screen */
 #ui-end{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:600;display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
-.ec{background:var(--sf);border:1px solid var(--bd);border-radius:16px;padding:2rem;text-align:center;max-width:480px;width:94%;max-height:90vh;overflow-y:auto}
+.ec{background:var(--sf);border:1px solid var(--bd);border-radius:16px;padding:2rem;text-align:center;max-width:480px;width:94%;max-height:90vh;max-height:90dvh;overflow-y:auto}
 .ec h1{font-family:'Space Grotesk',sans-serif;font-size:1.5rem;font-weight:600}
 .esc{font-size:3rem;font-family:'Space Grotesk',sans-serif;font-weight:600;color:var(--ac);margin:.6rem 0}
 .eg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.6rem;margin:.9rem 0}
@@ -90,10 +90,18 @@ body.mob-mode main{padding-bottom:72px}
 .hbtn.saved{color:#3fb950;border-color:#3fb950}
 .hbtn.mode-mobile{color:#3fb950;border-color:rgba(63,185,80,.4)}
 @media(max-width:600px){
-  header{padding:.4rem .8rem}
+  header{padding:.4rem .6rem;gap:.4rem}
+  .logo{font-size:.8rem}
   .logo span{display:none}
-  .stats{gap:.5rem}
-  .hbtn{font-size:.65rem;padding:.25rem .45rem}
+  .stats{gap:.4rem;flex:1;min-width:0;overflow-x:auto;justify-content:flex-end;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .stats::-webkit-scrollbar{display:none}
+  .stat{flex-shrink:0}
+  .hbtn{font-size:.62rem;padding:.25rem .4rem;flex-shrink:0}
+  .kr-header{padding:.45rem .6rem}
+  .kr-title{font-size:.8rem}
+  .kr-hbtns{flex:1;min-width:0;overflow-x:auto;justify-content:flex-end;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .kr-hbtns::-webkit-scrollbar{display:none}
+  .kr-stats{gap:.5rem;flex-shrink:0}
 }
 /* 모바일: 모달을 상단에 — 가상 키보드가 하단 모달(닫기 버튼)을 덮는 문제 방지 */
 body.mob-mode .ui-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
@@ -131,7 +139,7 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 #cl-panel.on{display:flex}
 #rq-list-panel{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:800;display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
 #rq-list-panel.on{display:flex}
-.cl-card{background:var(--sf);border:1px solid var(--bd);border-radius:16px;width:94%;max-width:700px;max-height:90vh;display:flex;flex-direction:column}
+.cl-card{background:var(--sf);border:1px solid var(--bd);border-radius:16px;width:94%;max-width:700px;max-height:90vh;max-height:90dvh;display:flex;flex-direction:column}
 .cl-head{padding:1rem 1.2rem .7rem;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .cl-head h2{font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:600}
 .cl-tabs{display:flex;gap:.5rem;margin-top:.5rem}
@@ -3420,7 +3428,7 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 <!-- ═══ Korea Quiz Screen ═══ -->
 <div id="kr-screen">
   <div class="kr-header">
-    <div class="kr-title">🇰🇷 한국지리 — 시·도 맞추기</div>
+    <div class="kr-title">🇰🇷 한국지리 — 시·군 맞추기</div>
     <div class="kr-stats">
       <div><div class="sv" style="color:#3fb950" id="kr-cor">0</div><div class="sl">정답</div></div>
       <div><div class="sv" style="color:var(--wr)" id="kr-rev">0</div><div class="sl">공개</div></div>
@@ -5225,9 +5233,27 @@ function initKorea(){
   svg.querySelectorAll(':scope > g').forEach(g=>{
     const prov=krNorm(g.id);
     if(!prov||prov.indexOf('레이어')===0){g.classList.add('kr-inset');return;}
-    const kid=prov;
-    if(!KR.units[kid])KR.units[kid]={n:prov,p:prov};
-    g.querySelectorAll('path').forEach(p=>p.dataset.kid=kid);
+    // 특별시·광역시는 구를 합쳐 하나의 단위로, 도는 시·군을 개별 단위로
+    if(/특별시$|광역시$|특별자치시$/.test(prov)){
+      const kid=prov;
+      if(!KR.units[kid])KR.units[kid]={n:prov,p:prov};
+      g.querySelectorAll('path').forEach(p=>p.dataset.kid=kid);
+      return;
+    }
+    Array.from(g.children).forEach(ch=>{
+      const tag=ch.tagName.toLowerCase();
+      if(tag==='path'){
+        const name=krNorm(ch.id);if(!name)return;
+        const kid=prov+'|'+name;
+        ch.dataset.kid=kid;
+        if(!KR.units[kid])KR.units[kid]={n:name,p:prov};
+      }else if(tag==='g'){
+        const name=krNorm(ch.id);if(!name)return;
+        const kid=prov+'|'+name;
+        if(!KR.units[kid])KR.units[kid]={n:name,p:prov};
+        ch.querySelectorAll('path').forEach(p=>p.dataset.kid=kid);
+      }
+    });
   });
   KR.total=Object.keys(KR.units).length;
   krFit();
@@ -5294,8 +5320,17 @@ function loadKR(){
   try{
     const raw=localStorage.getItem(KQ_SAVE_KEY);if(!raw)return false;
     const d=JSON.parse(raw);
-    Object.assign(KR.status,d.status||{});Object.assign(KR.wrong,d.wrong||{});
-    KR.correct=d.correct||0;KR.revealed=d.revealed||0;return true;
+    // 단위 체계가 바뀐 이전 저장 데이터의 키는 무시하고 카운트를 다시 계산
+    let cor=0,rev=0;
+    for(const[k,v]of Object.entries(d.status||{})){
+      if(!KR.units[k])continue;
+      KR.status[k]=v;
+      if(v==='cr')rev++;else cor++;
+    }
+    for(const[k,v]of Object.entries(d.wrong||{})){
+      if(KR.units[k])KR.wrong[k]=v;
+    }
+    KR.correct=cor;KR.revealed=rev;return true;
   }catch(e){return false;}
 }
 function resetKR(skipConfirm){
@@ -5336,7 +5371,7 @@ function krCheckAnswer(input,kid){
   if(a===u.n)return true;
   const aliases=KR_ALIASES[u.n]||[];
   if(aliases.some(x=>a===x))return true;
-  if(u.n.length>=3&&/[시도]$/.test(u.n)&&a===u.n.slice(0,-1))return true;
+  if(u.n.length>=3&&/[시군구도]$/.test(u.n)&&a===u.n.slice(0,-1))return true;
   return false;
 }
 let _kLastSubmit=0;
@@ -5367,7 +5402,7 @@ function krSubmit(){
       setKColor(kid,'cr');
       KR.status[kid]='cr';KR.revealed++;
       const u=KR.units[kid];
-      document.getElementById('kr-an').textContent=u.n;
+      document.getElementById('kr-an').textContent=u.p===u.n?u.n:u.n+' ('+u.p+')';
       document.getElementById('kr-ab').style.display='block';
       gi.value='';
       saveKR();
@@ -5403,7 +5438,7 @@ function krEndScreen(){
   for(const[kid,cls]of Object.entries(KR.status)){
     if(cls!=='cr')continue;
     const u=KR.units[kid];
-    const span=document.createElement('span');span.className='wrong-tag';span.textContent=u.n;
+    const span=document.createElement('span');span.className='wrong-tag';span.textContent=u.p===u.n?u.n:u.n+' ('+u.p+')';
     tags.appendChild(span);n++;
   }
   document.getElementById('kr-wrong-wrap').style.display=n?'block':'none';
@@ -5428,7 +5463,7 @@ function updateKLPanel(){
 }
 function renderKLGrid(){
   const grid=document.getElementById('kl-grid');grid.innerHTML='';
-  const label=kid=>KR.units[kid].n;
+  const label=kid=>{const u=KR.units[kid];return u.p===u.n?u.n:u.n+' ('+u.p.slice(0,2)+')';};
   if(klTab==='done'){
     const sorted=Object.entries(KR.status).sort((a,b)=>label(a[0]).localeCompare(label(b[0])));
     sorted.forEach(([kid,cls])=>{
