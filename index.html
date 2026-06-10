@@ -4882,6 +4882,8 @@ function stats(){
 
 let modalOpen=false;
 function openModal(iso){
+  /* 다른 나라가 깜빡이고 있으면 먼저 해제 */
+  if(S.cur&&S.cur!==iso&&!S.status[S.cur])clearBlink(S.cur);
   S.cur=iso;modalOpen=true;
   const w=S.wrong[iso]||0;
   for(let i=0;i<3;i++)document.getElementById('ui-d'+i).className='dot'+(i<w?' ng':'');
@@ -5400,6 +5402,8 @@ function resetKR(skipConfirm){
 }
 function krDone(kid){return!!KR.status[kid];}
 function krOpenModal(kid){
+  /* 다른 지역이 깜빡이고 있으면 먼저 해제 */
+  if(KR.cur&&KR.cur!==kid&&!KR.status[KR.cur])clearKBlink(KR.cur);
   KR.cur=kid;krModalOpen=true;
   const w=KR.wrong[kid]||0;
   for(let i=0;i<3;i++)document.getElementById('kr-d'+i).className='dot'+(i<w?' ng':'');
