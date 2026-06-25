@@ -211,6 +211,9 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 .land-btn:hover{border-color:var(--ac);color:var(--ac)}
 .land-icon{font-size:2.2rem;display:block;margin-bottom:.5rem}
 .land-sub{font-size:.72rem;color:var(--tx2);font-weight:400;margin-top:.3rem}
+.land-btn-sm{padding:.7rem 1.2rem;min-width:130px}
+.land-back{background:none;border:1px solid var(--bd);border-radius:8px;color:var(--tx2);padding:.4rem 1rem;font-size:.8rem;font-family:'Noto Sans KR',sans-serif;cursor:pointer;margin-top:.8rem}
+.land-back:hover{color:var(--tx)}
 </style>
 </head>
 <body>
@@ -225,11 +228,48 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
   </div>
   <div id="land-step2" style="display:none">
     <h2 style="text-align:center">어떤 퀴즈를 할까요?</h2>
-    <p style="text-align:center;margin:.4rem 0 1.2rem">퀴즈를 선택하세요</p>
     <div class="land-choices">
       <button class="land-btn" id="land-world"><span class="land-icon">🌍</span>세계 지리<div class="land-sub">나라 맞추기 / 종교 퀴즈</div></button>
       <button class="land-btn" id="land-korea"><span class="land-icon">🇰🇷</span>한국 지리<div class="land-sub">시·군 맞추기</div></button>
     </div>
+  </div>
+  <div id="land-step3" style="display:none">
+    <h2 style="text-align:center">세계 지리 모드</h2>
+    <div class="land-choices">
+      <button class="land-btn" id="land-all-cont"><span class="land-icon">🌐</span>전체 대륙<div class="land-sub">모든 나라</div></button>
+      <button class="land-btn" id="land-by-cont"><span class="land-icon">🗺️</span>대륙별<div class="land-sub">대륙을 선택해서 도전</div></button>
+    </div>
+    <button class="land-back" id="land-back3">← 뒤로</button>
+  </div>
+  <div id="land-step4a" style="display:none">
+    <h2 style="text-align:center">🌐 전체 대륙</h2>
+    <p style="text-align:center;margin:.3rem 0 1rem;font-size:.85rem;color:var(--tx2)">인구 40만 이하 소국을 제외할까요?</p>
+    <div class="land-choices">
+      <button class="land-btn" id="land-all-incl"><span class="land-icon">🌍</span>전체 포함<div class="land-sub">198개국 전부</div></button>
+      <button class="land-btn" id="land-all-big"><span class="land-icon">🏙️</span>소국 제외<div class="land-sub">인구 40만+ 국가만</div></button>
+    </div>
+    <button class="land-back" id="land-back4a">← 뒤로</button>
+  </div>
+  <div id="land-step4b" style="display:none">
+    <h2 style="text-align:center">🗺️ 대륙 선택</h2>
+    <div class="land-choices" style="flex-wrap:wrap;max-width:500px">
+      <button class="land-btn land-btn-sm" data-cont="as"><span class="land-icon" style="font-size:1.8rem">🌏</span>아시아</button>
+      <button class="land-btn land-btn-sm" data-cont="eu"><span class="land-icon" style="font-size:1.8rem">🌍</span>유럽</button>
+      <button class="land-btn land-btn-sm" data-cont="af"><span class="land-icon" style="font-size:1.8rem">🌍</span>아프리카</button>
+      <button class="land-btn land-btn-sm" data-cont="na"><span class="land-icon" style="font-size:1.8rem">🌎</span>북아메리카</button>
+      <button class="land-btn land-btn-sm" data-cont="sa"><span class="land-icon" style="font-size:1.8rem">🌎</span>남아메리카</button>
+      <button class="land-btn land-btn-sm" data-cont="oc"><span class="land-icon" style="font-size:1.8rem">🌏</span>오세아니아</button>
+    </div>
+    <button class="land-back" id="land-back4b">← 뒤로</button>
+  </div>
+  <div id="land-step5" style="display:none">
+    <h2 style="text-align:center" id="land-cont-title">대륙 선택됨</h2>
+    <p style="text-align:center;margin:.3rem 0 1rem;font-size:.85rem;color:var(--tx2)">섬나라를 제외할까요?</p>
+    <div class="land-choices">
+      <button class="land-btn" id="land-isle-incl"><span class="land-icon">🏝️</span>섬나라 포함<div class="land-sub">모든 나라</div></button>
+      <button class="land-btn" id="land-isle-excl"><span class="land-icon">🏔️</span>섬나라 제외<div class="land-sub">대륙 국가만</div></button>
+    </div>
+    <button class="land-back" id="land-back5">← 뒤로</button>
   </div>
 </div>
 <header>
@@ -4629,33 +4669,84 @@ let isMobile=localStorage.getItem(MODE_KEY)==='mobile'||(localStorage.getItem(MO
 // Landing overlay — 매번 접속할 때마다 모드 선택
 (function(){
   const overlay=document.getElementById('landing-overlay');
+  const steps={1:'land-step1',2:'land-step2',3:'land-step3','4a':'land-step4a','4b':'land-step4b',5:'land-step5'};
+  let _selectedCont='';
+
+  function showStep(key){
+    Object.values(steps).forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+    const el=document.getElementById(steps[key]);if(el)el.style.display='block';
+  }
+
   function pickMode(mob){
     localStorage.setItem(MODE_KEY,mob?'mobile':'pc');
     isMobile=mob;
     applyModeUI();
-    // 모드에 따라 지도 비율 다시 맞추기
     try{
       const mw=document.getElementById('ui-map');
       if(mw&&typeof applyT==='function'&&typeof SW!=='undefined'){
         _s=Math.min(mw.clientWidth/SW,mw.clientHeight/SH);
-        _x=(mw.clientWidth-SW*_s)/2;_y=(mw.clientHeight-SH*_s)/2;
-        applyT();
+        _x=(mw.clientWidth-SW*_s)/2;_y=(mw.clientHeight-SH*_s)/2;applyT();
       }
       if(typeof KR!=='undefined'&&KR.inited&&typeof krFit==='function')krFit();
     }catch(err){}
-    /* 2단계: 퀴즈 선택 */
-    document.getElementById('land-step1').style.display='none';
-    document.getElementById('land-step2').style.display='block';
+    showStep(2);
   }
-  function pickQuiz(korea){
+
+  function startWorld(filterKey){
+    initActiveSet(filterKey);
+    /* 기존 저장 데이터 로드 */
+    S.correct=0;S.revealed=0;S.status={};S.wrong={};
+    if(loadGame()){
+      /* paint saved colors */
+      for(const[iso,cls]of Object.entries(S.status)){setColor(iso,cls);}
+    }
+    stats();
     overlay.style.display='none';
-    if(korea){try{openKoreaQuiz();}catch(err){}}
   }
+
   document.getElementById('land-pc').addEventListener('click',function(){pickMode(false);});
   document.getElementById('land-mob').addEventListener('click',function(){pickMode(true);});
-  document.getElementById('land-world').addEventListener('click',function(){pickQuiz(false);});
-  document.getElementById('land-korea').addEventListener('click',function(){pickQuiz(true);});
+  document.getElementById('land-world').addEventListener('click',function(){showStep(3);});
+  document.getElementById('land-korea').addEventListener('click',function(){
+    overlay.style.display='none';
+    try{openKoreaQuiz();}catch(err){}
+  });
+
+  /* Step 3: 전체/대륙별 */
+  document.getElementById('land-all-cont').addEventListener('click',function(){showStep('4a');});
+  document.getElementById('land-by-cont').addEventListener('click',function(){showStep('4b');});
+  document.getElementById('land-back3').addEventListener('click',function(){showStep(2);});
+
+  /* Step 4a: 전체 + 소국 여부 */
+  document.getElementById('land-all-incl').addEventListener('click',function(){startWorld('all');});
+  document.getElementById('land-all-big').addEventListener('click',function(){startWorld('all_big');});
+  document.getElementById('land-back4a').addEventListener('click',function(){showStep(3);});
+
+  /* Step 4b: 대륙 선택 */
+  document.querySelectorAll('[data-cont]').forEach(btn=>{
+    btn.addEventListener('click',function(){
+      _selectedCont=this.dataset.cont;
+      document.getElementById('land-cont-title').textContent=CONT_NAME[_selectedCont]+' 대륙';
+      showStep(5);
+    });
+  });
+  document.getElementById('land-back4b').addEventListener('click',function(){showStep(3);});
+
+  /* Step 5: 섬나라 여부 */
+  document.getElementById('land-isle-incl').addEventListener('click',function(){startWorld(_selectedCont);});
+  document.getElementById('land-isle-excl').addEventListener('click',function(){startWorld(_selectedCont+'_noisle');});
+  document.getElementById('land-back5').addEventListener('click',function(){showStep('4b');});
+
+  /* 항상 step1부터 */
+  showStep(1);
 })();
+function startWithDefaultFilter(){
+  /* 저장된 퀴즈 모드 없으면 전체 모드 기본값 */
+  initActiveSet('all');
+  S.correct=0;S.revealed=0;S.status={};S.wrong={};
+  if(loadGame()){for(const[iso,cls]of Object.entries(S.status))setColor(iso,cls);}
+  stats();
+}
 function applyModeUI(){
   const btn=document.getElementById('ui-mode-btn');
   const mob=document.getElementById('ui-mob-bar');
@@ -4792,36 +4883,69 @@ function findCountryEl(t){
   return null;
 }
 
-const S={cur:null,correct:0,revealed:0,wrong:{},status:{},total:Object.keys(COUNTRIES).length};
-function done(i){return!!S.status[i];}
+/* ── Quiz Filter Data ── */
+const CONT={
+  af:['dz','ao','bj','bw','bf','bi','cm','cv','cf','td','km','cd','cg','ci','dj','eg','gq','er','et','ga','gm','gh','gn','gw','ke','ls','lr','ly','mg','mw','ml','mr','mu','mz','na','ne','ng','rw','st','sn','sc','sl','so','za','ss','sd','sz','tz','tg','ug','zm','zw','eh'],
+  as:['af','am','az','bh','bd','bt','bn','kh','cn','cy','ge','in','id','ir','iq','il','jp','jo','kz','kp','kr','kw','kg','la','lb','my','mv','mn','mm','np','om','pk','ps','ph','qa','sa','sg','lk','sy','tw','tj','th','tl','tm','ae','uz','vn','ye'],
+  eu:['al','ad','at','by','be','ba','bg','hr','cz','dk','ee','fi','fr','de','gr','hu','is','ie','it','xk','lv','li','lt','lu','mt','mc','md','me','nl','mk','no','pl','pt','ro','ru','sm','rs','sk','si','es','se','ch','ua','gb','va'],
+  na:['ag','bs','bb','bz','ca','cr','cu','dm','do','sv','gd','gt','ht','hn','jm','kn','lc','mx','ni','pa','tt','us','vc'],
+  sa:['ar','bo','br','cl','co','ec','gy','py','pe','sr','uy','ve'],
+  oc:['au','fj','fm','ki','mh','nr','nz','pw','pg','sb','to','tv','vu','ws']
+};
+/* 섬나라 (완전히 섬으로 이루어진 나라) */
+const ISLE=new Set(['ag','au','bs','bb','cv','cu','cy','dm','fj','fm','gd','ht','id','jp','ki','km','kn','lc','lk','mh','mt','mu','mv','nr','nz','pw','pg','ph','sb','sc','sg','st','to','tt','tv','tw','tl','vc','vu','ws']);
+/* 인구 40만 미만 소국 */
+const SMALL=new Set(['ad','ag','bb','dm','fm','gd','ki','kn','lc','li','mc','mh','nr','pw','sc','sm','st','to','tv','va','vc','vu','ws']);
 
-const SAVE_KEY='wq_state_v2';
+const CONT_NAME={af:'아프리카',as:'아시아',eu:'유럽',na:'북아메리카',sa:'남아메리카',oc:'오세아니아'};
+
+const S={cur:null,correct:0,revealed:0,wrong:{},status:{},total:0,activeSet:null,saveKey:'wq_all'};
+function done(i){return!!S.status[i];}
+function inActive(i){return S.activeSet?S.activeSet.has(i):!!COUNTRIES[i];}
+
+function initActiveSet(key){
+  /* key examples: 'all','all_big','af','as_noisle','eu_big' */
+  S.saveKey='wq_'+key;
+  let base=Object.keys(COUNTRIES);
+  const parts=key.split('_');
+  const contKey=parts[0];
+  if(contKey!=='all'&&CONT[contKey])base=CONT[contKey].filter(i=>COUNTRIES[i]);
+  if(parts.includes('big'))base=base.filter(i=>!SMALL.has(i));
+  if(parts.includes('noisle'))base=base.filter(i=>!ISLE.has(i));
+  S.activeSet=new Set(base);
+  S.total=S.activeSet.size;
+  /* 현재 status 중 activeSet 외 항목 제거 */
+  for(const k of Object.keys(S.status))if(!S.activeSet.has(k))delete S.status[k];
+  for(const k of Object.keys(S.wrong))if(!S.activeSet.has(k))delete S.wrong[k];
+}
+
+const SAVE_KEY='wq_state_v2'; /* legacy — not used for new slots */
 function saveGame(){
-  localStorage.setItem(SAVE_KEY,JSON.stringify({status:S.status,correct:S.correct,revealed:S.revealed,wrong:S.wrong}));
+  localStorage.setItem(S.saveKey,JSON.stringify({status:S.status,correct:S.correct,revealed:S.revealed,wrong:S.wrong}));
   const btn=document.getElementById('ui-save');
   btn.textContent='✓ 저장됨';btn.classList.add('saved');
   setTimeout(()=>{btn.textContent='💾 저장';btn.classList.remove('saved');},1500);
 }
 function loadGame(){
   try{
-    const raw=localStorage.getItem(SAVE_KEY);if(!raw)return false;
+    const raw=localStorage.getItem(S.saveKey);if(!raw)return false;
     const d=JSON.parse(raw);
-    /* COUNTRIES에 없는 키는 버리고 카운트를 상태 기준으로 재계산 */
     let cor=0,rev=0;
     for(const[k,v]of Object.entries(d.status||{})){
-      if(!COUNTRIES[k])continue;
+      if(!S.activeSet||!S.activeSet.has(k))continue;
       S.status[k]=v;
       if(v==='cr')rev++;else cor++;
     }
     for(const[k,v]of Object.entries(d.wrong||{})){
-      if(COUNTRIES[k])S.wrong[k]=v;
+      if(S.activeSet&&S.activeSet.has(k))S.wrong[k]=v;
     }
     S.correct=cor;S.revealed=rev;return true;
   }catch(e){return false;}
 }
 function resetMapQuiz(){
-  if(!confirm('지도 퀴즈 진행 상황을 모두 초기화할까요?'))return;
-  localStorage.removeItem(SAVE_KEY);
+  const modeName=S.saveKey.replace('wq_','');
+  if(!confirm('현재 모드('+modeName+') 진행 상황을 초기화할까요?'))return;
+  localStorage.removeItem(S.saveKey);
   S.correct=0;S.revealed=0;S.wrong={};S.status={};S.cur=null;
   Object.keys(colors).forEach(k=>delete colors[k]);
   paint();
@@ -4950,7 +5074,9 @@ function centerCountry(iso,instant){
   const pw=mw.clientWidth,ph=mw.clientHeight;
   /* 모바일: 상단 모달이 지도를 가리므로 그 아래 영역 기준으로 중앙 정렬 */
   const topPad=(isMobile&&modalOpen)?180:0;
-  const availH=Math.max(ph-topPad,120);
+  /* 모바일: 가상 키보드가 하단을 덮으므로 화면 42%를 키보드 공간으로 예약 */
+  const botPad=(isMobile&&modalOpen)?Math.round(ph*0.42):0;
+  const availH=Math.max(ph-topPad-botPad,80);
   let cx,cy,ns;
   if(CIRCLE_ISOS.has(iso)){
     const pos=CIRCLE_POS[iso];cx=pos.cx;cy=pos.cy;
@@ -4970,10 +5096,13 @@ function centerCountry(iso,instant){
   }
   const tx=pw/2-cx*ns,ty=topPad+availH/2-cy*ns;
   if(instant){_x=tx;_y=ty;_s=ns;applyT();}
+  /* 모바일 모달이 열릴 때는 애니메이션 없이 즉시 배치 — 키보드 resize 이벤트와 경쟁 방지 */
+  else if(isMobile&&modalOpen){_x=tx;_y=ty;_s=ns;applyT();return;}
   else animateTo(tx,ty,ns,500);
 }
 function goRandom(){
-  const list=Object.keys(COUNTRIES).filter(i=>!done(i));
+  const pool=S.activeSet?[...S.activeSet]:Object.keys(COUNTRIES);
+  const list=pool.filter(i=>!done(i));
   if(!list.length)return;
   const iso=list[Math.floor(Math.random()*list.length)];
   openModal(iso);
@@ -5034,7 +5163,8 @@ function renderCLGrid(){
     });
     if(!sorted.length){grid.innerHTML='<span style="color:var(--tx2);font-size:.8rem">아직 맞춘 나라가 없습니다.</span>';}
   }else{
-    const remain=Object.keys(COUNTRIES).filter(i=>!S.status[i]).sort((a,b)=>COUNTRIES[a].k.localeCompare(COUNTRIES[b].k));
+    const pool=S.activeSet?[...S.activeSet]:Object.keys(COUNTRIES);
+    const remain=pool.filter(i=>!S.status[i]).sort((a,b)=>COUNTRIES[a].k.localeCompare(COUNTRIES[b].k));
     remain.forEach(iso=>{
       const span=document.createElement('span');
       span.className='cl-tag remain';
@@ -5491,7 +5621,8 @@ function krZoomTo(kid,open,instant){
   const pw=mw.clientWidth,ph=mw.clientHeight;
   /* 모바일: 상단 모달을 피해서, 여백을 넉넉히 줘 좀 더 멀리서 보여줌 */
   const topPad=(isMobile&&(open||krModalOpen))?180:0;
-  const availH=Math.max(ph-topPad,120);
+  const botPad=(isMobile&&(open||krModalOpen))?Math.round(ph*0.42):0;
+  const availH=Math.max(ph-topPad-botPad,80);
   let minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9;
   kEls(kid).forEach(el=>{try{const b=el.getBBox();minX=Math.min(minX,b.x);minY=Math.min(minY,b.y);maxX=Math.max(maxX,b.x+b.width);maxY=Math.max(maxY,b.y+b.height);}catch(e){}});
   if(minX<1e9){
@@ -5699,10 +5830,9 @@ function initMap(){
   _s=Math.min(mw.clientWidth/SW,mw.clientHeight/SH);
   _x=(mw.clientWidth-SW*_s)/2;_y=(mw.clientHeight-SH*_s)/2;
   applyT();
-  if(loadGame()){
-    for(const[iso,cls]of Object.entries(S.status)){
-      setColor(iso,cls);
-    }
+  /* saveGame/loadGame now handled by landing overlay; only load if overlay is hidden */
+  if(document.getElementById('landing-overlay').style.display==='none'){
+    if(loadGame()){for(const[iso,cls]of Object.entries(S.status))setColor(iso,cls);}
   }
   stats();
   let dragged=false;
