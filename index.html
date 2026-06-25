@@ -4918,6 +4918,7 @@ function initActiveSet(key){
   /* 현재 status 중 activeSet 외 항목 제거 */
   for(const k of Object.keys(S.status))if(!S.activeSet.has(k))delete S.status[k];
   for(const k of Object.keys(S.wrong))if(!S.activeSet.has(k))delete S.wrong[k];
+  paintMask();
 }
 
 const SAVE_KEY='wq_state_v2'; /* legacy — not used for new slots */
@@ -4954,7 +4955,17 @@ function resetMapQuiz(){
   stats();
 }
 
+const dynMask=document.createElement('style');document.head.appendChild(dynMask);
 const dyn=document.createElement('style');document.head.appendChild(dyn);
+function paintMask(){
+  if(!S.activeSet||S.activeSet.size>=Object.keys(COUNTRIES).length){dynMask.textContent='';return;}
+  let css='#world-svg [data-iso]{fill:#151c28!important;stroke:#0a0f18!important;cursor:default!important;pointer-events:none!important}';
+  for(const iso of S.activeSet){
+    css+=selCSS(iso)+'{fill:#3d4451!important;stroke:#0d1117!important;cursor:pointer!important;pointer-events:all!important}';
+    css+=selCSS(iso)+':hover{fill:#556070!important}';
+  }
+  dynMask.textContent=css;
+}
 const colors={};
 function paint(){
   let css='';
@@ -4999,6 +5010,7 @@ function clearBlink(iso){
 }
 
 function stats(){
+  if(!S.total)return;
   const d=S.correct+S.revealed;
   const rem=S.total-d;
   document.getElementById('ui-rem').textContent=rem;
@@ -5006,7 +5018,7 @@ function stats(){
   document.getElementById('ui-rev').textContent=S.revealed;
   document.getElementById('ui-pf').style.width=(d/S.total*100)+'%';
   const rc=document.getElementById('mob-rem-cnt');if(rc)rc.textContent=rem+'개 남음';
-  if(d>=S.total)setTimeout(endScreen,600);
+  if(rem<=0)setTimeout(endScreen,600);
 }
 
 let modalOpen=false;
@@ -5081,7 +5093,7 @@ function centerCountry(iso,instant){
   let cx,cy,ns;
   if(CIRCLE_ISOS.has(iso)){
     const pos=CIRCLE_POS[iso];cx=pos.cx;cy=pos.cy;
-    ns=Math.min(Math.max(isMobile?4:6,Math.min(pw/100,availH/80)),12);
+    ns=Math.min(Math.max(isMobile?6:8,Math.min(pw/60,availH/50)),18);
   }else{
     let minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9;
     els4iso(iso).forEach(el=>{
@@ -5091,9 +5103,8 @@ function centerCountry(iso,instant){
     });
     if(minX>=1e9)return;
     cx=(minX+maxX)/2;cy=(minY+maxY)/2;
-    /* 모바일은 여백을 넉넉히 줘서 좀 더 멀리서 보여줌 */
-    const pad=isMobile?160:80;
-    ns=Math.min(Math.max(Math.min(pw/((maxX-minX)+pad),availH/((maxY-minY)+pad)),0.5),isMobile?8:12);
+    const pad=isMobile?60:20;
+    ns=Math.min(Math.max(Math.min(pw/((maxX-minX)+pad),availH/((maxY-minY)+pad)),0.5),isMobile?14:22);
   }
   const tx=pw/2-cx*ns,ty=topPad+availH/2-cy*ns;
   if(instant){_x=tx;_y=ty;_s=ns;applyT();}
@@ -5841,6 +5852,7 @@ function initMap(){
     if(dragged)return;
     const cel=findCountryEl(e.target);if(!cel)return;
     const iso=iso4el(cel);if(!iso)return;
+    if(!inActive(iso))return;
     if(S.status[iso]==='cr'){showAnswer(iso,e.clientX,e.clientY-10);return;}
     if(!done(iso)){openModal(iso);centerCountry(iso);}
   });
