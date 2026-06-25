@@ -85,7 +85,20 @@ body.mob-mode main{padding-bottom:72px}
 .wrong-list{margin-top:1rem;text-align:left;background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.3);border-radius:8px;padding:.6rem .8rem}
 .wrong-list h3{font-size:.72rem;color:var(--tx2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem}
 .wrong-tags{display:flex;flex-wrap:wrap;gap:4px;max-height:160px;overflow-y:auto}
-.wrong-tag{background:rgba(248,81,73,.2);color:var(--wr);border-radius:4px;padding:2px 7px;font-size:.75rem}
+.wrong-tag{background:rgba(248,81,73,.2);color:var(--wr);border-radius:4px;padding:2px 7px;font-size:.75rem;cursor:pointer;user-select:none;transition:.12s}
+.wrong-tag:hover{background:rgba(248,81,73,.42);color:#fff}
+/* End screen info popup */
+#end-info-pop{position:fixed;inset:0;z-index:9000;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.65);backdrop-filter:blur(4px)}
+#end-info-pop.on{display:flex}
+.eip-card{background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:1.6rem 1.4rem 1.2rem;text-align:center;width:min(300px,88vw);position:relative}
+.eip-close{position:absolute;top:.55rem;right:.7rem;background:none;border:none;color:var(--tx2);font-size:1.1rem;cursor:pointer;line-height:1}
+.eip-flag{font-size:3rem;line-height:1.1;margin-bottom:.4rem}
+.eip-kname{font-size:1.25rem;font-weight:700;color:var(--tx);margin-bottom:.2rem}
+.eip-ename{font-size:.82rem;color:var(--tx2);margin-bottom:.6rem}
+.eip-meta{display:flex;justify-content:center;gap:.4rem;flex-wrap:wrap;margin-bottom:.9rem}
+.eip-badge{font-size:.72rem;background:rgba(88,166,255,.12);color:var(--ac);border-radius:4px;padding:2px 8px}
+.eip-map-btn{width:100%;padding:.55rem;background:rgba(33,38,45,.8);color:var(--tx2);border:1px solid var(--bd);border-radius:8px;font-size:.82rem;font-family:'Noto Sans KR',sans-serif;cursor:pointer}
+.eip-map-btn:hover{color:var(--tx)}
 /* Header buttons */
 .hbtn{background:rgba(33,38,45,.8);border:1px solid var(--bd);border-radius:6px;padding:.3rem .65rem;font-size:.72rem;color:var(--tx2);cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:.15s;white-space:nowrap}
 .hbtn:hover{color:var(--tx)}
@@ -3504,11 +3517,28 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
     </div>
     <div class="est" style="margin-bottom:.6rem"><div class="esv" style="color:var(--wr)" id="ui-er">0</div><div class="esl">정답공개</div></div>
     <div class="wrong-list" id="ui-wrong-list" style="display:none">
-      <h3>🔴 공개된 나라들</h3>
+      <h3>🔴 틀린 나라들 <span style="font-size:.6rem;opacity:.7;font-weight:400">(클릭하면 정보)</span></h3>
       <div class="wrong-tags" id="ui-wrong-tags"></div>
     </div>
-    <button class="reb" onclick="location.reload()">다시 시작</button>
+    <button class="reb" id="end-retry-wrong" style="display:none" onclick="retryWrong()">🔴 틀린것만 다시하기</button>
+    <button class="reb secondary" id="end-add-wrong" style="display:none" onclick="addToOopsNote()">📝 오답 추가하기</button>
+    <button class="reb secondary" id="end-oops-quiz" style="display:none" onclick="startOopsQuiz()">📘 오답 노트 퀴즈</button>
+    <button class="reb" onclick="location.reload()">🔄 다시 시작</button>
     <button class="reb secondary" onclick="document.getElementById('ui-end').style.display='none'">닫기 (지도 보기)</button>
+  </div>
+</div>
+
+<!-- Country Info Popup (End Screen) -->
+<div id="end-info-pop" onclick="if(event.target===this)closeEndInfoPop()">
+  <div class="eip-card">
+    <button class="eip-close" onclick="closeEndInfoPop()">✕</button>
+    <div class="eip-flag" id="eip-flag"></div>
+    <div class="eip-kname" id="eip-kname"></div>
+    <div class="eip-ename" id="eip-ename"></div>
+    <div class="eip-meta">
+      <span class="eip-badge" id="eip-cont"></span>
+    </div>
+    <button class="eip-map-btn" onclick="viewOnMap(currentEipIso)">🗺️ 지도에서 보기</button>
   </div>
 </div>
 
@@ -5207,6 +5237,64 @@ function showAnswer(iso,x,y){
   setTimeout(()=>p.style.display='none',2200);
 }
 
+function isoToFlag(iso){
+  if(!iso||iso.length!==2)return '🌍';
+  try{return iso.toUpperCase().split('').map(c=>String.fromCodePoint(c.charCodeAt(0)+127397)).join('');}catch(e){return '🌍';}
+}
+function getContName(iso){
+  for(const[k,arr]of Object.entries(CONT))if(arr.includes(iso))return CONT_NAME[k]||k;
+  return '';
+}
+let currentEipIso=null;
+function openEndInfoPop(iso){
+  const c=COUNTRIES[iso];if(!c)return;
+  currentEipIso=iso;
+  document.getElementById('eip-flag').textContent=isoToFlag(iso);
+  document.getElementById('eip-kname').textContent=c.k;
+  document.getElementById('eip-ename').textContent=c.e;
+  document.getElementById('eip-cont').textContent=getContName(iso)||iso.toUpperCase();
+  document.getElementById('end-info-pop').classList.add('on');
+}
+function closeEndInfoPop(){document.getElementById('end-info-pop').classList.remove('on');}
+function viewOnMap(iso){
+  closeEndInfoPop();
+  document.getElementById('ui-end').style.display='none';
+  centerCountry(iso);
+}
+function retryWrong(){
+  const wrongISOs=Object.entries(S.status).filter(([,v])=>v==='cr').map(([k])=>k);
+  if(!wrongISOs.length)return;
+  document.getElementById('ui-end').style.display='none';
+  S.activeSet=new Set(wrongISOs);S.total=wrongISOs.length;
+  S.saveKey='wq__retry';
+  S.correct=0;S.revealed=0;S.status={};S.wrong={};
+  Object.keys(colors).forEach(k=>stopJsBlink(k));
+  for(const k in colors)delete colors[k];
+  paintMask();paint();stats();
+}
+const OOPS_KEY='wq_oops_note';
+function addToOopsNote(){
+  const wrongISOs=Object.entries(S.status).filter(([,v])=>v==='cr').map(([k])=>k);
+  if(!wrongISOs.length)return;
+  const existing=JSON.parse(localStorage.getItem(OOPS_KEY)||'[]');
+  const merged=[...new Set([...existing,...wrongISOs])];
+  localStorage.setItem(OOPS_KEY,JSON.stringify(merged));
+  const btn=document.getElementById('end-add-wrong');
+  if(btn){btn.textContent='✅ 추가됨 (총 '+merged.length+'개)';btn.disabled=true;btn.style.opacity='.6';}
+  const oq=document.getElementById('end-oops-quiz');
+  if(oq){oq.style.display='block';oq.textContent='📘 오답 노트 퀴즈 ('+merged.length+'개)';}
+}
+function startOopsQuiz(){
+  const saved=JSON.parse(localStorage.getItem(OOPS_KEY)||'[]').filter(i=>COUNTRIES[i]);
+  if(!saved.length){alert('저장된 오답이 없습니다.');return;}
+  document.getElementById('ui-end').style.display='none';
+  S.activeSet=new Set(saved);S.total=saved.length;
+  S.saveKey='wq__oops';
+  S.correct=0;S.revealed=0;S.status={};S.wrong={};
+  Object.keys(colors).forEach(k=>stopJsBlink(k));
+  for(const k in colors)delete colors[k];
+  paintMask();paint();stats();
+}
 function endScreen(){
   const cnt={c1:0,c2:0,c3:0};
   for(const v of Object.values(S.status))if(cnt[v]!==undefined)cnt[v]++;
@@ -5217,8 +5305,24 @@ function endScreen(){
   document.getElementById('ui-er').textContent=S.revealed;
   const revISOs=Object.entries(S.status).filter(([,v])=>v==='cr').map(([k])=>k);
   const tagsEl=document.getElementById('ui-wrong-tags');tagsEl.innerHTML='';
-  revISOs.forEach(iso=>{const span=document.createElement('span');span.className='wrong-tag';span.textContent=COUNTRIES[iso].k;tagsEl.appendChild(span);});
+  revISOs.forEach(iso=>{
+    const span=document.createElement('span');
+    span.className='wrong-tag';
+    span.textContent=COUNTRIES[iso].k;
+    span.addEventListener('click',()=>openEndInfoPop(iso));
+    tagsEl.appendChild(span);
+  });
   document.getElementById('ui-wrong-list').style.display=revISOs.length?'block':'none';
+  const hasWrong=revISOs.length>0;
+  document.getElementById('end-retry-wrong').style.display=hasWrong?'block':'none';
+  document.getElementById('end-add-wrong').style.display=hasWrong?'block':'none';
+  document.getElementById('end-add-wrong').textContent='📝 오답 추가하기';
+  document.getElementById('end-add-wrong').disabled=false;
+  document.getElementById('end-add-wrong').style.opacity='1';
+  const saved=JSON.parse(localStorage.getItem(OOPS_KEY)||'[]').filter(i=>COUNTRIES[i]);
+  const oq=document.getElementById('end-oops-quiz');
+  oq.style.display=saved.length?'block':'none';
+  if(saved.length)oq.textContent='📘 오답 노트 퀴즈 ('+saved.length+'개)';
   document.getElementById('ui-end').style.display='flex';
 }
 
