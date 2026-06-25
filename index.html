@@ -214,6 +214,24 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 .land-btn-sm{padding:.7rem 1.2rem;min-width:130px}
 .land-back{background:none;border:1px solid var(--bd);border-radius:8px;color:var(--tx2);padding:.4rem 1rem;font-size:.8rem;font-family:'Noto Sans KR',sans-serif;cursor:pointer;margin-top:.8rem}
 .land-back:hover{color:var(--tx)}
+/* ── 모바일 햄버거 메뉴 ── */
+#ui-hamburger{display:none;background:rgba(33,38,45,.8);border:1px solid var(--bd);border-radius:6px;padding:.35rem .6rem;font-size:1.15rem;color:var(--tx2);cursor:pointer;line-height:1;flex-shrink:0}
+body.mob-mode #ui-hamburger{display:flex!important;align-items:center}
+body.mob-mode .hbtn{display:none!important}
+#ui-menu-bd{position:fixed;inset:0;z-index:8400;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .2s}
+#ui-menu-bd.on{opacity:1;pointer-events:all}
+#ui-menu{position:fixed;top:0;right:0;bottom:0;width:min(290px,90vw);z-index:8500;background:var(--sf);border-left:1px solid var(--bd);overflow-y:auto;transform:translateX(110%);transition:transform .22s ease;padding-bottom:env(safe-area-inset-bottom)}
+#ui-menu.on{transform:translateX(0)}
+.mnu-h{display:flex;align-items:center;justify-content:space-between;padding:.8rem 1rem .6rem;border-bottom:1px solid var(--bd);position:sticky;top:0;background:var(--sf);z-index:1}
+.mnu-h span{font-size:.9rem;font-weight:600;color:var(--tx)}
+.mnu-x{background:none;border:none;color:var(--tx2);font-size:1.2rem;cursor:pointer;padding:.2rem .4rem}
+.mnu-btn{width:100%;text-align:left;background:none;border:none;border-bottom:1px solid rgba(48,54,61,.5);padding:.75rem 1rem;font-size:.87rem;color:var(--tx);cursor:pointer;font-family:'Noto Sans KR',sans-serif;display:flex;align-items:center;gap:.55rem}
+.mnu-btn:active{background:var(--sf2)}
+.mnu-btn.cur{color:var(--ac);font-weight:600;background:rgba(88,166,255,.06)}
+.mnu-btn.cur::after{content:'✓';margin-left:auto;font-size:.8rem}
+.mnu-btn.danger{color:var(--wr)}
+.mnu-sec{padding:.45rem 1rem .25rem;font-size:.67rem;color:var(--tx2);letter-spacing:.05em;text-transform:uppercase;background:rgba(0,0,0,.18);border-bottom:1px solid rgba(48,54,61,.3)}
+.mnu-sep{height:6px;background:rgba(0,0,0,.18);border-top:1px solid var(--bd);border-bottom:1px solid var(--bd)}
 </style>
 </head>
 <body>
@@ -283,7 +301,9 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
     <button class="hbtn" onclick="openCountryList()" style="color:var(--ac);border-color:rgba(88,166,255,.3)">📋 국가 목록</button>
     <button class="hbtn" onclick="openReligionQuiz()" style="color:var(--gd);border-color:rgba(210,153,34,.3)">✝ 종교 퀴즈</button>
     <button class="hbtn" onclick="openKoreaQuiz()" style="color:#3fb950;border-color:rgba(63,185,80,.3)">🇰🇷 한국지리</button>
+    <button class="hbtn" onclick="toggleMenu()" style="color:var(--ac2);border-color:rgba(31,111,235,.3)">🗺️ 범위</button>
     <button class="hbtn" id="ui-mode-btn" onclick="toggleMode()">💻 PC</button>
+    <button id="ui-hamburger" onclick="toggleMenu()">☰</button>
   </div>
 </header>
 <div class="pb"><div class="pf" id="ui-pf"></div></div>
@@ -3441,6 +3461,29 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
   </button>
 </div>
 
+<!-- Menu Backdrop + Side Panel -->
+<div id="ui-menu-bd" onclick="closeMenu()"></div>
+<div id="ui-menu">
+  <div class="mnu-h"><span>메뉴</span><button class="mnu-x" onclick="closeMenu()">✕</button></div>
+  <div class="mnu-sec">기능</div>
+  <button class="mnu-btn" onclick="saveGame();closeMenu()">💾 저장</button>
+  <button class="mnu-btn danger" onclick="resetMapQuiz();closeMenu()">🔄 초기화</button>
+  <button class="mnu-btn" onclick="openCountryList();closeMenu()">📋 국가 목록</button>
+  <button class="mnu-btn" onclick="openReligionQuiz();closeMenu()">✝ 종교 퀴즈</button>
+  <button class="mnu-btn" onclick="openKoreaQuiz();closeMenu()">🇰🇷 한국지리</button>
+  <button class="mnu-btn" id="mnu-toggle-mode" onclick="toggleMode();closeMenu()">💻 PC 모드로 전환</button>
+  <div class="mnu-sep"></div>
+  <div class="mnu-sec">퀴즈 범위 변경</div>
+  <button class="mnu-btn" id="mmo-all" onclick="switchMode('all');closeMenu()">🌍 전체 대륙</button>
+  <button class="mnu-btn" id="mmo-all_big" onclick="switchMode('all_big');closeMenu()">🌍 전체 (소국 제외)</button>
+  <button class="mnu-btn" id="mmo-as" onclick="switchMode('as');closeMenu()">🌏 아시아</button>
+  <button class="mnu-btn" id="mmo-eu" onclick="switchMode('eu');closeMenu()">🌍 유럽</button>
+  <button class="mnu-btn" id="mmo-af" onclick="switchMode('af');closeMenu()">🌍 아프리카</button>
+  <button class="mnu-btn" id="mmo-na" onclick="switchMode('na');closeMenu()">🌎 북아메리카</button>
+  <button class="mnu-btn" id="mmo-sa" onclick="switchMode('sa');closeMenu()">🌎 남아메리카</button>
+  <button class="mnu-btn" id="mmo-oc" onclick="switchMode('oc');closeMenu()">🌏 오세아니아</button>
+</div>
+
 <!-- Map Quiz End Screen -->
 <div id="ui-end">
   <div class="ec">
@@ -4795,6 +4838,35 @@ function toggleMode(){
   isMobile=!isMobile;
   localStorage.setItem(MODE_KEY,isMobile?'mobile':'pc');
   applyModeUI();
+}
+function toggleMenu(){
+  const m=document.getElementById('ui-menu');
+  if(m.classList.contains('on')){closeMenu();return;}
+  /* 현재 활성 모드 표시 */
+  document.querySelectorAll('[id^="mmo-"]').forEach(b=>b.classList.remove('cur'));
+  const curKey=S.saveKey.replace('wq_','');
+  const el=document.getElementById('mmo-'+curKey);
+  if(el)el.classList.add('cur');
+  /* PC/모바일 토글 버튼 텍스트 갱신 */
+  const tm=document.getElementById('mnu-toggle-mode');
+  if(tm)tm.textContent=isMobile?'💻 PC 모드로 전환':'📱 모바일 모드로 전환';
+  m.classList.add('on');
+  document.getElementById('ui-menu-bd').classList.add('on');
+}
+function closeMenu(){
+  document.getElementById('ui-menu').classList.remove('on');
+  document.getElementById('ui-menu-bd').classList.remove('on');
+}
+function switchMode(key){
+  if(modalOpen)closeModal();
+  initActiveSet(key);
+  S.correct=0;S.revealed=0;S.status={};S.wrong={};
+  /* 기존 색 모두 제거 */
+  Object.keys(colors).forEach(k=>stopJsBlink(k));
+  for(const k in colors)delete colors[k];
+  paint();
+  if(loadGame()){for(const[iso,cls]of Object.entries(S.status))setColor(iso,cls);}
+  stats();
 }
 const MOBILE=false;
 const COUNTRIES={"af":{"k":"아프가니스탄","e":"Afghanistan","x":["islamic republic of afghanistan","아프간"]},"al":{"k":"알바니아","e":"Albania","x":[]},"dz":{"k":"알제리","e":"Algeria","x":[]},"ad":{"k":"안도라","e":"Andorra","x":["앤도라"]},"ao":{"k":"앙골라","e":"Angola","x":[]},"ag":{"k":"앤티가 바부다","e":"Antigua and Barbuda","x":["antigua","앤티가","앤티가바부다"]},"ar":{"k":"아르헨티나","e":"Argentina","x":["아르헨티나공화국","argentine republic"]},"am":{"k":"아르메니아","e":"Armenia","x":[]},"au":{"k":"오스트레일리아","e":"Australia","x":["호주","commonwealth of australia","australia"]},"at":{"k":"오스트리아","e":"Austria","x":["오지리"]},"az":{"k":"아제르바이잔","e":"Azerbaijan","x":[]},"bs":{"k":"바하마","e":"Bahamas","x":["the bahamas"]},"bh":{"k":"바레인","e":"Bahrain","x":[]},"bd":{"k":"방글라데시","e":"Bangladesh","x":["방글라데시인민공화국"]},"bb":{"k":"바베이도스","e":"Barbados","x":[]},"by":{"k":"벨라루스","e":"Belarus","x":["백러시아"]},"be":{"k":"벨기에","e":"Belgium","x":["벨기에왕국"]},"bz":{"k":"벨리즈","e":"Belize","x":[]},"bj":{"k":"베냉","e":"Benin","x":[]},"bt":{"k":"부탄","e":"Bhutan","x":[]},"bo":{"k":"볼리비아","e":"Bolivia","x":["plurinational state of bolivia"]},"ba":{"k":"보스니아 헤르체고비나","e":"Bosnia and Herzegovina","x":["보스니아헤르체고비나","보스니아","bosnia","herzegovina"]},"bw":{"k":"보츠와나","e":"Botswana","x":[]},"br":{"k":"브라질","e":"Brazil","x":["브라질연방공화국","federative republic of brazil"]},"bn":{"k":"브루나이","e":"Brunei","x":["brunei darussalam"]},"bg":{"k":"불가리아","e":"Bulgaria","x":[]},"bf":{"k":"부르키나파소","e":"Burkina Faso","x":["부르키나"]},"bi":{"k":"부룬디","e":"Burundi","x":[]},"cv":{"k":"카보베르데","e":"Cabo Verde","x":["cape verde","카보베르","베르데"]},"kh":{"k":"캄보디아","e":"Cambodia","x":["크메르"]},"cm":{"k":"카메룬","e":"Cameroon","x":[]},"ca":{"k":"캐나다","e":"Canada","x":[]},"cf":{"k":"중앙아프리카공화국","e":"Central African Republic","x":["중앙아프리카","car"]},"td":{"k":"차드","e":"Chad","x":[]},"cl":{"k":"칠레","e":"Chile","x":[]},"cn":{"k":"중국","e":"China","x":["중화인민공화국","people's republic of china","prc","차이나"]},"co":{"k":"콜롬비아","e":"Colombia","x":["columbia"]},"km":{"k":"코모로","e":"Comoros","x":["코모로스"]},"cd":{"k":"콩고민주공화국","e":"Congo, Dem. Rep.","x":["democratic republic of the congo","drc","콩고민주","민주콩고","콩고DR"]},"cg":{"k":"콩고공화국","e":"Congo, Rep.","x":["republic of the congo","콩고","콩고공화","공화콩고"]},"cr":{"k":"코스타리카","e":"Costa Rica","x":[]},"ci":{"k":"코트디부아르","e":"Côte d'Ivoire","x":["ivory coast","cote d'ivoire","아이보리코스트","이보리코스트"]},"hr":{"k":"크로아티아","e":"Croatia","x":["hrvatska"]},"cu":{"k":"쿠바","e":"Cuba","x":[]},"cy":{"k":"키프로스","e":"Cyprus","x":["사이프러스","cyprus"]},"cz":{"k":"체코","e":"Czechia","x":["czech republic","체코공화국","czechia"]},"dk":{"k":"덴마크","e":"Denmark","x":["danmark"]},"dj":{"k":"지부티","e":"Djibouti","x":[]},"dm":{"k":"도미니카","e":"Dominica","x":[]},"do":{"k":"도미니카공화국","e":"Dominican Republic","x":["도미니카공화"]},"ec":{"k":"에콰도르","e":"Ecuador","x":[]},"eg":{"k":"이집트","e":"Egypt","x":["이집트아랍공화국","egypt"]},"sv":{"k":"엘살바도르","e":"El Salvador","x":["살바도르"]},"gq":{"k":"적도기니","e":"Equatorial Guinea","x":["equatorial guinea"]},"er":{"k":"에리트레아","e":"Eritrea","x":["에리트리아"]},"ee":{"k":"에스토니아","e":"Estonia","x":[]},"sz":{"k":"에스와티니","e":"Eswatini","x":["swaziland","스와질란드","스와질랜드"]},"et":{"k":"에티오피아","e":"Ethiopia","x":["에디오피아"]},"fj":{"k":"피지","e":"Fiji","x":[]},"fi":{"k":"핀란드","e":"Finland","x":["suomi"]},"fr":{"k":"프랑스","e":"France","x":["프랑스공화국","french republic","france"]},"ga":{"k":"가봉","e":"Gabon","x":[]},"gm":{"k":"감비아","e":"Gambia","x":["the gambia"]},"ge":{"k":"조지아","e":"Georgia","x":["그루지야","그루지아"]},"de":{"k":"독일","e":"Germany","x":["독일연방공화국","federal republic of germany","deutschland"]},"gh":{"k":"가나","e":"Ghana","x":[]},"gr":{"k":"그리스","e":"Greece","x":["hellenic republic","헬라스","hellas"]},"gd":{"k":"그레나다","e":"Grenada","x":[]},"gt":{"k":"과테말라","e":"Guatemala","x":[]},"gn":{"k":"기니","e":"Guinea","x":[]},"gw":{"k":"기니비사우","e":"Guinea-Bissau","x":["기니 비사우"]},"gy":{"k":"가이아나","e":"Guyana","x":[]},"ht":{"k":"아이티","e":"Haiti","x":["haiti"]},"hn":{"k":"온두라스","e":"Honduras","x":[]},"hu":{"k":"헝가리","e":"Hungary","x":["magyarország"]},"is":{"k":"아이슬란드","e":"Iceland","x":["iceland","아이슬레드"]},"in":{"k":"인도","e":"India","x":["인도공화국","republic of india","bharat"]},"id":{"k":"인도네시아","e":"Indonesia","x":["인도네시아공화국"]},"ir":{"k":"이란","e":"Iran","x":["이란이슬람공화국","islamic republic of iran","persia","페르시아"]},"iq":{"k":"이라크","e":"Iraq","x":[]},"ie":{"k":"아일랜드","e":"Ireland","x":["eire","에이레"]},"il":{"k":"이스라엘","e":"Israel","x":[]},"it":{"k":"이탈리아","e":"Italy","x":["이탈리아공화국","italian republic","italia"]},"jm":{"k":"자메이카","e":"Jamaica","x":[]},"jp":{"k":"일본","e":"Japan","x":["일본국","nippon","nihon"]},"jo":{"k":"요르단","e":"Jordan","x":[]},"kz":{"k":"카자흐스탄","e":"Kazakhstan","x":["카자크스탄"]},"ke":{"k":"케냐","e":"Kenya","x":[]},"ki":{"k":"키리바시","e":"Kiribati","x":["키리바티"]},"kp":{"k":"조선민주주의인민공화국","e":"North Korea","x":["북한","dprk","북조선"]},"kr":{"k":"대한민국","e":"South Korea","x":["한국","republic of korea","남한","남조선"]},"kw":{"k":"쿠웨이트","e":"Kuwait","x":[]},"kg":{"k":"키르기스스탄","e":"Kyrgyzstan","x":["키르기즈스탄","키르기스"]},"la":{"k":"라오스","e":"Laos","x":["라오인민민주공화국"]},"lv":{"k":"라트비아","e":"Latvia","x":[]},"lb":{"k":"레바논","e":"Lebanon","x":[]},"ls":{"k":"레소토","e":"Lesotho","x":[]},"lr":{"k":"라이베리아","e":"Liberia","x":[]},"ly":{"k":"리비아","e":"Libya","x":[]},"li":{"k":"리히텐슈타인","e":"Liechtenstein","x":["리히텐스타인"]},"lt":{"k":"리투아니아","e":"Lithuania","x":[]},"lu":{"k":"룩셈부르크","e":"Luxembourg","x":["룩셈버그"]},"mg":{"k":"마다가스카르","e":"Madagascar","x":[]},"mw":{"k":"말라위","e":"Malawi","x":[]},"my":{"k":"말레이시아","e":"Malaysia","x":[]},"mv":{"k":"몰디브","e":"Maldives","x":["maldive"]},"ml":{"k":"말리","e":"Mali","x":[]},"mt":{"k":"몰타","e":"Malta","x":[]},"mh":{"k":"마셜제도","e":"Marshall Islands","x":["마샬제도","마셜","마샬"]},"mr":{"k":"모리타니","e":"Mauritania","x":["모리타니아"]},"mu":{"k":"모리셔스","e":"Mauritius","x":[]},"mx":{"k":"멕시코","e":"Mexico","x":["멕시코합중국","mexico"]},"fm":{"k":"미크로네시아","e":"Micronesia","x":["미크로네시아연방"]},"md":{"k":"몰도바","e":"Moldova","x":["몰도바공화국"]},"mc":{"k":"모나코","e":"Monaco","x":[]},"mn":{"k":"몽골","e":"Mongolia","x":[]},"me":{"k":"몬테네그로","e":"Montenegro","x":[]},"ma":{"k":"모로코","e":"Morocco","x":[]},"mz":{"k":"모잠비크","e":"Mozambique","x":[]},"mm":{"k":"미얀마","e":"Myanmar","x":["burma","버마"]},"na":{"k":"나미비아","e":"Namibia","x":[]},"nr":{"k":"나우루","e":"Nauru","x":[]},"np":{"k":"네팔","e":"Nepal","x":[]},"nl":{"k":"네덜란드","e":"Netherlands","x":["holland","holland","화란"]},"nz":{"k":"뉴질랜드","e":"New Zealand","x":["뉴질렌드"]},"ni":{"k":"니카라과","e":"Nicaragua","x":[]},"ne":{"k":"니제르","e":"Niger","x":[]},"ng":{"k":"나이지리아","e":"Nigeria","x":["나이지리아연방공화국"]},"mk":{"k":"북마케도니아","e":"North Macedonia","x":["macedonia","마케도니아","북마케도니아공화국"]},"no":{"k":"노르웨이","e":"Norway","x":["norge"]},"om":{"k":"오만","e":"Oman","x":[]},"pk":{"k":"파키스탄","e":"Pakistan","x":["파키스탄이슬람공화국"]},"pw":{"k":"팔라우","e":"Palau","x":[]},"pa":{"k":"파나마","e":"Panama","x":[]},"pg":{"k":"파푸아뉴기니","e":"Papua New Guinea","x":["파푸아","PNG"]},"py":{"k":"파라과이","e":"Paraguay","x":[]},"pe":{"k":"페루","e":"Peru","x":[]},"ph":{"k":"필리핀","e":"Philippines","x":["필리핀공화국","philippines"]},"pl":{"k":"폴란드","e":"Poland","x":["polska"]},"pt":{"k":"포르투갈","e":"Portugal","x":[]},"qa":{"k":"카타르","e":"Qatar","x":[]},"ro":{"k":"루마니아","e":"Romania","x":["roumania"]},"ru":{"k":"러시아","e":"Russia","x":["러시아연방","russian federation","러시아연방공화국"]},"rw":{"k":"르완다","e":"Rwanda","x":[]},"kn":{"k":"세인트키츠 네비스","e":"Saint Kitts and Nevis","x":["saint kitts","세인트키츠네비스","세인트 키츠"]},"lc":{"k":"세인트루시아","e":"Saint Lucia","x":["st lucia","st. lucia"]},"vc":{"k":"세인트빈센트 그레나딘","e":"Saint Vincent and the Grenadines","x":["saint vincent","세인트빈센트그레나딘","세인트 빈센트"]},"ws":{"k":"사모아","e":"Samoa","x":["western samoa"]},"sm":{"k":"산마리노","e":"San Marino","x":[]},"st":{"k":"상투메 프린시페","e":"Sao Tome and Principe","x":["상투메프린시페","são tomé"]},"sa":{"k":"사우디아라비아","e":"Saudi Arabia","x":["사우디아라비아왕국","사우디"]},"sn":{"k":"세네갈","e":"Senegal","x":[]},"rs":{"k":"세르비아","e":"Serbia","x":[]},"sc":{"k":"세이셸","e":"Seychelles","x":[]},"sl":{"k":"시에라리온","e":"Sierra Leone","x":[]},"sg":{"k":"싱가포르","e":"Singapore","x":[]},"sk":{"k":"슬로바키아","e":"Slovakia","x":[]},"si":{"k":"슬로베니아","e":"Slovenia","x":[]},"sb":{"k":"솔로몬제도","e":"Solomon Islands","x":["솔로몬","solomon"]},"so":{"k":"소말리아","e":"Somalia","x":[]},"za":{"k":"남아프리카공화국","e":"South Africa","x":["남아프리카","남아공"]},"ss":{"k":"남수단","e":"South Sudan","x":[]},"es":{"k":"스페인","e":"Spain","x":["스페인왕국","에스파냐","españa","espana","spain"]},"lk":{"k":"스리랑카","e":"Sri Lanka","x":["실론","ceylon"]},"sd":{"k":"수단","e":"Sudan","x":[]},"sr":{"k":"수리남","e":"Suriname","x":["수리남공화국"]},"se":{"k":"스웨덴","e":"Sweden","x":["sverige"]},"ch":{"k":"스위스","e":"Switzerland","x":["스위스연방","헬베티아","helvetia","schweiz"]},"sy":{"k":"시리아","e":"Syria","x":["시리아아랍공화국"]},"tw":{"k":"대만","e":"Taiwan","x":["중화민국","republic of china","roc","타이완"]},"tj":{"k":"타지키스탄","e":"Tajikistan","x":["타지키스탄공화국"]},"tz":{"k":"탄자니아","e":"Tanzania","x":[]},"th":{"k":"태국","e":"Thailand","x":["타이","siam","샴"]},"tl":{"k":"동티모르","e":"Timor-Leste","x":["east timor","티모르","timor"]},"tg":{"k":"토고","e":"Togo","x":[]},"to":{"k":"통가","e":"Tonga","x":[]},"tt":{"k":"트리니다드 토바고","e":"Trinidad and Tobago","x":["trinidad","트리니다드토바고","트리니다드"]},"tn":{"k":"튀니지","e":"Tunisia","x":["튀니스"]},"tr":{"k":"튀르키예","e":"Turkey","x":["터키","turkiye","türkiye"]},"tm":{"k":"투르크메니스탄","e":"Turkmenistan","x":[]},"tv":{"k":"투발루","e":"Tuvalu","x":[]},"ug":{"k":"우간다","e":"Uganda","x":[]},"ua":{"k":"우크라이나","e":"Ukraine","x":[]},"ae":{"k":"아랍에미리트","e":"United Arab Emirates","x":["uae","아랍에미리트연합","에미리트"]},"gb":{"k":"영국","e":"United Kingdom","x":["uk","britain","great britain","잉글랜드","england"]},"us":{"k":"미국","e":"United States","x":["usa","america","united states of america","아메리카합중국"]},"uy":{"k":"우루과이","e":"Uruguay","x":[]},"uz":{"k":"우즈베키스탄","e":"Uzbekistan","x":[]},"vu":{"k":"바누아투","e":"Vanuatu","x":[]},"ve":{"k":"베네수엘라","e":"Venezuela","x":[]},"vn":{"k":"베트남","e":"Vietnam","x":["베트남사회주의공화국","viet nam"]},"ye":{"k":"예멘","e":"Yemen","x":[]},"zm":{"k":"잠비아","e":"Zambia","x":[]},"zw":{"k":"짐바브웨","e":"Zimbabwe","x":[]},"ps":{"k":"팔레스타인","e":"Palestine","x":["state of palestine","팔레스타인자치구"]},"va":{"k":"바티칸","e":"Vatican City","x":["holy see","바티칸시국","vatican"]},"xk":{"k":"코소보","e":"Kosovo","x":["코소바"]},"eh":{"k":"서사하라","e":"Western Sahara","x":["sahrawi arab democratic republic","서부사하라"]}};
