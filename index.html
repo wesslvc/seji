@@ -4708,6 +4708,7 @@ let isMobile=localStorage.getItem(MODE_KEY)==='mobile'||(localStorage.getItem(MO
   document.getElementById('land-mob').addEventListener('click',function(){pickMode(true);});
   document.getElementById('land-world').addEventListener('click',function(){showStep(3);});
   document.getElementById('land-korea').addEventListener('click',function(){
+    startWithDefaultFilter();
     overlay.style.display='none';
     try{openKoreaQuiz();}catch(err){}
   });
@@ -4885,8 +4886,8 @@ function findCountryEl(t){
 
 /* ── Quiz Filter Data ── */
 const CONT={
-  af:['dz','ao','bj','bw','bf','bi','cm','cv','cf','td','km','cd','cg','ci','dj','eg','gq','er','et','ga','gm','gh','gn','gw','ke','ls','lr','ly','mg','mw','ml','mr','mu','mz','na','ne','ng','rw','st','sn','sc','sl','so','za','ss','sd','sz','tz','tg','ug','zm','zw','eh'],
-  as:['af','am','az','bh','bd','bt','bn','kh','cn','cy','ge','in','id','ir','iq','il','jp','jo','kz','kp','kr','kw','kg','la','lb','my','mv','mn','mm','np','om','pk','ps','ph','qa','sa','sg','lk','sy','tw','tj','th','tl','tm','ae','uz','vn','ye'],
+  af:['dz','ao','bj','bw','bf','bi','cm','cv','cf','td','km','cd','cg','ci','dj','eg','gq','er','et','ga','gm','gh','gn','gw','ke','ls','lr','ly','mg','mw','ml','ma','mr','mu','mz','na','ne','ng','rw','st','sn','sc','sl','so','za','ss','sd','sz','tz','tg','tn','ug','zm','zw','eh'],
+  as:['af','am','az','bh','bd','bt','bn','kh','cn','cy','ge','in','id','ir','iq','il','jp','jo','kz','kp','kr','kw','kg','la','lb','my','mv','mn','mm','np','om','pk','ps','ph','qa','sa','sg','lk','sy','tr','tw','tj','th','tl','tm','ae','uz','vn','ye'],
   eu:['al','ad','at','by','be','ba','bg','hr','cz','dk','ee','fi','fr','de','gr','hu','is','ie','it','xk','lv','li','lt','lu','mt','mc','md','me','nl','mk','no','pl','pt','ro','ru','sm','rs','sk','si','es','se','ch','ua','gb','va'],
   na:['ag','bs','bb','bz','ca','cr','cu','dm','do','sv','gd','gt','ht','hn','jm','kn','lc','mx','ni','pa','tt','us','vc'],
   sa:['ar','bo','br','cl','co','ec','gy','py','pe','sr','uy','ve'],
