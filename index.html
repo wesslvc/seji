@@ -215,9 +215,8 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 .land-back{background:none;border:1px solid var(--bd);border-radius:8px;color:var(--tx2);padding:.4rem 1rem;font-size:.8rem;font-family:'Noto Sans KR',sans-serif;cursor:pointer;margin-top:.8rem}
 .land-back:hover{color:var(--tx)}
 /* ── 모바일 햄버거 메뉴 ── */
-#ui-hamburger{display:none;background:rgba(33,38,45,.8);border:1px solid var(--bd);border-radius:6px;padding:.35rem .6rem;font-size:1.15rem;color:var(--tx2);cursor:pointer;line-height:1;flex-shrink:0}
-body.mob-mode #ui-hamburger{display:flex!important;align-items:center}
-body.mob-mode .hbtn{display:none!important}
+#ui-hamburger,#kr-hamburger{display:flex;align-items:center;background:rgba(33,38,45,.8);border:1px solid var(--bd);border-radius:6px;padding:.35rem .6rem;font-size:1.15rem;color:var(--tx2);cursor:pointer;line-height:1;flex-shrink:0}
+.stats .hbtn{display:none!important}
 #ui-menu-bd{position:fixed;inset:0;z-index:8400;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .2s}
 #ui-menu-bd.on{opacity:1;pointer-events:all}
 #ui-menu{position:fixed;top:0;right:0;bottom:0;width:min(290px,90vw);z-index:8500;background:var(--sf);border-left:1px solid var(--bd);overflow-y:auto;transform:translateX(110%);transition:transform .22s ease;padding-bottom:env(safe-area-inset-bottom)}
@@ -3482,6 +3481,14 @@ body.mob-mode .hbtn{display:none!important}
   <button class="mnu-btn" id="mmo-na" onclick="switchMode('na');closeMenu()">🌎 북아메리카</button>
   <button class="mnu-btn" id="mmo-sa" onclick="switchMode('sa');closeMenu()">🌎 남아메리카</button>
   <button class="mnu-btn" id="mmo-oc" onclick="switchMode('oc');closeMenu()">🌏 오세아니아</button>
+  <div id="mnu-kr-section" style="display:none">
+    <div class="mnu-sep"></div>
+    <div class="mnu-sec">한국지리</div>
+    <button class="mnu-btn" onclick="saveKR(true);closeMenu()">💾 저장</button>
+    <button class="mnu-btn danger" onclick="resetKR();closeMenu()">🔄 초기화</button>
+    <button class="mnu-btn" onclick="openKRList();closeMenu()">📋 목록</button>
+    <button class="mnu-btn danger" onclick="closeKoreaQuiz();closeMenu()">✕ 한국지리 종료</button>
+  </div>
 </div>
 
 <!-- Map Quiz End Screen -->
@@ -3535,10 +3542,7 @@ body.mob-mode .hbtn{display:none!important}
       <div><div class="sv" style="color:var(--tx2)" id="kr-rem">0</div><div class="sl">남은</div></div>
     </div>
     <div class="kr-hbtns">
-      <button class="hbtn" id="kr-save" onclick="saveKR(true)">💾 저장</button>
-      <button class="hbtn" onclick="resetKR()" style="color:var(--wr);border-color:rgba(248,81,73,.3)">🔄 초기화</button>
-      <button class="hbtn" onclick="openKRList()" style="color:var(--ac);border-color:rgba(88,166,255,.3)">📋 목록</button>
-      <button class="hbtn" onclick="closeKoreaQuiz()">✕ 종료</button>
+      <button id="kr-hamburger" onclick="toggleMenu()">☰</button>
     </div>
   </div>
   <div class="rq-progress"><div class="rq-pf" id="kr-pf"></div></div>
@@ -4850,6 +4854,9 @@ function toggleMenu(){
   /* PC/모바일 토글 버튼 텍스트 갱신 */
   const tm=document.getElementById('mnu-toggle-mode');
   if(tm)tm.textContent=isMobile?'💻 PC 모드로 전환':'📱 모바일 모드로 전환';
+  /* 한국지리 섹션 표시 여부 */
+  const krSec=document.getElementById('mnu-kr-section');
+  if(krSec)krSec.style.display=document.getElementById('kr-screen').classList.contains('on')?'block':'none';
   m.classList.add('on');
   document.getElementById('ui-menu-bd').classList.add('on');
 }
