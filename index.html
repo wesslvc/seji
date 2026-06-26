@@ -347,6 +347,44 @@ body.border-mode .leg,body.border-mode .info{display:none}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes popIn{0%{opacity:0;transform:scale(.94)}100%{opacity:1;transform:scale(1)}}
 .ec,.rq-end-card,.cl-card,.eip-card{animation:popIn .34s var(--ease-spring)}
+/* ── 종교 버튼 UI ── */
+.rq-rel-btns{display:flex;flex-wrap:wrap;gap:5px;margin-top:.35rem}
+.rq-rel-btn{padding:.38rem .72rem;background:var(--sf2);border:1px solid var(--bd);border-radius:4px;color:var(--tx2);font-family:'Pretendard','Noto Sans KR',sans-serif;font-size:.82rem;cursor:pointer;transition:all .18s var(--ease)}
+.rq-rel-btn:hover{border-color:var(--ac2);color:var(--tx)}
+.rq-rel-btn.sel{background:var(--tx);color:#000;border-color:var(--tx)}
+.rq-rel-btn.correct{background:rgba(74,144,96,.18)!important;border-color:#4a9060!important;color:#4a9060!important}
+.rq-rel-btn.wrong{background:rgba(176,56,56,.12)!important;border-color:var(--wr)!important;color:var(--wr)!important}
+.rq-sl-row{display:flex;align-items:center;gap:.6rem;margin-top:.42rem}
+.rq-sl-lbl{font-size:.7rem;color:var(--tx2);flex-shrink:0;width:1.8rem}
+.rq-sl{flex:1;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--bd);cursor:pointer;outline:none}
+.rq-sl::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--tx);cursor:pointer}
+.rq-sl::-moz-range-thumb{width:15px;height:15px;border-radius:50%;background:var(--tx);border:none;cursor:pointer}
+.rq-sl.correct{accent-color:#4a9060}.rq-sl.wrong{accent-color:var(--wr)}
+.rq-sl-val{font-size:.84rem;font-weight:600;color:var(--tx);min-width:2.8rem;text-align:right}
+/* ── 오답 필터 ── */
+.wrong-filter{background:rgba(176,56,56,.05);border:1px solid rgba(176,56,56,.2);border-radius:6px;padding:.55rem .8rem;margin:.5rem 0;text-align:left;display:none}
+.wrong-filter.show{display:block}
+.wf-hd{font-size:.7rem;color:var(--tx2);letter-spacing:.04em;margin-bottom:.45rem;text-transform:uppercase}
+.wf-row{display:flex;align-items:center;gap:.6rem}
+.wf-sl{flex:1;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--bd);cursor:pointer;accent-color:var(--wr)}
+.wf-sl::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--wr);cursor:pointer}
+.wf-sl::-moz-range-thumb{width:15px;height:15px;border-radius:50%;background:var(--wr);border:none;cursor:pointer}
+.wf-desc{font-size:.76rem;color:var(--wr);font-weight:500;min-width:9rem}
+/* ── BQ 시도 점 ── */
+.bq-dots{display:flex;gap:4px;justify-content:center;margin-bottom:.32rem}
+.bq-dot{width:7px;height:7px;border-radius:50%;background:var(--bd);transition:background .25s var(--ease)}
+.bq-dot.ng{background:var(--wr)}
+/* ── 종교 대륙 필터 (랜딩) ── */
+.ld-rq-range{display:none;margin:.28rem 0 0 1.3rem}
+.ld-rq-range.show{display:block}
+.ld-rq-range select{background:var(--sf2);border:1px solid var(--bd);border-radius:4px;color:var(--tx2);font-size:.76rem;padding:.28rem .5rem;font-family:'Pretendard',sans-serif;cursor:pointer}
+/* ── 국가목록 오답 뱃지 ── */
+sup.wc{font-size:.58rem;font-weight:600;padding:.08rem .26rem;border-radius:3px;margin-left:3px;vertical-align:.15em}
+sup.wc1{background:rgba(74,120,192,.2);color:#6a9fd8}
+sup.wc2{background:rgba(168,112,32,.2);color:var(--gd)}
+sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
+/* ── 종교 퀴즈 점수 표시 ── */
+#rq-pts-earned{font-size:.72rem;color:var(--tx2);margin-top:.25rem}
 </style>
 </head>
 <body>
@@ -368,7 +406,18 @@ body.border-mode .leg,body.border-mode .info{display:none}
       <div class="ld-subs">
         <label class="ld-sub-item"><input type="checkbox" class="ld-act" value="name"><span data-ic="globe"></span>나라 이름 맞추기</label>
         <label class="ld-sub-item"><input type="checkbox" class="ld-act" value="border"><span data-ic="border"></span>접경국 맞추기</label>
-        <label class="ld-sub-item"><input type="checkbox" class="ld-act" value="religion"><span data-ic="book"></span>국가별 종교 퀴즈</label>
+        <label class="ld-sub-item"><input type="checkbox" class="ld-act" value="religion" id="ld-act-religion"><span data-ic="book"></span>국가별 종교 퀴즈</label>
+        <div class="ld-rq-range" id="ld-rq-range">
+          <select id="ld-rq-cont">
+            <option value="all">전체 대륙</option>
+            <option value="as">아시아</option>
+            <option value="eu">유럽</option>
+            <option value="af">아프리카</option>
+            <option value="na">북아메리카</option>
+            <option value="sa">남아메리카</option>
+            <option value="oc">오세아니아</option>
+          </select>
+        </div>
         <div class="ld-range">
           <div class="ld-range-h"><span data-ic="range"></span>출제 범위 <span class="ld-range-note">· 나라이름/접경국</span></div>
           <select id="ld-cont" class="ld-select">
@@ -417,7 +466,8 @@ body.border-mode .leg,body.border-mode .info{display:none}
 <div class="pb"><div class="pf" id="ui-pf"></div></div>
 <main>
     <div id="bq-box">
-      <div class="bq-q">아래 나라들과 <b>모두 접한</b> 나라를 지도에서 클릭하세요</div>
+      <div class="bq-q" id="bq-q-text">아래 나라들과 <b>모두 접한</b> 나라를 지도에서 클릭하세요</div>
+      <div class="bq-dots"><div class="bq-dot" id="bq-d0"></div><div class="bq-dot" id="bq-d1"></div><div class="bq-dot" id="bq-d2"></div></div>
       <div class="bq-neighbors" id="bq-neighbors"></div>
       <div class="bq-foot">
         <div class="bq-fb" id="bq-fb"></div>
@@ -3596,6 +3646,13 @@ body.border-mode .leg,body.border-mode .info{display:none}
       <h3>틀린 나라들 <span style="font-size:.6rem;opacity:.7;font-weight:400">(클릭하면 정보)</span></h3>
       <div class="wrong-tags" id="ui-wrong-tags"></div>
     </div>
+    <div class="wrong-filter" id="map-wf">
+      <div class="wf-hd">다시 풀 범위</div>
+      <div class="wf-row">
+        <input type="range" class="wf-sl" id="map-wf-sl" min="1" max="3" step="1" value="3" oninput="updateWfDesc('map-wf-sl','map-wf-desc')">
+        <span class="wf-desc" id="map-wf-desc">완전 틀린 것만</span>
+      </div>
+    </div>
     <button class="reb" id="end-retry-wrong" style="display:none" onclick="retryWrong()">틀린 것만 다시하기</button>
     <button class="reb secondary" id="end-add-wrong" style="display:none" onclick="addToOopsNote()">오답 노트에 추가</button>
     <button class="reb secondary" id="end-oops-quiz" style="display:none" onclick="startOopsQuiz()">오답 노트 퀴즈</button>
@@ -3627,6 +3684,7 @@ body.border-mode .leg,body.border-mode .info{display:none}
         <div class="cl-tabs">
           <button class="cl-tab active" id="cl-tab-done" onclick="switchCLTab('done')">맞춘 국가 (<span id="cl-done-cnt">0</span>)</button>
           <button class="cl-tab" id="cl-tab-remain" onclick="switchCLTab('remain')">남은 국가 (<span id="cl-remain-cnt">0</span>)</button>
+          <button class="cl-tab" id="cl-tab-wrong" onclick="switchCLTab('wrong')">틀린 것 (<span id="cl-wrong-cnt">0</span>)</button>
         </div>
       </div>
       <button class="cl-close" onclick="document.getElementById('cl-panel').classList.remove('on')">✕</button>
@@ -4740,6 +4798,7 @@ body.border-mode .leg,body.border-mode .info{display:none}
     <div class="rq-stats">
       <div class="rq-stat"><div class="sv" style="color:#4a9060" id="rq-cor">0</div><div class="sl">정답</div></div>
       <div class="rq-stat"><div class="sv" style="color:var(--wr)" id="rq-err">0</div><div class="sl">오답</div></div>
+      <div class="rq-stat"><div class="sv" style="color:var(--gd)" id="rq-pts">0</div><div class="sl">점수</div></div>
       <div class="rq-stat"><div class="sv" style="color:var(--tx2)" id="rq-rem">0</div><div class="sl">남은</div></div>
       <button class="hicon" title="목록" onclick="openRQList()" style="margin-left:.4rem"><span data-ic="list"></span></button>
       <button class="hicon danger" title="초기화" onclick="resetReligionQuiz()"><span data-ic="reset"></span></button>
@@ -4755,16 +4814,32 @@ body.border-mode .leg,body.border-mode .info{display:none}
       </div>
       <div class="rq-form-group">
         <div class="rq-label" id="rq-l1">1위 종교</div>
-        <div class="rq-row">
-          <input class="rq-input" id="rq-r1" placeholder="예: 이슬람교, 크리스트교, 불교..." autocomplete="off"/>
-          <input class="rq-input rq-pct" id="rq-p1" placeholder="%" style="display:none" type="number" min="0" max="100"/>
+        <div class="rq-rel-btns" id="rq-rb1">
+          <button class="rq-rel-btn" data-rel="Christians" onclick="rqSelRel(1,'Christians')">크리스트교</button>
+          <button class="rq-rel-btn" data-rel="Muslims" onclick="rqSelRel(1,'Muslims')">이슬람교</button>
+          <button class="rq-rel-btn" data-rel="Buddhists" onclick="rqSelRel(1,'Buddhists')">불교</button>
+          <button class="rq-rel-btn" data-rel="Hindus" onclick="rqSelRel(1,'Hindus')">힌두교</button>
+          <button class="rq-rel-btn" data-rel="Other_religions" onclick="rqSelRel(1,'Other_religions')">기타</button>
+        </div>
+        <div class="rq-sl-row" id="rq-sr1" style="display:none">
+          <span class="rq-sl-lbl">비율</span>
+          <input type="range" class="rq-sl" id="rq-sl1" min="0" max="100" value="50" oninput="document.getElementById('rq-sv1').textContent=this.value+'%'">
+          <span class="rq-sl-val" id="rq-sv1">50%</span>
         </div>
       </div>
       <div class="rq-form-group" id="rq-fg2" style="display:none">
         <div class="rq-label" id="rq-l2">2위 종교</div>
-        <div class="rq-row">
-          <input class="rq-input" id="rq-r2" placeholder="예: 이슬람교, 크리스트교, 불교..." autocomplete="off"/>
-          <input class="rq-input rq-pct" id="rq-p2" placeholder="%" style="display:none" type="number" min="0" max="100"/>
+        <div class="rq-rel-btns" id="rq-rb2">
+          <button class="rq-rel-btn" data-rel="Christians" onclick="rqSelRel(2,'Christians')">크리스트교</button>
+          <button class="rq-rel-btn" data-rel="Muslims" onclick="rqSelRel(2,'Muslims')">이슬람교</button>
+          <button class="rq-rel-btn" data-rel="Buddhists" onclick="rqSelRel(2,'Buddhists')">불교</button>
+          <button class="rq-rel-btn" data-rel="Hindus" onclick="rqSelRel(2,'Hindus')">힌두교</button>
+          <button class="rq-rel-btn" data-rel="Other_religions" onclick="rqSelRel(2,'Other_religions')">기타</button>
+        </div>
+        <div class="rq-sl-row" id="rq-sr2" style="display:none">
+          <span class="rq-sl-lbl">비율</span>
+          <input type="range" class="rq-sl" id="rq-sl2" min="0" max="100" value="20" oninput="document.getElementById('rq-sv2').textContent=this.value+'%'">
+          <span class="rq-sl-val" id="rq-sv2">20%</span>
         </div>
       </div>
       <div class="rq-reveal" id="rq-reveal">
@@ -4772,6 +4847,7 @@ body.border-mode .leg,body.border-mode .info{display:none}
         <div class="an" id="rq-reveal-text"></div>
       </div>
       <div class="rq-fb" id="rq-fb"></div>
+      <div id="rq-pts-earned"></div>
       <div class="rq-btns">
         <button class="btn bp" id="rq-bsub">확인</button>
         <button class="btn bs" id="rq-bskip">건너뛰기</button>
@@ -4808,6 +4884,13 @@ body.border-mode .leg,body.border-mode .info{display:none}
     <div class="rq-wrong-wrap" id="rq-wrong-wrap" style="display:none">
       <div class="rq-wrong-label">틀린 나라들</div>
       <div id="rq-wrong-list"></div>
+    </div>
+    <div class="wrong-filter" id="rq-wf">
+      <div class="wf-hd">다시 풀 범위</div>
+      <div class="wf-row">
+        <input type="range" class="wf-sl" id="rq-wf-sl" min="1" max="3" step="1" value="1" oninput="updateWfDesc('rq-wf-sl','rq-wf-desc')">
+        <span class="wf-desc" id="rq-wf-desc">1번 이상 틀린 것</span>
+      </div>
     </div>
     <button class="reb" id="rq-retry-btn" onclick="retryWrongRQ()" style="display:none;background:rgba(176,56,56,.1);border:1px solid rgba(176,56,56,.3);color:var(--wr)">틀린 것만 다시 풀기</button>
     <button class="reb" onclick="restartReligionQuiz()">다시 시작</button>
@@ -4902,7 +4985,14 @@ function setupLanding(){
       updateStartState();
     });
   });
-  document.querySelectorAll('.ld-act').forEach(cb=>cb.addEventListener('change',updateStartState));
+  document.querySelectorAll('.ld-act').forEach(cb=>{
+    cb.addEventListener('change',updateStartState);
+    if(cb.value==='religion'){
+      cb.addEventListener('change',function(){
+        document.getElementById('ld-rq-range').classList.toggle('show',this.checked);
+      });
+    }
+  });
   document.getElementById('ld-start').addEventListener('click',startFromLanding);
   updateStartState();
 }
@@ -4927,10 +5017,11 @@ function startFromLanding(){
   let key=document.getElementById('ld-cont').value;
   if(document.getElementById('ld-big').checked)key+='_big';
   if(document.getElementById('ld-noisle').checked)key+='_noisle';
-  startSession('world',acts,key);
+  const rqContKey=document.getElementById('ld-rq-cont')?document.getElementById('ld-rq-cont').value:'all';
+  startSession('world',acts,key,rqContKey);
 }
 
-function startSession(cat,acts,filterKey){
+function startSession(cat,acts,filterKey,rqContKey){
   SESSION.cat=cat;SESSION.acts=acts.slice();SESSION.filterKey=filterKey;
   document.getElementById('landing-overlay').style.display='none';
   document.body.classList.add('in-session');
@@ -4941,6 +5032,7 @@ function startSession(cat,acts,filterKey){
       loadGame();
     }
     if(acts.includes('border')){bqInit(filterKey);}
+    if(acts.includes('religion')){buildRQList(rqContKey||'all');}
     try{const mw=document.getElementById('ui-map');_s=Math.min(mw.clientWidth/SW,mw.clientHeight/SH);_x=(mw.clientWidth-SW*_s)/2;_y=(mw.clientHeight-SH*_s)/2;applyT();}catch(e){}
   }
   buildTabs();
@@ -5030,29 +5122,40 @@ function toggleMenu(){}
 function closeMenu(){}
 
 /* ══════════ 접경국 맞추기 퀴즈 (BQ) ══════════ */
-const BQ={activeSet:null,total:0,queue:[],status:{},correct:0,wrong:0,curWrong:0,target:null,saveKey:'bq_all'};
+const BQ={activeSet:null,total:0,queue:[],status:{},correct:0,wrong:0,curWrong:0,target:null,remaining:null,currentGroup:[],wrongCounts:{},saveKey:'bq_all'};
 function bqPool(){
   let base=S.activeSet?[...S.activeSet]:Object.keys(COUNTRIES);
   return base.filter(i=>BORDERS[i]&&!CIRCLE_ISOS.has(i));
+}
+function bqBuildGroupQueue(activeSet){
+  const groups=new Map();
+  for(const iso of activeSet){
+    if(!BORDERS[iso])continue;
+    const key=[...BORDERS[iso]].sort().join(',');
+    if(!groups.has(key))groups.set(key,[]);
+    groups.get(key).push(iso);
+  }
+  return [...groups.values()];
 }
 function bqInit(filterKey){
   BQ.saveKey='bq_'+(filterKey||'all');
   BQ.activeSet=new Set(bqPool());
   BQ.total=BQ.activeSet.size;
-  BQ.status={};BQ.correct=0;BQ.wrong=0;BQ.curWrong=0;BQ.target=null;
+  BQ.status={};BQ.correct=0;BQ.wrong=0;BQ.curWrong=0;BQ.target=null;BQ.remaining=null;BQ.currentGroup=[];BQ.wrongCounts={};
   bqLoad();
   const done=new Set(Object.keys(BQ.status));
-  BQ.queue=[...BQ.activeSet].filter(i=>!done.has(i)).sort(()=>Math.random()-.5);
+  const allGroups=bqBuildGroupQueue(BQ.activeSet);
+  BQ.queue=allGroups.map(g=>g.filter(iso=>!done.has(iso))).filter(g=>g.length>0).sort(()=>Math.random()-.5);
 }
 function bqLoad(){
   try{const raw=localStorage.getItem(BQ.saveKey);if(!raw)return false;
-    const d=JSON.parse(raw);BQ.status=d.status||{};BQ.correct=d.correct||0;BQ.wrong=d.wrong||0;
+    const d=JSON.parse(raw);BQ.status=d.status||{};BQ.wrongCounts=d.wrongCounts||{};
     for(const k of Object.keys(BQ.status))if(!BQ.activeSet.has(k))delete BQ.status[k];
     let c=0,w=0;for(const v of Object.values(BQ.status)){if(v==='cr')w++;else c++;}BQ.correct=c;BQ.wrong=w;
     return true;}catch(e){return false;}
 }
-function bqSave(){if(BQ.activeSet)localStorage.setItem(BQ.saveKey,JSON.stringify({status:BQ.status,correct:BQ.correct,wrong:BQ.wrong}));}
-function bqCurrent(){return BQ.queue.length?BQ.queue[0]:null;}
+function bqSave(){if(BQ.activeSet)localStorage.setItem(BQ.saveKey,JSON.stringify({status:BQ.status,correct:BQ.correct,wrong:BQ.wrong,wrongCounts:BQ.wrongCounts}));}
+function bqCurrentGroup(){return BQ.queue.length?BQ.queue[0]:null;}
 function bqStats(){
   const done=BQ.correct+BQ.wrong,rem=BQ.total-done;
   document.getElementById('ui-rem').textContent=rem;
@@ -5060,13 +5163,20 @@ function bqStats(){
   document.getElementById('ui-rev').textContent=BQ.wrong;
   document.getElementById('ui-pf').style.width=(BQ.total?done/BQ.total*100:0)+'%';
 }
+function bqSetDots(n){
+  for(let i=0;i<3;i++)document.getElementById('bq-d'+i).className='bq-dot'+(i<n?' ng':'');
+}
 function bqShowCurrent(){
   const box=document.getElementById('bq-box');
-  const t=bqCurrent();
-  if(!t){box.classList.remove('on');bqEnd();return;}
-  BQ.target=t;BQ.curWrong=0;
+  const grp=bqCurrentGroup();
+  if(!grp){box.classList.remove('on');bqEnd();return;}
+  BQ.currentGroup=grp;BQ.remaining=new Set(grp);BQ.curWrong=0;BQ.target=grp[0];
+  bqSetDots(0);
   const nb=document.getElementById('bq-neighbors');nb.innerHTML='';
-  BORDERS[t].forEach(n=>{if(!COUNTRIES[n])return;const s=document.createElement('span');s.className='bq-nb';s.textContent=COUNTRIES[n].k;nb.appendChild(s);});
+  BORDERS[grp[0]].forEach(n=>{if(!COUNTRIES[n])return;const s=document.createElement('span');s.className='bq-nb';s.textContent=COUNTRIES[n].k;nb.appendChild(s);});
+  const qEl=document.getElementById('bq-q-text');
+  if(grp.length>1){qEl.innerHTML='아래 나라들과 <b>모두 접한</b> 나라 <b>'+grp.length+'개</b>를 클릭하세요';}
+  else{qEl.innerHTML='아래 나라들과 <b>모두 접한</b> 나라를 지도에서 클릭하세요';}
   const fb=document.getElementById('bq-fb');fb.textContent='';fb.className='bq-fb';
   if(SESSION.cur==='border')box.classList.add('on');
 }
@@ -5078,24 +5188,42 @@ function bqFlash(text,cls){
   _bqFlashT=setTimeout(()=>{f.className=cls;},900);
 }
 function bqHandleClick(iso){
-  if(!BQ.target)return;
+  if(!BQ.remaining||!BQ.remaining.size)return;
   const fb=document.getElementById('bq-fb');
-  if(iso===BQ.target){
-    BQ.status[iso]='c2';BQ.correct++;setColor(iso,'c2');
-    BQ.queue.shift();bqSave();bqStats();
-    fb.textContent='정답!';fb.className='bq-fb ok';
-    bqFlash('정답!','bfok');
-    centerCountry(iso);
-    setTimeout(bqShowCurrent,900);
+  if(BQ.remaining.has(iso)){
+    /* 정답 클릭 */
+    BQ.remaining.delete(iso);
+    const wc=BQ.curWrong;
+    BQ.wrongCounts[iso]=wc;
+    const cls=wc===0?'c1':wc<=1?'c2':'c3';
+    BQ.status[iso]=cls;BQ.correct++;setColor(iso,cls);
+    if(BQ.remaining.size===0){
+      /* 그룹 모두 정답 */
+      BQ.queue.shift();bqSave();bqStats();
+      bqFlash('정답!','bfok');
+      fb.textContent='정답!';fb.className='bq-fb ok';
+      centerCountry(iso);
+      setTimeout(bqShowCurrent,900);
+    }else{
+      /* 그룹 내 일부 남음 */
+      const nm=COUNTRIES[iso]?COUNTRIES[iso].k:'?';
+      bqFlash(nm+' ✓','bfok');
+      fb.textContent=nm+' ✓  |  '+BQ.remaining.size+'개 남음';fb.className='bq-fb ok';
+    }
   }else{
+    /* 오답 클릭 */
     BQ.curWrong++;
+    bqSetDots(BQ.curWrong);
     const box=document.getElementById('bq-box');box.classList.add('shake');setTimeout(()=>box.classList.remove('shake'),360);
     if(BQ.curWrong>=3){
-      const tgt=BQ.target;BQ.status[tgt]='cr';BQ.wrong++;setColor(tgt,'cr');
-      fb.textContent='정답: '+COUNTRIES[tgt].k;fb.className='bq-fb ng';
-      bqFlash('오답  →  '+COUNTRIES[tgt].k,'bfng');
-      BQ.queue.shift();bqSave();bqStats();centerCountry(tgt);
-      setTimeout(bqShowCurrent,1800);
+      /* 오답으로 공개 */
+      const revNames=[...BQ.remaining].map(i=>COUNTRIES[i]?COUNTRIES[i].k:i);
+      for(const tgt of BQ.remaining){BQ.status[tgt]='cr';BQ.wrong++;setColor(tgt,'cr');centerCountry(tgt);}
+      BQ.remaining=new Set();
+      fb.textContent='정답: '+revNames.join(', ');fb.className='bq-fb ng';
+      bqFlash('오답  →  '+revNames.join(', '),'bfng');
+      BQ.queue.shift();bqSave();bqStats();
+      setTimeout(bqShowCurrent,1900);
     }else{
       const nm=COUNTRIES[iso]?COUNTRIES[iso].k:'?';
       fb.textContent=nm+' — 다시 (기회 '+(3-BQ.curWrong)+')';fb.className='bq-fb ng';
@@ -5103,12 +5231,13 @@ function bqHandleClick(iso){
     }
   }
 }
-function bqSkip(){const t=BQ.queue.shift();if(t)BQ.queue.push(t);bqShowCurrent();}
+function bqSkip(){const g=BQ.queue.shift();if(g)BQ.queue.push(g);bqShowCurrent();}
 function resetBorderQuiz(){
   if(!confirm('접경국 퀴즈 진행 상황을 초기화할까요?'))return;
   localStorage.removeItem(BQ.saveKey);
-  BQ.status={};BQ.correct=0;BQ.wrong=0;
-  BQ.queue=[...BQ.activeSet].sort(()=>Math.random()-.5);
+  BQ.status={};BQ.correct=0;BQ.wrong=0;BQ.wrongCounts={};
+  const allGroups=bqBuildGroupQueue(BQ.activeSet);
+  BQ.queue=allGroups.sort(()=>Math.random()-.5);
   clearMapColors();paint();bqStats();bqShowCurrent();
 }
 function bqEnd(){
@@ -5529,8 +5658,21 @@ function viewOnMap(iso){
   document.getElementById('ui-end').style.display='none';
   centerCountry(iso);
 }
+function updateWfDesc(sliderId,descId){
+  const v=parseInt(document.getElementById(sliderId).value);
+  const labels=['','1번 이상 틀린 것','2번 이상 틀린 것','완전 틀린 것만'];
+  document.getElementById(descId).textContent=labels[v]||labels[1];
+}
 function retryWrong(){
-  const wrongISOs=Object.entries(S.status).filter(([,v])=>v==='cr').map(([k])=>k);
+  const minWrong=parseInt((document.getElementById('map-wf-sl')||{value:'3'}).value)||3;
+  let wrongISOs;
+  if(minWrong>=3){
+    wrongISOs=Object.entries(S.status).filter(([,v])=>v==='cr').map(([k])=>k);
+  }else if(minWrong===2){
+    wrongISOs=Object.keys(S.wrong).filter(iso=>(S.wrong[iso]||0)>=2);
+  }else{
+    wrongISOs=Object.keys(S.wrong).filter(iso=>(S.wrong[iso]||0)>=1);
+  }
   if(!wrongISOs.length)return;
   document.getElementById('ui-end').style.display='none';
   S.activeSet=new Set(wrongISOs);S.total=wrongISOs.length;
@@ -5582,6 +5724,8 @@ function endScreen(){
   });
   document.getElementById('ui-wrong-list').style.display=revISOs.length?'block':'none';
   const hasWrong=revISOs.length>0;
+  const mapWf=document.getElementById('map-wf');
+  if(mapWf)mapWf.classList.toggle('show',hasWrong);
   document.getElementById('end-retry-wrong').style.display=hasWrong?'block':'none';
   document.getElementById('end-add-wrong').style.display=hasWrong?'block':'none';
   document.getElementById('end-add-wrong').textContent='오답 노트에 추가';
@@ -5604,6 +5748,7 @@ function switchCLTab(tab){
   clTab=tab;
   document.getElementById('cl-tab-done').classList.toggle('active',tab==='done');
   document.getElementById('cl-tab-remain').classList.toggle('active',tab==='remain');
+  const wtab=document.getElementById('cl-tab-wrong');if(wtab)wtab.classList.toggle('active',tab==='wrong');
   renderCLGrid();
 }
 function updateCLPanel(){
@@ -5611,6 +5756,8 @@ function updateCLPanel(){
   const remCnt=S.total-doneCnt;
   document.getElementById('cl-done-cnt').textContent=doneCnt;
   document.getElementById('cl-remain-cnt').textContent=remCnt;
+  const wrongCnt=Object.keys(S.wrong||{}).filter(iso=>(S.wrong[iso]||0)>0).length;
+  const wc=document.getElementById('cl-wrong-cnt');if(wc)wc.textContent=wrongCnt;
   renderCLGrid();
 }
 function renderCLGrid(){
@@ -5620,11 +5767,25 @@ function renderCLGrid(){
     sorted.forEach(([iso,cls])=>{
       const span=document.createElement('span');
       span.className='cl-tag '+cls;
-      span.textContent=COUNTRIES[iso].k;
+      const wc=S.wrong&&S.wrong[iso]?S.wrong[iso]:0;
+      span.innerHTML=COUNTRIES[iso].k+(wc>=3?'<sup class="wc wcr">완전틀림</sup>':wc===2?'<sup class="wc wc2">2번틀림</sup>':wc===1?'<sup class="wc wc1">1번틀림</sup>':'');
       span.title=COUNTRIES[iso].e;
       grid.appendChild(span);
     });
     if(!sorted.length){grid.innerHTML='<span style="color:var(--tx2);font-size:.8rem">아직 맞춘 나라가 없습니다.</span>';}
+  }else if(clTab==='wrong'){
+    const pool=S.activeSet?[...S.activeSet]:Object.keys(COUNTRIES);
+    const wrongISOs=pool.filter(iso=>(S.wrong&&S.wrong[iso]>0)||S.status[iso]==='cr').sort((a,b)=>COUNTRIES[a].k.localeCompare(COUNTRIES[b].k));
+    wrongISOs.forEach(iso=>{
+      const span=document.createElement('span');
+      const wc=S.wrong&&S.wrong[iso]?S.wrong[iso]:0;
+      const revealed=S.status[iso]==='cr';
+      span.className='cl-tag '+(revealed?'cr':wc>=2?'c3':'c2');
+      span.innerHTML=COUNTRIES[iso].k+(revealed?'<sup class="wc wcr">완전틀림</sup>':wc===2?'<sup class="wc wc2">2번틀림</sup>':'<sup class="wc wc1">1번틀림</sup>');
+      span.title=COUNTRIES[iso].e;
+      grid.appendChild(span);
+    });
+    if(!wrongISOs.length){grid.innerHTML='<span style="color:#4a9060;font-size:.8rem">틀린 나라가 없습니다</span>';}
   }else{
     const pool=S.activeSet?[...S.activeSet]:Object.keys(COUNTRIES);
     const remain=pool.filter(i=>!S.status[i]).sort((a,b)=>COUNTRIES[a].k.localeCompare(COUNTRIES[b].k));
@@ -5665,179 +5826,219 @@ function animateTo(tx,ty,sc,dur,cb){
 }
 
 /* ── Religion Quiz ── */
-const RQ={list:[],idx:0,correct:0,errors:0,skipped:0,wrongItems:[],cur:null,submitted:false,attempts:0};
-const RQ_SAVE_KEY='wq_rq_state_v1';
+const RQ={list:[],idx:0,correct:0,errors:0,skipped:0,wrongItems:[],wrongCounts:{},earnedPoints:0,maxPoints:0,cur:null,submitted:false,attempts:0,sel1:null,sel2:null,contKey:'all'};
+const RQ_SAVE_KEY='wq_rq_state_v2';
+/* 모드별 점수: 1→1pt, 2→3pt, 3→5pt */
+function rqMaxPts(mode){return mode===1?1:mode===2?3:5;}
+function rqCalcEarned(d,r1ok,r2ok,p1ok,p2ok){
+  let pts=0;
+  if(r1ok)pts+=1;
+  if(d.mode>=2&&r2ok)pts+=2;
+  if(d.mode===3){if(p1ok)pts+=1;if(p2ok)pts+=1;}
+  return pts;
+}
 function saveRQ(){
   if(RQ.idx===0&&RQ.correct===0)return;
-  localStorage.setItem(RQ_SAVE_KEY,JSON.stringify({list:RQ.list,idx:RQ.idx,correct:RQ.correct,errors:RQ.errors,skipped:RQ.skipped,wrongItems:RQ.wrongItems}));
+  localStorage.setItem(RQ_SAVE_KEY,JSON.stringify({list:RQ.list,idx:RQ.idx,correct:RQ.correct,errors:RQ.errors,skipped:RQ.skipped,wrongItems:RQ.wrongItems,wrongCounts:RQ.wrongCounts,earnedPoints:RQ.earnedPoints,maxPoints:RQ.maxPoints,contKey:RQ.contKey}));
 }
 function loadRQ(){
   try{const raw=localStorage.getItem(RQ_SAVE_KEY);if(!raw)return false;
     const d=JSON.parse(raw);
     RQ.list=d.list||[];RQ.idx=d.idx||0;RQ.correct=d.correct||0;
-    RQ.errors=d.errors||0;RQ.skipped=d.skipped||0;RQ.wrongItems=d.wrongItems||[];RQ.submitted=false;
+    RQ.errors=d.errors||0;RQ.skipped=d.skipped||0;RQ.wrongItems=d.wrongItems||[];
+    RQ.wrongCounts=d.wrongCounts||{};RQ.earnedPoints=d.earnedPoints||0;RQ.maxPoints=d.maxPoints||0;
+    RQ.contKey=d.contKey||'all';RQ.submitted=false;
     return RQ.list.length>0&&RQ.idx<RQ.list.length;
   }catch(e){return false;}
 }
-function buildRQList(){
-  RQ.list=Object.keys(RELIGION_DATA).sort(()=>Math.random()-.5);
-  RQ.idx=0;RQ.correct=0;RQ.errors=0;RQ.skipped=0;RQ.wrongItems=[];RQ.submitted=false;RQ.attempts=0;
+function buildRQList(contKey){
+  RQ.contKey=contKey||'all';
+  let isos=Object.keys(RELIGION_DATA);
+  if(RQ.contKey!=='all'){
+    const contSet=new Set(CONT[RQ.contKey]||[]);
+    isos=isos.filter(iso=>contSet.has(iso));
+  }
+  RQ.list=isos.sort(()=>Math.random()-.5);
+  RQ.idx=0;RQ.correct=0;RQ.errors=0;RQ.skipped=0;RQ.wrongItems=[];RQ.wrongCounts={};
+  RQ.earnedPoints=0;RQ.maxPoints=RQ.list.reduce((s,iso)=>s+rqMaxPts(RELIGION_DATA[iso].mode),0);
+  RQ.submitted=false;RQ.attempts=0;RQ.sel1=null;RQ.sel2=null;
   localStorage.removeItem(RQ_SAVE_KEY);
 }
 function resetReligionQuiz(){
   if(!confirm('종교 퀴즈 진행 상황을 초기화할까요?'))return;
-  buildRQList();
-  showRQCard();
+  buildRQList(RQ.contKey);showRQCard();
 }
 function openReligionQuiz(){
   document.getElementById('rq-screen').classList.add('on');
   if(loadRQ()){showRQCard();}
-  else{buildRQList();showRQCard();}
+  else{buildRQList('all');showRQCard();}
 }
 function closeReligionQuiz(){saveRQ();document.getElementById('rq-screen').classList.remove('on');document.getElementById('rq-end').classList.remove('on');}
-function restartReligionQuiz(){document.getElementById('rq-end').classList.remove('on');buildRQList();showRQCard();}
+function restartReligionQuiz(){document.getElementById('rq-end').classList.remove('on');buildRQList(RQ.contKey);showRQCard();}
 function updateRQStats(){
   document.getElementById('rq-cor').textContent=RQ.correct;
   document.getElementById('rq-err').textContent=RQ.errors;
+  const pctStr=RQ.maxPoints>0?Math.round(RQ.earnedPoints/RQ.maxPoints*100)+'%':'0%';
+  document.getElementById('rq-pts').textContent=pctStr;
   document.getElementById('rq-rem').textContent=RQ.list.length-RQ.idx;
   document.getElementById('rq-pf').style.width=(RQ.idx/RQ.list.length*100)+'%';
 }
+function rqSelRel(slot,rel){
+  if(RQ.submitted)return;
+  if(slot===1)RQ.sel1=rel;else RQ.sel2=rel;
+  const container=document.getElementById('rq-rb'+slot);
+  container.querySelectorAll('.rq-rel-btn').forEach(b=>{b.classList.toggle('sel',b.dataset.rel===rel);});
+}
 function clearRQInputs(){
-  ['rq-r1','rq-p1','rq-r2','rq-p2'].forEach(id=>{
-    const el=document.getElementById(id);
-    el.value='';el.className=el.className.replace(/\s*(correct|wrong|shake)/g,'').trim();
+  RQ.sel1=null;RQ.sel2=null;
+  [1,2].forEach(s=>{
+    const c=document.getElementById('rq-rb'+s);if(c)c.querySelectorAll('.rq-rel-btn').forEach(b=>b.className='rq-rel-btn');
+    const sl=document.getElementById('rq-sl'+s);if(sl){sl.value=s===1?50:20;sl.className='rq-sl';}
+    const sv=document.getElementById('rq-sv'+s);if(sv)sv.textContent=(s===1?50:20)+'%';
   });
   document.getElementById('rq-fb').textContent='';document.getElementById('rq-fb').className='rq-fb';
+  document.getElementById('rq-pts-earned').textContent='';
   document.getElementById('rq-reveal').style.display='none';
 }
 function showRQCard(){
-  try{saveRQ();}catch(e){} /* 자동 저장 */
+  try{saveRQ();}catch(e){}
   if(RQ.idx>=RQ.list.length){endReligionQuiz();return;}
-  const iso=RQ.list[RQ.idx];RQ.cur=iso;RQ.submitted=false;RQ.attempts=0;
+  const iso=RQ.list[RQ.idx];RQ.cur=iso;RQ.submitted=false;RQ.attempts=0;RQ.sel1=null;RQ.sel2=null;
   const d=RELIGION_DATA[iso],ci=COUNTRIES[iso];
   const flagEl=document.getElementById('rq-flag');
   const img=document.createElement('img');
-  img.src='https://flagcdn.com/w160/'+iso+'.png';
-  img.alt=iso.toUpperCase();
-  img.onerror=function(){flagEl.textContent=flagEmoji(iso);};
+  img.src='https://flagcdn.com/w160/'+iso+'.png';img.alt=iso.toUpperCase();
+  img.onerror=function(){flagEl.textContent=isoToFlag(iso);};
   flagEl.textContent='';flagEl.appendChild(img);
   document.getElementById('rq-cname').textContent=ci?ci.k:d.n;
   document.getElementById('rq-cen').textContent=ci?ci.e:d.n;
   clearRQInputs();
   /* mode: 1=1위만, 2=1위+2위이름, 3=1위+2위이름+비율 */
-  document.getElementById('rq-p1').style.display=d.mode===3?'inline-block':'none';
+  document.getElementById('rq-sr1').style.display=d.mode===3?'flex':'none';
   document.getElementById('rq-fg2').style.display=d.mode>=2?'block':'none';
-  document.getElementById('rq-p2').style.display=d.mode===3?'inline-block':'none';
-  document.getElementById('rq-l1').textContent=d.mode===3?'1위 종교 및 비율 (%)':'1위 종교';
-  document.getElementById('rq-l2').textContent=d.mode===3?'2위 종교 및 비율 (%)':'2위 종교';
+  document.getElementById('rq-sr2').style.display=d.mode===3?'flex':'none';
+  document.getElementById('rq-l1').textContent=d.mode===3?'1위 종교 + 비율':'1위 종교';
+  document.getElementById('rq-l2').textContent=d.mode===3?'2위 종교 + 비율':'2위 종교';
   document.getElementById('rq-bsub').textContent='확인';
   document.getElementById('rq-bskip').textContent='건너뛰기';
   updateRQStats();
-  document.getElementById('rq-r1').focus();
 }
 function checkRQ(){
   if(RQ.submitted){RQ.idx++;showRQCard();return;}
   const iso=RQ.cur,d=RELIGION_DATA[iso];
-  const r1v=document.getElementById('rq-r1').value.trim();
-  const p1v=document.getElementById('rq-p1').value.trim();
-  const r2v=document.getElementById('rq-r2').value.trim();
-  const p2v=document.getElementById('rq-p2').value.trim();
-  if(!r1v){shake('rq-r1');return;}
-  if(d.mode===3&&!p1v){shake('rq-p1');return;}
-  if(d.mode>=2&&!r2v){shake('rq-r2');return;}
-  if(d.mode===3&&!p2v){shake('rq-p2');return;}
-  let correct=true;
-  const r1ok=matchRel(r1v,d.r1);mark('rq-r1',r1ok);if(!r1ok)correct=false;
-  if(d.mode===3){const p1ok=parseInt(p1v)===d.rp1;mark('rq-p1',p1ok);if(!p1ok)correct=false;}
-  if(d.mode>=2){const r2ok=matchRel(r2v,d.r2);mark('rq-r2',r2ok);if(!r2ok)correct=false;}
-  if(d.mode===3){const p2ok=parseInt(p2v)===d.rp2;mark('rq-p2',p2ok);if(!p2ok)correct=false;}
-  if(correct){
-    RQ.submitted=true;
+  if(!RQ.sel1){
+    /* 1위 종교 미선택 시 shake buttons */
+    const c=document.getElementById('rq-rb1');if(c){c.classList.add('shake');setTimeout(()=>c.classList.remove('shake'),400);}return;
+  }
+  if(d.mode>=2&&!RQ.sel2){
+    const c=document.getElementById('rq-rb2');if(c){c.classList.add('shake');setTimeout(()=>c.classList.remove('shake'),400);}return;
+  }
+  const r1ok=RQ.sel1===d.r1;
+  const r2ok=d.mode>=2?(RQ.sel2===d.r2):true;
+  const p1v=d.mode===3?parseInt(document.getElementById('rq-sl1').value):0;
+  const p2v=d.mode===3?parseInt(document.getElementById('rq-sl2').value):0;
+  const p1ok=d.mode===3?Math.abs(p1v-d.rp1)<=5:true;
+  const p2ok=d.mode===3?Math.abs(p2v-d.rp2)<=5:true;
+  const allOk=r1ok&&r2ok&&p1ok&&p2ok;
+  /* 버튼 색상 표시 */
+  [1,2].forEach(s=>{
+    const cont=document.getElementById('rq-rb'+s);if(!cont)return;
+    cont.querySelectorAll('.rq-rel-btn').forEach(b=>{
+      const sel=b.classList.contains('sel');
+      const correct=(s===1&&b.dataset.rel===d.r1)||(s===2&&b.dataset.rel===d.r2);
+      if(sel)b.classList.add(correct?'correct':'wrong');
+      else if(correct)b.classList.add('correct');
+    });
+  });
+  if(d.mode===3){
+    document.getElementById('rq-sl1').classList.add(p1ok?'correct':'wrong');
+    document.getElementById('rq-sl2').classList.add(p2ok?'correct':'wrong');
+  }
+  const earned=rqCalcEarned(d,r1ok,r2ok,p1ok,p2ok);
+  const maxPts=rqMaxPts(d.mode);
+  RQ.earnedPoints+=earned;
+  const ci=COUNTRIES[iso];
+  RQ.submitted=true;
+  if(allOk){
     RQ.correct++;
     document.getElementById('rq-bsub').textContent='다음 →';
-    document.getElementById('rq-fb').textContent='정답! ✓';document.getElementById('rq-fb').className='rq-fb ok';
-  }else if(RQ.attempts<1){
-    RQ.attempts++;
-    document.getElementById('rq-fb').textContent='틀렸습니다 · 한 번 더 남았습니다';document.getElementById('rq-fb').className='rq-fb ng';
+    document.getElementById('rq-fb').textContent='정답!';document.getElementById('rq-fb').className='rq-fb ok';
+    document.getElementById('rq-pts-earned').textContent='+'+earned+'pt / '+maxPts+'pt';
+  }else if(RQ.attempts<1&&!allOk){
+    /* 첫 번째 틀린 경우 — 한 번 더 기회 */
+    RQ.earnedPoints-=earned; /* 아직 카운트 안 함 */
+    RQ.submitted=false;RQ.attempts++;
+    /* 색상은 reset */
+    clearRQInputs();
+    document.getElementById('rq-fb').textContent='틀렸습니다 · 한 번 더!';document.getElementById('rq-fb').className='rq-fb ng';
+    return;
   }else{
-    RQ.submitted=true;
     RQ.errors++;
     document.getElementById('rq-bsub').textContent='다음 →';
     const ans=buildAnsText(d);
     document.getElementById('rq-reveal-text').textContent=ans;
     document.getElementById('rq-reveal').style.display='block';
     document.getElementById('rq-fb').textContent='틀렸습니다';document.getElementById('rq-fb').className='rq-fb ng';
-    const ci=COUNTRIES[iso];
-    RQ.wrongItems.push({iso,country:ci?ci.k:d.n,answer:ans,yours:buildYoursText(r1v,p1v,r2v,p2v,d.mode)});
+    document.getElementById('rq-pts-earned').textContent='+'+earned+'pt / '+maxPts+'pt';
+    RQ.wrongCounts[iso]=(RQ.wrongCounts[iso]||0)+1;
+    RQ.wrongItems.push({iso,country:ci?ci.k:d.n,answer:ans,wrongCount:RQ.wrongCounts[iso]});
   }
-  saveRQ();
+  updateRQStats();saveRQ();
 }
-function shake(id){const el=document.getElementById(id);el.classList.add('shake');setTimeout(()=>el.classList.remove('shake'),400);}
-function mark(id,ok){const el=document.getElementById(id);el.classList.remove('correct','wrong');el.classList.add(ok?'correct':'wrong');}
 function buildAnsText(d){
   let t=REL_KO[d.r1];
   if(d.mode===3)t+=' '+d.rp1+'%';
   if(d.mode>=2){t+=' / '+REL_KO[d.r2];if(d.mode===3)t+=' '+d.rp2+'%';}
   return t;
 }
-function buildYoursText(r1v,p1v,r2v,p2v,mode){
-  let t=r1v||'?';
-  if(mode===3)t+=' '+(p1v||'?')+'%';
-  if(mode>=2){t+=' / '+(r2v||'?');if(mode===3)t+=' '+(p2v||'?')+'%';}
-  return t;
-}
 function skipRQ(){
   if(RQ.submitted){RQ.idx++;showRQCard();return;}
-  RQ.skipped++;
-  RQ.idx++;
-  showRQCard();
+  RQ.skipped++;RQ.idx++;showRQCard();
 }
 function openRQList(){
-  const grid=document.getElementById('rql-grid');
-  grid.innerHTML='';
+  const grid=document.getElementById('rql-grid');grid.innerHTML='';
   const remaining=RQ.list.slice(RQ.idx);
   document.getElementById('rql-rem-cnt').textContent=remaining.length;
   remaining.forEach((iso,offset)=>{
     const d=RELIGION_DATA[iso],ci=COUNTRIES[iso];
     const span=document.createElement('span');
-    span.className='cl-tag remain';
-    span.textContent=ci?ci.k:d.n;
-    span.style.cursor='pointer';
+    span.className='cl-tag remain';span.textContent=ci?ci.k:d.n;span.style.cursor='pointer';
     span.addEventListener('click',()=>{
       document.getElementById('rq-list-panel').classList.remove('on');
-      /* 선택한 국가를 현재 위치로 옮기고 나머지 순서 보존 */
-      const actualIdx=RQ.idx+offset;
-      RQ.list.splice(actualIdx,1);
-      RQ.list.splice(RQ.idx,0,iso);
-      RQ.submitted=false;
-      showRQCard();
+      const actualIdx=RQ.idx+offset;RQ.list.splice(actualIdx,1);RQ.list.splice(RQ.idx,0,iso);
+      RQ.submitted=false;showRQCard();
     });
     grid.appendChild(span);
   });
   document.getElementById('rq-list-panel').classList.add('on');
 }
 function endReligionQuiz(){
-  const total=RQ.list.length;
-  document.getElementById('rq-escore').textContent=Math.round(RQ.correct/total*100)+'%';
+  const pct=RQ.maxPoints>0?Math.round(RQ.earnedPoints/RQ.maxPoints*100):0;
+  document.getElementById('rq-escore').textContent=pct+'%';
   document.getElementById('rq-e1').textContent=RQ.correct;
   document.getElementById('rq-e2').textContent=RQ.errors;
   document.getElementById('rq-e3').textContent=RQ.skipped;
   const wl=document.getElementById('rq-wrong-list');wl.innerHTML='';
   RQ.wrongItems.forEach(item=>{
     const div=document.createElement('div');div.className='rq-wrong-item';
-    div.innerHTML=`<span class="wi-country">${item.country}</span><span class="wi-ans">정답: ${item.answer}</span><span class="wi-yours">내 답: ${item.yours}</span>`;
+    div.innerHTML='<span class="wi-country">'+item.country+'</span><span class="wi-ans">정답: '+item.answer+'</span>';
     wl.appendChild(div);
   });
-  document.getElementById('rq-wrong-wrap').style.display=RQ.wrongItems.length?'block':'none';
-  document.getElementById('rq-retry-btn').style.display=RQ.wrongItems.length?'block':'none';
+  const hasWrong=RQ.wrongItems.length>0;
+  document.getElementById('rq-wrong-wrap').style.display=hasWrong?'block':'none';
+  document.getElementById('rq-retry-btn').style.display=hasWrong?'block':'none';
+  const wf=document.getElementById('rq-wf');if(wf)wf.classList.toggle('show',hasWrong);
   document.getElementById('rq-end').classList.add('on');
 }
 function retryWrongRQ(){
-  const isos=RQ.wrongItems.map(w=>w.iso).filter(Boolean);
+  const minWrong=parseInt((document.getElementById('rq-wf-sl')||{value:'1'}).value)||1;
+  let isos=RQ.wrongItems.map(w=>w.iso).filter(Boolean);
+  if(minWrong>1)isos=isos.filter(iso=>(RQ.wrongCounts[iso]||0)>=minWrong);
   if(!isos.length)return;
   document.getElementById('rq-end').classList.remove('on');
   RQ.list=isos.sort(()=>Math.random()-.5);
   RQ.idx=0;RQ.correct=0;RQ.errors=0;RQ.skipped=0;RQ.wrongItems=[];RQ.submitted=false;RQ.attempts=0;
+  RQ.earnedPoints=0;RQ.maxPoints=RQ.list.reduce((s,iso)=>s+rqMaxPts(RELIGION_DATA[iso].mode),0);
   localStorage.removeItem(RQ_SAVE_KEY);
   showRQCard();
 }
@@ -6351,9 +6552,6 @@ function initMap(){
   });
   document.getElementById('rq-bsub').addEventListener('click',checkRQ);
   document.getElementById('rq-bskip').addEventListener('click',skipRQ);
-  ['rq-r1','rq-p1','rq-r2','rq-p2'].forEach(id=>{
-    document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();e.stopPropagation();checkRQ();}});
-  });
   /* touch pan/zoom for mobile mode */
   let _tc=null;
   let _swipeStartX=0,_swipeStartY=0,_swipeMoved=false;
