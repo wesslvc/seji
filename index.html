@@ -282,6 +282,8 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 .ld-cat input:checked::after,.ld-sub-item input:checked::after,.ld-chk input:checked::after{content:'';position:absolute;left:5px;top:1.5px;width:5px;height:9px;border:solid #000;border-width:0 2px 2px 0;transform:rotate(45deg)}
 .ld-range{margin-top:.45rem;padding-top:.6rem;border-top:1px dashed var(--bd)}
 .ld-range-h{display:flex;align-items:center;gap:.4rem;font-size:.72rem;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem}
+.ld-cont-all{margin-left:auto;padding:.2rem .5rem;font-size:.68rem;background:var(--sf2);border:1px solid var(--bd);border-radius:4px;color:var(--tx2);font-family:'Pretendard','Noto Sans KR',sans-serif;cursor:pointer;text-transform:none;letter-spacing:0;transition:.18s var(--ease)}
+.ld-cont-all:hover{border-color:var(--tx2);color:var(--tx)}
 .ld-range-h svg{width:1em;height:1em}
 .ld-range-note{text-transform:none;letter-spacing:0;opacity:.7}
 .ld-select{width:100%;padding:.5rem .6rem;background:var(--bg);border:1px solid var(--bd);border-radius:5px;color:var(--tx);font-family:'Pretendard','Noto Sans KR',sans-serif;font-size:.82rem;outline:none;margin-bottom:.5rem;cursor:pointer}
@@ -421,7 +423,7 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
         <label class="ld-sub-item"><input type="checkbox" class="ld-act" value="border"><span data-ic="border"></span>접경국 맞추기</label>
         <label class="ld-sub-item"><input type="checkbox" class="ld-act" value="religion" id="ld-act-religion"><span data-ic="book"></span>국가별 종교 퀴즈</label>
         <div class="ld-range">
-          <div class="ld-range-h"><span data-ic="range"></span>출제 범위 <span class="ld-range-note">· 중복 선택 가능</span></div>
+          <div class="ld-range-h"><span data-ic="range"></span>출제 범위 <span class="ld-range-note">· 중복 선택 가능</span><button type="button" class="ld-cont-all" id="ld-cont-all">전체 선택</button></div>
           <div class="ld-cont-grid" id="ld-cont-grid">
             <label class="ld-cont-chk"><input type="checkbox" class="ld-cont-cb" value="as">아시아</label>
             <label class="ld-cont-chk"><input type="checkbox" class="ld-cont-cb" value="eu">유럽</label>
@@ -4991,6 +4993,21 @@ function setupLanding(){
   document.querySelectorAll('.ld-act').forEach(cb=>{
     cb.addEventListener('change',updateStartState);
   });
+  /* 대륙 전체 선택/해제 토글 */
+  const contAll=document.getElementById('ld-cont-all');
+  function syncContAll(){
+    const cbs=[...document.querySelectorAll('.ld-cont-cb')];
+    const allOn=cbs.every(c=>c.checked);
+    contAll.textContent=allOn?'전체 해제':'전체 선택';
+  }
+  contAll.addEventListener('click',()=>{
+    const cbs=[...document.querySelectorAll('.ld-cont-cb')];
+    const allOn=cbs.every(c=>c.checked);
+    cbs.forEach(c=>c.checked=!allOn);
+    syncContAll();
+  });
+  document.querySelectorAll('.ld-cont-cb').forEach(cb=>cb.addEventListener('change',syncContAll));
+  syncContAll();
   document.getElementById('ld-start').addEventListener('click',startFromLanding);
   updateStartState();
 }
@@ -5269,6 +5286,14 @@ const RELIGION_DATA={"af":{"n":"Afghanistan","r1":"Muslims","r2":"Other_religion
 
 /* ── 종교 이름 (크리스트교로 변경) ── */
 const REL_KO={Muslims:'이슬람교',Christians:'크리스트교',Buddhists:'불교',Hindus:'힌두교',Jews:'유대교',Other_religions:'기타종교'};
+/* 4대 종교(크리스트교·이슬람교·불교·힌두교)가 아니면 모두 '기타'로 채점 */
+const MAIN_RELS=new Set(['Christians','Muslims','Buddhists','Hindus']);
+function rqNorm(rel){return MAIN_RELS.has(rel)?rel:'Other_religions';}
+/* 정답 표시용: 기타일 때 실제 종교명을 괄호로 병기 */
+function rqRelKo(rel){
+  if(MAIN_RELS.has(rel))return REL_KO[rel];
+  return (rel&&rel!=='Other_religions'&&REL_KO[rel])?'기타 ('+REL_KO[rel]+')':'기타';
+}
 const REL_ACCEPT={
   Muslims:['이슬람교','이슬람','무슬림','muslim','muslims','islam'],
   Christians:['크리스트교','기독교','기독','크리스천','christian','christians','christianity','크리스트'],
@@ -5978,8 +6003,8 @@ function checkRQ(){
   if(d.mode>=2&&!RQ.sel2){
     const c=document.getElementById('rq-rb2');if(c){c.classList.add('shake');setTimeout(()=>c.classList.remove('shake'),400);}return;
   }
-  const r1ok=RQ.sel1===d.r1;
-  const r2ok=d.mode>=2?(RQ.sel2===d.r2):true;
+  const r1ok=RQ.sel1===rqNorm(d.r1);
+  const r2ok=d.mode>=2?(RQ.sel2===rqNorm(d.r2)):true;
   const p1v=d.mode===3?parseInt(document.getElementById('rq-sl1').value):0;
   const p2v=d.mode===3?parseInt(document.getElementById('rq-sl2').value):0;
   const p1ok=d.mode===3?Math.abs(p1v-d.rp1)<=5:true;
@@ -5990,7 +6015,7 @@ function checkRQ(){
     const cont=document.getElementById('rq-rb'+s);if(!cont)return;
     cont.querySelectorAll('.rq-rel-btn').forEach(b=>{
       const sel=b.classList.contains('sel');
-      const correct=(s===1&&b.dataset.rel===d.r1)||(s===2&&b.dataset.rel===d.r2);
+      const correct=(s===1&&b.dataset.rel===rqNorm(d.r1))||(s===2&&b.dataset.rel===rqNorm(d.r2));
       if(sel)b.classList.add(correct?'correct':'wrong');
       else if(correct)b.classList.add('correct');
     });
@@ -6034,9 +6059,9 @@ function checkRQ(){
   updateRQStats();saveRQ();
 }
 function buildAnsText(d){
-  let t=REL_KO[d.r1];
+  let t=rqRelKo(d.r1);
   if(d.mode===3)t+=' '+d.rp1+'%';
-  if(d.mode>=2){t+=' / '+REL_KO[d.r2];if(d.mode===3)t+=' '+d.rp2+'%';}
+  if(d.mode>=2){t+=' / '+rqRelKo(d.r2);if(d.mode===3)t+=' '+d.rp2+'%';}
   return t;
 }
 function skipRQ(){
