@@ -8,7 +8,7 @@
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#060606;--sf:#101010;--sf2:#1a1a1a;--bd:#252525;--tx:#eeeeee;--tx2:#666666;--ac:#cccccc;--ac2:#333333;--wr:#b03838;--gd:#a87020;--land:#222730;--c1:#162c4a;--c2:#163428;--c3:#2e2408;}
+:root{--bg:#060606;--sf:#101010;--sf2:#1a1a1a;--bd:#252525;--tx:#eeeeee;--tx2:#666666;--ac:#cccccc;--ac2:#333333;--wr:#b03838;--gd:#a87020;--land:#222730;--c1:#1e4270;--c2:#1a4c36;--c3:#3e300e;}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Pretendard','Noto Sans KR',sans-serif;background:var(--bg);color:var(--tx);height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden;-webkit-font-smoothing:antialiased}
 header{padding:.5rem 1.2rem;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;background:var(--sf);flex-shrink:0}
@@ -54,7 +54,7 @@ body.mob-mode main{padding-bottom:72px}
 .ui-ov.on .modal{transform:translateY(0)}
 .mb{padding:.85rem 1rem .95rem}
 .dots{display:flex;gap:6px;justify-content:center;margin-bottom:.8rem}
-.dot{width:8px;height:8px;border-radius:2px;background:var(--bd);transition:background .2s}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--bd);transition:background .2s}
 .dot.ok{background:#35906a}.dot.ng{background:var(--wr)}.dot.win{background:#3672b8}
 #ui-gi{width:100%;padding:.6rem .85rem;background:rgba(16,16,16,.9);border:1px solid var(--bd);border-radius:4px;color:var(--tx);font-size:.95rem;font-family:'Pretendard','Noto Sans KR',sans-serif;outline:none;transition:border-color .2s;margin-bottom:.6rem}
 #ui-gi:focus{border-color:var(--ac)}
@@ -4807,6 +4807,7 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
   <div class="rq-progress"><div class="rq-pf" id="rq-pf"></div></div>
   <div class="rq-body">
     <div class="rq-card">
+      <div class="dots" style="margin-bottom:.6rem"><div class="dot" id="rq-d0"></div><div class="dot" id="rq-d1"></div><div class="dot" id="rq-d2"></div></div>
       <div class="rq-flag" id="rq-flag"></div>
       <div class="rq-country">
         <div class="rq-country-name" id="rq-cname"></div>
@@ -5303,7 +5304,7 @@ function check(input,iso){
 }
 
 const CIRCLE_ISOS=new Set(Object.keys(CIRCLE_POS));
-const COLOR_MAP={c1:'#162c4a',c2:'#163428',c3:'#2e2408',cr:'#4a1414'};
+const COLOR_MAP={c1:'#1e4270',c2:'#1a4c36',c3:'#3e300e',cr:'#4a1414'};
 
 
 function iso4el(el){
@@ -5904,6 +5905,7 @@ function showRQCard(){
   try{saveRQ();}catch(e){}
   if(RQ.idx>=RQ.list.length){endReligionQuiz();return;}
   const iso=RQ.list[RQ.idx];RQ.cur=iso;RQ.submitted=false;RQ.attempts=0;RQ.sel1=null;RQ.sel2=null;
+  for(let i=0;i<3;i++){const el=document.getElementById('rq-d'+i);if(el)el.className='dot';}
   const d=RELIGION_DATA[iso],ci=COUNTRIES[iso];
   const flagEl=document.getElementById('rq-flag');
   const img=document.createElement('img');
@@ -5961,6 +5963,7 @@ function checkRQ(){
   RQ.submitted=true;
   if(allOk){
     RQ.correct++;
+    if(RQ.attempts===0){const el=document.getElementById('rq-d0');if(el)el.className='dot win';}
     document.getElementById('rq-bsub').textContent='다음 →';
     document.getElementById('rq-fb').textContent='정답!';document.getElementById('rq-fb').className='rq-fb ok';
     document.getElementById('rq-pts-earned').textContent='+'+earned+'pt / '+maxPts+'pt';
@@ -5968,12 +5971,14 @@ function checkRQ(){
     /* 첫 번째 틀린 경우 — 한 번 더 기회 */
     RQ.earnedPoints-=earned; /* 아직 카운트 안 함 */
     RQ.submitted=false;RQ.attempts++;
+    for(let i=0;i<3;i++){const el=document.getElementById('rq-d'+i);if(el)el.className='dot'+(i<1?' ng':'');}
     /* 색상은 reset */
     clearRQInputs();
     document.getElementById('rq-fb').textContent='틀렸습니다 · 한 번 더!';document.getElementById('rq-fb').className='rq-fb ng';
     return;
   }else{
     RQ.errors++;
+    for(let i=0;i<3;i++){const el=document.getElementById('rq-d'+i);if(el)el.className='dot'+(i<2?' ng':'');}
     document.getElementById('rq-bsub').textContent='다음 →';
     const ans=buildAnsText(d);
     document.getElementById('rq-reveal-text').textContent=ans;
