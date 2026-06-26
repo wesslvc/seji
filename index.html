@@ -24,7 +24,7 @@ main{flex:1;position:relative;overflow:hidden}
 body.mob-mode main{padding-bottom:72px}
 #ui-map{width:100%;height:100%;overflow:hidden;cursor:grab;user-select:none;position:absolute;inset:0;z-index:1}
 #ui-map:active{cursor:grabbing}
-#ui-map svg{position:absolute;top:0;left:0;transform-origin:0 0}
+#ui-map svg{position:absolute;top:0;left:0;transform-origin:0 0;will-change:transform}
 #world-svg .oceanxx{fill:#040608}
 #world-svg .landxx{fill:var(--land);stroke:#0d1117;stroke-width:.5;cursor:pointer}
 #world-svg .coastxx{stroke-width:.3}
@@ -71,7 +71,7 @@ body.mob-mode main{padding-bottom:72px}
 .ab .al{font-size:.68rem;color:var(--tx2);margin-bottom:.12rem}
 .ab .an{font-size:.98rem;font-weight:500;color:var(--gd)}
 /* End screen */
-#ui-end{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:600;display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
+#ui-end{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:600;display:none;align-items:center;justify-content:center}
 .ec{background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:1.8rem;text-align:center;max-width:480px;width:94%;max-height:90vh;max-height:90dvh;overflow-y:auto}
 .ec h1{font-family:'Space Grotesk',sans-serif;font-size:1.35rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
 .esc{font-size:3rem;font-family:'Barlow Condensed',sans-serif;font-weight:700;color:var(--tx);margin:.5rem 0;letter-spacing:.04em}
@@ -125,8 +125,13 @@ body.mob-mode #kr-main .ctrl{bottom:90px!important}
 body.mob-mode .cb{width:44px;height:44px;font-size:1.25rem}
 /* 모바일: 모달을 상단에 — 가상 키보드가 하단 모달(닫기 버튼)을 덮는 문제 방지 */
 body.mob-mode .ui-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
+body.mob-mode.in-session .ui-ov{padding-top:calc(42px + .8rem)}
+body.mob-mode.in-session #kr-ov{padding-top:calc(42px + .8rem)}
 body.mob-mode .btn{padding:.85rem;font-size:.95rem}
 body.mob-mode .ui-ov .modal{max-width:96vw}
+/* 접경국 모드: 작은 나라(원형 표시) 클릭 가능하게 */
+body.border-mode #world-svg g.circlexx{pointer-events:all}
+body.border-mode #world-svg g.circlexx circle{opacity:.55!important;pointer-events:all!important;cursor:pointer!important}
 
 /* ═══ Korea Quiz ═══ */
 #kr-screen{position:fixed;inset:0;background:var(--bg);z-index:700;display:none;flex-direction:column}
@@ -147,18 +152,18 @@ body.mob-mode #kr-main{padding-bottom:72px}
 #kr-ov.on{opacity:1}
 #kr-ov.on .modal{pointer-events:all}
 body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
-#kr-end{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:760;display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
+#kr-end{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:760;display:none;align-items:center;justify-content:center}
 #kr-end.on{display:flex}
-#kl-panel{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:750;display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
+#kl-panel{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:750;display:none;align-items:center;justify-content:center}
 #kl-panel.on{display:flex}
 #kr-mob-bar{display:none;position:fixed;bottom:0;left:0;right:0;z-index:740;padding:.6rem .85rem calc(.6rem + env(safe-area-inset-bottom));background:rgba(6,6,6,.97);border-top:1px solid var(--bd);backdrop-filter:blur(12px)}
 .kr-stats{display:flex;gap:.8rem;align-items:center}
 .kr-stats .sv{font-size:1rem;font-weight:700;text-align:center;font-family:'Barlow Condensed',sans-serif;letter-spacing:.04em}
 .kr-stats .sl{font-size:.55rem;color:var(--tx2);text-align:center;text-transform:uppercase;letter-spacing:.08em}
 /* Country list panel */
-#cl-panel{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:650;display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
+#cl-panel{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:650;display:none;align-items:center;justify-content:center}
 #cl-panel.on{display:flex}
-#rq-list-panel{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:800;display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
+#rq-list-panel{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:800;display:none;align-items:center;justify-content:center}
 #rq-list-panel.on{display:flex}
 .cl-card{background:var(--sf);border:1px solid var(--bd);border-radius:6px;width:94%;max-width:700px;max-height:90vh;max-height:90dvh;display:flex;flex-direction:column}
 .cl-head{padding:1rem 1.2rem .7rem;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
@@ -207,7 +212,7 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 .rq-reveal{background:rgba(16,16,16,.9);border:1px solid var(--bd);border-radius:4px;padding:.55rem .85rem;margin-top:.55rem;display:none}
 .rq-reveal .al{color:var(--tx2);font-size:.68rem;margin-bottom:.2rem}
 .rq-reveal .an{color:var(--gd);font-weight:500}
-#rq-end{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:800;display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
+#rq-end{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:800;display:none;align-items:center;justify-content:center}
 #rq-end.on{display:flex}
 .rq-end-card{background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:1.8rem;text-align:center;max-width:500px;width:94%;max-height:92vh;overflow-y:auto}
 .rq-wrong-wrap{margin-top:.8rem;text-align:left;background:rgba(176,56,56,.06);border:1px solid rgba(176,56,56,.25);border-radius:4px;padding:.55rem .75rem}
@@ -324,7 +329,7 @@ body.in-session #rq-screen,body.in-session #kr-screen{top:42px}
 #bq-flash.bfng{color:var(--wr);border:1px solid rgba(176,56,56,.45)}
 body.border-mode .leg,body.border-mode .info{display:none}
 #bq-list-panel.on{display:flex!important}
-#bq-end{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:800;display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
+#bq-end{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:800;display:none;align-items:center;justify-content:center}
 #bq-end.on{display:flex}
 
 /* ── 아이콘 ── */
@@ -407,19 +412,8 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
         <label class="ld-sub-item"><input type="checkbox" class="ld-act" value="name"><span data-ic="globe"></span>나라 이름 맞추기</label>
         <label class="ld-sub-item"><input type="checkbox" class="ld-act" value="border"><span data-ic="border"></span>접경국 맞추기</label>
         <label class="ld-sub-item"><input type="checkbox" class="ld-act" value="religion" id="ld-act-religion"><span data-ic="book"></span>국가별 종교 퀴즈</label>
-        <div class="ld-rq-range" id="ld-rq-range">
-          <select id="ld-rq-cont">
-            <option value="all">전체 대륙</option>
-            <option value="as">아시아</option>
-            <option value="eu">유럽</option>
-            <option value="af">아프리카</option>
-            <option value="na">북아메리카</option>
-            <option value="sa">남아메리카</option>
-            <option value="oc">오세아니아</option>
-          </select>
-        </div>
         <div class="ld-range">
-          <div class="ld-range-h"><span data-ic="range"></span>출제 범위 <span class="ld-range-note">· 나라이름/접경국</span></div>
+          <div class="ld-range-h"><span data-ic="range"></span>출제 범위</div>
           <select id="ld-cont" class="ld-select">
             <option value="all">전체 대륙</option>
             <option value="as">아시아</option>
@@ -4900,7 +4894,7 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
 </div>
 
 <!-- 접경국 퀴즈 목록 -->
-<div id="bq-list-panel" class="rq-list-panel-like" style="position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:800;display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px)">
+<div id="bq-list-panel" class="rq-list-panel-like" style="position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:800;display:none;align-items:center;justify-content:center">
   <div class="cl-card">
     <div class="cl-head">
       <div>
@@ -4988,11 +4982,6 @@ function setupLanding(){
   });
   document.querySelectorAll('.ld-act').forEach(cb=>{
     cb.addEventListener('change',updateStartState);
-    if(cb.value==='religion'){
-      cb.addEventListener('change',function(){
-        document.getElementById('ld-rq-range').classList.toggle('show',this.checked);
-      });
-    }
   });
   document.getElementById('ld-start').addEventListener('click',startFromLanding);
   updateStartState();
@@ -5018,8 +5007,7 @@ function startFromLanding(){
   let key=document.getElementById('ld-cont').value;
   if(document.getElementById('ld-big').checked)key+='_big';
   if(document.getElementById('ld-noisle').checked)key+='_noisle';
-  const rqContKey=document.getElementById('ld-rq-cont')?document.getElementById('ld-rq-cont').value:'all';
-  startSession('world',acts,key,rqContKey);
+  startSession('world',acts,key,document.getElementById('ld-cont').value);
 }
 
 function startSession(cat,acts,filterKey,rqContKey){
@@ -5126,7 +5114,8 @@ function closeMenu(){}
 const BQ={activeSet:null,total:0,queue:[],status:{},correct:0,wrong:0,curWrong:0,target:null,remaining:null,currentGroup:[],wrongCounts:{},saveKey:'bq_all'};
 function bqPool(){
   let base=S.activeSet?[...S.activeSet]:Object.keys(COUNTRIES);
-  return base.filter(i=>BORDERS[i]&&!CIRCLE_ISOS.has(i));
+  /* 원형으로 표시되는 소국도 접경국 있으면 포함 (BQ 모드에서 클릭 가능) */
+  return base.filter(i=>BORDERS[i]);
 }
 function bqBuildGroupQueue(activeSet){
   const groups=new Map();
@@ -5375,7 +5364,7 @@ const BORDERS={
   td:['ly','sd','cf','cm','ng','ne'],cd:['cg','cf','ss','ug','rw','bi','tz','zm','ao'],cg:['ga','cm','cf','cd','ao'],ci:['lr','gn','ml','bf','gh'],
   dj:['er','et','so'],eg:['ly','sd','il','ps'],gq:['cm','ga'],er:['sd','et','dj'],et:['er','dj','so','ke','ss','sd'],ga:['gq','cm','cg'],
   gm:['sn'],gh:['ci','bf','tg'],gn:['gw','sn','ml','ci','lr','sl'],gw:['sn','gn'],ke:['et','so','ss','ug','tz'],ls:['za'],
-  lr:['sl','gn','ci'],ly:['tn','dz','ne','td','sd','eg'],mw:['tz','mz','zm'],ml:['dz','ne','bf','ci','gn','sn','mr'],ma:['dz','eh'],
+  lr:['sl','gn','ci'],ly:['tn','dz','ne','td','sd','eg'],mw:['tz','mz','zm'],ml:['dz','ne','bf','ci','gn','sn','mr'],ma:['dz','eh','es'],
   mr:['eh','dz','ml','sn'],mz:['tz','mw','zm','zw','za','sz'],na:['ao','zm','bw','za'],ne:['dz','ly','td','ng','bj','bf','ml'],
   ng:['bj','ne','td','cm'],rw:['cd','ug','tz','bi'],sn:['mr','ml','gn','gw','gm'],sl:['gn','lr'],so:['dj','et','ke'],
   za:['na','bw','zw','mz','sz','ls'],ss:['sd','et','ke','ug','cd','cf'],sd:['eg','ly','td','cf','ss','et','er'],sz:['za','mz'],
@@ -5465,22 +5454,26 @@ const dynMask=document.createElement('style');document.head.appendChild(dynMask)
 const dyn=document.createElement('style');document.head.appendChild(dyn);
 function paintMask(){
   if(!S.activeSet||S.activeSet.size>=Object.keys(COUNTRIES).length){dynMask.textContent='';return;}
-  let css='#world-svg [data-iso]{fill:#151c28!important;stroke:#0a0f18!important;cursor:default!important;pointer-events:none!important}';
-  for(const iso of S.activeSet){
-    css+=selCSS(iso)+'{fill:#3d4451!important;stroke:#0d1117!important;cursor:pointer!important;pointer-events:all!important}';
-    css+=selCSS(iso)+':hover{fill:#556070!important}';
-  }
-  dynMask.textContent=css;
+  const actSels=[...S.activeSet].map(selCSS).join(',');
+  const hov=[...S.activeSet].map(i=>selCSS(i)+':hover').join(',');
+  dynMask.textContent='#world-svg [data-iso]{fill:#151c28!important;stroke:#0a0f18!important;cursor:default!important;pointer-events:none!important}'
+    +actSels+'{fill:#3d4451!important;stroke:#0d1117!important;cursor:pointer!important;pointer-events:all!important}'
+    +hov+'{fill:#556070!important}';
 }
 const colors={};
 function paint(){
-  let css='';
   const bright={c1:'#3a78c4',c2:'#359464',c3:'#b8841a',cr:'#b83838'};
+  const groups={};
   for(const[iso,cls]of Object.entries(colors)){
-    if(cls==='blink')continue; /* JS 타이머가 inline style로 처리 */
-    const s=selCSS(iso);
-    css+=s+'{fill:'+COLOR_MAP[cls]+'!important;stroke:#050505;stroke-width:.5}';
-    css+=s+':hover{fill:'+bright[cls]+'!important}';
+    if(cls==='blink')continue;
+    if(!groups[cls])groups[cls]=[];
+    groups[cls].push(iso);
+  }
+  let css='';
+  for(const[cls,isos]of Object.entries(groups)){
+    const sels=isos.map(selCSS).join(',');
+    css+=sels+'{fill:'+COLOR_MAP[cls]+'!important;stroke:#050505;stroke-width:.5}';
+    css+=isos.map(i=>selCSS(i)+':hover').join(',')+'{fill:'+bright[cls]+'!important}';
   }
   dyn.textContent=css;
 }
