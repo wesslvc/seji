@@ -5007,7 +5007,7 @@ function startFromLanding(){
   let key=document.getElementById('ld-cont').value;
   if(document.getElementById('ld-big').checked)key+='_big';
   if(document.getElementById('ld-noisle').checked)key+='_noisle';
-  startSession('world',acts,key,document.getElementById('ld-cont').value);
+  startSession('world',acts,key,key);
 }
 
 function startSession(cat,acts,filterKey,rqContKey){
@@ -5539,6 +5539,12 @@ function openModal(iso){
   setColor(iso,'blink');
   const mob=document.getElementById('ui-mob-bar');if(mob)mob.style.display='none';
 }
+/* 모달 버튼을 모바일 키보드 환경에서도 첫 탭에 동작하게 바인딩 */
+function bindModalBtn(el,fn){
+  if(!el)return;
+  el.addEventListener('mousedown',e=>e.preventDefault());
+  el.addEventListener('click',e=>{e.stopPropagation();fn();});
+}
 function closeModal(){
   modalOpen=false;
   document.getElementById('ui-ov').classList.remove('on');
@@ -5854,13 +5860,19 @@ function loadRQ(){
     return RQ.list.length>0&&RQ.idx<RQ.list.length;
   }catch(e){return false;}
 }
-function buildRQList(contKey){
-  RQ.contKey=contKey||'all';
+function buildRQList(filterKey){
+  /* filterKey 형식은 나라이름/접경국과 동일: 'all', 'as_big', 'eu_big_noisle' 등 */
+  const key=filterKey||'all';
+  RQ.contKey=key;
+  const parts=key.split('_');
+  const contKey=parts[0];
   let isos=Object.keys(RELIGION_DATA);
-  if(RQ.contKey!=='all'){
-    const contSet=new Set(CONT[RQ.contKey]||[]);
+  if(contKey!=='all'&&CONT[contKey]){
+    const contSet=new Set(CONT[contKey]);
     isos=isos.filter(iso=>contSet.has(iso));
   }
+  if(parts.includes('big'))isos=isos.filter(iso=>!SMALL.has(iso));
+  if(parts.includes('noisle'))isos=isos.filter(iso=>!ISLE.has(iso));
   RQ.list=isos.sort(()=>Math.random()-.5);
   RQ.idx=0;RQ.correct=0;RQ.errors=0;RQ.skipped=0;RQ.wrongItems=[];RQ.wrongCounts={};
   RQ.earnedPoints=0;RQ.maxPoints=RQ.list.reduce((s,iso)=>s+rqMaxPts(RELIGION_DATA[iso].mode),0);
@@ -6000,7 +6012,12 @@ function buildAnsText(d){
 }
 function skipRQ(){
   if(RQ.submitted){RQ.idx++;showRQCard();return;}
-  RQ.skipped++;RQ.idx++;showRQCard();
+  /* 건너뛰기: 남은 개수를 유지하기 위해 현재 문제를 목록 맨 뒤로 보냄 */
+  if(RQ.list.length-RQ.idx>1){
+    const iso=RQ.list.splice(RQ.idx,1)[0];
+    RQ.list.push(iso);
+  }
+  showRQCard();
 }
 function openRQList(){
   const grid=document.getElementById('rql-grid');grid.innerHTML='';
@@ -6414,8 +6431,8 @@ function bindKoreaEvents(){
   document.getElementById('kr-zi').onclick=function(){const mx=mw.clientWidth/2,my=mw.clientHeight/2;const ns=k_s*1.4;k_x=mx-(mx-k_x)*ns/k_s;k_y=my-(my-k_y)*ns/k_s;k_s=ns;applyKT();};
   document.getElementById('kr-zo').onclick=function(){const mx=mw.clientWidth/2,my=mw.clientHeight/2;const ns=k_s*0.71;k_x=mx-(mx-k_x)*ns/k_s;k_y=my-(my-k_y)*ns/k_s;k_s=ns;applyKT();};
   document.getElementById('kr-zr').onclick=krFit;
-  document.getElementById('kr-bsub').addEventListener('click',e=>{e.stopPropagation();krSubmit();});
-  document.getElementById('kr-bskip').addEventListener('click',e=>{e.stopPropagation();krCloseModal();});
+  bindModalBtn(document.getElementById('kr-bsub'),krSubmit);
+  bindModalBtn(document.getElementById('kr-bskip'),krCloseModal);
   document.getElementById('kr-gi').addEventListener('keydown',function(e){
     e.stopPropagation();
     if(e.key==='Enter'){e.preventDefault();krSubmit();}
@@ -6548,8 +6565,10 @@ function initMap(){
   document.getElementById('ui-zi').onclick=function(){const mx=mw.clientWidth/2,my=mw.clientHeight/2;const ns=_s*1.4;_x=mx-(mx-_x)*ns/_s;_y=my-(my-_y)*ns/_s;_s=ns;applyT();};
   document.getElementById('ui-zo').onclick=function(){const mx=mw.clientWidth/2,my=mw.clientHeight/2;const ns=_s*0.71;_x=mx-(mx-_x)*ns/_s;_y=my-(my-_y)*ns/_s;_s=ns;applyT();};
   document.getElementById('ui-zr').onclick=function(){const ns=Math.min(mw.clientWidth/SW,mw.clientHeight/SH);animateTo((mw.clientWidth-SW*ns)/2,(mw.clientHeight-SH*ns)/2,ns,400);};
-  document.getElementById('ui-bsub').addEventListener('click',e=>{e.stopPropagation();submit();});
-  document.getElementById('ui-bskip').addEventListener('click',e=>{e.stopPropagation();closeModal();});
+  /* 모바일: 가상 키보드가 떠 있을 때 버튼의 첫 탭이 input blur로 흡수돼 무시되는 문제 방지.
+     mousedown에서 기본동작(포커스 이동)을 막아 click이 첫 탭에 바로 적중하게 함 */
+  bindModalBtn(document.getElementById('ui-bsub'),submit);
+  bindModalBtn(document.getElementById('ui-bskip'),closeModal);
   document.getElementById('ui-gi').addEventListener('keydown',function(e){
     e.stopPropagation();
     if(e.key==='Enter'){e.preventDefault();submit();}
