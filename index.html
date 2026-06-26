@@ -8,7 +8,7 @@
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#060606;--sf:#101010;--sf2:#1a1a1a;--bd:#252525;--tx:#eeeeee;--tx2:#666666;--ac:#cccccc;--ac2:#333333;--wr:#b03838;--gd:#a87020;--land:#222730;--c1:#2a4a7a;--c2:#2a6040;--c3:#6a5015;}
+:root{--bg:#060606;--sf:#101010;--sf2:#1a1a1a;--bd:#252525;--tx:#eeeeee;--tx2:#666666;--ac:#cccccc;--ac2:#333333;--wr:#b03838;--gd:#a87020;--land:#222730;--c1:#162c4a;--c2:#163428;--c3:#2e2408;}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Pretendard','Noto Sans KR',sans-serif;background:var(--bg);color:var(--tx);height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden;-webkit-font-smoothing:antialiased}
 header{padding:.5rem 1.2rem;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;background:var(--sf);flex-shrink:0}
@@ -55,7 +55,7 @@ body.mob-mode main{padding-bottom:72px}
 .mb{padding:.85rem 1rem .95rem}
 .dots{display:flex;gap:6px;justify-content:center;margin-bottom:.8rem}
 .dot{width:8px;height:8px;border-radius:2px;background:var(--bd);transition:background .2s}
-.dot.ok{background:#4a9060}.dot.ng{background:var(--wr)}.dot.win{background:#4a78c0}
+.dot.ok{background:#35906a}.dot.ng{background:var(--wr)}.dot.win{background:#3672b8}
 #ui-gi{width:100%;padding:.6rem .85rem;background:rgba(16,16,16,.9);border:1px solid var(--bd);border-radius:4px;color:var(--tx);font-size:.95rem;font-family:'Pretendard','Noto Sans KR',sans-serif;outline:none;transition:border-color .2s;margin-bottom:.6rem}
 #ui-gi:focus{border-color:var(--ac)}
 #ui-gi.shake{animation:shk .35s ease;border-color:var(--wr)}
@@ -380,7 +380,7 @@ body.border-mode .leg,body.border-mode .info{display:none}
 .ld-rq-range select{background:var(--sf2);border:1px solid var(--bd);border-radius:4px;color:var(--tx2);font-size:.76rem;padding:.28rem .5rem;font-family:'Pretendard',sans-serif;cursor:pointer}
 /* ── 국가목록 오답 뱃지 ── */
 sup.wc{font-size:.58rem;font-weight:600;padding:.08rem .26rem;border-radius:3px;margin-left:3px;vertical-align:.15em}
-sup.wc1{background:rgba(74,120,192,.2);color:#6a9fd8}
+sup.wc1{background:rgba(54,114,184,.2);color:#5c96d0}
 sup.wc2{background:rgba(168,112,32,.2);color:var(--gd)}
 sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
 /* ── 종교 퀴즈 점수 표시 ── */
@@ -4823,7 +4823,7 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
         </div>
         <div class="rq-sl-row" id="rq-sr1" style="display:none">
           <span class="rq-sl-lbl">비율</span>
-          <input type="range" class="rq-sl" id="rq-sl1" min="0" max="100" value="50" oninput="document.getElementById('rq-sv1').textContent=this.value+'%'">
+          <input type="range" class="rq-sl" id="rq-sl1" min="0" max="100" step="5" value="50" oninput="document.getElementById('rq-sv1').textContent=this.value+'%'">
           <span class="rq-sl-val" id="rq-sv1">50%</span>
         </div>
       </div>
@@ -4838,7 +4838,7 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
         </div>
         <div class="rq-sl-row" id="rq-sr2" style="display:none">
           <span class="rq-sl-lbl">비율</span>
-          <input type="range" class="rq-sl" id="rq-sl2" min="0" max="100" value="20" oninput="document.getElementById('rq-sv2').textContent=this.value+'%'">
+          <input type="range" class="rq-sl" id="rq-sl2" min="0" max="100" step="5" value="20" oninput="document.getElementById('rq-sv2').textContent=this.value+'%'">
           <span class="rq-sl-val" id="rq-sv2">20%</span>
         </div>
       </div>
@@ -5303,7 +5303,7 @@ function check(input,iso){
 }
 
 const CIRCLE_ISOS=new Set(Object.keys(CIRCLE_POS));
-const COLOR_MAP={c1:'#2a4a7a',c2:'#2a6040',c3:'#6a5015',cr:'#5a1a1a'};
+const COLOR_MAP={c1:'#162c4a',c2:'#163428',c3:'#2e2408',cr:'#4a1414'};
 
 
 function iso4el(el){
@@ -5474,7 +5474,7 @@ function paintMask(){
 const colors={};
 function paint(){
   let css='';
-  const bright={c1:'#5090c8',c2:'#4a9060',c3:'#c08820',cr:'#c04040'};
+  const bright={c1:'#3a78c4',c2:'#359464',c3:'#b8841a',cr:'#b83838'};
   for(const[iso,cls]of Object.entries(colors)){
     if(cls==='blink')continue; /* JS 타이머가 inline style로 처리 */
     const s=selCSS(iso);
@@ -5878,7 +5878,7 @@ function restartReligionQuiz(){document.getElementById('rq-end').classList.remov
 function updateRQStats(){
   document.getElementById('rq-cor').textContent=RQ.correct;
   document.getElementById('rq-err').textContent=RQ.errors;
-  const pctStr=RQ.maxPoints>0?Math.round(RQ.earnedPoints/RQ.maxPoints*100)+'%':'0%';
+  const pctStr=RQ.maxPoints>0?(RQ.earnedPoints/RQ.maxPoints*100).toFixed(1)+'%':'0.0%';
   document.getElementById('rq-pts').textContent=pctStr;
   document.getElementById('rq-rem').textContent=RQ.list.length-RQ.idx;
   document.getElementById('rq-pf').style.width=(RQ.idx/RQ.list.length*100)+'%';
@@ -6013,7 +6013,7 @@ function openRQList(){
   document.getElementById('rq-list-panel').classList.add('on');
 }
 function endReligionQuiz(){
-  const pct=RQ.maxPoints>0?Math.round(RQ.earnedPoints/RQ.maxPoints*100):0;
+  const pct=RQ.maxPoints>0?(RQ.earnedPoints/RQ.maxPoints*100).toFixed(1):0;
   document.getElementById('rq-escore').textContent=pct+'%';
   document.getElementById('rq-e1').textContent=RQ.correct;
   document.getElementById('rq-e2').textContent=RQ.errors;
