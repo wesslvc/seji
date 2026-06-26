@@ -5552,11 +5552,26 @@ function openModal(iso){
   setColor(iso,'blink');
   const mob=document.getElementById('ui-mob-bar');if(mob)mob.style.display='none';
 }
-/* 모달 버튼을 모바일 키보드 환경에서도 첫 탭에 동작하게 바인딩 */
+/* 모달 버튼을 모바일 키보드 환경에서도 첫 탭에 동작하게 바인딩.
+   모바일에서 가상 키보드가 열린 상태로 버튼을 누르면 synthetic click이
+   input blur/뷰포트 리사이즈에 흡수돼 무시된다. touchend에서 직접 실행해
+   click에 의존하지 않게 함 */
 function bindModalBtn(el,fn){
   if(!el)return;
+  let touchHandled=false;
+  el.addEventListener('touchend',function(e){
+    e.preventDefault();      /* synthetic click + 포커스 이동 차단 */
+    e.stopPropagation();
+    touchHandled=true;
+    fn();
+    setTimeout(()=>{touchHandled=false;},500);
+  },{passive:false});
   el.addEventListener('mousedown',e=>e.preventDefault());
-  el.addEventListener('click',e=>{e.stopPropagation();fn();});
+  el.addEventListener('click',function(e){
+    if(touchHandled)return;  /* 터치에서 이미 처리됨 */
+    e.stopPropagation();
+    fn();
+  });
 }
 function closeModal(){
   modalOpen=false;
