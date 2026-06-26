@@ -5047,7 +5047,7 @@ function startSession(cat,acts,filterKey,rqContKey){
       loadGame();
     }
     if(acts.includes('border')){bqInit(filterKey);}
-    if(acts.includes('religion')){buildRQList(rqContKey||'all');}
+    if(acts.includes('religion')){const rk=rqContKey||'all';if(!loadRQ(rk))buildRQList(rk);}
     try{const mw=document.getElementById('ui-map');_s=Math.min(mw.clientWidth/SW,mw.clientHeight/SH);_x=(mw.clientWidth-SW*_s)/2;_y=(mw.clientHeight-SH*_s)/2;applyT();}catch(e){}
   }
   buildTabs();
@@ -5888,8 +5888,9 @@ function animateTo(tx,ty,sc,dur,cb){
 }
 
 /* ── Religion Quiz ── */
-const RQ={list:[],idx:0,correct:0,errors:0,skipped:0,wrongItems:[],wrongCounts:{},earnedPoints:0,maxPoints:0,cur:null,submitted:false,attempts:0,sel1:null,sel2:null,contKey:'all'};
-const RQ_SAVE_KEY='wq_rq_state_v2';
+const RQ={list:[],idx:0,correct:0,errors:0,skipped:0,wrongItems:[],wrongCounts:{},earnedPoints:0,maxPoints:0,cur:null,submitted:false,attempts:0,sel1:null,sel2:null,contKey:'all',saveKey:'wq_rq_all'};
+/* 조합별 저장 키 (나라이름/접경국과 동일한 방식) */
+function rqSaveKeyFor(key){return 'wq_rq_'+(key||'all');}
 /* 모드별 점수: 1→1pt, 2→3pt, 3→5pt */
 function rqMaxPts(mode){return mode===1?1:mode===2?3:5;}
 function rqCalcEarned(d,r1ok,r2ok,p1ok,p2ok){
@@ -5901,11 +5902,15 @@ function rqCalcEarned(d,r1ok,r2ok,p1ok,p2ok){
 }
 function saveRQ(){
   if(RQ.idx===0&&RQ.correct===0)return;
-  localStorage.setItem(RQ_SAVE_KEY,JSON.stringify({list:RQ.list,idx:RQ.idx,correct:RQ.correct,errors:RQ.errors,skipped:RQ.skipped,wrongItems:RQ.wrongItems,wrongCounts:RQ.wrongCounts,earnedPoints:RQ.earnedPoints,maxPoints:RQ.maxPoints,contKey:RQ.contKey}));
+  localStorage.setItem(RQ.saveKey,JSON.stringify({list:RQ.list,idx:RQ.idx,correct:RQ.correct,errors:RQ.errors,skipped:RQ.skipped,wrongItems:RQ.wrongItems,wrongCounts:RQ.wrongCounts,earnedPoints:RQ.earnedPoints,maxPoints:RQ.maxPoints,contKey:RQ.contKey}));
 }
-function loadRQ(){
-  try{const raw=localStorage.getItem(RQ_SAVE_KEY);if(!raw)return false;
+function loadRQ(filterKey){
+  /* filterKey 지정 시 해당 조합 저장만 불러옴(조합 불일치면 실패) */
+  const sk=filterKey?rqSaveKeyFor(filterKey):RQ.saveKey;
+  try{const raw=localStorage.getItem(sk);if(!raw)return false;
     const d=JSON.parse(raw);
+    if(filterKey&&d.contKey&&d.contKey!==filterKey)return false;
+    RQ.saveKey=sk;
     RQ.list=d.list||[];RQ.idx=d.idx||0;RQ.correct=d.correct||0;
     RQ.errors=d.errors||0;RQ.skipped=d.skipped||0;RQ.wrongItems=d.wrongItems||[];
     RQ.wrongCounts=d.wrongCounts||{};RQ.earnedPoints=d.earnedPoints||0;RQ.maxPoints=d.maxPoints||0;
@@ -5917,6 +5922,7 @@ function buildRQList(filterKey){
   /* filterKey 형식은 나라이름/접경국과 동일: 'all', 'as_big', 'eu_big_noisle' 등 */
   const key=filterKey||'all';
   RQ.contKey=key;
+  RQ.saveKey=rqSaveKeyFor(key);
   const parts=key.split('_');
   const contKey=parts[0];
   let isos=Object.keys(RELIGION_DATA);
@@ -5931,7 +5937,7 @@ function buildRQList(filterKey){
   RQ.idx=0;RQ.correct=0;RQ.errors=0;RQ.skipped=0;RQ.wrongItems=[];RQ.wrongCounts={};
   RQ.earnedPoints=0;RQ.maxPoints=RQ.list.reduce((s,iso)=>s+rqMaxPts(RELIGION_DATA[iso].mode),0);
   RQ.submitted=false;RQ.attempts=0;RQ.sel1=null;RQ.sel2=null;
-  localStorage.removeItem(RQ_SAVE_KEY);
+  localStorage.removeItem(RQ.saveKey);
 }
 function resetReligionQuiz(){
   if(!confirm('종교 퀴즈 진행 상황을 초기화할까요?'))return;
@@ -6117,7 +6123,7 @@ function retryWrongRQ(){
   RQ.list=isos.sort(()=>Math.random()-.5);
   RQ.idx=0;RQ.correct=0;RQ.errors=0;RQ.skipped=0;RQ.wrongItems=[];RQ.submitted=false;RQ.attempts=0;
   RQ.earnedPoints=0;RQ.maxPoints=RQ.list.reduce((s,iso)=>s+rqMaxPts(RELIGION_DATA[iso].mode),0);
-  localStorage.removeItem(RQ_SAVE_KEY);
+  localStorage.removeItem(RQ.saveKey);
   showRQCard();
 }
 
