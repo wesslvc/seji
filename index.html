@@ -318,6 +318,10 @@ body.in-session #rq-screen,body.in-session #kr-screen{top:42px}
 .bq-skip{padding:.32rem .7rem;background:transparent;border:1px solid var(--bd);border-radius:4px;color:var(--tx2);font-family:'Pretendard','Noto Sans KR',sans-serif;font-size:.74rem;cursor:pointer}
 .bq-skip:hover{color:var(--tx);border-color:var(--tx2)}
 #bq-box.shake{animation:shk .35s ease}
+#bq-flash{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.75);background:rgba(6,6,6,.96);border-radius:10px;padding:.9rem 2.4rem;font-size:1.5rem;font-weight:700;pointer-events:none;z-index:200;opacity:0;transition:opacity .18s var(--ease),transform .22s var(--ease-spring);letter-spacing:.05em;white-space:nowrap}
+#bq-flash.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+#bq-flash.bfok{color:#4a9060;border:1px solid rgba(74,144,96,.45)}
+#bq-flash.bfng{color:var(--wr);border:1px solid rgba(176,56,56,.45)}
 body.border-mode .leg,body.border-mode .info{display:none}
 #bq-list-panel.on{display:flex!important}
 #bq-end{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:800;display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
@@ -420,6 +424,7 @@ body.border-mode .leg,body.border-mode .info{display:none}
         <button class="bq-skip" id="bq-skip" onclick="bqSkip()">건너뛰기</button>
       </div>
     </div>
+    <div id="bq-flash"></div>
     <div id="ui-map"><svg xmlns="http://www.w3.org/2000/svg" id="world-svg" viewBox="0 0 2754 1398">
 	
 	
@@ -5065,6 +5070,13 @@ function bqShowCurrent(){
   const fb=document.getElementById('bq-fb');fb.textContent='';fb.className='bq-fb';
   if(SESSION.cur==='border')box.classList.add('on');
 }
+let _bqFlashT=0;
+function bqFlash(text,cls){
+  const f=document.getElementById('bq-flash');if(!f)return;
+  f.textContent=text;f.className=cls+' show';
+  clearTimeout(_bqFlashT);
+  _bqFlashT=setTimeout(()=>{f.className=cls;},900);
+}
 function bqHandleClick(iso){
   if(!BQ.target)return;
   const fb=document.getElementById('bq-fb');
@@ -5072,18 +5084,22 @@ function bqHandleClick(iso){
     BQ.status[iso]='c2';BQ.correct++;setColor(iso,'c2');
     BQ.queue.shift();bqSave();bqStats();
     fb.textContent='정답!';fb.className='bq-fb ok';
+    bqFlash('정답!','bfok');
     centerCountry(iso);
-    setTimeout(bqShowCurrent,750);
+    setTimeout(bqShowCurrent,900);
   }else{
     BQ.curWrong++;
     const box=document.getElementById('bq-box');box.classList.add('shake');setTimeout(()=>box.classList.remove('shake'),360);
     if(BQ.curWrong>=3){
       const tgt=BQ.target;BQ.status[tgt]='cr';BQ.wrong++;setColor(tgt,'cr');
       fb.textContent='정답: '+COUNTRIES[tgt].k;fb.className='bq-fb ng';
+      bqFlash('오답  →  '+COUNTRIES[tgt].k,'bfng');
       BQ.queue.shift();bqSave();bqStats();centerCountry(tgt);
-      setTimeout(bqShowCurrent,1600);
+      setTimeout(bqShowCurrent,1800);
     }else{
-      fb.textContent=(COUNTRIES[iso]?COUNTRIES[iso].k+' — ':'')+'다시 (기회 '+(3-BQ.curWrong)+')';fb.className='bq-fb ng';
+      const nm=COUNTRIES[iso]?COUNTRIES[iso].k:'?';
+      fb.textContent=nm+' — 다시 (기회 '+(3-BQ.curWrong)+')';fb.className='bq-fb ng';
+      bqFlash(nm+' — 아님','bfng');
     }
   }
 }
@@ -6285,8 +6301,8 @@ function initMap(){
     if(dragged)return;
     const cel=findCountryEl(e.target);if(!cel)return;
     const iso=iso4el(cel);if(!iso)return;
-    if(!inActive(iso))return;
     if(mapMode==='border'){bqHandleClick(iso);return;}
+    if(!inActive(iso))return;
     if(S.status[iso]==='cr'){showAnswer(iso,e.clientX,e.clientY-10);return;}
     if(!done(iso)){openModal(iso);centerCountry(iso);}
   });
@@ -6391,7 +6407,7 @@ function initMap(){
           let hit=false;
           if(el){
             const cel=findCountryEl(el);
-            if(cel){const iso=iso4el(cel);if(iso){hit=true;if(S.status[iso]==='cr')showAnswer(iso,touch.clientX,touch.clientY-10);else if(!done(iso)){openModal(iso);centerCountry(iso);}}}
+            if(cel){const iso=iso4el(cel);if(iso){hit=true;if(mapMode==='border'){bqHandleClick(iso);}else if(S.status[iso]==='cr')showAnswer(iso,touch.clientX,touch.clientY-10);else if(!done(iso)){openModal(iso);centerCountry(iso);}}}
           }
           if(!hit){
             /* 빈 곳 더블탭 → 확대 */
