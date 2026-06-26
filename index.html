@@ -143,7 +143,7 @@ body.border-mode #world-svg g.circlexx circle{opacity:.55!important;pointer-even
 body.mob-mode #kr-main{padding-bottom:72px}
 #kr-map{width:100%;height:100%;overflow:hidden;cursor:grab;user-select:none;position:absolute;inset:0}
 #kr-map:active{cursor:grabbing}
-#kr-map svg{position:absolute;top:0;left:0;transform-origin:0 0}
+#kr-map svg{position:absolute;top:0;left:0;transform-origin:0 0;will-change:transform}
 #korea-svg path{fill:var(--land);stroke:#0d1117;stroke-width:.6;transition:fill .12s}
 #korea-svg path[data-kid]{cursor:pointer}
 #korea-svg path[data-kid]:hover{fill:#3a4050}
@@ -5805,10 +5805,19 @@ function renderCLGrid(){
 /* ── Pan/Zoom ── */
 let _s=1,_x=0,_y=0;
 const SW=2754,SH=1398;
+let _svgEl=null,_tQueued=false;
+function _flushT(){
+  _tQueued=false;
+  if(!_svgEl){_svgEl=document.getElementById('world-svg');if(!_svgEl)return;
+    /* 기본 크기를 1회만 고정 — 이후 scale은 transform이 GPU에서 처리 */
+    _svgEl.style.width=SW+'px';_svgEl.style.height=SH+'px';}
+  /* width/height를 매 프레임 바꾸지 않고 transform scale 사용 → 재래스터 없이 GPU 합성 */
+  _svgEl.style.transform='translate3d('+_x+'px,'+_y+'px,0) scale('+_s+')';
+}
 function applyT(){
-  const svg=document.getElementById('world-svg');
-  svg.style.width=SW*_s+'px';svg.style.height=SH*_s+'px';
-  svg.style.transform='translate('+_x+'px,'+_y+'px)';
+  if(_tQueued)return;
+  _tQueued=true;
+  requestAnimationFrame(_flushT);
 }
 function animateTo(tx,ty,sc,dur,cb){
   const x0=_x,y0=_y,s0=_s,t0=performance.now();
@@ -6052,10 +6061,17 @@ const dynK=document.createElement('style');document.head.appendChild(dynK);
 const kColors={};
 const _kBlinkTimers={};
 function krNorm(id){return (id||'').replace(/_\d+_$/,'');}
+let _kSvgEl=null,_ktQueued=false;
+function _flushKT(){
+  _ktQueued=false;
+  if(!_kSvgEl){_kSvgEl=document.getElementById('korea-svg');if(!_kSvgEl)return;
+    _kSvgEl.style.width=KSW+'px';_kSvgEl.style.height=KSH+'px';}
+  _kSvgEl.style.transform='translate3d('+k_x+'px,'+k_y+'px,0) scale('+k_s+')';
+}
 function applyKT(){
-  const svg=document.getElementById('korea-svg');if(!svg)return;
-  svg.style.width=KSW+'px';svg.style.height=KSH+'px';
-  svg.style.transform='translate('+k_x+'px,'+k_y+'px) scale('+k_s+')';
+  if(_ktQueued)return;
+  _ktQueued=true;
+  requestAnimationFrame(_flushKT);
 }
 function openKoreaQuiz(){
   document.getElementById('kr-screen').classList.add('on');
