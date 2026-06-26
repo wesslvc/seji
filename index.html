@@ -282,6 +282,8 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 .ld-cat input:checked::after,.ld-sub-item input:checked::after,.ld-chk input:checked::after{content:'';position:absolute;left:5px;top:1.5px;width:5px;height:9px;border:solid #000;border-width:0 2px 2px 0;transform:rotate(45deg)}
 .ld-range{margin-top:.45rem;padding-top:.6rem;border-top:1px dashed var(--bd)}
 .ld-range-h{display:flex;align-items:center;gap:.4rem;font-size:.72rem;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem}
+.ld-cont-all{margin-left:auto;padding:.2rem .5rem;font-size:.68rem;background:var(--sf2);border:1px solid var(--bd);border-radius:4px;color:var(--tx2);font-family:'Pretendard','Noto Sans KR',sans-serif;cursor:pointer;text-transform:none;letter-spacing:0;transition:.18s var(--ease)}
+.ld-cont-all:hover{border-color:var(--tx2);color:var(--tx)}
 .ld-range-h svg{width:1em;height:1em}
 .ld-range-note{text-transform:none;letter-spacing:0;opacity:.7}
 .ld-select{width:100%;padding:.5rem .6rem;background:var(--bg);border:1px solid var(--bd);border-radius:5px;color:var(--tx);font-family:'Pretendard','Noto Sans KR',sans-serif;font-size:.82rem;outline:none;margin-bottom:.5rem;cursor:pointer}
@@ -421,7 +423,7 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
         <label class="ld-sub-item"><input type="checkbox" class="ld-act" value="border"><span data-ic="border"></span>접경국 맞추기</label>
         <label class="ld-sub-item"><input type="checkbox" class="ld-act" value="religion" id="ld-act-religion"><span data-ic="book"></span>국가별 종교 퀴즈</label>
         <div class="ld-range">
-          <div class="ld-range-h"><span data-ic="range"></span>출제 범위 <span class="ld-range-note">· 중복 선택 가능</span></div>
+          <div class="ld-range-h"><span data-ic="range"></span>출제 범위 <span class="ld-range-note">· 중복 선택 가능</span><button type="button" class="ld-cont-all" id="ld-cont-all">전체 선택</button></div>
           <div class="ld-cont-grid" id="ld-cont-grid">
             <label class="ld-cont-chk"><input type="checkbox" class="ld-cont-cb" value="as">아시아</label>
             <label class="ld-cont-chk"><input type="checkbox" class="ld-cont-cb" value="eu">유럽</label>
@@ -4991,6 +4993,21 @@ function setupLanding(){
   document.querySelectorAll('.ld-act').forEach(cb=>{
     cb.addEventListener('change',updateStartState);
   });
+  /* 대륙 전체 선택/해제 토글 */
+  const contAll=document.getElementById('ld-cont-all');
+  function syncContAll(){
+    const cbs=[...document.querySelectorAll('.ld-cont-cb')];
+    const allOn=cbs.every(c=>c.checked);
+    contAll.textContent=allOn?'전체 해제':'전체 선택';
+  }
+  contAll.addEventListener('click',()=>{
+    const cbs=[...document.querySelectorAll('.ld-cont-cb')];
+    const allOn=cbs.every(c=>c.checked);
+    cbs.forEach(c=>c.checked=!allOn);
+    syncContAll();
+  });
+  document.querySelectorAll('.ld-cont-cb').forEach(cb=>cb.addEventListener('change',syncContAll));
+  syncContAll();
   document.getElementById('ld-start').addEventListener('click',startFromLanding);
   updateStartState();
 }
