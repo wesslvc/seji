@@ -5,11 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,interactive-widget=resizes-content">
 <title>세계 지리 퀴즈</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#060606;--sf:#101010;--sf2:#1a1a1a;--bd:#252525;--tx:#eeeeee;--tx2:#666666;--ac:#cccccc;--ac2:#333333;--wr:#b03838;--gd:#a87020;--land:#222730;--c1:#2a4a7a;--c2:#2a6040;--c3:#6a5015;}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--tx);height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden;-webkit-font-smoothing:antialiased}
+body{font-family:'Pretendard','Noto Sans KR',sans-serif;background:var(--bg);color:var(--tx);height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden;-webkit-font-smoothing:antialiased}
 header{padding:.5rem 1.2rem;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;background:var(--sf);flex-shrink:0}
 .logo{font-family:'Space Grotesk',sans-serif;font-size:.88rem;font-weight:700;color:var(--tx);letter-spacing:.12em;text-transform:uppercase}
 .logo span{color:var(--tx2);font-weight:400;letter-spacing:.04em;font-size:.78rem}
@@ -55,12 +56,12 @@ body.mob-mode main{padding-bottom:72px}
 .dots{display:flex;gap:6px;justify-content:center;margin-bottom:.8rem}
 .dot{width:8px;height:8px;border-radius:2px;background:var(--bd);transition:background .2s}
 .dot.ok{background:#4a9060}.dot.ng{background:var(--wr)}.dot.win{background:#4a78c0}
-#ui-gi{width:100%;padding:.6rem .85rem;background:rgba(16,16,16,.9);border:1px solid var(--bd);border-radius:4px;color:var(--tx);font-size:.95rem;font-family:'Noto Sans KR',sans-serif;outline:none;transition:border-color .2s;margin-bottom:.6rem}
+#ui-gi{width:100%;padding:.6rem .85rem;background:rgba(16,16,16,.9);border:1px solid var(--bd);border-radius:4px;color:var(--tx);font-size:.95rem;font-family:'Pretendard','Noto Sans KR',sans-serif;outline:none;transition:border-color .2s;margin-bottom:.6rem}
 #ui-gi:focus{border-color:var(--ac)}
 #ui-gi.shake{animation:shk .35s ease;border-color:var(--wr)}
 @keyframes shk{0%,100%{transform:translateX(0)}25%,75%{transform:translateX(-5px)}50%{transform:translateX(5px)}}
 .br{display:flex;gap:5px}
-.btn{flex:1;padding:.58rem;border-radius:4px;border:none;font-family:'Noto Sans KR',sans-serif;font-size:.85rem;font-weight:500;cursor:pointer;transition:.15s;letter-spacing:.01em}
+.btn{flex:1;padding:.58rem;border-radius:4px;border:none;font-family:'Pretendard','Noto Sans KR',sans-serif;font-size:.85rem;font-weight:500;cursor:pointer;transition:.15s;letter-spacing:.01em}
 .btn:active{transform:scale(.97)}
 .bp{background:var(--tx);color:#000}.bp:hover{background:var(--ac)}
 .bs{background:transparent;color:var(--tx2);border:1px solid var(--bd)}.bs:hover{color:var(--tx);border-color:var(--tx2)}
@@ -78,7 +79,7 @@ body.mob-mode main{padding-bottom:72px}
 .est{background:var(--sf2);border:1px solid var(--bd);border-radius:4px;padding:.55rem}
 .esv{font-size:1.2rem;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:.04em}
 .esl{font-size:.6rem;color:var(--tx2);margin-top:2px;text-transform:uppercase;letter-spacing:.06em}
-.reb{width:100%;padding:.65rem;background:var(--tx);color:#000;border:none;border-radius:4px;font-size:.85rem;font-family:'Noto Sans KR',sans-serif;font-weight:600;cursor:pointer;margin-top:.45rem;transition:.15s;letter-spacing:.02em}
+.reb{width:100%;padding:.65rem;background:var(--tx);color:#000;border:none;border-radius:4px;font-size:.85rem;font-family:'Pretendard','Noto Sans KR',sans-serif;font-weight:600;cursor:pointer;margin-top:.45rem;transition:.15s;letter-spacing:.02em}
 .reb:hover{background:var(--ac)}
 .reb.secondary{background:transparent;color:var(--tx2);border:1px solid var(--bd);margin-top:.4rem}
 .reb.secondary:hover{color:var(--tx);border-color:var(--tx2)}
@@ -97,10 +98,10 @@ body.mob-mode main{padding-bottom:72px}
 .eip-ename{font-size:.82rem;color:var(--tx2);margin-bottom:.6rem}
 .eip-meta{display:flex;justify-content:center;gap:.4rem;flex-wrap:wrap;margin-bottom:.9rem}
 .eip-badge{font-size:.68rem;background:rgba(204,204,204,.08);color:var(--ac);border-radius:2px;padding:2px 8px;letter-spacing:.04em;text-transform:uppercase}
-.eip-map-btn{width:100%;padding:.5rem;background:transparent;color:var(--tx2);border:1px solid var(--bd);border-radius:4px;font-size:.8rem;font-family:'Noto Sans KR',sans-serif;cursor:pointer;transition:.15s}
+.eip-map-btn{width:100%;padding:.5rem;background:transparent;color:var(--tx2);border:1px solid var(--bd);border-radius:4px;font-size:.8rem;font-family:'Pretendard','Noto Sans KR',sans-serif;cursor:pointer;transition:.15s}
 .eip-map-btn:hover{color:var(--tx)}
 /* Header buttons */
-.hbtn{background:transparent;border:1px solid var(--bd);border-radius:3px;padding:.28rem .6rem;font-size:.7rem;color:var(--tx2);cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:.15s;white-space:nowrap;letter-spacing:.01em}
+.hbtn{background:transparent;border:1px solid var(--bd);border-radius:3px;padding:.28rem .6rem;font-size:.7rem;color:var(--tx2);cursor:pointer;font-family:'Pretendard','Noto Sans KR',sans-serif;transition:.15s;white-space:nowrap;letter-spacing:.01em}
 .hbtn:hover{color:var(--tx)}
 .hbtn.saved{color:#4a9060;border-color:#4a9060}
 .hbtn.mode-mobile{color:#4a9060;border-color:rgba(74,144,96,.4)}
@@ -163,7 +164,7 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 .cl-head{padding:1rem 1.2rem .7rem;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .cl-head h2{font-family:'Space Grotesk',sans-serif;font-size:.9rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
 .cl-tabs{display:flex;gap:.5rem;margin-top:.5rem}
-.cl-tab{padding:.22rem .65rem;border-radius:3px;font-size:.72rem;cursor:pointer;border:1px solid var(--bd);background:transparent;color:var(--tx2);font-family:'Noto Sans KR',sans-serif;transition:.15s}
+.cl-tab{padding:.22rem .65rem;border-radius:3px;font-size:.72rem;cursor:pointer;border:1px solid var(--bd);background:transparent;color:var(--tx2);font-family:'Pretendard','Noto Sans KR',sans-serif;transition:.15s}
 .cl-tab.active{background:var(--tx);color:#000;border-color:var(--tx)}
 .cl-body{flex:1;overflow-y:auto;padding:.8rem 1rem}
 .cl-grid{display:flex;flex-wrap:wrap;gap:5px}
@@ -194,7 +195,7 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 .rq-form-group{margin-bottom:.8rem}
 .rq-label{font-size:.72rem;color:var(--tx2);margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.04em}
 .rq-row{display:flex;gap:.5rem}
-.rq-input{flex:1;padding:.52rem .72rem;background:rgba(16,16,16,.9);border:1px solid var(--bd);border-radius:4px;color:var(--tx);font-size:.88rem;font-family:'Noto Sans KR',sans-serif;outline:none;transition:border-color .2s}
+.rq-input{flex:1;padding:.52rem .72rem;background:rgba(16,16,16,.9);border:1px solid var(--bd);border-radius:4px;color:var(--tx);font-size:.88rem;font-family:'Pretendard','Noto Sans KR',sans-serif;outline:none;transition:border-color .2s}
 .rq-input:focus{border-color:var(--ac)}
 .rq-input.shake{animation:shk .35s ease;border-color:var(--wr)}
 .rq-input.correct{border-color:#4a9060}
@@ -220,12 +221,12 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 #landing-overlay h2{font-family:'Space Grotesk',sans-serif;font-size:1.5rem;font-weight:700;color:var(--tx);letter-spacing:.1em;text-transform:uppercase}
 #landing-overlay p{font-size:.9rem;color:var(--tx2);margin-top:-.4rem}
 .land-choices{display:flex;gap:.8rem;flex-wrap:wrap;justify-content:center}
-.land-btn{padding:1.1rem 1.8rem;border-radius:4px;border:1px solid var(--bd);background:var(--sf);color:var(--tx);font-family:'Noto Sans KR',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;transition:.2s;min-width:140px;text-align:center}
+.land-btn{padding:1.1rem 1.8rem;border-radius:4px;border:1px solid var(--bd);background:var(--sf);color:var(--tx);font-family:'Pretendard','Noto Sans KR',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;transition:.2s;min-width:140px;text-align:center}
 .land-btn:hover{border-color:var(--tx);color:var(--tx);background:var(--sf2)}
 .land-icon{font-size:1.8rem;display:block;margin-bottom:.4rem}
 .land-sub{font-size:.68rem;color:var(--tx2);font-weight:400;margin-top:.25rem;letter-spacing:.02em}
 .land-btn-sm{padding:.65rem 1.1rem;min-width:120px}
-.land-back{background:none;border:1px solid var(--bd);border-radius:3px;color:var(--tx2);padding:.38rem .9rem;font-size:.76rem;font-family:'Noto Sans KR',sans-serif;cursor:pointer;margin-top:.7rem;transition:.15s}
+.land-back{background:none;border:1px solid var(--bd);border-radius:3px;color:var(--tx2);padding:.38rem .9rem;font-size:.76rem;font-family:'Pretendard','Noto Sans KR',sans-serif;cursor:pointer;margin-top:.7rem;transition:.15s}
 .land-back:hover{color:var(--tx);border-color:var(--tx2)}
 /* ── 모바일 햄버거 메뉴 ── */
 #ui-hamburger,#kr-hamburger{display:flex;align-items:center;background:transparent;border:1px solid var(--bd);border-radius:3px;padding:.32rem .55rem;font-size:1.05rem;color:var(--tx2);cursor:pointer;line-height:1;flex-shrink:0;transition:.15s}
@@ -238,7 +239,7 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 .mnu-h{display:flex;align-items:center;justify-content:space-between;padding:.7rem 1rem .6rem;border-bottom:1px solid var(--bd);position:sticky;top:0;background:var(--sf);z-index:1}
 .mnu-h span{font-size:.78rem;font-weight:700;color:var(--tx);letter-spacing:.12em;text-transform:uppercase;font-family:'Space Grotesk',sans-serif}
 .mnu-x{background:none;border:none;color:var(--tx2);font-size:1.2rem;cursor:pointer;padding:.2rem .4rem}
-.mnu-btn{width:100%;text-align:left;background:none;border:none;border-bottom:1px solid rgba(37,37,37,.8);padding:.68rem .95rem;font-size:.84rem;color:var(--tx);cursor:pointer;font-family:'Noto Sans KR',sans-serif;display:flex;align-items:center;gap:.5rem;transition:.12s}
+.mnu-btn{width:100%;text-align:left;background:none;border:none;border-bottom:1px solid rgba(37,37,37,.8);padding:.68rem .95rem;font-size:.84rem;color:var(--tx);cursor:pointer;font-family:'Pretendard','Noto Sans KR',sans-serif;display:flex;align-items:center;gap:.5rem;transition:.12s}
 .mnu-btn:active{background:var(--sf2)}
 .mnu-btn:hover{background:var(--sf2);color:var(--tx)}
 .mnu-btn.cur{color:var(--tx);font-weight:700;background:rgba(255,255,255,.04)}
@@ -246,75 +247,179 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 .mnu-btn.danger{color:var(--wr);opacity:.85}
 .mnu-sec{padding:.4rem .95rem .22rem;font-size:.6rem;color:var(--tx2);letter-spacing:.1em;text-transform:uppercase;background:rgba(0,0,0,.4);border-bottom:1px solid var(--bd)}
 .mnu-sep{height:4px;background:rgba(0,0,0,.5);border-top:1px solid var(--bd);border-bottom:1px solid var(--bd)}
+
+/* ── 체크리스트 랜딩 ── */
+.ld-card{width:min(440px,92vw);max-height:90dvh;overflow-y:auto;background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:1.4rem 1.3rem 1.2rem;animation:popIn .4s var(--ease-spring)}
+.ld-brand{display:flex;align-items:center;gap:.5rem;font-family:'Space Grotesk',sans-serif;font-size:1.15rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--tx)}
+.ld-brand{line-height:1.15}
+.ld-brand .ico svg{width:1.3em;height:1.3em}
+.ld-sub-txt{font-size:.78rem;color:var(--tx2);margin:.55rem 0 1.1rem}
+.ld-seg{display:flex;gap:.4rem;background:var(--bg);border:1px solid var(--bd);border-radius:6px;padding:.25rem;margin-bottom:1.1rem}
+.ld-seg-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:.4rem;padding:.5rem;background:transparent;border:none;border-radius:4px;color:var(--tx2);font-family:'Pretendard','Noto Sans KR',sans-serif;font-size:.82rem;font-weight:500;cursor:pointer}
+.ld-seg-btn svg{width:1.05em;height:1.05em}
+.ld-seg-btn.active{background:var(--tx);color:#000}
+.ld-group{border:1px solid var(--bd);border-radius:8px;margin-bottom:.7rem;overflow:hidden;transition:border-color .25s var(--ease)}
+.ld-group.open{border-color:var(--tx2)}
+.ld-cat{display:flex;align-items:center;gap:.65rem;padding:.85rem .95rem;cursor:pointer;user-select:none}
+.ld-cat-ic{color:var(--tx2);display:inline-flex}
+.ld-cat-ic svg{width:1.25em;height:1.25em}
+.ld-group.open .ld-cat-ic{color:var(--tx)}
+.ld-cat-tt{font-size:.95rem;font-weight:600;letter-spacing:.02em}
+.ld-cat-en{font-size:.66rem;color:var(--tx2);margin-left:auto;letter-spacing:.08em;text-transform:uppercase}
+.ld-subs{max-height:0;opacity:0;transition:max-height .35s var(--ease),opacity .3s var(--ease);padding:0 .95rem;border-top:1px solid transparent}
+.ld-group.open .ld-subs{max-height:340px;opacity:1;padding:.3rem .95rem .85rem;border-top:1px solid var(--bd)}
+.ld-sub-item{display:flex;align-items:center;gap:.55rem;padding:.5rem .2rem;font-size:.85rem;color:var(--tx);cursor:pointer;user-select:none}
+.ld-sub-item svg{width:1.05em;height:1.05em;color:var(--tx2)}
+.ld-sub-item input:checked~svg{color:var(--tx)}
+/* custom checkbox */
+.ld-cat input,.ld-sub-item input,.ld-chk input{appearance:none;-webkit-appearance:none;width:18px;height:18px;border:1.5px solid var(--bd);border-radius:4px;background:var(--bg);cursor:pointer;position:relative;flex-shrink:0;transition:.2s var(--ease)}
+.ld-cat input:checked,.ld-sub-item input:checked,.ld-chk input:checked{background:var(--tx);border-color:var(--tx)}
+.ld-cat input:checked::after,.ld-sub-item input:checked::after,.ld-chk input:checked::after{content:'';position:absolute;left:5px;top:1.5px;width:5px;height:9px;border:solid #000;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.ld-range{margin-top:.45rem;padding-top:.6rem;border-top:1px dashed var(--bd)}
+.ld-range-h{display:flex;align-items:center;gap:.4rem;font-size:.72rem;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem}
+.ld-range-h svg{width:1em;height:1em}
+.ld-range-note{text-transform:none;letter-spacing:0;opacity:.7}
+.ld-select{width:100%;padding:.5rem .6rem;background:var(--bg);border:1px solid var(--bd);border-radius:5px;color:var(--tx);font-family:'Pretendard','Noto Sans KR',sans-serif;font-size:.82rem;outline:none;margin-bottom:.5rem;cursor:pointer}
+.ld-chk{display:flex;align-items:center;gap:.5rem;padding:.32rem .1rem;font-size:.78rem;color:var(--tx2);cursor:pointer;user-select:none}
+.ld-chk input{width:16px;height:16px}
+.ld-chk input:checked::after{left:4.5px;top:1px;width:4px;height:8px}
+.ld-start{width:100%;display:flex;align-items:center;justify-content:center;gap:.5rem;padding:.8rem;margin-top:.6rem;background:var(--tx);color:#000;border:none;border-radius:6px;font-family:'Pretendard','Noto Sans KR',sans-serif;font-size:.9rem;font-weight:700;letter-spacing:.04em;cursor:pointer}
+.ld-start svg{width:1.1em;height:1.1em}
+.ld-start:disabled{background:var(--sf2);color:var(--tx2);cursor:not-allowed}
+.ld-warn{text-align:center;font-size:.74rem;color:var(--wr);min-height:1em;margin-top:.5rem}
+
+/* ── 활동 탭 바 ── */
+#act-tabs{position:fixed;top:0;left:0;right:0;height:42px;z-index:8600;display:none;align-items:center;gap:.3rem;padding:0 .5rem;background:var(--sf);border-bottom:1px solid var(--bd)}
+body.in-session #act-tabs{display:flex}
+body.in-session{padding-top:42px}
+body.in-session #rq-screen,body.in-session #kr-screen{top:42px}
+.act-tabs-scroll{display:flex;gap:.25rem;align-items:center;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none;height:100%}
+.act-tabs-scroll::-webkit-scrollbar{display:none}
+.act-tab{display:inline-flex;align-items:center;gap:.4rem;padding:.4rem .7rem;background:transparent;border:1px solid transparent;border-radius:5px;color:var(--tx2);font-family:'Pretendard','Noto Sans KR',sans-serif;font-size:.78rem;font-weight:500;white-space:nowrap;cursor:pointer;flex-shrink:0}
+.act-tab svg{width:1.05em;height:1.05em}
+.act-tab.active{background:var(--sf2);color:var(--tx);border-color:var(--bd)}
+.act-home{display:inline-flex;align-items:center;gap:.35rem;padding:.4rem .6rem;background:transparent;border:1px solid var(--bd);border-radius:5px;color:var(--tx2);font-family:'Pretendard','Noto Sans KR',sans-serif;font-size:.74rem;cursor:pointer;flex-shrink:0}
+.act-home svg{width:1em;height:1em}
+.act-home:hover{color:var(--tx);border-color:var(--tx2)}
+.hicon{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;background:transparent;border:1px solid var(--bd);border-radius:4px;color:var(--tx2);cursor:pointer;flex-shrink:0;transition:.2s var(--ease)}
+.hicon svg{width:1.05em;height:1.05em}
+.hicon:hover{color:var(--tx);border-color:var(--tx2)}
+.hicon.danger:hover{color:var(--wr);border-color:rgba(176,56,56,.5)}
+
+/* ── 접경국 퀴즈 박스 ── */
+#bq-box{position:absolute;top:.7rem;left:50%;transform:translateX(-50%);width:min(440px,calc(100vw - 1.4rem));background:rgba(6,6,6,.95);border:1px solid var(--bd);border-radius:8px;padding:.7rem .9rem;z-index:12;backdrop-filter:blur(10px);display:none}
+#bq-box.on{display:block;animation:fadeUp .3s var(--ease)}
+.bq-q{font-size:.72rem;color:var(--tx2);letter-spacing:.04em;margin-bottom:.5rem;text-align:center}
+.bq-neighbors{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-bottom:.55rem}
+.bq-nb{background:var(--sf2);border:1px solid var(--bd);border-radius:4px;padding:3px 9px;font-size:.82rem;color:var(--tx);font-weight:500}
+.bq-foot{display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+.bq-fb{font-size:.76rem;color:var(--tx2);flex:1;min-height:1em}
+.bq-fb.ok{color:#4a9060;font-weight:600}.bq-fb.ng{color:var(--wr)}
+.bq-skip{padding:.32rem .7rem;background:transparent;border:1px solid var(--bd);border-radius:4px;color:var(--tx2);font-family:'Pretendard','Noto Sans KR',sans-serif;font-size:.74rem;cursor:pointer}
+.bq-skip:hover{color:var(--tx);border-color:var(--tx2)}
+#bq-box.shake{animation:shk .35s ease}
+body.border-mode .leg,body.border-mode .info{display:none}
+#bq-list-panel.on{display:flex!important}
+#bq-end{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:800;display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
+#bq-end.on{display:flex}
+
+/* ── 아이콘 ── */
+[data-ic]{display:inline-flex;align-items:center;justify-content:center}
+[data-ic] svg,.ico svg{width:1.15em;height:1.15em;display:block;pointer-events:none;flex-shrink:0}
+.btn-ico{display:inline-flex;align-items:center;gap:.4em}
+/* ── 부드러운 애니메이션 (premium easing) ── */
+:root{--ease:cubic-bezier(.22,.61,.36,1);--ease-io:cubic-bezier(.65,0,.35,1);--ease-spring:cubic-bezier(.34,1.3,.64,1)}
+.btn,.bp,.bs,.reb,.hbtn,.cb,.mnu-btn,.land-btn,.land-back,.cl-tab,.cl-close,.eip-map-btn,.act-tab,#ui-hamburger,#kr-hamburger{transition:background .25s var(--ease),color .25s var(--ease),border-color .25s var(--ease),transform .25s var(--ease-spring),opacity .25s var(--ease)!important}
+.btn:active,.reb:active,.land-btn:active,.mnu-btn:active,.act-tab:active{transform:scale(.96)}
+.modal{transition:transform .38s var(--ease-spring),opacity .3s var(--ease)!important}
+.ui-ov,#kr-ov{transition:opacity .3s var(--ease)!important}
+#ui-menu{transition:transform .34s var(--ease)!important}
+#ui-menu-bd{transition:opacity .3s var(--ease)!important}
+.pf,.rq-pf{transition:width .55s var(--ease)!important}
+#world-svg .landxx,#world-svg .xk.limitxx,#world-svg .xz.limitxx,#world-svg .eh.landxx,#korea-svg path[data-kid]{transition:fill .3s var(--ease)}
+.dot{transition:background .3s var(--ease),transform .3s var(--ease-spring)}
+.cl-tag,.wrong-tag{transition:background .2s var(--ease),color .2s var(--ease),transform .2s var(--ease-spring)}
+.land-btn:hover,.cb:hover{transform:translateY(-1px)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes popIn{0%{opacity:0;transform:scale(.94)}100%{opacity:1;transform:scale(1)}}
+.ec,.rq-end-card,.cl-card,.eip-card{animation:popIn .34s var(--ease-spring)}
 </style>
 </head>
 <body>
 <div id="landing-overlay">
-  <div id="land-step1">
-    <h2 style="text-align:center">🌍 지리 퀴즈</h2>
-    <p style="text-align:center;margin:.4rem 0 1.2rem">모드를 선택하세요</p>
-    <div class="land-choices">
-      <button class="land-btn" id="land-pc"><span class="land-icon">💻</span>PC 모드<div class="land-sub">마우스 조작 / 전체 화면</div></button>
-      <button class="land-btn" id="land-mob"><span class="land-icon">📱</span>모바일 모드<div class="land-sub">터치 조작 / 모바일 최적화</div></button>
+  <div class="ld-card">
+    <div class="ld-brand"><span class="ico" data-ic="globe"></span> GEO QUIZ</div>
+    <p class="ld-sub-txt">학습할 항목을 선택하세요</p>
+    <div class="ld-seg" id="ld-mode">
+      <button class="ld-seg-btn" data-mode="pc"><span data-ic="monitor"></span>PC</button>
+      <button class="ld-seg-btn" data-mode="mob"><span data-ic="phone"></span>모바일</button>
     </div>
-  </div>
-  <div id="land-step2" style="display:none">
-    <h2 style="text-align:center">어떤 퀴즈를 할까요?</h2>
-    <div class="land-choices">
-      <button class="land-btn" id="land-world"><span class="land-icon">🌍</span>세계 지리<div class="land-sub">나라 맞추기 / 종교 퀴즈</div></button>
-      <button class="land-btn" id="land-korea"><span class="land-icon">🇰🇷</span>한국 지리<div class="land-sub">시·군 맞추기</div></button>
+    <div class="ld-group" data-cat="world">
+      <label class="ld-cat">
+        <input type="checkbox" class="ld-cat-cb" id="cat-world" data-cat="world">
+        <span class="ld-cat-ic" data-ic="globe"></span>
+        <span class="ld-cat-tt">세계지리</span>
+        <span class="ld-cat-en">World</span>
+      </label>
+      <div class="ld-subs">
+        <label class="ld-sub-item"><input type="checkbox" class="ld-act" value="name"><span data-ic="globe"></span>나라 이름 맞추기</label>
+        <label class="ld-sub-item"><input type="checkbox" class="ld-act" value="border"><span data-ic="border"></span>접경국 맞추기</label>
+        <label class="ld-sub-item"><input type="checkbox" class="ld-act" value="religion"><span data-ic="book"></span>국가별 종교 퀴즈</label>
+        <div class="ld-range">
+          <div class="ld-range-h"><span data-ic="range"></span>출제 범위 <span class="ld-range-note">· 나라이름/접경국</span></div>
+          <select id="ld-cont" class="ld-select">
+            <option value="all">전체 대륙</option>
+            <option value="as">아시아</option>
+            <option value="eu">유럽</option>
+            <option value="af">아프리카</option>
+            <option value="na">북아메리카</option>
+            <option value="sa">남아메리카</option>
+            <option value="oc">오세아니아</option>
+          </select>
+          <label class="ld-chk"><input type="checkbox" id="ld-big">인구 40만+ 국가만 (소국 제외)</label>
+          <label class="ld-chk"><input type="checkbox" id="ld-noisle">섬나라 제외</label>
+        </div>
+      </div>
     </div>
-  </div>
-  <div id="land-step3" style="display:none">
-    <h2 style="text-align:center">세계 지리 모드</h2>
-    <div class="land-choices">
-      <button class="land-btn" id="land-all-cont"><span class="land-icon">🌐</span>전체 대륙<div class="land-sub">모든 나라</div></button>
-      <button class="land-btn" id="land-by-cont"><span class="land-icon">🗺️</span>대륙별<div class="land-sub">대륙을 선택해서 도전</div></button>
+    <div class="ld-group" data-cat="korea">
+      <label class="ld-cat">
+        <input type="checkbox" class="ld-cat-cb" id="cat-korea" data-cat="korea">
+        <span class="ld-cat-ic" data-ic="pin"></span>
+        <span class="ld-cat-tt">한국지리</span>
+        <span class="ld-cat-en">Korea</span>
+      </label>
+      <div class="ld-subs">
+        <label class="ld-sub-item"><input type="checkbox" class="ld-act-kr" value="korea" checked disabled><span data-ic="pin"></span>시·군 맞추기</label>
+      </div>
     </div>
-    <button class="land-back" id="land-back3">← 뒤로</button>
-  </div>
-  <div id="land-step4a" style="display:none">
-    <h2 style="text-align:center">🌐 전체 대륙</h2>
-    <p style="text-align:center;margin:.3rem 0 1rem;font-size:.85rem;color:var(--tx2)">인구 40만 이하 소국을 제외할까요?</p>
-    <div class="land-choices">
-      <button class="land-btn" id="land-all-incl"><span class="land-icon">🌍</span>전체 포함<div class="land-sub">198개국 전부</div></button>
-      <button class="land-btn" id="land-all-big"><span class="land-icon">🏙️</span>소국 제외<div class="land-sub">인구 40만+ 국가만</div></button>
-    </div>
-    <button class="land-back" id="land-back4a">← 뒤로</button>
-  </div>
-  <div id="land-step4b" style="display:none">
-    <h2 style="text-align:center">🗺️ 대륙 선택</h2>
-    <div class="land-choices" style="flex-wrap:wrap;max-width:500px">
-      <button class="land-btn land-btn-sm" data-cont="as"><span class="land-icon" style="font-size:1.8rem">🌏</span>아시아</button>
-      <button class="land-btn land-btn-sm" data-cont="eu"><span class="land-icon" style="font-size:1.8rem">🌍</span>유럽</button>
-      <button class="land-btn land-btn-sm" data-cont="af"><span class="land-icon" style="font-size:1.8rem">🌍</span>아프리카</button>
-      <button class="land-btn land-btn-sm" data-cont="na"><span class="land-icon" style="font-size:1.8rem">🌎</span>북아메리카</button>
-      <button class="land-btn land-btn-sm" data-cont="sa"><span class="land-icon" style="font-size:1.8rem">🌎</span>남아메리카</button>
-      <button class="land-btn land-btn-sm" data-cont="oc"><span class="land-icon" style="font-size:1.8rem">🌏</span>오세아니아</button>
-    </div>
-    <button class="land-back" id="land-back4b">← 뒤로</button>
-  </div>
-  <div id="land-step5" style="display:none">
-    <h2 style="text-align:center" id="land-cont-title">대륙 선택됨</h2>
-    <p style="text-align:center;margin:.3rem 0 1rem;font-size:.85rem;color:var(--tx2)">섬나라를 제외할까요?</p>
-    <div class="land-choices">
-      <button class="land-btn" id="land-isle-incl"><span class="land-icon">🏝️</span>섬나라 포함<div class="land-sub">모든 나라</div></button>
-      <button class="land-btn" id="land-isle-excl"><span class="land-icon">🏔️</span>섬나라 제외<div class="land-sub">대륙 국가만</div></button>
-    </div>
-    <button class="land-back" id="land-back5">← 뒤로</button>
+    <button id="ld-start" class="ld-start"><span>시작하기</span><span data-ic="arrow"></span></button>
+    <div class="ld-warn" id="ld-warn"></div>
   </div>
 </div>
+<div id="act-tabs">
+  <div class="act-tabs-scroll" id="act-tabs-list"></div>
+  <button class="act-home" id="act-home" onclick="endSession()"><span data-ic="back"></span>처음으로</button>
+</div>
 <header>
-  <div class="logo">GEO QUIZ <span>/ 세계지리</span></div>
+  <div class="logo" id="ui-logo">나라 이름 <span>/ Countries</span></div>
   <div class="stats">
     <div class="stat"><div class="sv" style="color:var(--tx2)" id="ui-rem">0</div><div class="sl">남은</div></div>
     <div class="stat"><div class="sv" style="color:#4a9060" id="ui-cor">0</div><div class="sl">정답</div></div>
-    <div class="stat"><div class="sv" style="color:var(--wr)" id="ui-rev">0</div><div class="sl">공개</div></div>
-    <button id="ui-hamburger" onclick="toggleMenu()">☰</button>
+    <div class="stat"><div class="sv" style="color:var(--wr)" id="ui-rev">0</div><div class="sl">오답</div></div>
+    <button class="hicon" id="ui-list-btn" title="목록" onclick="mapListAction()"><span data-ic="list"></span></button>
+    <button class="hicon danger" id="ui-reset-btn" title="초기화" onclick="mapResetAction()"><span data-ic="reset"></span></button>
   </div>
 </header>
 <div class="pb"><div class="pf" id="ui-pf"></div></div>
 <main>
+    <div id="bq-box">
+      <div class="bq-q">아래 나라들과 <b>모두 접한</b> 나라를 지도에서 클릭하세요</div>
+      <div class="bq-neighbors" id="bq-neighbors"></div>
+      <div class="bq-foot">
+        <div class="bq-fb" id="bq-fb"></div>
+        <button class="bq-skip" id="bq-skip" onclick="bqSkip()">건너뛰기</button>
+      </div>
+    </div>
     <div id="ui-map"><svg xmlns="http://www.w3.org/2000/svg" id="world-svg" viewBox="0 0 2754 1398">
 	
 	
@@ -3438,7 +3543,7 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
     <div class="li"><div class="ld" style="background:var(--c1)"></div>1번 정답</div>
     <div class="li"><div class="ld" style="background:var(--c2)"></div>2번 정답</div>
     <div class="li"><div class="ld" style="background:var(--c3)"></div>3번 정답</div>
-    <div class="li"><div class="ld" style="background:#6e1515"></div>정답공개 (클릭→정답)</div>
+    <div class="li"><div class="ld" style="background:#6e1515"></div>오답 (클릭→정답)</div>
   </div>
   <div class="ctrls">
     <button class="cb" id="ui-zi">+</button>
@@ -3463,46 +3568,17 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 <div id="ui-next" style="display:none"></div>
 <!-- Mobile bottom bar -->
 <div id="ui-mob-bar" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:190;padding:.6rem .85rem calc(.6rem + env(safe-area-inset-bottom));background:rgba(6,6,6,.97);border-top:1px solid var(--bd);backdrop-filter:blur(12px)">
-  <button onclick="goRandom()" style="width:100%;padding:.7rem 1rem;background:var(--tx);border:none;border-radius:4px;color:#000;font-size:.95rem;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.6rem;letter-spacing:.04em">
+  <button onclick="goRandom()" style="width:100%;padding:.7rem 1rem;background:var(--tx);border:none;border-radius:4px;color:#000;font-size:.95rem;font-weight:700;font-family:'Pretendard','Noto Sans KR',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.6rem;letter-spacing:.04em">
     <span>다음 국가</span><span id="mob-rem-cnt" style="opacity:.65;font-size:.85rem;font-weight:400"></span><span style="font-size:1.1rem">→</span>
   </button>
 </div>
 
-<!-- Menu Backdrop + Side Panel -->
-<div id="ui-menu-bd" onclick="closeMenu()"></div>
-<div id="ui-menu">
-  <div class="mnu-h"><span>메뉴</span><button class="mnu-x" onclick="closeMenu()">✕</button></div>
-  <div class="mnu-sec">기능</div>
-  <button class="mnu-btn" onclick="saveGame();closeMenu()">💾 저장</button>
-  <button class="mnu-btn danger" onclick="resetMapQuiz();closeMenu()">🔄 초기화</button>
-  <button class="mnu-btn" onclick="openCountryList();closeMenu()">📋 국가 목록</button>
-  <button class="mnu-btn" onclick="openReligionQuiz();closeMenu()">✝ 종교 퀴즈</button>
-  <button class="mnu-btn" onclick="openKoreaQuiz();closeMenu()">🇰🇷 한국지리</button>
-  <button class="mnu-btn" id="mnu-toggle-mode" onclick="toggleMode();closeMenu()">💻 PC 모드로 전환</button>
-  <div class="mnu-sep"></div>
-  <div class="mnu-sec">퀴즈 범위 변경</div>
-  <button class="mnu-btn" id="mmo-all" onclick="switchMode('all');closeMenu()">🌍 전체 대륙</button>
-  <button class="mnu-btn" id="mmo-all_big" onclick="switchMode('all_big');closeMenu()">🌍 전체 (소국 제외)</button>
-  <button class="mnu-btn" id="mmo-as" onclick="switchMode('as');closeMenu()">🌏 아시아</button>
-  <button class="mnu-btn" id="mmo-eu" onclick="switchMode('eu');closeMenu()">🌍 유럽</button>
-  <button class="mnu-btn" id="mmo-af" onclick="switchMode('af');closeMenu()">🌍 아프리카</button>
-  <button class="mnu-btn" id="mmo-na" onclick="switchMode('na');closeMenu()">🌎 북아메리카</button>
-  <button class="mnu-btn" id="mmo-sa" onclick="switchMode('sa');closeMenu()">🌎 남아메리카</button>
-  <button class="mnu-btn" id="mmo-oc" onclick="switchMode('oc');closeMenu()">🌏 오세아니아</button>
-  <div id="mnu-kr-section" style="display:none">
-    <div class="mnu-sep"></div>
-    <div class="mnu-sec">한국지리</div>
-    <button class="mnu-btn" onclick="saveKR(true);closeMenu()">💾 저장</button>
-    <button class="mnu-btn danger" onclick="resetKR();closeMenu()">🔄 초기화</button>
-    <button class="mnu-btn" onclick="openKRList();closeMenu()">📋 목록</button>
-    <button class="mnu-btn danger" onclick="closeKoreaQuiz();closeMenu()">✕ 한국지리 종료</button>
-  </div>
-</div>
+<!-- (구) 슬라이드 메뉴 제거됨 — 탭 바와 각 화면 헤더 버튼으로 대체 -->
 
 <!-- Map Quiz End Screen -->
 <div id="ui-end">
   <div class="ec">
-    <div style="font-size:2rem">🌍</div>
+    <div class="ico" data-ic="trophy" style="display:flex;justify-content:center;color:var(--tx2);font-size:1.7rem"></div>
     <h1>퀴즈 완료!</h1>
     <div class="esc" id="ui-escore">0%</div>
     <div class="eg">
@@ -3510,15 +3586,15 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
       <div class="est"><div class="esv" style="color:var(--c2)" id="ui-e2">0</div><div class="esl">2번정답</div></div>
       <div class="est"><div class="esv" style="color:var(--c3)" id="ui-e3">0</div><div class="esl">3번정답</div></div>
     </div>
-    <div class="est" style="margin-bottom:.6rem"><div class="esv" style="color:var(--wr)" id="ui-er">0</div><div class="esl">정답공개</div></div>
+    <div class="est" style="margin-bottom:.6rem"><div class="esv" style="color:var(--wr)" id="ui-er">0</div><div class="esl">오답</div></div>
     <div class="wrong-list" id="ui-wrong-list" style="display:none">
-      <h3>🔴 틀린 나라들 <span style="font-size:.6rem;opacity:.7;font-weight:400">(클릭하면 정보)</span></h3>
+      <h3>틀린 나라들 <span style="font-size:.6rem;opacity:.7;font-weight:400">(클릭하면 정보)</span></h3>
       <div class="wrong-tags" id="ui-wrong-tags"></div>
     </div>
-    <button class="reb" id="end-retry-wrong" style="display:none" onclick="retryWrong()">🔴 틀린것만 다시하기</button>
-    <button class="reb secondary" id="end-add-wrong" style="display:none" onclick="addToOopsNote()">📝 오답 추가하기</button>
-    <button class="reb secondary" id="end-oops-quiz" style="display:none" onclick="startOopsQuiz()">📘 오답 노트 퀴즈</button>
-    <button class="reb" onclick="location.reload()">🔄 다시 시작</button>
+    <button class="reb" id="end-retry-wrong" style="display:none" onclick="retryWrong()">틀린 것만 다시하기</button>
+    <button class="reb secondary" id="end-add-wrong" style="display:none" onclick="addToOopsNote()">오답 노트에 추가</button>
+    <button class="reb secondary" id="end-oops-quiz" style="display:none" onclick="startOopsQuiz()">오답 노트 퀴즈</button>
+    <button class="reb" onclick="location.reload()">다시 시작</button>
     <button class="reb secondary" onclick="document.getElementById('ui-end').style.display='none'">닫기 (지도 보기)</button>
   </div>
 </div>
@@ -3533,7 +3609,7 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
     <div class="eip-meta">
       <span class="eip-badge" id="eip-cont"></span>
     </div>
-    <button class="eip-map-btn" onclick="viewOnMap(currentEipIso)">🗺️ 지도에서 보기</button>
+    <button class="eip-map-btn" onclick="viewOnMap(currentEipIso)">지도에서 보기</button>
   </div>
 </div>
 
@@ -3542,7 +3618,7 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
   <div class="cl-card">
     <div class="cl-head">
       <div>
-        <h2>📋 국가 목록</h2>
+        <h2>국가 목록</h2>
         <div class="cl-tabs">
           <button class="cl-tab active" id="cl-tab-done" onclick="switchCLTab('done')">맞춘 국가 (<span id="cl-done-cnt">0</span>)</button>
           <button class="cl-tab" id="cl-tab-remain" onclick="switchCLTab('remain')">남은 국가 (<span id="cl-remain-cnt">0</span>)</button>
@@ -3560,14 +3636,15 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 <!-- ═══ Korea Quiz Screen ═══ -->
 <div id="kr-screen">
   <div class="kr-header">
-    <div class="kr-title">🇰🇷 한국지리 — 시·군 맞추기</div>
+    <div class="kr-title">시·군 맞추기</div>
     <div class="kr-stats">
       <div><div class="sv" style="color:#4a9060" id="kr-cor">0</div><div class="sl">정답</div></div>
-      <div><div class="sv" style="color:var(--wr)" id="kr-rev">0</div><div class="sl">공개</div></div>
+      <div><div class="sv" style="color:var(--wr)" id="kr-rev">0</div><div class="sl">오답</div></div>
       <div><div class="sv" style="color:var(--tx2)" id="kr-rem">0</div><div class="sl">남은</div></div>
     </div>
     <div class="kr-hbtns">
-      <button id="kr-hamburger" onclick="toggleMenu()">☰</button>
+      <button class="hicon" title="목록" onclick="openKRList()"><span data-ic="list"></span></button>
+      <button class="hicon danger" title="초기화" onclick="resetKR()"><span data-ic="reset"></span></button>
     </div>
   </div>
   <div class="rq-progress"><div class="rq-pf" id="kr-pf"></div></div>
@@ -3584,7 +3661,7 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
   <div class="modal">
     <div class="mb">
       <div class="dots"><div class="dot" id="kr-d0"></div><div class="dot" id="kr-d1"></div><div class="dot" id="kr-d2"></div></div>
-      <input type="text" id="kr-gi" placeholder="지역 이름을 입력하세요... (예: 수원시, 서울)" autocomplete="off" style="width:100%;padding:.6rem .85rem;background:rgba(16,16,16,.9);border:1px solid var(--bd);border-radius:4px;color:var(--tx);font-size:.95rem;font-family:'Noto Sans KR',sans-serif;outline:none;margin-bottom:.6rem"/>
+      <input type="text" id="kr-gi" placeholder="지역 이름을 입력하세요... (예: 수원시, 서울)" autocomplete="off" style="width:100%;padding:.6rem .85rem;background:rgba(16,16,16,.9);border:1px solid var(--bd);border-radius:4px;color:var(--tx);font-size:.95rem;font-family:'Pretendard','Noto Sans KR',sans-serif;outline:none;margin-bottom:.6rem"/>
       <div class="br">
         <button class="btn bp" id="kr-bsub">확인</button>
         <button class="btn bs" id="kr-bskip">닫기</button>
@@ -3595,7 +3672,7 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
   </div>
 </div>
 <div id="kr-mob-bar">
-  <button onclick="krRandom()" style="width:100%;padding:.7rem 1rem;background:var(--tx);border:none;border-radius:4px;color:#000;font-size:.95rem;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.6rem">
+  <button onclick="krRandom()" style="width:100%;padding:.7rem 1rem;background:var(--tx);border:none;border-radius:4px;color:#000;font-size:.95rem;font-weight:700;font-family:'Pretendard','Noto Sans KR',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.6rem">
     <span>다음 지역</span><span id="kr-mob-rem" style="opacity:.65;font-size:.85rem;font-weight:400"></span><span style="font-size:1.1rem">→</span>
   </button>
 </div>
@@ -3603,7 +3680,7 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
   <div class="cl-card">
     <div class="cl-head">
       <div>
-        <h2>📋 한국지리 목록</h2>
+        <h2>한국지리 목록</h2>
         <div class="cl-tabs">
           <button class="cl-tab active" id="kl-tab-done" onclick="switchKLTab('done')">맞춘 지역 (<span id="kl-done-cnt">0</span>)</button>
           <button class="cl-tab" id="kl-tab-remain" onclick="switchKLTab('remain')">남은 지역 (<span id="kl-remain-cnt">0</span>)</button>
@@ -3616,15 +3693,15 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 </div>
 <div id="kr-end">
   <div class="rq-end-card">
-    <div style="font-size:2rem">🇰🇷</div>
+    <div class="ico" data-ic="trophy" style="display:flex;justify-content:center;color:var(--tx2);font-size:1.7rem"></div>
     <h1>한국지리 완료!</h1>
     <div class="esc" id="kr-escore">0%</div>
     <div class="eg">
       <div class="est"><div class="esv" style="color:#4a9060" id="kr-e1">0</div><div class="esl">정답</div></div>
-      <div class="est"><div class="esv" style="color:var(--wr)" id="kr-e2">0</div><div class="esl">공개</div></div>
+      <div class="est"><div class="esv" style="color:var(--wr)" id="kr-e2">0</div><div class="esl">오답</div></div>
     </div>
     <div class="wrong-list" id="kr-wrong-wrap" style="display:none">
-      <h3>🔴 공개된 지역</h3>
+      <h3>오답 지역</h3>
       <div class="wrong-tags" id="kr-wrong-tags"></div>
     </div>
     <button class="reb" onclick="resetKR(true)">다시 시작</button>
@@ -4654,14 +4731,13 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 <!-- Religion Quiz Screen -->
 <div id="rq-screen">
   <div class="rq-header">
-    <div class="rq-title">✝ 국가별 종교 퀴즈</div>
+    <div class="rq-title">종교 퀴즈</div>
     <div class="rq-stats">
       <div class="rq-stat"><div class="sv" style="color:#4a9060" id="rq-cor">0</div><div class="sl">정답</div></div>
       <div class="rq-stat"><div class="sv" style="color:var(--wr)" id="rq-err">0</div><div class="sl">오답</div></div>
       <div class="rq-stat"><div class="sv" style="color:var(--tx2)" id="rq-rem">0</div><div class="sl">남은</div></div>
-      <button class="hbtn" onclick="openRQList()" style="margin-left:.5rem">📋 목록</button>
-      <button class="hbtn" onclick="resetReligionQuiz()" style="margin-left:.5rem;color:var(--wr);border-color:rgba(248,81,73,.3)">🔄 초기화</button>
-      <button class="hbtn" onclick="closeReligionQuiz()" style="margin-left:.5rem">✕ 종료</button>
+      <button class="hicon" title="목록" onclick="openRQList()" style="margin-left:.4rem"><span data-ic="list"></span></button>
+      <button class="hicon danger" title="초기화" onclick="resetReligionQuiz()"><span data-ic="reset"></span></button>
     </div>
   </div>
   <div class="rq-progress"><div class="rq-pf" id="rq-pf"></div></div>
@@ -4703,7 +4779,7 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
   <div class="cl-card">
     <div class="cl-head">
       <div>
-        <h2>📋 종교퀴즈 국가 목록</h2>
+        <h2>종교 국가 목록</h2>
         <div style="font-size:.8rem;color:var(--tx2);margin-top:.3rem">남은 국가: <span id="rql-rem-cnt">0</span></div>
       </div>
       <button class="cl-close" onclick="document.getElementById('rq-list-panel').classList.remove('on')">✕</button>
@@ -4716,7 +4792,7 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 <!-- Religion Quiz End -->
 <div id="rq-end">
   <div class="rq-end-card">
-    <div style="font-size:2rem">✝</div>
+    <div class="ico" data-ic="trophy" style="display:flex;justify-content:center;color:var(--tx2);font-size:1.7rem"></div>
     <h1>종교 퀴즈 완료!</h1>
     <div class="esc" id="rq-escore">0%</div>
     <div class="eg">
@@ -4725,184 +4801,323 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
       <div class="est"><div class="esv" style="color:var(--tx2)" id="rq-e3">0</div><div class="esl">건너뛰기</div></div>
     </div>
     <div class="rq-wrong-wrap" id="rq-wrong-wrap" style="display:none">
-      <div class="rq-wrong-label">🔴 틀린 나라들</div>
+      <div class="rq-wrong-label">틀린 나라들</div>
       <div id="rq-wrong-list"></div>
     </div>
-    <button class="reb" id="rq-retry-btn" onclick="retryWrongRQ()" style="display:none;background:rgba(176,56,56,.1);border:1px solid rgba(176,56,56,.3);color:var(--wr)">🔁 틀린 것만 다시 풀기</button>
+    <button class="reb" id="rq-retry-btn" onclick="retryWrongRQ()" style="display:none;background:rgba(176,56,56,.1);border:1px solid rgba(176,56,56,.3);color:var(--wr)">틀린 것만 다시 풀기</button>
     <button class="reb" onclick="restartReligionQuiz()">다시 시작</button>
-    <button class="reb secondary" onclick="document.getElementById('rq-end').classList.remove('on');document.getElementById('rq-screen').classList.remove('on')">닫기</button>
+    <button class="reb secondary" onclick="document.getElementById('rq-end').classList.remove('on')">닫기</button>
   </div>
 </div>
 
+<!-- 접경국 퀴즈 목록 -->
+<div id="bq-list-panel" class="rq-list-panel-like" style="position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:800;display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px)">
+  <div class="cl-card">
+    <div class="cl-head">
+      <div>
+        <h2>접경국 퀴즈 목록</h2>
+        <div style="font-size:.78rem;color:var(--tx2);margin-top:.3rem">남은 나라: <span id="bql-rem-cnt">0</span></div>
+      </div>
+      <button class="cl-close" onclick="document.getElementById('bq-list-panel').classList.remove('on')"><span data-ic="close"></span></button>
+    </div>
+    <div class="cl-body"><div class="cl-grid" id="bql-grid"></div></div>
+  </div>
+</div>
+<!-- 접경국 퀴즈 완료 -->
+<div id="bq-end">
+  <div class="rq-end-card">
+    <div class="ico" data-ic="border" style="display:flex;justify-content:center;color:var(--tx2)"></div>
+    <h1>접경국 퀴즈 완료!</h1>
+    <div class="esc" id="bq-escore">0%</div>
+    <div class="eg" style="grid-template-columns:1fr 1fr">
+      <div class="est"><div class="esv" style="color:#4a9060" id="bq-e1">0</div><div class="esl">정답</div></div>
+      <div class="est"><div class="esv" style="color:var(--wr)" id="bq-e2">0</div><div class="esl">오답</div></div>
+    </div>
+    <button class="reb" onclick="resetBorderQuiz();document.getElementById('bq-end').classList.remove('on')">다시 시작</button>
+    <button class="reb secondary" onclick="document.getElementById('bq-end').classList.remove('on')">닫기</button>
+  </div>
+</div>
 <script>
+/* ── SVG 라인 아이콘 세트 ── */
+const ICON={
+  menu:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
+  close:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  list:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1.1" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1.1" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1.1" fill="currentColor" stroke="none"/></svg>',
+  reset:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12a8.5 8.5 0 1 1 2.6 6.1"/><path d="M3.5 19v-4.5H8"/></svg>',
+  globe:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 2.5 15 0 18M12 3c-2.5 2.5-2.5 15 0 18"/></svg>',
+  pin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>',
+  book:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v15.5H6.5A2.5 2.5 0 0 0 4 21z"/><path d="M4 18.5A2.5 2.5 0 0 1 6.5 16H19"/></svg>',
+  border:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="6" cy="7" r="2.4"/><circle cx="18" cy="7" r="2.4"/><circle cx="12" cy="18" r="2.4"/><path d="M8.1 8.2 10.4 16M15.9 8.2 13.6 16M8 7h8"/></svg>',
+  range:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2.1"/><circle cx="8" cy="17" r="2.1"/></svg>',
+  monitor:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M9 20h6M12 16v4"/></svg>',
+  phone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/></svg>',
+  back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
+  arrow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>',
+  power:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 4v8"/><path d="M7.5 7a7 7 0 1 0 9 0"/></svg>',
+  trophy:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M7 4h10v4a5 5 0 0 1-10 0z"/><path d="M7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3M9 19h6M12 13v6"/></svg>'
+};
+function ic(name){return ICON[name]||'';}
+function injectIcons(root){(root||document).querySelectorAll('[data-ic]').forEach(e=>{if(!e.dataset.icDone){e.innerHTML=ICON[e.dataset.ic]||'';e.dataset.icDone='1';}});}
+
 /* ── Mode (PC / Mobile) ── */
 const MODE_KEY='wq_mode';
 let isMobile=localStorage.getItem(MODE_KEY)==='mobile'||(localStorage.getItem(MODE_KEY)===null&&('ontouchstart' in window||navigator.maxTouchPoints>0));
-// Landing overlay — 매번 접속할 때마다 모드 선택
-(function(){
-  const overlay=document.getElementById('landing-overlay');
-  const steps={1:'land-step1',2:'land-step2',3:'land-step3','4a':'land-step4a','4b':'land-step4b',5:'land-step5'};
-  let _selectedCont='';
+/* ══════════ 세션 컨트롤러 (체크리스트 랜딩 + 탭 전환) ══════════ */
+const SESSION={cat:null,acts:[],filterKey:'all',cur:null};
+let mapMode='name'; /* 'name' | 'border' */
+const TAB_META={
+  name:{label:'나라 이름',ic:'globe'},
+  border:{label:'접경국',ic:'border'},
+  religion:{label:'종교',ic:'book'},
+  korea:{label:'시·군',ic:'pin'}
+};
 
-  function showStep(key){
-    Object.values(steps).forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
-    const el=document.getElementById(steps[key]);if(el)el.style.display='block';
-  }
-
-  function pickMode(mob){
-    localStorage.setItem(MODE_KEY,mob?'mobile':'pc');
-    isMobile=mob;
-    applyModeUI();
-    try{
-      const mw=document.getElementById('ui-map');
-      if(mw&&typeof applyT==='function'&&typeof SW!=='undefined'){
-        _s=Math.min(mw.clientWidth/SW,mw.clientHeight/SH);
-        _x=(mw.clientWidth-SW*_s)/2;_y=(mw.clientHeight-SH*_s)/2;applyT();
+function setMode(mob){
+  isMobile=mob;localStorage.setItem(MODE_KEY,mob?'mobile':'pc');
+  document.querySelectorAll('#ld-mode .ld-seg-btn').forEach(b=>b.classList.toggle('active',(b.dataset.mode==='mob')===mob));
+  try{applyModeUI();}catch(e){}
+}
+function setupLanding(){
+  injectIcons();
+  /* 모드 세그먼트 */
+  document.querySelectorAll('#ld-mode .ld-seg-btn').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode==='mob')));
+  setMode(isMobile);
+  /* 기본값: 세계지리 + 나라이름 */
+  document.getElementById('cat-world').checked=true;
+  document.querySelector('.ld-group[data-cat="world"]').classList.add('open');
+  document.querySelector('.ld-act[value="name"]').checked=true;
+  /* 카테고리 상호배타 + 펼침 */
+  document.querySelectorAll('.ld-cat-cb').forEach(cb=>{
+    cb.addEventListener('change',function(){
+      if(this.checked){
+        document.querySelectorAll('.ld-cat-cb').forEach(o=>{if(o!==this){o.checked=false;o.closest('.ld-group').classList.remove('open');}});
       }
-      if(typeof KR!=='undefined'&&KR.inited&&typeof krFit==='function')krFit();
-    }catch(err){}
-    showStep(2);
-  }
-
-  function startWorld(filterKey){
-    initActiveSet(filterKey);
-    /* 기존 저장 데이터 로드 */
-    S.correct=0;S.revealed=0;S.status={};S.wrong={};
-    if(loadGame()){
-      /* paint saved colors */
-      for(const[iso,cls]of Object.entries(S.status)){setColor(iso,cls);}
-    }
-    stats();
-    overlay.style.display='none';
-  }
-
-  document.getElementById('land-pc').addEventListener('click',function(){pickMode(false);});
-  document.getElementById('land-mob').addEventListener('click',function(){pickMode(true);});
-  document.getElementById('land-world').addEventListener('click',function(){showStep(3);});
-  document.getElementById('land-korea').addEventListener('click',function(){
-    startWithDefaultFilter();
-    overlay.style.display='none';
-    try{openKoreaQuiz();}catch(err){}
-  });
-
-  /* Step 3: 전체/대륙별 */
-  document.getElementById('land-all-cont').addEventListener('click',function(){showStep('4a');});
-  document.getElementById('land-by-cont').addEventListener('click',function(){showStep('4b');});
-  document.getElementById('land-back3').addEventListener('click',function(){showStep(2);});
-
-  /* Step 4a: 전체 + 소국 여부 */
-  document.getElementById('land-all-incl').addEventListener('click',function(){startWorld('all');});
-  document.getElementById('land-all-big').addEventListener('click',function(){startWorld('all_big');});
-  document.getElementById('land-back4a').addEventListener('click',function(){showStep(3);});
-
-  /* Step 4b: 대륙 선택 */
-  document.querySelectorAll('[data-cont]').forEach(btn=>{
-    btn.addEventListener('click',function(){
-      _selectedCont=this.dataset.cont;
-      document.getElementById('land-cont-title').textContent=CONT_NAME[_selectedCont]+' 대륙';
-      showStep(5);
+      this.closest('.ld-group').classList.toggle('open',this.checked);
+      updateStartState();
     });
   });
-  document.getElementById('land-back4b').addEventListener('click',function(){showStep(3);});
-
-  /* Step 5: 섬나라 여부 */
-  document.getElementById('land-isle-incl').addEventListener('click',function(){startWorld(_selectedCont);});
-  document.getElementById('land-isle-excl').addEventListener('click',function(){startWorld(_selectedCont+'_noisle');});
-  document.getElementById('land-back5').addEventListener('click',function(){showStep('4b');});
-
-  /* 항상 step1부터 */
-  showStep(1);
-})();
-function startWithDefaultFilter(){
-  /* 저장된 퀴즈 모드 없으면 전체 모드 기본값 */
-  initActiveSet('all');
-  S.correct=0;S.revealed=0;S.status={};S.wrong={};
-  if(loadGame()){for(const[iso,cls]of Object.entries(S.status))setColor(iso,cls);}
-  stats();
+  document.querySelectorAll('.ld-act').forEach(cb=>cb.addEventListener('change',updateStartState));
+  document.getElementById('ld-start').addEventListener('click',startFromLanding);
+  updateStartState();
 }
+function updateStartState(){
+  const warn=document.getElementById('ld-warn');warn.textContent='';
+  const w=document.getElementById('cat-world').checked;
+  const k=document.getElementById('cat-korea').checked;
+  let ok=false;
+  if(k)ok=true;
+  if(w){const any=[...document.querySelectorAll('.ld-act')].some(c=>c.checked);ok=any;if(!any)warn.textContent='세계지리 활동을 1개 이상 선택하세요';}
+  if(!w&&!k)warn.textContent='카테고리를 선택하세요';
+  document.getElementById('ld-start').disabled=!ok;
+}
+function startFromLanding(){
+  const w=document.getElementById('cat-world').checked;
+  const k=document.getElementById('cat-korea').checked;
+  if(k){startSession('korea',['korea'],null);return;}
+  if(!w)return;
+  const order=['name','border','religion'];
+  const acts=[...document.querySelectorAll('.ld-act')].filter(c=>c.checked).map(c=>c.value).sort((a,b)=>order.indexOf(a)-order.indexOf(b));
+  if(!acts.length)return;
+  let key=document.getElementById('ld-cont').value;
+  if(document.getElementById('ld-big').checked)key+='_big';
+  if(document.getElementById('ld-noisle').checked)key+='_noisle';
+  startSession('world',acts,key);
+}
+
+function startSession(cat,acts,filterKey){
+  SESSION.cat=cat;SESSION.acts=acts.slice();SESSION.filterKey=filterKey;
+  document.getElementById('landing-overlay').style.display='none';
+  document.body.classList.add('in-session');
+  if(cat==='world'){
+    if(acts.includes('name')||acts.includes('border')){initActiveSet(filterKey);}
+    if(acts.includes('name')){
+      S.correct=0;S.revealed=0;S.status={};S.wrong={};
+      loadGame();
+    }
+    if(acts.includes('border')){bqInit(filterKey);}
+    try{const mw=document.getElementById('ui-map');_s=Math.min(mw.clientWidth/SW,mw.clientHeight/SH);_x=(mw.clientWidth-SW*_s)/2;_y=(mw.clientHeight-SH*_s)/2;applyT();}catch(e){}
+  }
+  buildTabs();
+  switchTab(SESSION.acts[0]);
+  try{applyModeUI();}catch(e){}
+}
+function buildTabs(){
+  const wrap=document.getElementById('act-tabs-list');wrap.innerHTML='';
+  SESSION.acts.forEach(key=>{
+    const m=TAB_META[key];const b=document.createElement('button');
+    b.className='act-tab';b.dataset.tab=key;
+    b.innerHTML='<span data-ic="'+m.ic+'"></span>'+m.label;
+    b.addEventListener('click',()=>switchTab(key));
+    wrap.appendChild(b);
+  });
+  injectIcons(document.getElementById('act-tabs'));
+}
+function switchTab(key){
+  if(!SESSION.acts.includes(key))return;
+  if(modalOpen)closeModal();
+  SESSION.cur=key;
+  document.querySelectorAll('#act-tabs-list .act-tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===key));
+  const showMap=(key==='name'||key==='border');
+  document.getElementById('rq-screen').classList.toggle('on',key==='religion');
+  document.getElementById('kr-screen').classList.toggle('on',key==='korea');
+  document.getElementById('bq-box').classList.toggle('on',key==='border');
+  document.body.classList.toggle('border-mode',key==='border');
+  if(showMap){
+    mapMode=key;
+    const logo=document.getElementById('ui-logo');
+    logo.innerHTML=(key==='name')?'나라 이름 <span>/ Countries</span>':'접경국 <span>/ Borders</span>';
+    repaintMap();
+    if(key==='name'){stats();}else{bqStats();bqShowCurrent();}
+  }else if(key==='religion'){openReligionTab();}
+  else if(key==='korea'){openKoreaTab();}
+  try{applyModeUI();}catch(e){}
+}
+function endSession(){
+  try{saveGame();}catch(e){}
+  try{saveRQ();}catch(e){}
+  try{saveKR();}catch(e){}
+  try{bqSave();}catch(e){}
+  if(modalOpen)closeModal();
+  document.body.classList.remove('in-session');
+  document.getElementById('rq-screen').classList.remove('on');
+  document.getElementById('kr-screen').classList.remove('on');
+  document.getElementById('bq-box').classList.remove('on');
+  document.getElementById('ui-end').style.display='none';
+  ['rq-end','kr-end','bq-end'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.remove('on');});
+  document.getElementById('landing-overlay').style.display='flex';
+  updateStartState();
+}
+/* 지도 헤더 액션 — 현재 모드(나라이름/접경국)에 따라 분기 */
+function mapListAction(){if(mapMode==='border')openBQList();else openCountryList();}
+function mapResetAction(){if(mapMode==='border')resetBorderQuiz();else resetMapQuiz();}
+function openReligionTab(){if(!RQ.list||!RQ.list.length){if(!loadRQ())buildRQList();}showRQCard();}
+function openKoreaTab(){setTimeout(()=>{initKorea();applyModeUI();},30);}
+
+function clearMapColors(){Object.keys(colors).forEach(k=>stopJsBlink(k));for(const k in colors)delete colors[k];}
+function repaintMap(){
+  clearMapColors();
+  const src=(mapMode==='border')?BQ.status:S.status;
+  for(const[iso,cls]of Object.entries(src)){if(cls&&cls!=='blink')colors[iso]=cls;}
+  paint();
+}
+
+function startWithDefaultFilter(){initActiveSet('all');S.correct=0;S.revealed=0;S.status={};S.wrong={};loadGame();stats();}
 function applyModeUI(){
-  const btn=document.getElementById('ui-mode-btn');
-  const mnu=document.getElementById('mnu-toggle-mode');
   const mob=document.getElementById('ui-mob-bar');
   const kmob=document.getElementById('kr-mob-bar');
-  const krOn=document.getElementById('kr-screen').classList.contains('on');
+  const cur=(typeof SESSION!=='undefined')?SESSION.cur:null;
+  const onName=cur==='name',onKorea=cur==='korea';
   if(isMobile){
-    if(btn){btn.textContent='📱 모바일';btn.classList.add('mode-mobile');}
-    if(mnu){mnu.textContent='💻 PC 모드로 전환';}
     document.body.classList.add('mob-mode');
-    if(mob&&!modalOpen&&!krOn)mob.style.display='flex';
-    if(mob&&krOn)mob.style.display='none';
-    if(kmob)kmob.style.display=(krOn&&!krModalOpen)?'flex':'none';
+    if(mob)mob.style.display=(onName&&!modalOpen)?'flex':'none';
+    if(kmob)kmob.style.display=(onKorea&&!krModalOpen)?'flex':'none';
     document.body.style.touchAction='none';
   }else{
-    if(btn){btn.textContent='💻 PC';btn.classList.remove('mode-mobile');}
-    if(mnu){mnu.textContent='📱 모바일 모드로 전환';}
     document.body.classList.remove('mob-mode');
     if(mob)mob.style.display='none';
     if(kmob)kmob.style.display='none';
     document.body.style.touchAction='';
   }
 }
-/* 모바일에서 브라우저의 tap→click 합성이 누락되는 경우 대비:
-   버튼/탭 가능한 요소는 touchend에서 직접 click을 트리거 */
-let _tapX=0,_tapY=0;
-document.addEventListener('touchstart',function(e){
-  if(e.touches.length===1){_tapX=e.touches[0].clientX;_tapY=e.touches[0].clientY;}
-},{passive:true});
-document.addEventListener('touchend',function(e){
-  if(!isMobile)return;
-  const t=e.changedTouches[0];if(!t)return;
-  if(Math.abs(t.clientX-_tapX)>12||Math.abs(t.clientY-_tapY)>12)return;
-  /* 입력창 탭 → 사용자 제스처 안에서 직접 focus해 가상 키보드가 뜨게 함 */
-  const inp=e.target.closest('input, textarea');
-  if(inp){
-    if(e.cancelable)e.preventDefault();
-    inp.focus();
-    try{inp.setSelectionRange(inp.value.length,inp.value.length);}catch(err){}
-    return;
+function toggleMode(){setMode(!isMobile);}
+function toggleMenu(){}
+function closeMenu(){}
+
+/* ══════════ 접경국 맞추기 퀴즈 (BQ) ══════════ */
+const BQ={activeSet:null,total:0,queue:[],status:{},correct:0,wrong:0,curWrong:0,target:null,saveKey:'bq_all'};
+function bqPool(){
+  let base=S.activeSet?[...S.activeSet]:Object.keys(COUNTRIES);
+  return base.filter(i=>BORDERS[i]&&!CIRCLE_ISOS.has(i));
+}
+function bqInit(filterKey){
+  BQ.saveKey='bq_'+(filterKey||'all');
+  BQ.activeSet=new Set(bqPool());
+  BQ.total=BQ.activeSet.size;
+  BQ.status={};BQ.correct=0;BQ.wrong=0;BQ.curWrong=0;BQ.target=null;
+  bqLoad();
+  const done=new Set(Object.keys(BQ.status));
+  BQ.queue=[...BQ.activeSet].filter(i=>!done.has(i)).sort(()=>Math.random()-.5);
+}
+function bqLoad(){
+  try{const raw=localStorage.getItem(BQ.saveKey);if(!raw)return false;
+    const d=JSON.parse(raw);BQ.status=d.status||{};BQ.correct=d.correct||0;BQ.wrong=d.wrong||0;
+    for(const k of Object.keys(BQ.status))if(!BQ.activeSet.has(k))delete BQ.status[k];
+    let c=0,w=0;for(const v of Object.values(BQ.status)){if(v==='cr')w++;else c++;}BQ.correct=c;BQ.wrong=w;
+    return true;}catch(e){return false;}
+}
+function bqSave(){if(BQ.activeSet)localStorage.setItem(BQ.saveKey,JSON.stringify({status:BQ.status,correct:BQ.correct,wrong:BQ.wrong}));}
+function bqCurrent(){return BQ.queue.length?BQ.queue[0]:null;}
+function bqStats(){
+  const done=BQ.correct+BQ.wrong,rem=BQ.total-done;
+  document.getElementById('ui-rem').textContent=rem;
+  document.getElementById('ui-cor').textContent=BQ.correct;
+  document.getElementById('ui-rev').textContent=BQ.wrong;
+  document.getElementById('ui-pf').style.width=(BQ.total?done/BQ.total*100:0)+'%';
+}
+function bqShowCurrent(){
+  const box=document.getElementById('bq-box');
+  const t=bqCurrent();
+  if(!t){box.classList.remove('on');bqEnd();return;}
+  BQ.target=t;BQ.curWrong=0;
+  const nb=document.getElementById('bq-neighbors');nb.innerHTML='';
+  BORDERS[t].forEach(n=>{if(!COUNTRIES[n])return;const s=document.createElement('span');s.className='bq-nb';s.textContent=COUNTRIES[n].k;nb.appendChild(s);});
+  const fb=document.getElementById('bq-fb');fb.textContent='';fb.className='bq-fb';
+  if(SESSION.cur==='border')box.classList.add('on');
+}
+function bqHandleClick(iso){
+  if(!BQ.target)return;
+  const fb=document.getElementById('bq-fb');
+  if(iso===BQ.target){
+    BQ.status[iso]='c2';BQ.correct++;setColor(iso,'c2');
+    BQ.queue.shift();bqSave();bqStats();
+    fb.textContent='정답!';fb.className='bq-fb ok';
+    centerCountry(iso);
+    setTimeout(bqShowCurrent,750);
+  }else{
+    BQ.curWrong++;
+    const box=document.getElementById('bq-box');box.classList.add('shake');setTimeout(()=>box.classList.remove('shake'),360);
+    if(BQ.curWrong>=3){
+      const tgt=BQ.target;BQ.status[tgt]='cr';BQ.wrong++;setColor(tgt,'cr');
+      fb.textContent='정답: '+COUNTRIES[tgt].k;fb.className='bq-fb ng';
+      BQ.queue.shift();bqSave();bqStats();centerCountry(tgt);
+      setTimeout(bqShowCurrent,1600);
+    }else{
+      fb.textContent=(COUNTRIES[iso]?COUNTRIES[iso].k+' — ':'')+'다시 (기회 '+(3-BQ.curWrong)+')';fb.className='bq-fb ng';
+    }
   }
-  const el=e.target.closest('button, .cl-tag, .cl-tab');
-  if(!el)return;
-  if(e.cancelable)e.preventDefault();
-  el.click();
-},{passive:false});
-function toggleMode(){
-  isMobile=!isMobile;
-  localStorage.setItem(MODE_KEY,isMobile?'mobile':'pc');
-  applyModeUI();
 }
-function toggleMenu(){
-  const m=document.getElementById('ui-menu');
-  if(m.classList.contains('on')){closeMenu();return;}
-  /* 현재 활성 모드 표시 */
-  document.querySelectorAll('[id^="mmo-"]').forEach(b=>b.classList.remove('cur'));
-  const curKey=S.saveKey.replace('wq_','');
-  const el=document.getElementById('mmo-'+curKey);
-  if(el)el.classList.add('cur');
-  /* PC/모바일 토글 버튼 텍스트 갱신 */
-  const tm=document.getElementById('mnu-toggle-mode');
-  if(tm)tm.textContent=isMobile?'💻 PC 모드로 전환':'📱 모바일 모드로 전환';
-  /* 한국지리 섹션 표시 여부 */
-  const krSec=document.getElementById('mnu-kr-section');
-  if(krSec)krSec.style.display=document.getElementById('kr-screen').classList.contains('on')?'block':'none';
-  m.classList.add('on');
-  document.getElementById('ui-menu-bd').classList.add('on');
+function bqSkip(){const t=BQ.queue.shift();if(t)BQ.queue.push(t);bqShowCurrent();}
+function resetBorderQuiz(){
+  if(!confirm('접경국 퀴즈 진행 상황을 초기화할까요?'))return;
+  localStorage.removeItem(BQ.saveKey);
+  BQ.status={};BQ.correct=0;BQ.wrong=0;
+  BQ.queue=[...BQ.activeSet].sort(()=>Math.random()-.5);
+  clearMapColors();paint();bqStats();bqShowCurrent();
 }
-function closeMenu(){
-  document.getElementById('ui-menu').classList.remove('on');
-  document.getElementById('ui-menu-bd').classList.remove('on');
+function bqEnd(){
+  const el=document.getElementById('bq-end');if(!el)return;
+  const total=BQ.total||1;
+  document.getElementById('bq-escore').textContent=Math.round(BQ.correct/total*100)+'%';
+  document.getElementById('bq-e1').textContent=BQ.correct;
+  document.getElementById('bq-e2').textContent=BQ.wrong;
+  el.classList.add('on');
 }
-function switchMode(key){
-  if(modalOpen)closeModal();
-  initActiveSet(key);
-  S.correct=0;S.revealed=0;S.status={};S.wrong={};
-  /* 기존 색 모두 제거 */
-  Object.keys(colors).forEach(k=>stopJsBlink(k));
-  for(const k in colors)delete colors[k];
-  paint();
-  if(loadGame()){for(const[iso,cls]of Object.entries(S.status))setColor(iso,cls);}
-  stats();
+function openBQList(){
+  const grid=document.getElementById('bql-grid');if(!grid)return;
+  grid.innerHTML='';
+  const items=[...BQ.activeSet].sort((a,b)=>COUNTRIES[a].k.localeCompare(COUNTRIES[b].k));
+  items.forEach(iso=>{
+    const sp=document.createElement('span');
+    const st=BQ.status[iso];
+    sp.className='cl-tag '+(st==='c2'?'done2':st==='cr'?'revealed':'remain');
+    sp.textContent=COUNTRIES[iso].k;sp.title=COUNTRIES[iso].e;
+    grid.appendChild(sp);
+  });
+  document.getElementById('bql-rem-cnt').textContent=BQ.total-(BQ.correct+BQ.wrong);
+  document.getElementById('bq-list-panel').classList.add('on');
 }
+
 const MOBILE=false;
 const COUNTRIES={"af":{"k":"아프가니스탄","e":"Afghanistan","x":["islamic republic of afghanistan","아프간"]},"al":{"k":"알바니아","e":"Albania","x":[]},"dz":{"k":"알제리","e":"Algeria","x":[]},"ad":{"k":"안도라","e":"Andorra","x":["앤도라"]},"ao":{"k":"앙골라","e":"Angola","x":[]},"ag":{"k":"앤티가 바부다","e":"Antigua and Barbuda","x":["antigua","앤티가","앤티가바부다"]},"ar":{"k":"아르헨티나","e":"Argentina","x":["아르헨티나공화국","argentine republic"]},"am":{"k":"아르메니아","e":"Armenia","x":[]},"au":{"k":"오스트레일리아","e":"Australia","x":["호주","commonwealth of australia","australia"]},"at":{"k":"오스트리아","e":"Austria","x":["오지리"]},"az":{"k":"아제르바이잔","e":"Azerbaijan","x":[]},"bs":{"k":"바하마","e":"Bahamas","x":["the bahamas"]},"bh":{"k":"바레인","e":"Bahrain","x":[]},"bd":{"k":"방글라데시","e":"Bangladesh","x":["방글라데시인민공화국"]},"bb":{"k":"바베이도스","e":"Barbados","x":[]},"by":{"k":"벨라루스","e":"Belarus","x":["백러시아"]},"be":{"k":"벨기에","e":"Belgium","x":["벨기에왕국"]},"bz":{"k":"벨리즈","e":"Belize","x":[]},"bj":{"k":"베냉","e":"Benin","x":[]},"bt":{"k":"부탄","e":"Bhutan","x":[]},"bo":{"k":"볼리비아","e":"Bolivia","x":["plurinational state of bolivia"]},"ba":{"k":"보스니아 헤르체고비나","e":"Bosnia and Herzegovina","x":["보스니아헤르체고비나","보스니아","bosnia","herzegovina"]},"bw":{"k":"보츠와나","e":"Botswana","x":[]},"br":{"k":"브라질","e":"Brazil","x":["브라질연방공화국","federative republic of brazil"]},"bn":{"k":"브루나이","e":"Brunei","x":["brunei darussalam"]},"bg":{"k":"불가리아","e":"Bulgaria","x":[]},"bf":{"k":"부르키나파소","e":"Burkina Faso","x":["부르키나"]},"bi":{"k":"부룬디","e":"Burundi","x":[]},"cv":{"k":"카보베르데","e":"Cabo Verde","x":["cape verde","카보베르","베르데"]},"kh":{"k":"캄보디아","e":"Cambodia","x":["크메르"]},"cm":{"k":"카메룬","e":"Cameroon","x":[]},"ca":{"k":"캐나다","e":"Canada","x":[]},"cf":{"k":"중앙아프리카공화국","e":"Central African Republic","x":["중앙아프리카","car"]},"td":{"k":"차드","e":"Chad","x":[]},"cl":{"k":"칠레","e":"Chile","x":[]},"cn":{"k":"중국","e":"China","x":["중화인민공화국","people's republic of china","prc","차이나"]},"co":{"k":"콜롬비아","e":"Colombia","x":["columbia"]},"km":{"k":"코모로","e":"Comoros","x":["코모로스"]},"cd":{"k":"콩고민주공화국","e":"Congo, Dem. Rep.","x":["democratic republic of the congo","drc","콩고민주","민주콩고","콩고DR"]},"cg":{"k":"콩고공화국","e":"Congo, Rep.","x":["republic of the congo","콩고","콩고공화","공화콩고"]},"cr":{"k":"코스타리카","e":"Costa Rica","x":[]},"ci":{"k":"코트디부아르","e":"Côte d'Ivoire","x":["ivory coast","cote d'ivoire","아이보리코스트","이보리코스트"]},"hr":{"k":"크로아티아","e":"Croatia","x":["hrvatska"]},"cu":{"k":"쿠바","e":"Cuba","x":[]},"cy":{"k":"키프로스","e":"Cyprus","x":["사이프러스","cyprus"]},"cz":{"k":"체코","e":"Czechia","x":["czech republic","체코공화국","czechia"]},"dk":{"k":"덴마크","e":"Denmark","x":["danmark"]},"dj":{"k":"지부티","e":"Djibouti","x":[]},"dm":{"k":"도미니카","e":"Dominica","x":[]},"do":{"k":"도미니카공화국","e":"Dominican Republic","x":["도미니카공화"]},"ec":{"k":"에콰도르","e":"Ecuador","x":[]},"eg":{"k":"이집트","e":"Egypt","x":["이집트아랍공화국","egypt"]},"sv":{"k":"엘살바도르","e":"El Salvador","x":["살바도르"]},"gq":{"k":"적도기니","e":"Equatorial Guinea","x":["equatorial guinea"]},"er":{"k":"에리트레아","e":"Eritrea","x":["에리트리아"]},"ee":{"k":"에스토니아","e":"Estonia","x":[]},"sz":{"k":"에스와티니","e":"Eswatini","x":["swaziland","스와질란드","스와질랜드"]},"et":{"k":"에티오피아","e":"Ethiopia","x":["에디오피아"]},"fj":{"k":"피지","e":"Fiji","x":[]},"fi":{"k":"핀란드","e":"Finland","x":["suomi"]},"fr":{"k":"프랑스","e":"France","x":["프랑스공화국","french republic","france"]},"ga":{"k":"가봉","e":"Gabon","x":[]},"gm":{"k":"감비아","e":"Gambia","x":["the gambia"]},"ge":{"k":"조지아","e":"Georgia","x":["그루지야","그루지아"]},"de":{"k":"독일","e":"Germany","x":["독일연방공화국","federal republic of germany","deutschland"]},"gh":{"k":"가나","e":"Ghana","x":[]},"gr":{"k":"그리스","e":"Greece","x":["hellenic republic","헬라스","hellas"]},"gd":{"k":"그레나다","e":"Grenada","x":[]},"gt":{"k":"과테말라","e":"Guatemala","x":[]},"gn":{"k":"기니","e":"Guinea","x":[]},"gw":{"k":"기니비사우","e":"Guinea-Bissau","x":["기니 비사우"]},"gy":{"k":"가이아나","e":"Guyana","x":[]},"ht":{"k":"아이티","e":"Haiti","x":["haiti"]},"hn":{"k":"온두라스","e":"Honduras","x":[]},"hu":{"k":"헝가리","e":"Hungary","x":["magyarország"]},"is":{"k":"아이슬란드","e":"Iceland","x":["iceland","아이슬레드"]},"in":{"k":"인도","e":"India","x":["인도공화국","republic of india","bharat"]},"id":{"k":"인도네시아","e":"Indonesia","x":["인도네시아공화국"]},"ir":{"k":"이란","e":"Iran","x":["이란이슬람공화국","islamic republic of iran","persia","페르시아"]},"iq":{"k":"이라크","e":"Iraq","x":[]},"ie":{"k":"아일랜드","e":"Ireland","x":["eire","에이레"]},"il":{"k":"이스라엘","e":"Israel","x":[]},"it":{"k":"이탈리아","e":"Italy","x":["이탈리아공화국","italian republic","italia"]},"jm":{"k":"자메이카","e":"Jamaica","x":[]},"jp":{"k":"일본","e":"Japan","x":["일본국","nippon","nihon"]},"jo":{"k":"요르단","e":"Jordan","x":[]},"kz":{"k":"카자흐스탄","e":"Kazakhstan","x":["카자크스탄"]},"ke":{"k":"케냐","e":"Kenya","x":[]},"ki":{"k":"키리바시","e":"Kiribati","x":["키리바티"]},"kp":{"k":"조선민주주의인민공화국","e":"North Korea","x":["북한","dprk","북조선"]},"kr":{"k":"대한민국","e":"South Korea","x":["한국","republic of korea","남한","남조선"]},"kw":{"k":"쿠웨이트","e":"Kuwait","x":[]},"kg":{"k":"키르기스스탄","e":"Kyrgyzstan","x":["키르기즈스탄","키르기스"]},"la":{"k":"라오스","e":"Laos","x":["라오인민민주공화국"]},"lv":{"k":"라트비아","e":"Latvia","x":[]},"lb":{"k":"레바논","e":"Lebanon","x":[]},"ls":{"k":"레소토","e":"Lesotho","x":[]},"lr":{"k":"라이베리아","e":"Liberia","x":[]},"ly":{"k":"리비아","e":"Libya","x":[]},"li":{"k":"리히텐슈타인","e":"Liechtenstein","x":["리히텐스타인"]},"lt":{"k":"리투아니아","e":"Lithuania","x":[]},"lu":{"k":"룩셈부르크","e":"Luxembourg","x":["룩셈버그"]},"mg":{"k":"마다가스카르","e":"Madagascar","x":[]},"mw":{"k":"말라위","e":"Malawi","x":[]},"my":{"k":"말레이시아","e":"Malaysia","x":[]},"mv":{"k":"몰디브","e":"Maldives","x":["maldive"]},"ml":{"k":"말리","e":"Mali","x":[]},"mt":{"k":"몰타","e":"Malta","x":[]},"mh":{"k":"마셜제도","e":"Marshall Islands","x":["마샬제도","마셜","마샬"]},"mr":{"k":"모리타니","e":"Mauritania","x":["모리타니아"]},"mu":{"k":"모리셔스","e":"Mauritius","x":[]},"mx":{"k":"멕시코","e":"Mexico","x":["멕시코합중국","mexico"]},"fm":{"k":"미크로네시아","e":"Micronesia","x":["미크로네시아연방"]},"md":{"k":"몰도바","e":"Moldova","x":["몰도바공화국"]},"mc":{"k":"모나코","e":"Monaco","x":[]},"mn":{"k":"몽골","e":"Mongolia","x":[]},"me":{"k":"몬테네그로","e":"Montenegro","x":[]},"ma":{"k":"모로코","e":"Morocco","x":[]},"mz":{"k":"모잠비크","e":"Mozambique","x":[]},"mm":{"k":"미얀마","e":"Myanmar","x":["burma","버마"]},"na":{"k":"나미비아","e":"Namibia","x":[]},"nr":{"k":"나우루","e":"Nauru","x":[]},"np":{"k":"네팔","e":"Nepal","x":[]},"nl":{"k":"네덜란드","e":"Netherlands","x":["holland","holland","화란"]},"nz":{"k":"뉴질랜드","e":"New Zealand","x":["뉴질렌드"]},"ni":{"k":"니카라과","e":"Nicaragua","x":[]},"ne":{"k":"니제르","e":"Niger","x":[]},"ng":{"k":"나이지리아","e":"Nigeria","x":["나이지리아연방공화국"]},"mk":{"k":"북마케도니아","e":"North Macedonia","x":["macedonia","마케도니아","북마케도니아공화국"]},"no":{"k":"노르웨이","e":"Norway","x":["norge"]},"om":{"k":"오만","e":"Oman","x":[]},"pk":{"k":"파키스탄","e":"Pakistan","x":["파키스탄이슬람공화국"]},"pw":{"k":"팔라우","e":"Palau","x":[]},"pa":{"k":"파나마","e":"Panama","x":[]},"pg":{"k":"파푸아뉴기니","e":"Papua New Guinea","x":["파푸아","PNG"]},"py":{"k":"파라과이","e":"Paraguay","x":[]},"pe":{"k":"페루","e":"Peru","x":[]},"ph":{"k":"필리핀","e":"Philippines","x":["필리핀공화국","philippines"]},"pl":{"k":"폴란드","e":"Poland","x":["polska"]},"pt":{"k":"포르투갈","e":"Portugal","x":[]},"qa":{"k":"카타르","e":"Qatar","x":[]},"ro":{"k":"루마니아","e":"Romania","x":["roumania"]},"ru":{"k":"러시아","e":"Russia","x":["러시아연방","russian federation","러시아연방공화국"]},"rw":{"k":"르완다","e":"Rwanda","x":[]},"kn":{"k":"세인트키츠 네비스","e":"Saint Kitts and Nevis","x":["saint kitts","세인트키츠네비스","세인트 키츠"]},"lc":{"k":"세인트루시아","e":"Saint Lucia","x":["st lucia","st. lucia"]},"vc":{"k":"세인트빈센트 그레나딘","e":"Saint Vincent and the Grenadines","x":["saint vincent","세인트빈센트그레나딘","세인트 빈센트"]},"ws":{"k":"사모아","e":"Samoa","x":["western samoa"]},"sm":{"k":"산마리노","e":"San Marino","x":[]},"st":{"k":"상투메 프린시페","e":"Sao Tome and Principe","x":["상투메프린시페","são tomé"]},"sa":{"k":"사우디아라비아","e":"Saudi Arabia","x":["사우디아라비아왕국","사우디"]},"sn":{"k":"세네갈","e":"Senegal","x":[]},"rs":{"k":"세르비아","e":"Serbia","x":[]},"sc":{"k":"세이셸","e":"Seychelles","x":[]},"sl":{"k":"시에라리온","e":"Sierra Leone","x":[]},"sg":{"k":"싱가포르","e":"Singapore","x":[]},"sk":{"k":"슬로바키아","e":"Slovakia","x":[]},"si":{"k":"슬로베니아","e":"Slovenia","x":[]},"sb":{"k":"솔로몬제도","e":"Solomon Islands","x":["솔로몬","solomon"]},"so":{"k":"소말리아","e":"Somalia","x":[]},"za":{"k":"남아프리카공화국","e":"South Africa","x":["남아프리카","남아공"]},"ss":{"k":"남수단","e":"South Sudan","x":[]},"es":{"k":"스페인","e":"Spain","x":["스페인왕국","에스파냐","españa","espana","spain"]},"lk":{"k":"스리랑카","e":"Sri Lanka","x":["실론","ceylon"]},"sd":{"k":"수단","e":"Sudan","x":[]},"sr":{"k":"수리남","e":"Suriname","x":["수리남공화국"]},"se":{"k":"스웨덴","e":"Sweden","x":["sverige"]},"ch":{"k":"스위스","e":"Switzerland","x":["스위스연방","헬베티아","helvetia","schweiz"]},"sy":{"k":"시리아","e":"Syria","x":["시리아아랍공화국"]},"tw":{"k":"대만","e":"Taiwan","x":["중화민국","republic of china","roc","타이완"]},"tj":{"k":"타지키스탄","e":"Tajikistan","x":["타지키스탄공화국"]},"tz":{"k":"탄자니아","e":"Tanzania","x":[]},"th":{"k":"태국","e":"Thailand","x":["타이","siam","샴"]},"tl":{"k":"동티모르","e":"Timor-Leste","x":["east timor","티모르","timor"]},"tg":{"k":"토고","e":"Togo","x":[]},"to":{"k":"통가","e":"Tonga","x":[]},"tt":{"k":"트리니다드 토바고","e":"Trinidad and Tobago","x":["trinidad","트리니다드토바고","트리니다드"]},"tn":{"k":"튀니지","e":"Tunisia","x":["튀니스"]},"tr":{"k":"튀르키예","e":"Turkey","x":["터키","turkiye","türkiye"]},"tm":{"k":"투르크메니스탄","e":"Turkmenistan","x":[]},"tv":{"k":"투발루","e":"Tuvalu","x":[]},"ug":{"k":"우간다","e":"Uganda","x":[]},"ua":{"k":"우크라이나","e":"Ukraine","x":[]},"ae":{"k":"아랍에미리트","e":"United Arab Emirates","x":["uae","아랍에미리트연합","에미리트"]},"gb":{"k":"영국","e":"United Kingdom","x":["uk","britain","great britain","잉글랜드","england"]},"us":{"k":"미국","e":"United States","x":["usa","america","united states of america","아메리카합중국"]},"uy":{"k":"우루과이","e":"Uruguay","x":[]},"uz":{"k":"우즈베키스탄","e":"Uzbekistan","x":[]},"vu":{"k":"바누아투","e":"Vanuatu","x":[]},"ve":{"k":"베네수엘라","e":"Venezuela","x":[]},"vn":{"k":"베트남","e":"Vietnam","x":["베트남사회주의공화국","viet nam"]},"ye":{"k":"예멘","e":"Yemen","x":[]},"zm":{"k":"잠비아","e":"Zambia","x":[]},"zw":{"k":"짐바브웨","e":"Zimbabwe","x":[]},"ps":{"k":"팔레스타인","e":"Palestine","x":["state of palestine","팔레스타인자치구"]},"va":{"k":"바티칸","e":"Vatican City","x":["holy see","바티칸시국","vatican"]},"xk":{"k":"코소보","e":"Kosovo","x":["코소바"]},"eh":{"k":"서사하라","e":"Western Sahara","x":["sahrawi arab democratic republic","서부사하라"]}};
 const CIRCLE_POS={"ad":{"cx":1317.9,"cy":330.8},"ag":{"cx":840.7,"cy":543.9},"bb":{"cx":851.8,"cy":585.0},"bh":{"cx":1675.6,"cy":470.5},"bn":{"cx":2175.7,"cy":660.0},"bs":{"cx":732.9,"cy":495.2},"cv":{"cx":1118.7,"cy":559.5},"dm":{"cx":842.7,"cy":564.2},"fj":{"cx":2640.1,"cy":840.0},"fm":{"cx":2508.0,"cy":635.0},"gd":{"cx":830.5,"cy":594.9},"gm":{"cx":1184.4,"cy":582.5},"jm":{"cx":720.4,"cy":541.5},"ki":{"cx":2627.5,"cy":682.2},"km":{"cx":1633.8,"cy":801.8},"kn":{"cx":820.2,"cy":555.7},"kw":{"cx":1653.3,"cy":444.1},"lb":{"cx":1563.8,"cy":405.0},"lc":{"cx":834.1,"cy":576.6},"li":{"cx":1373.2,"cy":291.9},"mc":{"cx":1357.2,"cy":320.3},"me":{"cx":1440.7,"cy":329.2},"mh":{"cx":2604.1,"cy":639.7},"mu":{"cx":1730.8,"cy":872.4},"mv":{"cx":1844.2,"cy":669.4},"nr":{"cx":2562.7,"cy":680.5},"ps":{"cx":1564.3,"cy":422.4},"pw":{"cx":2322.4,"cy":630.1},"qa":{"cx":1682.5,"cy":481.0},"sc":{"cx":1725.2,"cy":734.0},"sg":{"cx":2095.1,"cy":687.1},"sm":{"cx":1394.4,"cy":319.7},"st":{"cx":1353.0,"cy":690.6},"sz":{"cx":1536.8,"cy":928.4},"tl":{"cx":2260.8,"cy":775.7},"to":{"cx":2687.3,"cy":881.4},"tt":{"cx":834.5,"cy":607.2},"tv":{"cx":2658.6,"cy":769.5},"va":{"cx":1394.5,"cy":337.1},"vc":{"cx":840.2,"cy":587.7},"vu":{"cx":2568.4,"cy":840.7},"ws":{"cx":2724.5,"cy":816.0}};
@@ -5006,6 +5221,44 @@ const ISLE=new Set(['ag','au','bs','bb','cv','cu','cy','dm','fj','fm','gd','ht',
 const SMALL=new Set(['ad','ag','bb','dm','fm','gd','ki','kn','lc','li','mc','mh','nr','pw','sc','sm','st','to','tv','va','vc','vu','ws']);
 
 const CONT_NAME={af:'아프리카',as:'아시아',eu:'유럽',na:'북아메리카',sa:'남아메리카',oc:'오세아니아'};
+
+/* ── 육지 접경(인접국) 데이터 — 접경국 맞추기 퀴즈용 ── */
+const BORDERS={
+  dz:['ma','eh','mr','ml','ne','ly','tn'],ao:['cd','cg','zm','na'],bj:['tg','bf','ne','ng'],bw:['na','zm','zw','za'],
+  bf:['ml','ne','bj','tg','gh','ci'],bi:['cd','rw','tz'],cm:['ng','td','cf','gq','ga','cg'],cf:['td','sd','ss','cd','cg','cm'],
+  td:['ly','sd','cf','cm','ng','ne'],cd:['cg','cf','ss','ug','rw','bi','tz','zm','ao'],cg:['ga','cm','cf','cd','ao'],ci:['lr','gn','ml','bf','gh'],
+  dj:['er','et','so'],eg:['ly','sd','il','ps'],gq:['cm','ga'],er:['sd','et','dj'],et:['er','dj','so','ke','ss','sd'],ga:['gq','cm','cg'],
+  gm:['sn'],gh:['ci','bf','tg'],gn:['gw','sn','ml','ci','lr','sl'],gw:['sn','gn'],ke:['et','so','ss','ug','tz'],ls:['za'],
+  lr:['sl','gn','ci'],ly:['tn','dz','ne','td','sd','eg'],mw:['tz','mz','zm'],ml:['dz','ne','bf','ci','gn','sn','mr'],ma:['dz','eh'],
+  mr:['eh','dz','ml','sn'],mz:['tz','mw','zm','zw','za','sz'],na:['ao','zm','bw','za'],ne:['dz','ly','td','ng','bj','bf','ml'],
+  ng:['bj','ne','td','cm'],rw:['cd','ug','tz','bi'],sn:['mr','ml','gn','gw','gm'],sl:['gn','lr'],so:['dj','et','ke'],
+  za:['na','bw','zw','mz','sz','ls'],ss:['sd','et','ke','ug','cd','cf'],sd:['eg','ly','td','cf','ss','et','er'],sz:['za','mz'],
+  tz:['ke','ug','rw','bi','cd','zm','mw','mz'],tg:['gh','bf','bj'],tn:['dz','ly'],ug:['ss','ke','tz','rw','cd'],
+  zm:['cd','tz','mw','mz','zw','bw','na','ao'],zw:['za','bw','zm','mz'],eh:['ma','dz','mr'],
+  al:['me','xk','mk','gr'],ad:['fr','es'],at:['de','cz','sk','hu','si','it','ch','li'],by:['ru','ua','pl','lt','lv'],
+  be:['nl','de','lu','fr'],ba:['hr','rs','me'],bg:['ro','rs','mk','gr','tr'],hr:['si','hu','rs','ba','me'],cz:['de','pl','sk','at'],
+  dk:['de'],ee:['ru','lv'],fi:['se','no','ru'],fr:['be','lu','de','ch','it','es','ad','mc'],de:['dk','pl','cz','at','ch','fr','lu','be','nl'],
+  gr:['al','mk','bg','tr'],hu:['at','sk','ua','ro','rs','hr','si'],ie:['gb'],it:['fr','ch','at','si','sm','va'],xk:['me','rs','mk','al'],
+  lv:['ee','ru','by','lt'],li:['ch','at'],lt:['lv','by','pl','ru'],lu:['be','de','fr'],mc:['fr'],md:['ro','ua'],me:['hr','ba','rs','xk','al'],
+  nl:['de','be'],mk:['xk','rs','bg','gr','al'],no:['se','fi','ru'],pl:['de','cz','sk','ua','by','lt','ru'],pt:['es'],
+  ro:['ua','md','bg','rs','hu'],ru:['no','fi','ee','lv','lt','pl','by','ua','ge','az','kz','cn','mn','kp'],sm:['it'],
+  rs:['hu','ro','bg','mk','xk','me','ba','hr'],sk:['cz','pl','ua','hu','at'],si:['it','at','hu','hr'],es:['pt','fr','ad','ma'],
+  se:['no','fi'],ch:['de','fr','it','at','li'],ua:['ru','by','pl','sk','hu','ro','md'],gb:['ie'],va:['it'],
+  af:['ir','pk','tm','uz','tj','cn'],am:['ge','az','ir','tr'],az:['ru','ge','am','ir','tr'],bd:['in','mm'],bt:['cn','in'],bn:['my'],
+  kh:['th','la','vn'],cn:['mn','ru','kp','vn','la','mm','in','bt','np','pk','af','tj','kg','kz'],ge:['ru','tr','am','az'],
+  in:['pk','cn','np','bt','bd','mm'],id:['my','pg','tl'],ir:['iq','tr','am','az','tm','af','pk'],iq:['tr','ir','kw','sa','jo','sy'],
+  il:['lb','sy','jo','eg','ps'],jo:['sy','iq','sa','il','ps'],kz:['ru','cn','kg','uz','tm'],kp:['cn','ru','kr'],kr:['kp'],
+  kw:['iq','sa'],kg:['kz','uz','tj','cn'],la:['cn','vn','kh','th','mm'],lb:['sy','il'],my:['th','id','bn'],mn:['ru','cn'],
+  mm:['bd','in','cn','la','th'],np:['cn','in'],om:['ae','sa','ye'],pk:['ir','af','cn','in'],qa:['sa'],
+  sa:['jo','iq','kw','qa','ae','om','ye'],sy:['tr','iq','jo','il','lb'],tj:['af','uz','kg','cn'],th:['mm','la','kh','my'],
+  tl:['id'],tr:['gr','bg','ge','am','az','ir','iq','sy'],tm:['kz','uz','af','ir'],ae:['sa','om'],uz:['kz','kg','tj','af','tm'],
+  vn:['cn','la','kh'],ye:['sa','om'],ps:['il','eg','jo'],
+  bz:['mx','gt'],ca:['us'],cr:['ni','pa'],sv:['gt','hn'],gt:['mx','bz','sv','hn'],hn:['gt','sv','ni'],mx:['us','gt','bz'],
+  ni:['hn','cr'],pa:['cr','co'],us:['ca','mx'],do:['ht'],ht:['do'],
+  ar:['cl','bo','py','br','uy'],bo:['br','py','ar','cl','pe'],br:['uy','ar','py','bo','pe','co','ve','gy','sr'],cl:['pe','bo','ar'],
+  co:['pa','ve','br','pe','ec'],ec:['co','pe'],gy:['ve','br','sr'],py:['bo','br','ar'],pe:['ec','co','br','bo','cl'],
+  sr:['gy','br'],uy:['br','ar'],ve:['co','br','gy'],pg:['id']
+};
 
 const S={cur:null,correct:0,revealed:0,wrong:{},status:{},total:0,activeSet:null,saveKey:'wq_all'};
 function done(i){return!!S.status[i];}
@@ -5125,6 +5378,7 @@ function stats(){
   document.getElementById('ui-rev').textContent=S.revealed;
   document.getElementById('ui-pf').style.width=(d/S.total*100)+'%';
   const rc=document.getElementById('mob-rem-cnt');if(rc)rc.textContent=rem+'개 남음';
+  try{saveGame();}catch(e){} /* 자동 저장 */
   if(rem<=0)setTimeout(endScreen,600);
 }
 
@@ -5278,9 +5532,9 @@ function addToOopsNote(){
   const merged=[...new Set([...existing,...wrongISOs])];
   localStorage.setItem(OOPS_KEY,JSON.stringify(merged));
   const btn=document.getElementById('end-add-wrong');
-  if(btn){btn.textContent='✅ 추가됨 (총 '+merged.length+'개)';btn.disabled=true;btn.style.opacity='.6';}
+  if(btn){btn.textContent='추가됨 (총 '+merged.length+'개)';btn.disabled=true;btn.style.opacity='.6';}
   const oq=document.getElementById('end-oops-quiz');
-  if(oq){oq.style.display='block';oq.textContent='📘 오답 노트 퀴즈 ('+merged.length+'개)';}
+  if(oq){oq.style.display='block';oq.textContent='오답 노트 퀴즈 ('+merged.length+'개)';}
 }
 function startOopsQuiz(){
   const saved=JSON.parse(localStorage.getItem(OOPS_KEY)||'[]').filter(i=>COUNTRIES[i]);
@@ -5314,13 +5568,13 @@ function endScreen(){
   const hasWrong=revISOs.length>0;
   document.getElementById('end-retry-wrong').style.display=hasWrong?'block':'none';
   document.getElementById('end-add-wrong').style.display=hasWrong?'block':'none';
-  document.getElementById('end-add-wrong').textContent='📝 오답 추가하기';
+  document.getElementById('end-add-wrong').textContent='오답 노트에 추가';
   document.getElementById('end-add-wrong').disabled=false;
   document.getElementById('end-add-wrong').style.opacity='1';
   const saved=JSON.parse(localStorage.getItem(OOPS_KEY)||'[]').filter(i=>COUNTRIES[i]);
   const oq=document.getElementById('end-oops-quiz');
   oq.style.display=saved.length?'block':'none';
-  if(saved.length)oq.textContent='📘 오답 노트 퀴즈 ('+saved.length+'개)';
+  if(saved.length)oq.textContent='오답 노트 퀴즈 ('+saved.length+'개)';
   document.getElementById('ui-end').style.display='flex';
 }
 
@@ -5373,7 +5627,7 @@ function renderCLGrid(){
       });
       grid.appendChild(span);
     });
-    if(!remain.length){grid.innerHTML='<span style="color:#4a9060;font-size:.8rem">🎉 모든 나라를 맞췄습니다!</span>';}
+    if(!remain.length){grid.innerHTML='<span style="color:#4a9060;font-size:.8rem">모든 나라를 맞췄습니다</span>';}
   }
 }
 
@@ -5441,6 +5695,7 @@ function clearRQInputs(){
   document.getElementById('rq-reveal').style.display='none';
 }
 function showRQCard(){
+  try{saveRQ();}catch(e){} /* 자동 저장 */
   if(RQ.idx>=RQ.list.length){endReligionQuiz();return;}
   const iso=RQ.list[RQ.idx];RQ.cur=iso;RQ.submitted=false;RQ.attempts=0;
   const d=RELIGION_DATA[iso],ci=COUNTRIES[iso];
@@ -6017,23 +6272,21 @@ function bindKoreaEvents(){
 
 /* ── Map Init ── */
 function initMap(){
+  injectIcons();
+  setupLanding();
   const mw=document.getElementById('ui-map');
   const svg=document.getElementById('world-svg');
   assignOwnership();
   _s=Math.min(mw.clientWidth/SW,mw.clientHeight/SH);
   _x=(mw.clientWidth-SW*_s)/2;_y=(mw.clientHeight-SH*_s)/2;
   applyT();
-  /* saveGame/loadGame now handled by landing overlay; only load if overlay is hidden */
-  if(document.getElementById('landing-overlay').style.display==='none'){
-    if(loadGame()){for(const[iso,cls]of Object.entries(S.status))setColor(iso,cls);}
-  }
-  stats();
   let dragged=false;
   svg.addEventListener('click',function(e){
     if(dragged)return;
     const cel=findCountryEl(e.target);if(!cel)return;
     const iso=iso4el(cel);if(!iso)return;
     if(!inActive(iso))return;
+    if(mapMode==='border'){bqHandleClick(iso);return;}
     if(S.status[iso]==='cr'){showAnswer(iso,e.clientX,e.clientY-10);return;}
     if(!done(iso)){openModal(iso);centerCountry(iso);}
   });
@@ -6043,7 +6296,7 @@ function initMap(){
     if(!cel){tip.style.display='none';return;}
     const iso=iso4el(cel);if(!iso){tip.style.display='none';return;}
     const s=S.status[iso];
-    tip.textContent=s==='cr'?'📖 클릭→정답':s?'✓ '+COUNTRIES[iso].k:'? 클릭하여 맞춰보기';
+    tip.textContent=s==='cr'?'클릭하면 정답':s?COUNTRIES[iso].k:'클릭하여 맞추기';
     tip.style.display='block';
   });
   svg.addEventListener('mousemove',e=>{tip.style.left=(e.clientX+12)+'px';tip.style.top=(e.clientY-24)+'px';});
@@ -6077,7 +6330,7 @@ function initMap(){
     const rqOn=document.getElementById('rq-screen').classList.contains('on');
     const krOn=document.getElementById('kr-screen').classList.contains('on');
     if(e.key==='Enter'&&krOn&&!krModalOpen){krRandom();return;}
-    if(e.key==='Enter'&&!modalOpen&&!rqOn&&!krOn)goRandom();
+    if(e.key==='Enter'&&!modalOpen&&!rqOn&&!krOn&&mapMode==='name')goRandom();
     if(e.key==='Enter'&&rqOn&&RQ.submitted){e.preventDefault();RQ.idx++;showRQCard();}
   });
   document.getElementById('rq-bsub').addEventListener('click',checkRQ);
@@ -6155,7 +6408,7 @@ function initMap(){
       }else if(_swipeMoved&&_tc&&!_tc.pinch&&!modalOpen){
         const dy=(_swipeStartY-(e.changedTouches[0]?e.changedTouches[0].clientY:_swipeStartY));
         const dx=Math.abs(e.changedTouches[0]?e.changedTouches[0].clientX-_swipeStartX:0);
-        if(dy>60&&dx<80)goRandom(); /* swipe up → next */
+        if(dy>60&&dx<80&&mapMode==='name')goRandom(); /* swipe up → next */
       }
       _tc=null;
     }
