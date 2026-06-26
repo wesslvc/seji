@@ -287,6 +287,14 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 .ld-select{width:100%;padding:.5rem .6rem;background:var(--bg);border:1px solid var(--bd);border-radius:5px;color:var(--tx);font-family:'Pretendard','Noto Sans KR',sans-serif;font-size:.82rem;outline:none;margin-bottom:.5rem;cursor:pointer}
 .ld-chk{display:flex;align-items:center;gap:.5rem;padding:.32rem .1rem;font-size:.78rem;color:var(--tx2);cursor:pointer;user-select:none}
 .ld-chk input{width:16px;height:16px}
+.ld-cont-grid{display:grid;grid-template-columns:1fr 1fr;gap:.3rem .5rem;margin-bottom:.35rem}
+.ld-cont-chk{display:flex;align-items:center;gap:.45rem;padding:.32rem .45rem;font-size:.8rem;color:var(--tx2);cursor:pointer;user-select:none;border:1px solid var(--bd);border-radius:5px;transition:.18s var(--ease)}
+.ld-cont-chk:hover{border-color:var(--tx2);color:var(--tx)}
+.ld-cont-chk input{appearance:none;-webkit-appearance:none;width:16px;height:16px;border:1.5px solid var(--bd);border-radius:4px;background:var(--bg);cursor:pointer;position:relative;flex-shrink:0;transition:.2s var(--ease)}
+.ld-cont-chk input:checked{background:var(--tx);border-color:var(--tx)}
+.ld-cont-chk input:checked::after{content:'';position:absolute;left:4.5px;top:1px;width:5px;height:9px;border:solid #000;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.ld-cont-chk:has(input:checked){border-color:var(--tx);color:var(--tx)}
+.ld-cont-hint{font-size:.68rem;color:var(--tx2);opacity:.65;margin-bottom:.5rem;padding-left:.1rem}
 .ld-chk input:checked::after{left:4.5px;top:1px;width:4px;height:8px}
 .ld-start{width:100%;display:flex;align-items:center;justify-content:center;gap:.5rem;padding:.8rem;margin-top:.6rem;background:var(--tx);color:#000;border:none;border-radius:6px;font-family:'Pretendard','Noto Sans KR',sans-serif;font-size:.9rem;font-weight:700;letter-spacing:.04em;cursor:pointer}
 .ld-start svg{width:1.1em;height:1.1em}
@@ -413,16 +421,16 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
         <label class="ld-sub-item"><input type="checkbox" class="ld-act" value="border"><span data-ic="border"></span>접경국 맞추기</label>
         <label class="ld-sub-item"><input type="checkbox" class="ld-act" value="religion" id="ld-act-religion"><span data-ic="book"></span>국가별 종교 퀴즈</label>
         <div class="ld-range">
-          <div class="ld-range-h"><span data-ic="range"></span>출제 범위</div>
-          <select id="ld-cont" class="ld-select">
-            <option value="all">전체 대륙</option>
-            <option value="as">아시아</option>
-            <option value="eu">유럽</option>
-            <option value="af">아프리카</option>
-            <option value="na">북아메리카</option>
-            <option value="sa">남아메리카</option>
-            <option value="oc">오세아니아</option>
-          </select>
+          <div class="ld-range-h"><span data-ic="range"></span>출제 범위 <span class="ld-range-note">· 중복 선택 가능</span></div>
+          <div class="ld-cont-grid" id="ld-cont-grid">
+            <label class="ld-cont-chk"><input type="checkbox" class="ld-cont-cb" value="as">아시아</label>
+            <label class="ld-cont-chk"><input type="checkbox" class="ld-cont-cb" value="eu">유럽</label>
+            <label class="ld-cont-chk"><input type="checkbox" class="ld-cont-cb" value="af">아프리카</label>
+            <label class="ld-cont-chk"><input type="checkbox" class="ld-cont-cb" value="na">북아메리카</label>
+            <label class="ld-cont-chk"><input type="checkbox" class="ld-cont-cb" value="sa">남아메리카</label>
+            <label class="ld-cont-chk"><input type="checkbox" class="ld-cont-cb" value="oc">오세아니아</label>
+          </div>
+          <div class="ld-cont-hint" id="ld-cont-hint">선택 안 하면 전체 대륙</div>
           <label class="ld-chk"><input type="checkbox" id="ld-big">인구 40만+ 국가만 (소국 제외)</label>
           <label class="ld-chk"><input type="checkbox" id="ld-noisle">섬나라 제외</label>
         </div>
@@ -5004,7 +5012,8 @@ function startFromLanding(){
   const order=['name','border','religion'];
   const acts=[...document.querySelectorAll('.ld-act')].filter(c=>c.checked).map(c=>c.value).sort((a,b)=>order.indexOf(a)-order.indexOf(b));
   if(!acts.length)return;
-  let key=document.getElementById('ld-cont').value;
+  const conts=[...document.querySelectorAll('.ld-cont-cb')].filter(c=>c.checked).map(c=>c.value);
+  let key=conts.length?conts.join('+'):'all';
   if(document.getElementById('ld-big').checked)key+='_big';
   if(document.getElementById('ld-noisle').checked)key+='_noisle';
   startSession('world',acts,key,key);
@@ -5405,7 +5414,11 @@ function initActiveSet(key){
   let base=Object.keys(COUNTRIES);
   const parts=key.split('_');
   const contKey=parts[0];
-  if(contKey!=='all'&&CONT[contKey])base=CONT[contKey].filter(i=>COUNTRIES[i]);
+  if(contKey!=='all'){
+    const set=new Set();
+    contKey.split('+').forEach(c=>{(CONT[c]||[]).forEach(i=>set.add(i));});
+    base=[...set].filter(i=>COUNTRIES[i]);
+  }
   if(parts.includes('big'))base=base.filter(i=>!SMALL.has(i));
   if(parts.includes('noisle'))base=base.filter(i=>!ISLE.has(i));
   S.activeSet=new Set(base);
@@ -5867,8 +5880,9 @@ function buildRQList(filterKey){
   const parts=key.split('_');
   const contKey=parts[0];
   let isos=Object.keys(RELIGION_DATA);
-  if(contKey!=='all'&&CONT[contKey]){
-    const contSet=new Set(CONT[contKey]);
+  if(contKey!=='all'){
+    const contSet=new Set();
+    contKey.split('+').forEach(c=>{(CONT[c]||[]).forEach(i=>contSet.add(i));});
     isos=isos.filter(iso=>contSet.has(iso));
   }
   if(parts.includes('big'))isos=isos.filter(iso=>!SMALL.has(iso));
