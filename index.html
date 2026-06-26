@@ -129,9 +129,9 @@ body.mob-mode.in-session .ui-ov{padding-top:calc(42px + .8rem)}
 body.mob-mode.in-session #kr-ov{padding-top:calc(42px + .8rem)}
 body.mob-mode .btn{padding:.85rem;font-size:.95rem}
 body.mob-mode .ui-ov .modal{max-width:96vw}
-/* 접경국 모드: 작은 나라(원형 표시) 클릭 가능하게 */
-body.border-mode #world-svg g.circlexx{pointer-events:all}
-body.border-mode #world-svg g.circlexx circle{opacity:.55!important;pointer-events:all!important;cursor:pointer!important}
+/* 접경국 모드: 작은 나라(원형 표시) 보이게 + 클릭 가능하게 */
+body.border-mode #world-svg circle.circlexx{opacity:.85!important;pointer-events:all!important;cursor:pointer!important;fill:#3d4451;stroke:#0d1117;stroke-width:.4}
+body.border-mode #world-svg circle.circlexx:hover{fill:#556070!important}
 
 /* ═══ Korea Quiz ═══ */
 #kr-screen{position:fixed;inset:0;background:var(--bg);z-index:700;display:none;flex-direction:column}
@@ -5356,8 +5356,14 @@ function isClickable(el){
 /* 모든 SVG 요소에 소유 국가(data-iso) 부여 — 분쟁지역 공유 경로는 마지막 클래스가 소유자 */
 function assignOwnership(){
   document.querySelectorAll('#world-svg [class]').forEach(el=>{
-    /* 분쟁지역 마커 원(circle)은 항상 숨김 유지 */
-    if(el.tagName.toLowerCase()==='circle')return;
+    if(el.tagName.toLowerCase()==='circle'){
+      /* 소국 마커 원(circlexx)은 접경국 모드에서 클릭 가능하도록 data-iso 부여
+         (그 외 마커 원은 항상 숨김 유지) */
+      if(el.classList.contains('circlexx')){
+        for(const cc of el.classList)if(COUNTRIES[cc]){el.dataset.iso=cc;break;}
+      }
+      return;
+    }
     let owner=null;
     /* 그린란드는 덴마크 영토로 취급 */
     if(el.classList.contains('gl'))owner='dk';
