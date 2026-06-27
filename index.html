@@ -454,7 +454,7 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
     </div>
     <button id="ld-start" class="ld-start"><span>시작하기</span><span data-ic="arrow"></span></button>
     <div class="ld-warn" id="ld-warn"></div>
-    <div id="ld-guest-note">⚠ 로그인하지 않으면 기록·오답·랭킹이 저장되지 않아요. <b>우측 상단에서 로그인</b></div>
+    <div id="ld-guest-note">⚠ 로그인하지 않으면 기록·오답·랭킹이 저장되지 않아요.<br><b>우측 상단에서 로그인하세요</b></div>
   </div>
 </div>
 <div id="act-tabs">
@@ -6903,10 +6903,13 @@ function injectStyle() {
   .acct-stat{background:#181818;border:1px solid #242424;border-radius:6px;padding:.5rem;text-align:center}
   .acct-stat .v{font-size:1.2rem;font-weight:700;color:#eee;font-family:'Barlow Condensed',sans-serif}
   .acct-stat .l{font-size:.6rem;color:#777;margin-top:2px}
-  .rank-tabs{display:flex;gap:.35rem;margin-bottom:.6rem;flex-wrap:wrap}
-  .rank-tab{flex:1 1 0;min-width:0;padding:.4rem .2rem;border-radius:6px;border:1px solid #2a2a2a;background:transparent;color:#888;
-    font-size:.76rem;line-height:1;text-align:center;cursor:pointer;font-family:'Pretendard','Noto Sans KR',sans-serif;white-space:nowrap}
+  .rank-tabs{display:flex;gap:.3rem;margin-bottom:.6rem;flex-wrap:wrap}
+  .rank-tab{flex:1 1 auto;min-width:0;padding:.4rem .35rem;border-radius:6px;border:1px solid #2a2a2a;background:transparent;color:#888;
+    font-size:.74rem;line-height:1;text-align:center;cursor:pointer;font-family:'Pretendard','Noto Sans KR',sans-serif;white-space:nowrap}
   .rank-tab.on{background:#eee;color:#000;border-color:#eee}
+  /* 대륙 탭은 7개라 3열 그리드로 줄바꿈 (글씨 안 짤리게) */
+  #acct-rank-conts{display:grid;grid-template-columns:repeat(3,1fr);gap:.3rem}
+  #acct-rank-conts .rank-tab{padding:.42rem .2rem}
   .rank-list{display:flex;flex-direction:column;gap:.3rem;max-height:50vh;overflow-y:auto;margin-top:.2rem}
   .rank-item{display:flex;align-items:center;gap:.6rem;padding:.45rem .55rem;border-radius:6px;background:#161616}
   .rank-item.me{background:#1d2740;border:1px solid #2f4a7a}
