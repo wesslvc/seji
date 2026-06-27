@@ -6817,15 +6817,34 @@ function _resumeStart(type,key){
   else if(type==='korea')startSession('korea',['korea'],null);
 }
 function resumeSave(type,key){_resumeStart(type,key);}
+/* 저장본에서 종교 오답 ISO 목록을 미리 읽음 (startSession이 새로 만들며 비우기 전에) */
+function _religionWrongIsos(key){
+  let d;try{d=JSON.parse(localStorage.getItem(key));}catch(e){d=null;}
+  if(!d)return [];
+  let isos=Object.keys(d.wrongCounts||{});
+  if(!isos.length)isos=(d.wrongItems||[]).map(w=>w.iso);
+  return isos.filter(i=>RELIGION_DATA[i]);
+}
+function rqStartRetryList(isos){
+  isos=(isos||[]).filter(i=>RELIGION_DATA[i]);
+  if(!isos.length){return;}
+  RQ.saveKey='wq_rq__retry';
+  RQ.list=isos.sort(()=>Math.random()-.5);
+  RQ.idx=0;RQ.correct=0;RQ.errors=0;RQ.skipped=0;RQ.wrongItems=[];RQ.wrongCounts={};RQ.submitted=false;RQ.attempts=0;RQ.recorded=false;RQ.isRetry=true;
+  RQ.earnedPoints=0;RQ.maxPoints=RQ.list.reduce((s,i)=>s+rqMaxPts(RELIGION_DATA[i].mode),0);
+  localStorage.removeItem(RQ.saveKey);
+  showRQCard();
+}
 function resumeWrongRetry(type,key){
+  const relIsos=type==='religion'?_religionWrongIsos(key):null;
   _resumeStart(type,key);
   setTimeout(()=>{
     try{
       if(type==='name')retryWrong(1);
-      else if(type==='religion')retryWrongRQ(1);
+      else if(type==='religion')rqStartRetryList(relIsos);
       else if(type==='border')bqRetryWrong();
     }catch(e){}
-  },120);
+  },140);
 }
 function resumeWrongView(type,key){
   _resumeStart(type,key);
