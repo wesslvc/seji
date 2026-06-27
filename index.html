@@ -6798,8 +6798,13 @@ async function flushPush() {
     user_id: session.user.id, key, data: safeParse(val), updated_at: new Date().toISOString(),
   }));
   _pending.clear();
-  await supabase.from('user_data').upsert(rows);
+  const { error } = await supabase.from('user_data').upsert(rows);
+  if (error && !_dataErrShown) {
+    _dataErrShown = true;
+    toast('진행상황 저장 실패: user_data 테이블 SQL을 실행했는지 확인하세요');
+  }
 }
+let _dataErrShown = false;
 localStorage.setItem = function (k, v) {
   // 비로그인: 진행상황(퀴즈) 키는 저장하지 않음 — 로그인해야 기록이 남음
   if (shouldSync(k) && !session) return;
@@ -6894,6 +6899,9 @@ function injectStyle() {
     border:1px solid #333;color:#eee;padding:.6rem 1.1rem;border-radius:8px;font-size:.82rem;opacity:0;transition:opacity .25s;
     font-family:'Pretendard','Noto Sans KR',sans-serif;pointer-events:none}
   .acct-toast.on{opacity:1}
+  #acct-inapp{font-size:.76rem;color:#c8a050;line-height:1.5;background:rgba(168,112,32,.1);
+    border:1px solid rgba(168,112,32,.3);border-radius:8px;padding:.6rem .7rem;margin-bottom:.7rem}
+  #acct-inapp b{color:#e0b860}
   `;
   const s = document.createElement('style');
   s.textContent = css;
@@ -6917,10 +6925,14 @@ function buildUI() {
   document.body.appendChild(chip);
 
   // 로그인 모달 (구글 + 이메일)
+  const inApp = isInAppBrowser();
+  const inAppBanner = inApp ? `<div id="acct-inapp">앱 안의 브라우저에서는 <b>구글 로그인이 차단</b>돼요. <b>외부 브라우저로 열기</b>를 누르거나 <b>이메일</b>로 로그인하세요.
+    <button class="acct-btn" id="acct-open-ext" style="margin-top:.5rem">🔗 외부 브라우저로 열기</button></div>` : '';
   const login = el(`<div class="acct-ov" id="acct-login"><div class="acct-card" style="position:relative">
     <button class="acct-x" data-close>✕</button>
     <h2 id="acct-login-h">로그인 / 회원가입</h2>
     <div class="sub">점수·기록·랭킹이 계정에 저장되어 어느 기기에서나 이어집니다.</div>
+    ${inAppBanner}
     <button class="acct-btn" data-prov="google">${ICON_GOOGLE}<span>Google로 계속하기</span></button>
     <div style="text-align:center;color:#555;font-size:.72rem;margin:.7rem 0 .6rem">— 또는 이메일 —</div>
     <input class="acct-in" id="acct-em-email" type="email" placeholder="이메일" autocomplete="email">
@@ -6931,6 +6943,7 @@ function buildUI() {
   </div></div>`);
   login.addEventListener('click', (e) => {
     if (e.target.dataset.close !== undefined || e.target === login) { closeAll(); return; }
+    if (e.target.closest('#acct-open-ext')) { openExternalBrowser(); return; }
     const b = e.target.closest('[data-prov]');
     if (b) signIn(b.dataset.prov);
   });
@@ -7053,7 +7066,26 @@ function onChipClick() {
   else open('acct-login');
 }
 
+function isInAppBrowser() {
+  const ua = navigator.userAgent || '';
+  return /KAKAOTALK|Instagram|FBAN|FBAV|FB_IAB|Line\/|NAVER\(inapp|DaumApps|; ?wv\)|everytimeApp/i.test(ua);
+}
+function openExternalBrowser() {
+  const url = window.location.href;
+  const ua = navigator.userAgent || '';
+  if (/KAKAOTALK/i.test(ua)) {
+    window.location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(url);
+  } else if (/Line\//i.test(ua)) {
+    window.location.href = url + (url.includes('?') ? '&' : '?') + 'openExternalBrowser=1';
+  } else {
+    // 인스타/페북 등: 자동 전환이 막혀 있어 안내
+    toast('우측 상단 ⋯ 메뉴 → "다른 브라우저로 열기"를 선택하세요');
+  }
+}
+
 async function signIn(provider) {
+  // 인앱 브라우저(카카오톡 등)는 구글이 OAuth를 막음 → 외부 브라우저로 유도
+  if (provider === 'google' && isInAppBrowser()) { openExternalBrowser(); return; }
   await ensureSB();
   if (!supabase) return;
   const { error } = await supabase.auth.signInWithOAuth({
@@ -7401,6 +7433,10 @@ async function boot() {
   document.getElementById('acct-chip').addEventListener('click', () => {
     if (session) setTimeout(openMenuData, 30);
   });
+
+  // 진행 중에 앱을 닫거나 백그라운드로 가면 즉시 서버에 저장 (디바운스 대기 없이)
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushPush(); });
+  window.addEventListener('pagehide', () => flushPush());
 }
 
 window.SejiAccount = { submitScore, isLoggedIn: () => !!session };

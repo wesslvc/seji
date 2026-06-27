@@ -37,7 +37,9 @@ create table if not exists public.scores (
 create index if not exists scores_user_idx on public.scores(user_id);
 
 -- 3) 랭킹 뷰 (사용자별 평균/최고 정답률)
-create or replace view public.leaderboard as
+--    security_invoker=on: 조회자 권한/RLS로 실행 (SECURITY DEFINER 보안경고 해결)
+create or replace view public.leaderboard
+with (security_invoker = on) as
 select
   p.id,
   p.nickname,
@@ -50,7 +52,8 @@ left join public.scores s on s.user_id = p.id
 group by p.id, p.nickname, p.avatar_url;
 
 -- 3-2) 종류별 랭킹 뷰 (사용자 × 카테고리)
-create or replace view public.leaderboard_by_cat as
+create or replace view public.leaderboard_by_cat
+with (security_invoker = on) as
 select
   p.id,
   p.nickname,
