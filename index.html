@@ -5271,7 +5271,7 @@ function bqEnd(){
   document.getElementById('bq-e1').textContent=BQ.correct;
   document.getElementById('bq-e2').textContent=BQ.wrong;
   el.classList.add('on');
-  if(!BQ.recorded){BQ.recorded=true;try{bqSave();}catch(e){}try{window.SejiAccount&&window.SejiAccount.submitScore({category:'border',correct:BQ.correct,total:BQ.total,accuracy:Math.round(BQ.correct/(BQ.total||1)*1000)/10,scope:SESSION.filterKey,points:BQ.correct,maxPoints:BQ.total,isRetry:BQ.isRetry});}catch(e){}}
+  if(!BQ.recorded){BQ.recorded=true;try{bqSave();}catch(e){}try{window.SejiAccount&&window.SejiAccount.submitScore({category:'border',correct:BQ.correct,total:BQ.total,accuracy:Math.round(BQ.correct/(BQ.total||1)*1000)/10,scope:SESSION.filterKey,points:BQ.correct,maxPoints:BQ.total,isRetry:BQ.isRetry,contStats:contStatsOf([...BQ.activeSet],iso=>BQ.status[iso]&&BQ.status[iso]!=='cr')});}catch(e){}}
 }
 function openBQList(){
   const grid=document.getElementById('bql-grid');if(!grid)return;
@@ -5773,6 +5773,17 @@ function startOopsQuiz(){
   for(const k in colors)delete colors[k];
   paintMask();paint();stats();
 }
+let _ISO_CONT=null;
+function isoCont(iso){
+  if(!_ISO_CONT){_ISO_CONT={};for(const c of ['as','eu','af','na','sa','oc'])(CONT[c]||[]).forEach(i=>{_ISO_CONT[i]=c;});}
+  return _ISO_CONT[iso];
+}
+/* 대륙별 정답/문항 수 — 다중·전체 대륙 기록을 대륙 섹션별로 분배하기 위함 */
+function contStatsOf(isoList,okFn){
+  const cs={};
+  isoList.forEach(iso=>{const c=isoCont(iso);if(!c)return;const o=cs[c]||(cs[c]={correct:0,total:0});o.total++;if(okFn(iso))o.correct++;});
+  return cs;
+}
 function endScreen(){
   const cnt={c1:0,c2:0,c3:0};
   for(const v of Object.values(S.status))if(cnt[v]!==undefined)cnt[v]++;
@@ -5781,7 +5792,7 @@ function endScreen(){
   document.getElementById('ui-e2').textContent=cnt.c2;
   document.getElementById('ui-e3').textContent=cnt.c3;
   document.getElementById('ui-er').textContent=S.revealed;
-  if(!S.recorded){S.recorded=true;try{saveGame();}catch(e){}try{window.SejiAccount&&window.SejiAccount.submitScore({category:'name',correct:S.correct,total:S.total,accuracy:Math.round(S.correct/(S.total||1)*1000)/10,scope:SESSION.filterKey,points:S.correct,maxPoints:S.total,isRetry:S.isRetry});}catch(e){}}
+  if(!S.recorded){S.recorded=true;try{saveGame();}catch(e){}try{window.SejiAccount&&window.SejiAccount.submitScore({category:'name',correct:S.correct,total:S.total,accuracy:Math.round(S.correct/(S.total||1)*1000)/10,scope:SESSION.filterKey,points:S.correct,maxPoints:S.total,isRetry:S.isRetry,contStats:contStatsOf([...S.activeSet],iso=>S.status[iso]&&S.status[iso]!=='cr')});}catch(e){}}
   const revISOs=Object.entries(S.status).filter(([,v])=>v==='cr').map(([k])=>k);
   const tagsEl=document.getElementById('ui-wrong-tags');tagsEl.innerHTML='';
   revISOs.forEach(iso=>{
@@ -6123,7 +6134,7 @@ function openRQList(){
 function endReligionQuiz(){
   const pct=RQ.maxPoints>0?(RQ.earnedPoints/RQ.maxPoints*100).toFixed(1):0;
   document.getElementById('rq-escore').textContent=pct+'%';
-  if(!RQ.recorded){RQ.recorded=true;try{window.SejiAccount&&window.SejiAccount.submitScore({category:'religion',correct:RQ.correct,total:RQ.list.length,accuracy:Number(pct),scope:RQ.contKey,points:RQ.earnedPoints,maxPoints:RQ.maxPoints,isRetry:RQ.isRetry});}catch(e){}}
+  if(!RQ.recorded){RQ.recorded=true;try{const _w=new Set(Object.keys(RQ.wrongCounts||{}));window.SejiAccount&&window.SejiAccount.submitScore({category:'religion',correct:RQ.correct,total:RQ.list.length,accuracy:Number(pct),scope:RQ.contKey,points:RQ.earnedPoints,maxPoints:RQ.maxPoints,isRetry:RQ.isRetry,contStats:contStatsOf(RQ.list,iso=>!_w.has(iso))});}catch(e){}}
   document.getElementById('rq-e1').textContent=RQ.correct;
   document.getElementById('rq-e2').textContent=RQ.errors;
   document.getElementById('rq-e3').textContent=RQ.skipped;
@@ -7629,7 +7640,7 @@ async function openRanking() {
   await ensureSB();
   if (!supabase) return;
   const [sc, pf] = await Promise.all([
-    supabase.from('scores').select('user_id,category,scope,accuracy,correct,points,max_points,is_retry'),
+    supabase.from('scores').select('user_id,category,scope,accuracy,correct,points,max_points,is_retry,cont_stats'),
     supabase.from('profiles').select('id,nickname,avatar_url'),
   ]);
   if (sc.error) { document.getElementById('acct-rank-list').innerHTML = `<div class="acct-empty">랭킹 불러오기 실패</div>`; return; }
@@ -7651,9 +7662,16 @@ function rankMatch(r) {
     if (r.category === 'korea') return true;
     if (!isAllScope(conts)) return false;
   } else {
-    if (!conts.includes(_rankCont)) return false;
+    // 특정 대륙: 그 대륙을 포함했거나 전체 대륙을 응시한 기록 (해당 대륙 부분 정답률 사용)
+    if (!(isAllScope(conts) || conts.includes(_rankCont))) return false;
   }
   return true;
+}
+/* 해당 대륙에 대한 이 기록의 정답률 (대륙별 통계 우선, 없으면 전체 정답률 폴백) */
+function contAccuracy(r, cont) {
+  const cs = r.cont_stats;
+  if (cs && cs[cont] && cs[cont].total > 0) return cs[cont].correct / cs[cont].total * 100;
+  return Number(r.accuracy);
 }
 
 function renderRanking() {
@@ -7684,10 +7702,11 @@ function renderRanking() {
     const byUser = {};
     for (const r of _rankScores) {
       if (!rankMatch(r)) continue;
-      const u = byUser[r.user_id] || (byUser[r.user_id] = { accs: [], bestRow: null });
-      const acc = Number(r.accuracy);
+      const u = byUser[r.user_id] || (byUser[r.user_id] = { accs: [], bestRow: null, bestAcc: -1 });
+      // 특정 대륙은 그 대륙 부분 정답률, 전체는 기록 전체 정답률
+      const acc = _rankCont === 'all' ? Number(r.accuracy) : contAccuracy(r, _rankCont);
       u.accs.push(acc);
-      if (!u.bestRow || acc > Number(u.bestRow.accuracy)) u.bestRow = r;
+      if (acc > u.bestAcc) { u.bestAcc = acc; u.bestRow = r; }
     }
     const key = _rankSort === 'avg' ? 'avg' : 'best';
     rows = Object.entries(byUser).map(([uid, u]) => {
@@ -7724,7 +7743,7 @@ function escapeHtml(s) {
 
 /* ──────────────── 점수 제출 (게임에서 호출) ──────────────── */
 let _lastSubmit = { sig: '', t: 0 };
-async function submitScore({ category, correct, total, accuracy, scope, points, maxPoints, isRetry }) {
+async function submitScore({ category, correct, total, accuracy, scope, points, maxPoints, isRetry, contStats }) {
   if (!session) return; // 비로그인 시 무시
   if (!total) return;
   // 종료 함수가 중복 호출돼도 한 번만 기록 (3초 내 동일 결과 무시)
@@ -7745,6 +7764,7 @@ async function submitScore({ category, correct, total, accuracy, scope, points, 
     points: points != null ? points : (correct | 0),
     max_points: maxPoints != null ? maxPoints : (total | 0),
     is_retry: !!isRetry,
+    cont_stats: contStats || null,
   });
   if (!error) {
     const lbl = category === 'religion' ? `${points}/${maxPoints}pt` : `${acc}%`;

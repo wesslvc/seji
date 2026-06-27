@@ -33,6 +33,7 @@ create table if not exists public.scores (
   points     numeric,                             -- 종교: 획득 점수 / 그 외: 맞춘 수
   max_points numeric,                             -- 만점
   is_retry   boolean default false,               -- 오답 다시풀기 (랭킹 제외)
+  cont_stats jsonb,                               -- 대륙별 {correct,total} (대륙별 랭킹 분배용)
   correct    int  not null,
   total      int  not null,
   accuracy   numeric(5,1) not null,               -- 0.0 ~ 100.0
