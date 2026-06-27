@@ -5722,8 +5722,8 @@ function updateWfDesc(sliderId,descId){
   const labels=['','1번 이상 틀린 것','2번 이상 틀린 것','완전 틀린 것만'];
   document.getElementById(descId).textContent=labels[v]||labels[1];
 }
-function retryWrong(){
-  const minWrong=parseInt((document.getElementById('map-wf-sl')||{value:'3'}).value)||3;
+function retryWrong(minOverride){
+  const minWrong=minOverride||parseInt((document.getElementById('map-wf-sl')||{value:'3'}).value)||3;
   let wrongISOs;
   if(minWrong>=3){
     wrongISOs=Object.entries(S.status).filter(([,v])=>v==='cr').map(([k])=>k);
@@ -6122,10 +6122,10 @@ function endReligionQuiz(){
   const wf=document.getElementById('rq-wf');if(wf)wf.classList.toggle('show',hasWrong);
   document.getElementById('rq-end').classList.add('on');
 }
-function retryWrongRQ(){
-  const minWrong=parseInt((document.getElementById('rq-wf-sl')||{value:'1'}).value)||1;
-  let isos=RQ.wrongItems.map(w=>w.iso).filter(Boolean);
-  if(minWrong>1)isos=isos.filter(iso=>(RQ.wrongCounts[iso]||0)>=minWrong);
+function retryWrongRQ(minOverride){
+  const minWrong=minOverride||parseInt((document.getElementById('rq-wf-sl')||{value:'1'}).value)||1;
+  let isos=Object.keys(RQ.wrongCounts||{}).filter(iso=>(RQ.wrongCounts[iso]||0)>=minWrong);
+  if(!isos.length)isos=RQ.wrongItems.map(w=>w.iso).filter(Boolean);
   if(!isos.length)return;
   document.getElementById('rq-end').classList.remove('on');
   RQ.list=isos.sort(()=>Math.random()-.5);
@@ -6269,7 +6269,7 @@ function krStats(){
   if(KR.total&&d>=KR.total)setTimeout(krEndScreen,600);
 }
 function saveKR(showFb){
-  localStorage.setItem(KQ_SAVE_KEY,JSON.stringify({status:KR.status,correct:KR.correct,revealed:KR.revealed,wrong:KR.wrong,recorded:KR.recorded}));
+  localStorage.setItem(KQ_SAVE_KEY,JSON.stringify({status:KR.status,correct:KR.correct,revealed:KR.revealed,wrong:KR.wrong,recorded:KR.recorded,total:KR.total}));
   if(showFb){
     const btn=document.getElementById('kr-save');
     btn.textContent='✓ 저장됨';btn.classList.add('saved');
@@ -6736,6 +6736,88 @@ function initMap(){
   applyModeUI();
 }
 window.addEventListener('load',initMap);
+
+/* ── 저장된 퀴즈(이어하기/오답) 외부 API: 계정 메뉴에서 사용 ── */
+function _countSetForFilter(filterKey){
+  let base=Object.keys(COUNTRIES);
+  const parts=(filterKey||'all').split('_');
+  const contKey=parts[0];
+  if(contKey&&contKey!=='all'){const set=new Set();contKey.split('+').forEach(c=>{(CONT[c]||[]).forEach(i=>set.add(i));});base=[...set].filter(i=>COUNTRIES[i]);}
+  if(parts.includes('big'))base=base.filter(i=>!SMALL.has(i));
+  if(parts.includes('noisle'))base=base.filter(i=>!ISLE.has(i));
+  return new Set(base);
+}
+function listSaves(){
+  const out=[];
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);let d;
+    try{d=JSON.parse(localStorage.getItem(k));}catch(e){continue;}
+    if(!d||typeof d!=='object')continue;
+    if(k.startsWith('wq_rq_')){
+      if(!Array.isArray(d.list)||!d.list.length)continue;
+      out.push({type:'religion',key:k,scope:d.contKey||'all',done:d.idx||0,total:d.list.length,wrong:Object.keys(d.wrongCounts||{}).length});
+    }else if(k.startsWith('bq_')&&!k.startsWith('bq__')){
+      if(!d.status||typeof d.status!=='object')continue;
+      const fk=k.slice(3);const st=d.status;
+      const total=[..._countSetForFilter(fk)].filter(x=>BORDERS[x]&&!CIRCLE_ISOS.has(x)).length;
+      if(!total||!Object.keys(st).length)continue;
+      const wrong=Object.keys(st).filter(x=>st[x]==='cr').length;
+      out.push({type:'border',key:k,scope:fk,done:Object.keys(st).length,total,wrong});
+    }else if(k.startsWith('wq_')&&k!=='wq_mode'&&k!=='wq_oops_note'&&!k.startsWith('wq__')){
+      if(!d.status||typeof d.status!=='object'||!Object.keys(d.status).length)continue;
+      const fk=k.slice(3);const st=d.status;const wr=d.wrong||{};
+      const total=_countSetForFilter(fk).size;if(!total)continue;
+      const wset=new Set(Object.keys(st).filter(x=>st[x]==='cr'));Object.keys(wr).forEach(x=>{if(wr[x]>0)wset.add(x);});
+      out.push({type:'name',key:k,scope:fk,done:Object.keys(st).length,total,wrong:wset.size});
+    }else if(k===KQ_SAVE_KEY){
+      if(!d.status||!Object.keys(d.status).length)continue;
+      const st=d.status||{};const wr=d.wrong||{};
+      const wset=new Set(Object.keys(st).filter(x=>st[x]==='cr'));Object.keys(wr).forEach(x=>{if(wr[x]>0)wset.add(x);});
+      out.push({type:'korea',key:k,scope:'korea',done:Object.keys(st).length,total:d.total||0,wrong:wset.size});
+    }
+  }
+  // 진행 중(미완료) 먼저, 그다음 완료
+  out.forEach(o=>{o.remaining=Math.max(o.total-o.done,0);o.inProgress=o.total>0&&o.done<o.total;});
+  out.sort((a,b)=>(b.inProgress-a.inProgress)||(b.done-a.done));
+  return out;
+}
+function _resumeStart(type,key){
+  if(document.getElementById('landing-overlay'))document.getElementById('landing-overlay').style.display='none';
+  if(type==='name')startSession('world',['name'],key.slice(3));
+  else if(type==='border')startSession('world',['border'],key.slice(3));
+  else if(type==='religion'){const rk=key.slice(6);startSession('world',['religion'],rk,rk);}
+  else if(type==='korea')startSession('korea',['korea'],null);
+}
+function resumeSave(type,key){_resumeStart(type,key);}
+function resumeWrongRetry(type,key){
+  _resumeStart(type,key);
+  setTimeout(()=>{
+    try{
+      if(type==='name')retryWrong(1);
+      else if(type==='religion')retryWrongRQ(1);
+      else if(type==='border')bqRetryWrong();
+    }catch(e){}
+  },120);
+}
+function resumeWrongView(type,key){
+  _resumeStart(type,key);
+  setTimeout(()=>{
+    try{
+      if(type==='name'){openCountryList();switchCLTab('wrong');}
+      else if(type==='border')openBQList();
+    }catch(e){}
+  },150);
+}
+function bqRetryWrong(){
+  const wrongISOs=Object.keys(BQ.status).filter(iso=>BQ.status[iso]==='cr');
+  if(!wrongISOs.length){bqStats();return;}
+  BQ.activeSet=new Set(wrongISOs);BQ.total=wrongISOs.length;
+  BQ.saveKey='bq__retry';
+  BQ.status={};BQ.correct=0;BQ.wrong=0;BQ.wrongCounts={};BQ.recorded=false;
+  BQ.queue=bqBuildGroupQueue(BQ.activeSet).sort(()=>Math.random()-.5);
+  clearMapColors();paint();bqStats();bqShowCurrent();
+}
+window.SejiGame={listSaves,resumeSave,resumeWrongRetry,resumeWrongView};
 </script>
 <!-- ════════════════════════════════════════════════════════════
      계정 · 소셜로그인 · 랭킹 (Supabase) — 빌드/명령어 불필요, 이 파일만으로 동작
@@ -6930,6 +7012,20 @@ function injectStyle() {
   #acct-inapp{font-size:.76rem;color:#c8a050;line-height:1.5;background:rgba(168,112,32,.1);
     border:1px solid rgba(168,112,32,.3);border-radius:8px;padding:.6rem .7rem;margin-bottom:.7rem}
   #acct-inapp b{color:#e0b860}
+  .sv-item{background:#161616;border:1px solid #242424;border-radius:8px;padding:.5rem .6rem;margin-bottom:.4rem}
+  .sv-top{display:flex;align-items:center;justify-content:space-between;gap:.5rem;cursor:pointer}
+  .sv-info{min-width:0}
+  .sv-title{font-size:.84rem;color:#eee;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .sv-scope{font-size:.68rem;color:#888;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .sv-badge{flex-shrink:0;font-size:.72rem;font-weight:700;padding:.22rem .5rem;border-radius:999px;
+    font-family:'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums}
+  .sv-badge.prog{background:rgba(58,120,196,.18);color:#6aa3e0}
+  .sv-badge.done{background:rgba(53,148,100,.18);color:#52b07a}
+  .sv-acts{display:flex;gap:.35rem;margin-top:.5rem}
+  .sv-btn{flex:1;padding:.4rem;border-radius:6px;border:1px solid #2a2a2a;background:transparent;color:#bbb;
+    font-size:.74rem;cursor:pointer;font-family:'Pretendard','Noto Sans KR',sans-serif}
+  .sv-btn.go{background:#eee;color:#000;border-color:#eee;font-weight:600}
+  .sv-btn.wr{color:#d08a8a;border-color:rgba(176,56,56,.4)}
   `;
   const s = document.createElement('style');
   s.textContent = css;
@@ -6993,6 +7089,8 @@ function buildUI() {
       <div class="acct-stat"><div class="v" id="acct-st-avg">-</div><div class="l">평균 정답률</div></div>
       <div class="acct-stat"><div class="v" id="acct-st-best">-</div><div class="l">최고 정답률</div></div>
     </div>
+    <div class="acct-lbl">이어하기 · 오답</div>
+    <div id="acct-saves" style="margin-bottom:.9rem"></div>
     <div class="acct-lbl">유형별 정답률</div>
     <div id="acct-cat-stats" style="margin-bottom:.9rem"></div>
     <div class="acct-lbl">최근 기록</div>
@@ -7236,11 +7334,45 @@ function avHtml(node, url, name) {
   }
 }
 
+function renderSaves() {
+  const box = document.getElementById('acct-saves');
+  if (!box) return;
+  const saves = (window.SejiGame && window.SejiGame.listSaves) ? window.SejiGame.listSaves() : [];
+  box.innerHTML = '';
+  if (!saves.length) { box.innerHTML = `<div style="font-size:.78rem;color:#666">저장된 진행 중인 퀴즈가 없습니다.</div>`; return; }
+  saves.forEach((s) => {
+    const badge = s.inProgress
+      ? `<span class="sv-badge prog">진행중 ${s.done}/${s.total}</span>`
+      : `<span class="sv-badge done">완료 ${s.done}/${s.total}</span>`;
+    const scope = s.type === 'korea' ? '시·군 전체' : scopeLabel(s.scope);
+    const item = el(`<div class="sv-item">
+      <div class="sv-top">
+        <div class="sv-info"><div class="sv-title">${CAT_NAME[s.type]}</div><div class="sv-scope">${scope}</div></div>
+        ${badge}
+      </div>
+      <div class="sv-acts">
+        <button class="sv-btn go" data-go>이어하기</button>
+        ${s.wrong > 0 && (s.type === 'name' || s.type === 'border') ? `<button class="sv-btn wr" data-view>오답 보기 (${s.wrong})</button>` : ''}
+        ${s.wrong > 0 && (s.type === 'name' || s.type === 'border' || s.type === 'religion') ? `<button class="sv-btn wr" data-retry>오답만 다시</button>` : ''}
+      </div>
+    </div>`);
+    const go = () => { closeAll(); window.SejiGame.resumeSave(s.type, s.key); };
+    item.querySelector('[data-go]').addEventListener('click', go);
+    item.querySelector('.sv-top').addEventListener('click', go);
+    const vb = item.querySelector('[data-view]');
+    if (vb) vb.addEventListener('click', () => { closeAll(); window.SejiGame.resumeWrongView(s.type, s.key); });
+    const rb = item.querySelector('[data-retry]');
+    if (rb) rb.addEventListener('click', () => { closeAll(); window.SejiGame.resumeWrongRetry(s.type, s.key); });
+    box.appendChild(item);
+  });
+}
+
 async function openMenuData() {
   if (!profile) await loadProfile();
   document.getElementById('acct-menu-nm').textContent = profile?.nickname || '플레이어';
   document.getElementById('acct-menu-em').textContent = session?.user?.email || '';
   avHtml(document.getElementById('acct-menu-av'), profile?.avatar_url, profile?.nickname);
+  renderSaves();
   // 전체 + 유형별 + 최근 기록
   const rows = await myScores();
   const overall = aggregate(rows);
