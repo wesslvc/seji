@@ -5871,14 +5871,22 @@ function renderCLGrid(){
 /* ── Pan/Zoom ── */
 let _s=1,_x=0,_y=0;
 const SW=2754,SH=1398;
-let _svgEl=null,_tQueued=false;
+let _svgEl=null,_tQueued=false,_commitT=null;
+/* 제스처 중: 고정 크기 + transform scale (GPU, 빠름) */
 function _flushT(){
   _tQueued=false;
-  if(!_svgEl){_svgEl=document.getElementById('world-svg');if(!_svgEl)return;
-    /* 기본 크기를 1회만 고정 — 이후 scale은 transform이 GPU에서 처리 */
-    _svgEl.style.width=SW+'px';_svgEl.style.height=SH+'px';}
-  /* width/height를 매 프레임 바꾸지 않고 transform scale 사용 → 재래스터 없이 GPU 합성 */
+  if(!_svgEl){_svgEl=document.getElementById('world-svg');if(!_svgEl)return;}
+  _svgEl.style.width=SW+'px';_svgEl.style.height=SH+'px';
   _svgEl.style.transform='translate3d('+_x+'px,'+_y+'px,0) scale('+_s+')';
+  /* 멈추면 실제 크기로 다시 그려 선명하게 (재래스터는 1회만) */
+  clearTimeout(_commitT);_commitT=setTimeout(_commitRes,170);
+}
+function _commitRes(){
+  if(!_svgEl)return;
+  const r=Math.min(_s,isMobile?3:4); /* 재래스터 배율 상한 (레이어 메모리/크기 한계 방지) */
+  _svgEl.style.width=(SW*r)+'px';_svgEl.style.height=(SH*r)+'px';
+  const extra=_s/r;
+  _svgEl.style.transform=extra===1?('translate('+_x+'px,'+_y+'px)'):('translate('+_x+'px,'+_y+'px) scale('+extra+')');
 }
 function applyT(){
   if(_tQueued)return;
@@ -6146,12 +6154,20 @@ const dynK=document.createElement('style');document.head.appendChild(dynK);
 const kColors={};
 const _kBlinkTimers={};
 function krNorm(id){return (id||'').replace(/_\d+_$/,'');}
-let _kSvgEl=null,_ktQueued=false;
+let _kSvgEl=null,_ktQueued=false,_kCommitT=null;
 function _flushKT(){
   _ktQueued=false;
-  if(!_kSvgEl){_kSvgEl=document.getElementById('korea-svg');if(!_kSvgEl)return;
-    _kSvgEl.style.width=KSW+'px';_kSvgEl.style.height=KSH+'px';}
+  if(!_kSvgEl){_kSvgEl=document.getElementById('korea-svg');if(!_kSvgEl)return;}
+  _kSvgEl.style.width=KSW+'px';_kSvgEl.style.height=KSH+'px';
   _kSvgEl.style.transform='translate3d('+k_x+'px,'+k_y+'px,0) scale('+k_s+')';
+  clearTimeout(_kCommitT);_kCommitT=setTimeout(_commitKRes,170);
+}
+function _commitKRes(){
+  if(!_kSvgEl)return;
+  const r=Math.min(k_s,8);
+  _kSvgEl.style.width=(KSW*r)+'px';_kSvgEl.style.height=(KSH*r)+'px';
+  const extra=k_s/r;
+  _kSvgEl.style.transform=extra===1?('translate('+k_x+'px,'+k_y+'px)'):('translate('+k_x+'px,'+k_y+'px) scale('+extra+')');
 }
 function applyKT(){
   if(_ktQueued)return;
