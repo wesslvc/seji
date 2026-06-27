@@ -1,0 +1,73 @@
+-- ════════════════════════════════════════════════════════════
+--  세지 지리 퀴즈 · Supabase 스키마
+--  Supabase 대시보드 → SQL Editor 에 붙여넣고 실행하세요.
+-- ════════════════════════════════════════════════════════════
+
+-- 1) 프로필 (닉네임 · 프로필 사진)
+create table if not exists public.profiles (
+  id          uuid primary key references auth.users on delete cascade,
+  nickname    text unique,
+  avatar_url  text,
+  created_at  timestamptz not null default now()
+);
+
+-- 2) 점수 기록 (퀴즈 1회 = 1행)
+create table if not exists public.scores (
+  id         bigint generated always as identity primary key,
+  user_id    uuid not null references auth.users on delete cascade,
+  category   text not null,                       -- name | border | religion | korea
+  correct    int  not null,
+  total      int  not null,
+  accuracy   numeric(5,1) not null,               -- 0.0 ~ 100.0
+  created_at timestamptz not null default now()
+);
+create index if not exists scores_user_idx on public.scores(user_id);
+
+-- 3) 랭킹 뷰 (사용자별 평균/최고 정답률)
+create or replace view public.leaderboard as
+select
+  p.id,
+  p.nickname,
+  p.avatar_url,
+  count(s.id)                       as games,
+  coalesce(round(avg(s.accuracy),1),0) as avg_accuracy,
+  coalesce(max(s.accuracy),0)          as best_accuracy
+from public.profiles p
+left join public.scores s on s.user_id = p.id
+group by p.id, p.nickname, p.avatar_url;
+
+-- ════════════════════════════════════════════════════════════
+--  RLS (행 수준 보안)
+-- ════════════════════════════════════════════════════════════
+alter table public.profiles enable row level security;
+alter table public.scores   enable row level security;
+
+-- 프로필: 누구나 조회(랭킹 표시용), 본인만 생성/수정
+drop policy if exists "profiles read"   on public.profiles;
+drop policy if exists "profiles insert" on public.profiles;
+drop policy if exists "profiles update" on public.profiles;
+create policy "profiles read"   on public.profiles for select using (true);
+create policy "profiles insert" on public.profiles for insert with check (auth.uid() = id);
+create policy "profiles update" on public.profiles for update using (auth.uid() = id);
+
+-- 점수: 누구나 조회(랭킹 집계용), 본인만 추가
+drop policy if exists "scores read"   on public.scores;
+drop policy if exists "scores insert" on public.scores;
+create policy "scores read"   on public.scores for select using (true);
+create policy "scores insert" on public.scores for insert with check (auth.uid() = user_id);
+
+-- ════════════════════════════════════════════════════════════
+--  Storage: 프로필 사진 버킷 'avatars'
+--  (Storage → New bucket → name: avatars, Public 체크 후 아래 정책 실행)
+-- ════════════════════════════════════════════════════════════
+-- 공개 읽기
+drop policy if exists "avatars read" on storage.objects;
+create policy "avatars read" on storage.objects
+  for select using (bucket_id = 'avatars');
+-- 본인 폴더(=uid)에만 업로드/수정
+drop policy if exists "avatars write" on storage.objects;
+create policy "avatars write" on storage.objects
+  for insert with check (bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text);
+drop policy if exists "avatars update" on storage.objects;
+create policy "avatars update" on storage.objects
+  for update using (bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text);

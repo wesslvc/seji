@@ -129,9 +129,6 @@ body.mob-mode.in-session .ui-ov{padding-top:calc(42px + .8rem)}
 body.mob-mode.in-session #kr-ov{padding-top:calc(42px + .8rem)}
 body.mob-mode .btn{padding:.85rem;font-size:.95rem}
 body.mob-mode .ui-ov .modal{max-width:96vw}
-/* 접경국 모드: 작은 나라(원형 표시) 보이게 + 클릭 가능하게 */
-body.border-mode #world-svg circle.circlexx{opacity:.85!important;pointer-events:all!important;cursor:pointer!important;fill:#3d4451;stroke:#0d1117;stroke-width:.4}
-body.border-mode #world-svg circle.circlexx:hover{fill:#556070!important}
 
 /* ═══ Korea Quiz ═══ */
 #kr-screen{position:fixed;inset:0;background:var(--bg);z-index:700;display:none;flex-direction:column}
@@ -5140,8 +5137,8 @@ function closeMenu(){}
 const BQ={activeSet:null,total:0,queue:[],status:{},correct:0,wrong:0,curWrong:0,target:null,remaining:null,currentGroup:[],wrongCounts:{},saveKey:'bq_all'};
 function bqPool(){
   let base=S.activeSet?[...S.activeSet]:Object.keys(COUNTRIES);
-  /* 원형으로 표시되는 소국도 접경국 있으면 포함 (BQ 모드에서 클릭 가능) */
-  return base.filter(i=>BORDERS[i]);
+  /* 원형으로만 표시되는 소국은 지도 클릭이 불가능하므로 접경국 퀴즈에서 제외 */
+  return base.filter(i=>BORDERS[i]&&!CIRCLE_ISOS.has(i));
 }
 function bqBuildGroupQueue(activeSet){
   const groups=new Map();
@@ -5263,6 +5260,7 @@ function bqEnd(){
   document.getElementById('bq-e1').textContent=BQ.correct;
   document.getElementById('bq-e2').textContent=BQ.wrong;
   el.classList.add('on');
+  try{window.SejiAccount&&window.SejiAccount.submitScore({category:'border',correct:BQ.correct,total:BQ.total,accuracy:Math.round(BQ.correct/(BQ.total||1)*1000)/10});}catch(e){}
 }
 function openBQList(){
   const grid=document.getElementById('bql-grid');if(!grid)return;
@@ -5356,14 +5354,8 @@ function isClickable(el){
 /* 모든 SVG 요소에 소유 국가(data-iso) 부여 — 분쟁지역 공유 경로는 마지막 클래스가 소유자 */
 function assignOwnership(){
   document.querySelectorAll('#world-svg [class]').forEach(el=>{
-    if(el.tagName.toLowerCase()==='circle'){
-      /* 소국 마커 원(circlexx)은 접경국 모드에서 클릭 가능하도록 data-iso 부여
-         (그 외 마커 원은 항상 숨김 유지) */
-      if(el.classList.contains('circlexx')){
-        for(const cc of el.classList)if(COUNTRIES[cc]){el.dataset.iso=cc;break;}
-      }
-      return;
-    }
+    /* 마커 원(circle)은 항상 숨김 유지 */
+    if(el.tagName.toLowerCase()==='circle')return;
     let owner=null;
     /* 그린란드는 덴마크 영토로 취급 */
     if(el.classList.contains('gl'))owner='dk';
@@ -5772,6 +5764,7 @@ function endScreen(){
   document.getElementById('ui-e2').textContent=cnt.c2;
   document.getElementById('ui-e3').textContent=cnt.c3;
   document.getElementById('ui-er').textContent=S.revealed;
+  try{window.SejiAccount&&window.SejiAccount.submitScore({category:'name',correct:S.correct,total:S.total,accuracy:Math.round(S.correct/(S.total||1)*1000)/10});}catch(e){}
   const revISOs=Object.entries(S.status).filter(([,v])=>v==='cr').map(([k])=>k);
   const tagsEl=document.getElementById('ui-wrong-tags');tagsEl.innerHTML='';
   revISOs.forEach(iso=>{
@@ -6105,6 +6098,7 @@ function openRQList(){
 function endReligionQuiz(){
   const pct=RQ.maxPoints>0?(RQ.earnedPoints/RQ.maxPoints*100).toFixed(1):0;
   document.getElementById('rq-escore').textContent=pct+'%';
+  try{window.SejiAccount&&window.SejiAccount.submitScore({category:'religion',correct:RQ.correct,total:RQ.list.length,accuracy:Number(pct)});}catch(e){}
   document.getElementById('rq-e1').textContent=RQ.correct;
   document.getElementById('rq-e2').textContent=RQ.errors;
   document.getElementById('rq-e3').textContent=RQ.skipped;
@@ -6406,6 +6400,7 @@ function krRandom(){
 }
 function krEndScreen(){
   document.getElementById('kr-escore').textContent=Math.round(KR.correct/KR.total*100)+'%';
+  try{window.SejiAccount&&window.SejiAccount.submitScore({category:'korea',correct:KR.correct,total:KR.total,accuracy:Math.round(KR.correct/(KR.total||1)*1000)/10});}catch(e){}
   document.getElementById('kr-e1').textContent=KR.correct;
   document.getElementById('kr-e2').textContent=KR.revealed;
   const tags=document.getElementById('kr-wrong-tags');tags.innerHTML='';
@@ -6734,5 +6729,7 @@ function initMap(){
 }
 window.addEventListener('load',initMap);
 </script>
+<!-- 계정 · 랭킹 레이어 (Vite 모듈, 게임과 독립) -->
+<script type="module" src="/src/account.js"></script>
 </body>
 </html>
