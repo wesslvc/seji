@@ -6756,6 +6756,45 @@ const CAT_NAME = { name: '나라이름', border: '접경국', religion: '종교'
 let session = null;
 let profile = null;
 
+/* ──────────────── 진행상황 동기화 (기기 간 이어하기) ────────────────
+ * 게임이 쓰는 localStorage 진행 키(wq_*, bq_*, kq_*)를 계정에 미러링.
+ * localStorage.setItem 을 가로채서 로그인 상태면 서버로 올린다. */
+const SYNC_RE = /^(wq_|bq_|kq_)/;
+const SYNC_EXCLUDE = new Set(['wq_mode']);
+function shouldSync(k) { return SYNC_RE.test(k) && !SYNC_EXCLUDE.has(k); }
+const _origSet = localStorage.setItem.bind(localStorage);
+const _pending = new Map();
+let _pushT = null;
+function safeParse(v) { try { return JSON.parse(v); } catch (e) { return v; } }
+function queuePush(k, v) { _pending.set(k, v); clearTimeout(_pushT); _pushT = setTimeout(flushPush, 1500); }
+async function flushPush() {
+  if (!supabase || !session || !_pending.size) return;
+  const rows = [..._pending].map(([key, val]) => ({
+    user_id: session.user.id, key, data: safeParse(val), updated_at: new Date().toISOString(),
+  }));
+  _pending.clear();
+  await supabase.from('user_data').upsert(rows);
+}
+localStorage.setItem = function (k, v) {
+  _origSet(k, v);
+  if (session && shouldSync(k)) queuePush(k, v);
+};
+async function restoreUserData() {
+  if (!supabase || !session) return 0;
+  const { data } = await supabase.from('user_data').select('key,data').eq('user_id', session.user.id);
+  const serverKeys = new Set((data || []).map((r) => r.key));
+  for (const row of data || []) {
+    _origSet(row.key, typeof row.data === 'string' ? row.data : JSON.stringify(row.data));
+  }
+  // 서버에 아직 없는 로컬 진행상황은 업로드 (게스트로 풀던 기록 보존)
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (shouldSync(k) && !serverKeys.has(k)) _pending.set(k, localStorage.getItem(k));
+  }
+  if (_pending.size) flushPush();
+  return (data || []).length;
+}
+
 /* ──────────────── 스타일 주입 ──────────────── */
 function injectStyle() {
   const css = `
@@ -6766,6 +6805,10 @@ function injectStyle() {
   #acct-chip img,#acct-chip .acct-ph{width:26px;height:26px;border-radius:50%;object-fit:cover;background:#2a2a2a;flex-shrink:0;
     display:flex;align-items:center;justify-content:center;font-size:.8rem;color:#888;font-weight:600}
   #acct-chip .acct-nm{font-size:.78rem;color:#ddd;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* 인세션 중엔 칩을 아바타만 작게 — '처음으로' 홈 버튼과 안 겹치게 */
+  body.in-session #acct-chip{padding:.2rem;gap:0}
+  body.in-session #acct-chip .acct-nm{display:none}
+  body.in-session #act-tabs{padding-right:44px}
   .acct-ov{position:fixed;inset:0;z-index:9300;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.8)}
   .acct-ov.on{display:flex}
   .acct-card{background:#101010;border:1px solid #252525;border-radius:10px;padding:1.4rem 1.3rem 1.2rem;width:min(380px,92vw);
@@ -6837,19 +6880,27 @@ function buildUI() {
   chip.addEventListener('click', onChipClick);
   document.body.appendChild(chip);
 
-  // 로그인 모달
+  // 로그인 모달 (구글 + 이메일)
   const login = el(`<div class="acct-ov" id="acct-login"><div class="acct-card" style="position:relative">
     <button class="acct-x" data-close>✕</button>
-    <h2>로그인 / 회원가입</h2>
-    <div class="sub">소셜 계정으로 바로 시작하세요. 점수와 랭킹이 저장됩니다.</div>
+    <h2 id="acct-login-h">로그인 / 회원가입</h2>
+    <div class="sub">점수·기록·랭킹이 계정에 저장되어 어느 기기에서나 이어집니다.</div>
     <button class="acct-btn" data-prov="google">${ICON_GOOGLE}<span>Google로 계속하기</span></button>
-    <button class="acct-btn apple" data-prov="apple">${ICON_APPLE}<span>Apple로 계속하기</span></button>
+    <div style="text-align:center;color:#555;font-size:.72rem;margin:.7rem 0 .6rem">— 또는 이메일 —</div>
+    <input class="acct-in" id="acct-em-email" type="email" placeholder="이메일" autocomplete="email">
+    <input class="acct-in" id="acct-em-pw" type="password" placeholder="비밀번호 (6자 이상)" autocomplete="current-password">
+    <button class="acct-btn" id="acct-em-login" style="background:#eee">로그인</button>
+    <button class="acct-btn ghost" id="acct-em-signup">이메일로 회원가입</button>
+    <div id="acct-em-msg" style="font-size:.76rem;color:#b06060;text-align:center;min-height:1em"></div>
   </div></div>`);
   login.addEventListener('click', (e) => {
-    if (e.target.dataset.close !== undefined || e.target === login) closeAll();
+    if (e.target.dataset.close !== undefined || e.target === login) { closeAll(); return; }
     const b = e.target.closest('[data-prov]');
     if (b) signIn(b.dataset.prov);
   });
+  login.querySelector('#acct-em-login').addEventListener('click', () => emailAuth(false));
+  login.querySelector('#acct-em-signup').addEventListener('click', () => emailAuth(true));
+  login.querySelector('#acct-em-pw').addEventListener('keydown', (e) => { if (e.key === 'Enter') emailAuth(false); });
   document.body.appendChild(login);
 
   // 프로필/메뉴 모달
@@ -6865,6 +6916,10 @@ function buildUI() {
       <div class="acct-stat"><div class="v" id="acct-st-avg">-</div><div class="l">평균 정답률</div></div>
       <div class="acct-stat"><div class="v" id="acct-st-best">-</div><div class="l">최고 정답률</div></div>
     </div>
+    <div class="acct-lbl">유형별 정답률</div>
+    <div id="acct-cat-stats" style="margin-bottom:.9rem"></div>
+    <div class="acct-lbl">최근 기록</div>
+    <div id="acct-recent" style="margin-bottom:1rem"></div>
     <div class="acct-menu-item" data-act="profile">프로필 설정 (닉네임 · 사진)</div>
     <div class="acct-menu-item" data-act="ranking">랭킹 보기</div>
     <div class="acct-menu-item" data-act="logout" style="color:#b06060">로그아웃</div>
@@ -6956,6 +7011,27 @@ async function signIn(provider) {
   if (error) toast('로그인 실패: ' + error.message);
 }
 
+async function emailAuth(isSignup) {
+  if (!supabase) return;
+  const email = document.getElementById('acct-em-email').value.trim();
+  const pw = document.getElementById('acct-em-pw').value;
+  const msg = document.getElementById('acct-em-msg');
+  msg.style.color = '#b06060';
+  if (!email || !pw) { msg.textContent = '이메일과 비밀번호를 입력하세요'; return; }
+  if (pw.length < 6) { msg.textContent = '비밀번호는 6자 이상이어야 합니다'; return; }
+  msg.style.color = '#888'; msg.textContent = '처리 중…';
+  if (isSignup) {
+    const { data, error } = await supabase.auth.signUp({ email, password: pw });
+    if (error) { msg.style.color = '#b06060'; msg.textContent = '가입 실패: ' + error.message; return; }
+    if (data.session) { closeAll(); toast('가입 완료, 로그인되었습니다'); }
+    else { msg.style.color = '#4a9060'; msg.textContent = '확인 메일을 보냈어요. 메일의 링크를 누른 뒤 로그인하세요.'; }
+  } else {
+    const { error } = await supabase.auth.signInWithPassword({ email, password: pw });
+    if (error) { msg.style.color = '#b06060'; msg.textContent = '로그인 실패: 이메일/비밀번호 확인 (가입 안 했으면 회원가입)'; return; }
+    closeAll(); toast('로그인되었습니다');
+  }
+}
+
 async function signOut() {
   if (!supabase) return;
   await supabase.auth.signOut();
@@ -7029,11 +7105,36 @@ async function openMenuData() {
   document.getElementById('acct-menu-nm').textContent = profile?.nickname || '플레이어';
   document.getElementById('acct-menu-em').textContent = session?.user?.email || '';
   avHtml(document.getElementById('acct-menu-av'), profile?.avatar_url, profile?.nickname);
-  // 내 통계
-  const stats = await myStats();
-  document.getElementById('acct-st-games').textContent = stats.games;
-  document.getElementById('acct-st-avg').textContent = stats.games ? stats.avg + '%' : '-';
-  document.getElementById('acct-st-best').textContent = stats.games ? stats.best + '%' : '-';
+  // 전체 + 유형별 + 최근 기록
+  const rows = await myScores();
+  const overall = aggregate(rows);
+  document.getElementById('acct-st-games').textContent = overall.games;
+  document.getElementById('acct-st-avg').textContent = overall.games ? overall.avg + '%' : '-';
+  document.getElementById('acct-st-best').textContent = overall.games ? overall.best + '%' : '-';
+  // 유형별
+  const catBox = document.getElementById('acct-cat-stats');
+  catBox.innerHTML = '';
+  const cats = ['name', 'border', 'religion', 'korea'];
+  const has = cats.filter((c) => rows.some((r) => r.category === c));
+  if (!has.length) catBox.innerHTML = `<div style="font-size:.78rem;color:#666">아직 기록이 없습니다.</div>`;
+  has.forEach((c) => {
+    const a = aggregate(rows.filter((r) => r.category === c));
+    catBox.appendChild(el(`<div style="display:flex;justify-content:space-between;font-size:.8rem;color:#ccc;padding:.25rem 0;border-bottom:1px solid #1c1c1c">
+      <span>${CAT_NAME[c]}</span>
+      <span style="color:#888">${a.games}판 · 평균 <b style="color:#ddd">${a.avg}%</b> · 최고 <b style="color:#ddd">${a.best}%</b></span></div>`));
+  });
+  // 최근 기록 5개
+  const recBox = document.getElementById('acct-recent');
+  recBox.innerHTML = '';
+  const recent = rows.slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 5);
+  if (!recent.length) recBox.innerHTML = `<div style="font-size:.78rem;color:#666">아직 기록이 없습니다.</div>`;
+  recent.forEach((r) => {
+    const d = new Date(r.created_at);
+    const ds = `${d.getMonth() + 1}/${d.getDate()}`;
+    recBox.appendChild(el(`<div style="display:flex;justify-content:space-between;font-size:.78rem;color:#bbb;padding:.22rem 0;border-bottom:1px solid #1c1c1c">
+      <span>${ds} · ${CAT_NAME[r.category] || r.category}</span>
+      <span style="color:#888">${r.correct}/${r.total} · <b style="color:#ddd">${Number(r.accuracy).toFixed(1)}%</b></span></div>`));
+  });
 }
 
 function openProfile() {
@@ -7081,15 +7182,21 @@ async function saveProfile() {
   toast('프로필이 저장되었습니다');
 }
 
-/* ──────────────── 랭킹 ──────────────── */
-async function myStats() {
-  if (!supabase || !session) return { games: 0, avg: 0, best: 0 };
-  const { data } = await supabase.from('scores').select('accuracy').eq('user_id', session.user.id);
-  if (!data || !data.length) return { games: 0, avg: 0, best: 0 };
-  const acc = data.map((r) => Number(r.accuracy));
+/* ──────────────── 랭킹 · 통계 ──────────────── */
+async function myScores() {
+  if (!supabase || !session) return [];
+  const { data } = await supabase
+    .from('scores')
+    .select('category,correct,total,accuracy,created_at')
+    .eq('user_id', session.user.id);
+  return data || [];
+}
+function aggregate(rows) {
+  if (!rows.length) return { games: 0, avg: 0, best: 0 };
+  const acc = rows.map((r) => Number(r.accuracy));
   const avg = Math.round((acc.reduce((a, b) => a + b, 0) / acc.length) * 10) / 10;
   const best = Math.round(Math.max(...acc) * 10) / 10;
-  return { games: data.length, avg, best };
+  return { games: rows.length, avg, best };
 }
 
 let _rankCache = null;
@@ -7159,10 +7266,24 @@ async function submitScore({ category, correct, total, accuracy }) {
 }
 
 /* ──────────────── 부트스트랩 ──────────────── */
+let _restoredOnce = false;
 async function onAuthChange(newSession) {
+  const wasLoggedOut = !session;
   session = newSession;
-  if (session) await loadProfile();
-  else profile = null;
+  if (session) {
+    await loadProfile();
+    if (wasLoggedOut && !_restoredOnce) {
+      _restoredOnce = true;
+      const n = await restoreUserData();
+      // 게임 진행 중에 로그인했다면 새로 받은 기록을 반영하기 위해 새로고침
+      if (n > 0 && document.body.classList.contains('in-session')) {
+        toast('내 기록을 불러왔어요');
+        setTimeout(() => location.reload(), 800);
+      }
+    }
+  } else {
+    profile = null;
+  }
   renderChip();
 }
 
