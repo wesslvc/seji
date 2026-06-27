@@ -7009,6 +7009,18 @@ localStorage.setItem = function (k, v) {
   _origSet(k, v);
   if (shouldSync(k) && isAccountUser()) queuePush(k, v);
 };
+// 초기화(저장 삭제) 시 서버의 진행 기록도 삭제 → 리더보드에서도 빠짐
+const _origRemove = localStorage.removeItem.bind(localStorage);
+localStorage.removeItem = function (k) {
+  _origRemove(k);
+  if (shouldSync(k) && isAccountUser()) { _pending.delete(k); deleteUserData(k); }
+};
+async function deleteUserData(k) {
+  if (!session) return;
+  await ensureSB();
+  if (!supabase) return;
+  await supabase.from('user_data').delete().eq('user_id', session.user.id).eq('key', k);
+}
 async function restoreUserData() {
   if (!session) return 0;
   await ensureSB();
