@@ -5267,7 +5267,7 @@ function bqEnd(){
   document.getElementById('bq-e1').textContent=BQ.correct;
   document.getElementById('bq-e2').textContent=BQ.wrong;
   el.classList.add('on');
-  try{window.SejiAccount&&window.SejiAccount.submitScore({category:'border',correct:BQ.correct,total:BQ.total,accuracy:Math.round(BQ.correct/(BQ.total||1)*1000)/10});}catch(e){}
+  try{window.SejiAccount&&window.SejiAccount.submitScore({category:'border',correct:BQ.correct,total:BQ.total,accuracy:Math.round(BQ.correct/(BQ.total||1)*1000)/10,scope:SESSION.filterKey});}catch(e){}
 }
 function openBQList(){
   const grid=document.getElementById('bql-grid');if(!grid)return;
@@ -5771,7 +5771,7 @@ function endScreen(){
   document.getElementById('ui-e2').textContent=cnt.c2;
   document.getElementById('ui-e3').textContent=cnt.c3;
   document.getElementById('ui-er').textContent=S.revealed;
-  try{window.SejiAccount&&window.SejiAccount.submitScore({category:'name',correct:S.correct,total:S.total,accuracy:Math.round(S.correct/(S.total||1)*1000)/10});}catch(e){}
+  try{window.SejiAccount&&window.SejiAccount.submitScore({category:'name',correct:S.correct,total:S.total,accuracy:Math.round(S.correct/(S.total||1)*1000)/10,scope:SESSION.filterKey});}catch(e){}
   const revISOs=Object.entries(S.status).filter(([,v])=>v==='cr').map(([k])=>k);
   const tagsEl=document.getElementById('ui-wrong-tags');tagsEl.innerHTML='';
   revISOs.forEach(iso=>{
@@ -6105,7 +6105,7 @@ function openRQList(){
 function endReligionQuiz(){
   const pct=RQ.maxPoints>0?(RQ.earnedPoints/RQ.maxPoints*100).toFixed(1):0;
   document.getElementById('rq-escore').textContent=pct+'%';
-  try{window.SejiAccount&&window.SejiAccount.submitScore({category:'religion',correct:RQ.correct,total:RQ.list.length,accuracy:Number(pct)});}catch(e){}
+  try{window.SejiAccount&&window.SejiAccount.submitScore({category:'religion',correct:RQ.correct,total:RQ.list.length,accuracy:Number(pct),scope:RQ.contKey});}catch(e){}
   document.getElementById('rq-e1').textContent=RQ.correct;
   document.getElementById('rq-e2').textContent=RQ.errors;
   document.getElementById('rq-e3').textContent=RQ.skipped;
@@ -6407,7 +6407,7 @@ function krRandom(){
 }
 function krEndScreen(){
   document.getElementById('kr-escore').textContent=Math.round(KR.correct/KR.total*100)+'%';
-  try{window.SejiAccount&&window.SejiAccount.submitScore({category:'korea',correct:KR.correct,total:KR.total,accuracy:Math.round(KR.correct/(KR.total||1)*1000)/10});}catch(e){}
+  try{window.SejiAccount&&window.SejiAccount.submitScore({category:'korea',correct:KR.correct,total:KR.total,accuracy:Math.round(KR.correct/(KR.total||1)*1000)/10,scope:'korea'});}catch(e){}
   document.getElementById('kr-e1').textContent=KR.correct;
   document.getElementById('kr-e2').textContent=KR.revealed;
   const tags=document.getElementById('kr-wrong-tags');tags.innerHTML='';
@@ -6775,6 +6775,25 @@ function hasStoredSession() {
  */
 
 const CAT_NAME = { name: '나라이름', border: '접경국', religion: '종교', korea: '한국지리' };
+const CONT_KO = { as: '아시아', eu: '유럽', af: '아프리카', na: '북아메리카', sa: '남아메리카', oc: '오세아니아' };
+function scopeContinents(scope) {
+  if (!scope || scope === 'korea') return [];
+  const base = scope.split('_')[0];
+  if (base === 'all' || !base) return ['all'];
+  return base.split('+');
+}
+function scopeLabel(scope) {
+  if (!scope) return '';
+  if (scope === 'korea') return '한국';
+  const parts = scope.split('_');
+  const base = parts[0];
+  let lbl = base === 'all' || !base ? '전체' : base.split('+').map((c) => CONT_KO[c] || c).join('·');
+  const tags = [];
+  if (parts.includes('big')) tags.push('소국 제외');
+  if (parts.includes('noisle')) tags.push('섬 제외');
+  if (tags.length) lbl += ' (' + tags.join(', ') + ')';
+  return lbl;
+}
 
 let session = null;
 let profile = null;
@@ -6785,31 +6804,36 @@ let profile = null;
 const SYNC_RE = /^(wq_|bq_|kq_)/;
 const SYNC_EXCLUDE = new Set(['wq_mode']);
 function shouldSync(k) { return SYNC_RE.test(k) && !SYNC_EXCLUDE.has(k); }
+// 로그인했거나(세션) 로그인 토큰이 남아있으면(세션 로딩 중) 계정 사용자로 취급
+function isAccountUser() { return !!session || (supabaseEnabled && hasStoredSession()); }
 const _origSet = localStorage.setItem.bind(localStorage);
 const _pending = new Map();
 let _pushT = null;
+let _dataErrShown = false;
+let _lastCloudToast = 0;
 function safeParse(v) { try { return JSON.parse(v); } catch (e) { return v; } }
-function queuePush(k, v) { _pending.set(k, v); clearTimeout(_pushT); _pushT = setTimeout(flushPush, 1500); }
+function queuePush(k, v) { _pending.set(k, v); clearTimeout(_pushT); _pushT = setTimeout(flushPush, 800); }
 async function flushPush() {
-  if (!session || !_pending.size) return;
+  if (!_pending.size) return;
   await ensureSB();
-  if (!supabase) return;
+  if (!supabase || !session) return; // 세션 준비 전이면 _pending 유지 후 로그인 시 재시도
   const rows = [..._pending].map(([key, val]) => ({
     user_id: session.user.id, key, data: safeParse(val), updated_at: new Date().toISOString(),
   }));
   _pending.clear();
   const { error } = await supabase.from('user_data').upsert(rows);
-  if (error && !_dataErrShown) {
-    _dataErrShown = true;
-    toast('진행상황 저장 실패: user_data 테이블 SQL을 실행했는지 확인하세요');
+  if (error) {
+    if (!_dataErrShown) { _dataErrShown = true; toast('계정 저장 실패: user_data 테이블 SQL 확인 필요'); }
+  } else if (Date.now() - _lastCloudToast > 8000) {
+    _lastCloudToast = Date.now();
+    toast('☁ 계정에 저장됨');
   }
 }
-let _dataErrShown = false;
 localStorage.setItem = function (k, v) {
-  // 비로그인: 진행상황(퀴즈) 키는 저장하지 않음 — 로그인해야 기록이 남음
-  if (shouldSync(k) && !session) return;
+  // 진짜 게스트(설정됨 + 로그인 안 함)만 진행상황 저장 안 함
+  if (shouldSync(k) && supabaseEnabled && !isAccountUser()) return;
   _origSet(k, v);
-  if (session && shouldSync(k)) queuePush(k, v);
+  if (shouldSync(k) && isAccountUser()) queuePush(k, v);
 };
 async function restoreUserData() {
   if (!session) return 0;
@@ -7009,13 +7033,23 @@ function buildUI() {
   const rank = el(`<div class="acct-ov" id="acct-ranking"><div class="acct-card" style="position:relative">
     <button class="acct-x" data-close>✕</button>
     <h2>랭킹</h2>
-    <div class="sub">종류별 정답률 순위</div>
+    <div class="acct-lbl">유형</div>
     <div class="rank-tabs" id="acct-rank-cats">
       <button class="rank-tab on" data-cat="all">전체</button>
       <button class="rank-tab" data-cat="name">나라이름</button>
       <button class="rank-tab" data-cat="border">접경국</button>
       <button class="rank-tab" data-cat="religion">종교</button>
       <button class="rank-tab" data-cat="korea">한국</button>
+    </div>
+    <div class="acct-lbl">대륙</div>
+    <div class="rank-tabs" id="acct-rank-conts">
+      <button class="rank-tab on" data-cont="all">전체</button>
+      <button class="rank-tab" data-cont="as">아시아</button>
+      <button class="rank-tab" data-cont="eu">유럽</button>
+      <button class="rank-tab" data-cont="af">아프리카</button>
+      <button class="rank-tab" data-cont="na">북미</button>
+      <button class="rank-tab" data-cont="sa">남미</button>
+      <button class="rank-tab" data-cont="oc">오세아니아</button>
     </div>
     <div class="rank-tabs" id="acct-rank-sorts">
       <button class="rank-tab on" data-sort="best">최고 정답률</button>
@@ -7029,7 +7063,14 @@ function buildUI() {
     if (c) {
       rank.querySelectorAll('#acct-rank-cats .rank-tab').forEach((x) => x.classList.toggle('on', x === c));
       _rankCat = c.dataset.cat;
-      reloadRanking();
+      renderRanking();
+      return;
+    }
+    const co = e.target.closest('[data-cont]');
+    if (co) {
+      rank.querySelectorAll('#acct-rank-conts .rank-tab').forEach((x) => x.classList.toggle('on', x === co));
+      _rankCont = co.dataset.cont;
+      renderRanking();
       return;
     }
     const t = e.target.closest('[data-sort]');
@@ -7222,9 +7263,10 @@ async function openMenuData() {
   recent.forEach((r) => {
     const d = new Date(r.created_at);
     const ds = `${d.getMonth() + 1}/${d.getDate()}`;
-    recBox.appendChild(el(`<div style="display:flex;justify-content:space-between;font-size:.78rem;color:#bbb;padding:.22rem 0;border-bottom:1px solid #1c1c1c">
-      <span>${ds} · ${CAT_NAME[r.category] || r.category}</span>
-      <span style="color:#888">${r.correct}/${r.total} · <b style="color:#ddd">${Number(r.accuracy).toFixed(1)}%</b></span></div>`));
+    const sc = r.category === 'korea' ? '' : scopeLabel(r.scope);
+    recBox.appendChild(el(`<div style="display:flex;justify-content:space-between;gap:.5rem;font-size:.78rem;color:#bbb;padding:.28rem 0;border-bottom:1px solid #1c1c1c">
+      <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ds} · ${CAT_NAME[r.category] || r.category}${sc ? ` <span style="color:#777">${sc}</span>` : ''}</span>
+      <span style="color:#888;flex-shrink:0">${r.correct}/${r.total} · <b style="color:#ddd">${Number(r.accuracy).toFixed(1)}%</b></span></div>`));
   });
 }
 
@@ -7282,7 +7324,7 @@ async function myScores() {
   if (!supabase) return [];
   const { data } = await supabase
     .from('scores')
-    .select('category,correct,total,accuracy,created_at')
+    .select('category,scope,correct,total,accuracy,created_at')
     .eq('user_id', session.user.id);
   return data || [];
 }
@@ -7294,44 +7336,58 @@ function aggregate(rows) {
   return { games: rows.length, avg, best };
 }
 
-let _rankCache = null;
+let _rankScores = null; // 전체 점수 원본
+let _rankProfs = null;  // id → {nickname, avatar_url}
 let _rankCat = 'all';
+let _rankCont = 'all';
 let _rankSort = 'best';
-async function fetchLeaderboard(cat) {
-  await ensureSB();
-  if (!supabase) return [];
-  if (cat === 'all') {
-    const { data, error } = await supabase.from('leaderboard').select('*');
-    if (error) { toast('랭킹 불러오기 실패'); return []; }
-    return data || [];
-  }
-  const { data, error } = await supabase.from('leaderboard_by_cat').select('*').eq('category', cat);
-  if (error) { toast('종류별 랭킹은 SQL 업데이트가 필요해요 (SETUP 참고)'); return []; }
-  return data || [];
-}
 
 async function openRanking() {
   open('acct-ranking');
-  _rankCat = 'all'; _rankSort = 'best';
+  _rankCat = 'all'; _rankCont = 'all'; _rankSort = 'best';
   document.querySelectorAll('#acct-rank-cats .rank-tab').forEach((x) => x.classList.toggle('on', x.dataset.cat === 'all'));
+  document.querySelectorAll('#acct-rank-conts .rank-tab').forEach((x) => x.classList.toggle('on', x.dataset.cont === 'all'));
   document.querySelectorAll('#acct-rank-sorts .rank-tab').forEach((x) => x.classList.toggle('on', x.dataset.sort === 'best'));
-  reloadRanking();
+  document.getElementById('acct-rank-list').innerHTML = `<div class="acct-empty">불러오는 중…</div>`;
+  await ensureSB();
+  if (!supabase) return;
+  const [sc, pf] = await Promise.all([
+    supabase.from('scores').select('user_id,category,scope,accuracy'),
+    supabase.from('profiles').select('id,nickname,avatar_url'),
+  ]);
+  if (sc.error) { document.getElementById('acct-rank-list').innerHTML = `<div class="acct-empty">랭킹 불러오기 실패</div>`; return; }
+  _rankScores = sc.data || [];
+  _rankProfs = {};
+  (pf.data || []).forEach((p) => { _rankProfs[p.id] = p; });
+  renderRanking();
 }
 
-async function reloadRanking() {
-  document.getElementById('acct-rank-list').innerHTML = `<div class="acct-empty">불러오는 중…</div>`;
-  _rankCache = await fetchLeaderboard(_rankCat);
-  renderRanking();
+function rankMatch(r) {
+  if (_rankCat !== 'all' && r.category !== _rankCat) return false;
+  if (_rankCont !== 'all') {
+    const conts = scopeContinents(r.scope);
+    if (!conts.includes(_rankCont)) return false;
+  }
+  return true;
 }
 
 function renderRanking() {
   const list = document.getElementById('acct-rank-list');
-  const key = _rankSort === 'avg' ? 'avg_accuracy' : 'best_accuracy';
-  const rows = (_rankCache || [])
-    .filter((r) => r.games > 0)
-    .sort((a, b) => Number(b[key]) - Number(a[key]))
-    .slice(0, 100);
-  if (!rows.length) { list.innerHTML = `<div class="acct-empty">아직 기록이 없습니다.<br>퀴즈를 완료하면 랭킹에 등록됩니다.</div>`; return; }
+  if (!_rankScores) { list.innerHTML = `<div class="acct-empty">불러오는 중…</div>`; return; }
+  // 사용자별 집계
+  const byUser = {};
+  for (const r of _rankScores) {
+    if (!rankMatch(r)) continue;
+    (byUser[r.user_id] || (byUser[r.user_id] = [])).push(Number(r.accuracy));
+  }
+  const key = _rankSort === 'avg' ? 'avg' : 'best';
+  const rows = Object.entries(byUser).map(([uid, accs]) => {
+    const avg = Math.round((accs.reduce((a, b) => a + b, 0) / accs.length) * 10) / 10;
+    const best = Math.round(Math.max(...accs) * 10) / 10;
+    const p = (_rankProfs && _rankProfs[uid]) || {};
+    return { id: uid, nickname: p.nickname, avatar_url: p.avatar_url, games: accs.length, avg, best };
+  }).sort((a, b) => b[key] - a[key]).slice(0, 100);
+  if (!rows.length) { list.innerHTML = `<div class="acct-empty">이 조건의 기록이 아직 없습니다.</div>`; return; }
   const myId = session?.user?.id;
   list.innerHTML = '';
   rows.forEach((r, i) => {
@@ -7341,7 +7397,7 @@ function renderRanking() {
       <div class="rank-av"></div>
       <div class="rank-nm">${escapeHtml(r.nickname || '익명')}${me ? ' (나)' : ''}</div>
       <div class="rank-right">
-        <div class="rank-val">${Number(r[key]).toFixed(1)}%</div>
+        <div class="rank-val">${r[key].toFixed(1)}%</div>
         <div class="rank-sub">${_rankSort === 'avg' ? '평균' : '최고'} · ${r.games}판</div>
       </div>
     </div>`);
@@ -7356,11 +7412,11 @@ function escapeHtml(s) {
 
 /* ──────────────── 점수 제출 (게임에서 호출) ──────────────── */
 let _lastSubmit = { sig: '', t: 0 };
-async function submitScore({ category, correct, total, accuracy }) {
+async function submitScore({ category, correct, total, accuracy, scope }) {
   if (!session) return; // 비로그인 시 무시
   if (!total) return;
   // 종료 함수가 중복 호출돼도 한 번만 기록 (3초 내 동일 결과 무시)
-  const sig = `${category}|${correct}|${total}|${accuracy}`;
+  const sig = `${category}|${correct}|${total}|${accuracy}|${scope}`;
   const now = Date.now();
   if (sig === _lastSubmit.sig && now - _lastSubmit.t < 3000) return;
   _lastSubmit = { sig, t: now };
@@ -7370,6 +7426,7 @@ async function submitScore({ category, correct, total, accuracy }) {
   const { error } = await supabase.from('scores').insert({
     user_id: session.user.id,
     category: category || 'name',
+    scope: scope || null,
     correct: correct | 0,
     total: total | 0,
     accuracy: acc,
@@ -7393,6 +7450,8 @@ async function onAuthChange(newSession) {
         setTimeout(() => location.reload(), 800);
       }
     }
+    // 세션 로딩 전에 쌓인 진행상황을 이제 업로드
+    if (_pending.size) flushPush();
   } else {
     profile = null;
   }

@@ -29,6 +29,7 @@ create table if not exists public.scores (
   id         bigint generated always as identity primary key,
   user_id    uuid not null references auth.users on delete cascade,
   category   text not null,                       -- name | border | religion | korea
+  scope      text,                                -- 출제범위 키 (예: as+eu_big, all, korea)
   correct    int  not null,
   total      int  not null,
   accuracy   numeric(5,1) not null,               -- 0.0 ~ 100.0
