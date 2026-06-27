@@ -7188,32 +7188,46 @@ function buildUI() {
   const rank = el(`<div class="acct-ov" id="acct-ranking"><div class="acct-card" style="position:relative">
     <button class="acct-x" data-close>✕</button>
     <h2>랭킹</h2>
-    <div class="acct-lbl">유형</div>
-    <div class="rank-tabs" id="acct-rank-cats">
-      <button class="rank-tab on" data-cat="all">전체</button>
-      <button class="rank-tab" data-cat="name">나라이름</button>
-      <button class="rank-tab" data-cat="border">접경국</button>
-      <button class="rank-tab" data-cat="religion">종교</button>
-      <button class="rank-tab" data-cat="korea">한국</button>
+    <div class="rank-tabs" id="acct-rank-mode" style="margin-bottom:.5rem">
+      <button class="rank-tab on" data-mode="unified" style="flex:1">🏆 통합 랭킹 (국가수 가중)</button>
+      <button class="rank-tab" data-mode="filter" style="flex:1">유형·대륙별</button>
     </div>
-    <div class="acct-lbl">대륙</div>
-    <div class="rank-tabs" id="acct-rank-conts">
-      <button class="rank-tab on" data-cont="all">전체</button>
-      <button class="rank-tab" data-cont="as">아시아</button>
-      <button class="rank-tab" data-cont="eu">유럽</button>
-      <button class="rank-tab" data-cont="af">아프리카</button>
-      <button class="rank-tab" data-cont="na">북미</button>
-      <button class="rank-tab" data-cont="sa">남미</button>
-      <button class="rank-tab" data-cont="oc">오세아니아</button>
-    </div>
-    <div class="rank-tabs" id="acct-rank-sorts">
-      <button class="rank-tab on" data-sort="best">최고 정답률</button>
-      <button class="rank-tab" data-sort="avg">평균 정답률</button>
+    <div id="acct-rank-filters" style="display:none">
+      <div class="acct-lbl">유형</div>
+      <div class="rank-tabs" id="acct-rank-cats">
+        <button class="rank-tab on" data-cat="all">전체</button>
+        <button class="rank-tab" data-cat="name">나라이름</button>
+        <button class="rank-tab" data-cat="border">접경국</button>
+        <button class="rank-tab" data-cat="religion">종교</button>
+        <button class="rank-tab" data-cat="korea">한국</button>
+      </div>
+      <div class="acct-lbl">대륙</div>
+      <div class="rank-tabs" id="acct-rank-conts">
+        <button class="rank-tab on" data-cont="all">전체</button>
+        <button class="rank-tab" data-cont="as">아시아</button>
+        <button class="rank-tab" data-cont="eu">유럽</button>
+        <button class="rank-tab" data-cont="af">아프리카</button>
+        <button class="rank-tab" data-cont="na">북미</button>
+        <button class="rank-tab" data-cont="sa">남미</button>
+        <button class="rank-tab" data-cont="oc">오세아니아</button>
+      </div>
+      <div class="rank-tabs" id="acct-rank-sorts">
+        <button class="rank-tab on" data-sort="best">최고 정답률</button>
+        <button class="rank-tab" data-sort="avg">평균 정답률</button>
+      </div>
     </div>
     <div class="rank-list" id="acct-rank-list"></div>
   </div></div>`);
   rank.addEventListener('click', (e) => {
     if (e.target.dataset.close !== undefined || e.target === rank) return closeAll();
+    const m = e.target.closest('[data-mode]');
+    if (m) {
+      rank.querySelectorAll('#acct-rank-mode .rank-tab').forEach((x) => x.classList.toggle('on', x === m));
+      _rankMode = m.dataset.mode;
+      document.getElementById('acct-rank-filters').style.display = _rankMode === 'filter' ? 'block' : 'none';
+      renderRanking();
+      return;
+    }
     const c = e.target.closest('[data-cat]');
     if (c) {
       rank.querySelectorAll('#acct-rank-cats .rank-tab').forEach((x) => x.classList.toggle('on', x === c));
@@ -7564,13 +7578,16 @@ function aggregate(rows) {
 
 let _rankScores = null; // 전체 점수 원본
 let _rankProfs = null;  // id → {nickname, avatar_url}
+let _rankMode = 'unified';
 let _rankCat = 'all';
 let _rankCont = 'all';
 let _rankSort = 'best';
 
 async function openRanking() {
   open('acct-ranking');
-  _rankCat = 'all'; _rankCont = 'all'; _rankSort = 'best';
+  _rankMode = 'unified'; _rankCat = 'all'; _rankCont = 'all'; _rankSort = 'best';
+  document.querySelectorAll('#acct-rank-mode .rank-tab').forEach((x) => x.classList.toggle('on', x.dataset.mode === 'unified'));
+  document.getElementById('acct-rank-filters').style.display = 'none';
   document.querySelectorAll('#acct-rank-cats .rank-tab').forEach((x) => x.classList.toggle('on', x.dataset.cat === 'all'));
   document.querySelectorAll('#acct-rank-conts .rank-tab').forEach((x) => x.classList.toggle('on', x.dataset.cont === 'all'));
   document.querySelectorAll('#acct-rank-sorts .rank-tab').forEach((x) => x.classList.toggle('on', x.dataset.sort === 'best'));
@@ -7590,6 +7607,7 @@ async function openRanking() {
 
 function rankMatch(r) {
   if (r.is_retry) return false; // 오답 다시풀기는 랭킹 제외
+  if (_rankMode === 'unified') return true; // 통합: 모든 유형·대륙
   if (_rankCat !== 'all' && r.category !== _rankCat) return false;
   if (_rankCont !== 'all') {
     const conts = scopeContinents(r.scope);
@@ -7602,7 +7620,7 @@ function renderRanking() {
   const list = document.getElementById('acct-rank-list');
   if (!_rankScores) { list.innerHTML = `<div class="acct-empty">불러오는 중…</div>`; return; }
   const myId = session?.user?.id;
-  const unified = (_rankCat === 'all' && _rankCont === 'all');
+  const unified = (_rankMode === 'unified');
   let rows;
   if (unified) {
     // 통합 점수: 사용자별로 (유형+범위)별 최고 '맞춘 수'를 합산 — 푼 국가 수에 가중
