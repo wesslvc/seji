@@ -6839,19 +6839,21 @@ function injectStyle() {
   .acct-stat{background:#181818;border:1px solid #242424;border-radius:6px;padding:.5rem;text-align:center}
   .acct-stat .v{font-size:1.2rem;font-weight:700;color:#eee;font-family:'Barlow Condensed',sans-serif}
   .acct-stat .l{font-size:.6rem;color:#777;margin-top:2px}
-  .rank-tabs{display:flex;gap:.4rem;margin-bottom:.8rem}
-  .rank-tab{flex:1;padding:.4rem;border-radius:6px;border:1px solid #2a2a2a;background:transparent;color:#888;font-size:.78rem;
-    cursor:pointer;font-family:'Pretendard','Noto Sans KR',sans-serif}
+  .rank-tabs{display:flex;gap:.35rem;margin-bottom:.6rem;flex-wrap:wrap}
+  .rank-tab{flex:1 1 0;min-width:0;padding:.4rem .2rem;border-radius:6px;border:1px solid #2a2a2a;background:transparent;color:#888;
+    font-size:.76rem;line-height:1;text-align:center;cursor:pointer;font-family:'Pretendard','Noto Sans KR',sans-serif;white-space:nowrap}
   .rank-tab.on{background:#eee;color:#000;border-color:#eee}
-  .rank-list{display:flex;flex-direction:column;gap:.3rem;max-height:50vh;overflow-y:auto}
-  .rank-item{display:flex;align-items:center;gap:.6rem;padding:.45rem .5rem;border-radius:6px;background:#161616}
+  .rank-list{display:flex;flex-direction:column;gap:.3rem;max-height:50vh;overflow-y:auto;margin-top:.2rem}
+  .rank-item{display:flex;align-items:center;gap:.6rem;padding:.45rem .55rem;border-radius:6px;background:#161616}
   .rank-item.me{background:#1d2740;border:1px solid #2f4a7a}
-  .rank-no{width:24px;text-align:center;font-weight:700;color:#888;font-family:'Barlow Condensed',sans-serif;font-size:1rem}
+  .rank-no{width:26px;text-align:center;font-weight:700;color:#888;font-family:'Barlow Condensed',sans-serif;font-size:1.05rem;
+    font-variant-numeric:tabular-nums;flex-shrink:0}
   .rank-no.top{color:#d4a017}
   .rank-av{width:30px;height:30px;border-radius:50%;object-fit:cover;background:#222;flex-shrink:0;display:flex;
     align-items:center;justify-content:center;color:#777;font-size:.75rem;font-weight:700}
-  .rank-nm{flex:1;font-size:.84rem;color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .rank-val{font-size:.9rem;font-weight:700;color:#eee;font-family:'Barlow Condensed',sans-serif}
+  .rank-nm{flex:1;min-width:0;font-size:.84rem;color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rank-right{text-align:right;flex-shrink:0;line-height:1.2}
+  .rank-val{font-size:.95rem;font-weight:700;color:#eee;font-family:'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums}
   .rank-sub{font-size:.62rem;color:#777}
   .acct-empty{text-align:center;color:#777;font-size:.82rem;padding:1.4rem 0}
   .acct-toast{position:fixed;bottom:1.2rem;left:50%;transform:translateX(-50%);z-index:9999;background:#1a1a1a;
@@ -6960,8 +6962,15 @@ function buildUI() {
   const rank = el(`<div class="acct-ov" id="acct-ranking"><div class="acct-card" style="position:relative">
     <button class="acct-x" data-close>✕</button>
     <h2>랭킹</h2>
-    <div class="sub">전체 사용자 정답률 순위</div>
-    <div class="rank-tabs">
+    <div class="sub">종류별 정답률 순위</div>
+    <div class="rank-tabs" id="acct-rank-cats">
+      <button class="rank-tab on" data-cat="all">전체</button>
+      <button class="rank-tab" data-cat="name">나라이름</button>
+      <button class="rank-tab" data-cat="border">접경국</button>
+      <button class="rank-tab" data-cat="religion">종교</button>
+      <button class="rank-tab" data-cat="korea">한국</button>
+    </div>
+    <div class="rank-tabs" id="acct-rank-sorts">
       <button class="rank-tab on" data-sort="best">최고 정답률</button>
       <button class="rank-tab" data-sort="avg">평균 정답률</button>
     </div>
@@ -6969,10 +6978,18 @@ function buildUI() {
   </div></div>`);
   rank.addEventListener('click', (e) => {
     if (e.target.dataset.close !== undefined || e.target === rank) return closeAll();
+    const c = e.target.closest('[data-cat]');
+    if (c) {
+      rank.querySelectorAll('#acct-rank-cats .rank-tab').forEach((x) => x.classList.toggle('on', x === c));
+      _rankCat = c.dataset.cat;
+      reloadRanking();
+      return;
+    }
     const t = e.target.closest('[data-sort]');
     if (t) {
-      rank.querySelectorAll('.rank-tab').forEach((x) => x.classList.toggle('on', x === t));
-      renderRanking(t.dataset.sort);
+      rank.querySelectorAll('#acct-rank-sorts .rank-tab').forEach((x) => x.classList.toggle('on', x === t));
+      _rankSort = t.dataset.sort;
+      renderRanking();
     }
   });
   document.body.appendChild(rank);
@@ -7200,23 +7217,37 @@ function aggregate(rows) {
 }
 
 let _rankCache = null;
-async function fetchLeaderboard() {
+let _rankCat = 'all';
+let _rankSort = 'best';
+async function fetchLeaderboard(cat) {
   if (!supabase) return [];
-  const { data, error } = await supabase.from('leaderboard').select('*');
-  if (error) { toast('랭킹 불러오기 실패'); return []; }
+  if (cat === 'all') {
+    const { data, error } = await supabase.from('leaderboard').select('*');
+    if (error) { toast('랭킹 불러오기 실패'); return []; }
+    return data || [];
+  }
+  const { data, error } = await supabase.from('leaderboard_by_cat').select('*').eq('category', cat);
+  if (error) { toast('종류별 랭킹은 SQL 업데이트가 필요해요 (SETUP 참고)'); return []; }
   return data || [];
 }
 
 async function openRanking() {
   open('acct-ranking');
-  document.getElementById('acct-rank-list').innerHTML = `<div class="acct-empty">불러오는 중…</div>`;
-  _rankCache = await fetchLeaderboard();
-  renderRanking('best');
+  _rankCat = 'all'; _rankSort = 'best';
+  document.querySelectorAll('#acct-rank-cats .rank-tab').forEach((x) => x.classList.toggle('on', x.dataset.cat === 'all'));
+  document.querySelectorAll('#acct-rank-sorts .rank-tab').forEach((x) => x.classList.toggle('on', x.dataset.sort === 'best'));
+  reloadRanking();
 }
 
-function renderRanking(sort) {
+async function reloadRanking() {
+  document.getElementById('acct-rank-list').innerHTML = `<div class="acct-empty">불러오는 중…</div>`;
+  _rankCache = await fetchLeaderboard(_rankCat);
+  renderRanking();
+}
+
+function renderRanking() {
   const list = document.getElementById('acct-rank-list');
-  const key = sort === 'avg' ? 'avg_accuracy' : 'best_accuracy';
+  const key = _rankSort === 'avg' ? 'avg_accuracy' : 'best_accuracy';
   const rows = (_rankCache || [])
     .filter((r) => r.games > 0)
     .sort((a, b) => Number(b[key]) - Number(a[key]))
@@ -7230,9 +7261,9 @@ function renderRanking(sort) {
       <div class="rank-no${i < 3 ? ' top' : ''}">${i + 1}</div>
       <div class="rank-av"></div>
       <div class="rank-nm">${escapeHtml(r.nickname || '익명')}${me ? ' (나)' : ''}</div>
-      <div style="text-align:right">
+      <div class="rank-right">
         <div class="rank-val">${Number(r[key]).toFixed(1)}%</div>
-        <div class="rank-sub">${sort === 'avg' ? '평균' : '최고'} · ${r.games}판</div>
+        <div class="rank-sub">${_rankSort === 'avg' ? '평균' : '최고'} · ${r.games}판</div>
       </div>
     </div>`);
     avHtml(item.querySelector('.rank-av'), r.avatar_url, r.nickname);

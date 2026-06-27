@@ -49,6 +49,20 @@ from public.profiles p
 left join public.scores s on s.user_id = p.id
 group by p.id, p.nickname, p.avatar_url;
 
+-- 3-2) 종류별 랭킹 뷰 (사용자 × 카테고리)
+create or replace view public.leaderboard_by_cat as
+select
+  p.id,
+  p.nickname,
+  p.avatar_url,
+  s.category,
+  count(s.id)                as games,
+  round(avg(s.accuracy),1)   as avg_accuracy,
+  max(s.accuracy)            as best_accuracy
+from public.profiles p
+join public.scores s on s.user_id = p.id
+group by p.id, p.nickname, p.avatar_url, s.category;
+
 -- ════════════════════════════════════════════════════════════
 --  RLS (행 수준 보안)
 -- ════════════════════════════════════════════════════════════
