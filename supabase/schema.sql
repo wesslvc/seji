@@ -77,19 +77,25 @@ group by p.id, p.nickname, p.avatar_url, s.category;
 alter table public.profiles enable row level security;
 alter table public.scores   enable row level security;
 
--- 프로필: 누구나 조회(랭킹 표시용), 본인만 생성/수정
+-- 프로필: 로그인 사용자만 조회(랭킹 표시용), 본인만 생성/수정. 삭제 정책 없음=불가
 drop policy if exists "profiles read"   on public.profiles;
 drop policy if exists "profiles insert" on public.profiles;
 drop policy if exists "profiles update" on public.profiles;
-create policy "profiles read"   on public.profiles for select using (true);
-create policy "profiles insert" on public.profiles for insert with check (auth.uid() = id);
-create policy "profiles update" on public.profiles for update using (auth.uid() = id);
+create policy "profiles read"   on public.profiles for select to authenticated using (true);
+create policy "profiles insert" on public.profiles for insert to authenticated with check (auth.uid() = id);
+create policy "profiles update" on public.profiles for update to authenticated using (auth.uid() = id);
 
--- 점수: 누구나 조회(랭킹 집계용), 본인만 추가
+-- 점수: 로그인 사용자만 조회(랭킹 집계용), 본인 것만 추가. 수정/삭제 정책 없음=불가
 drop policy if exists "scores read"   on public.scores;
 drop policy if exists "scores insert" on public.scores;
-create policy "scores read"   on public.scores for select using (true);
-create policy "scores insert" on public.scores for insert with check (auth.uid() = user_id);
+create policy "scores read"   on public.scores for select to authenticated using (true);
+create policy "scores insert" on public.scores for insert to authenticated
+  with check (
+    auth.uid() = user_id
+    and total > 0 and correct >= 0 and correct <= total
+    and accuracy >= 0 and accuracy <= 100
+    and category in ('name','border','religion','korea')
+  );
 
 -- ════════════════════════════════════════════════════════════
 --  Storage: 프로필 사진 버킷 'avatars'
