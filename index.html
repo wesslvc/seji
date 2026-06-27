@@ -5047,7 +5047,7 @@ function startSession(cat,acts,filterKey,rqContKey){
   if(cat==='world'){
     if(acts.includes('name')||acts.includes('border')){initActiveSet(filterKey);}
     if(acts.includes('name')){
-      S.correct=0;S.revealed=0;S.status={};S.wrong={};
+      S.correct=0;S.revealed=0;S.status={};S.wrong={};S.recorded=false;
       loadGame();
     }
     if(acts.includes('border')){bqInit(filterKey);}
@@ -5118,7 +5118,7 @@ function repaintMap(){
   paint();
 }
 
-function startWithDefaultFilter(){initActiveSet('all');S.correct=0;S.revealed=0;S.status={};S.wrong={};loadGame();stats();}
+function startWithDefaultFilter(){initActiveSet('all');S.correct=0;S.revealed=0;S.status={};S.wrong={};S.recorded=false;loadGame();stats();}
 function applyModeUI(){
   const mob=document.getElementById('ui-mob-bar');
   const kmob=document.getElementById('kr-mob-bar');
@@ -5141,7 +5141,7 @@ function toggleMenu(){}
 function closeMenu(){}
 
 /* ══════════ 접경국 맞추기 퀴즈 (BQ) ══════════ */
-const BQ={activeSet:null,total:0,queue:[],status:{},correct:0,wrong:0,curWrong:0,target:null,remaining:null,currentGroup:[],wrongCounts:{},saveKey:'bq_all'};
+const BQ={activeSet:null,total:0,queue:[],status:{},correct:0,wrong:0,curWrong:0,target:null,remaining:null,currentGroup:[],wrongCounts:{},saveKey:'bq_all',recorded:false};
 function bqPool(){
   let base=S.activeSet?[...S.activeSet]:Object.keys(COUNTRIES);
   /* 원형으로만 표시되는 소국은 지도 클릭이 불가능하므로 접경국 퀴즈에서 제외 */
@@ -5161,7 +5161,7 @@ function bqInit(filterKey){
   BQ.saveKey='bq_'+(filterKey||'all');
   BQ.activeSet=new Set(bqPool());
   BQ.total=BQ.activeSet.size;
-  BQ.status={};BQ.correct=0;BQ.wrong=0;BQ.curWrong=0;BQ.target=null;BQ.remaining=null;BQ.currentGroup=[];BQ.wrongCounts={};
+  BQ.status={};BQ.correct=0;BQ.wrong=0;BQ.curWrong=0;BQ.target=null;BQ.remaining=null;BQ.currentGroup=[];BQ.wrongCounts={};BQ.recorded=false;
   bqLoad();
   const done=new Set(Object.keys(BQ.status));
   const allGroups=bqBuildGroupQueue(BQ.activeSet);
@@ -5172,9 +5172,10 @@ function bqLoad(){
     const d=JSON.parse(raw);BQ.status=d.status||{};BQ.wrongCounts=d.wrongCounts||{};
     for(const k of Object.keys(BQ.status))if(!BQ.activeSet.has(k))delete BQ.status[k];
     let c=0,w=0;for(const v of Object.values(BQ.status)){if(v==='cr')w++;else c++;}BQ.correct=c;BQ.wrong=w;
+    BQ.recorded=!!d.recorded;
     return true;}catch(e){return false;}
 }
-function bqSave(){if(BQ.activeSet)localStorage.setItem(BQ.saveKey,JSON.stringify({status:BQ.status,correct:BQ.correct,wrong:BQ.wrong,wrongCounts:BQ.wrongCounts}));}
+function bqSave(){if(BQ.activeSet)localStorage.setItem(BQ.saveKey,JSON.stringify({status:BQ.status,correct:BQ.correct,wrong:BQ.wrong,wrongCounts:BQ.wrongCounts,recorded:BQ.recorded}));}
 function bqCurrentGroup(){return BQ.queue.length?BQ.queue[0]:null;}
 function bqStats(){
   const done=BQ.correct+BQ.wrong,rem=BQ.total-done;
@@ -5255,7 +5256,7 @@ function bqSkip(){const g=BQ.queue.shift();if(g)BQ.queue.push(g);bqShowCurrent()
 function resetBorderQuiz(){
   if(!confirm('접경국 퀴즈 진행 상황을 초기화할까요?'))return;
   localStorage.removeItem(BQ.saveKey);
-  BQ.status={};BQ.correct=0;BQ.wrong=0;BQ.wrongCounts={};
+  BQ.status={};BQ.correct=0;BQ.wrong=0;BQ.wrongCounts={};BQ.recorded=false;
   const allGroups=bqBuildGroupQueue(BQ.activeSet);
   BQ.queue=allGroups.sort(()=>Math.random()-.5);
   clearMapColors();paint();bqStats();bqShowCurrent();
@@ -5267,7 +5268,7 @@ function bqEnd(){
   document.getElementById('bq-e1').textContent=BQ.correct;
   document.getElementById('bq-e2').textContent=BQ.wrong;
   el.classList.add('on');
-  try{window.SejiAccount&&window.SejiAccount.submitScore({category:'border',correct:BQ.correct,total:BQ.total,accuracy:Math.round(BQ.correct/(BQ.total||1)*1000)/10,scope:SESSION.filterKey});}catch(e){}
+  if(!BQ.recorded){BQ.recorded=true;try{bqSave();}catch(e){}try{window.SejiAccount&&window.SejiAccount.submitScore({category:'border',correct:BQ.correct,total:BQ.total,accuracy:Math.round(BQ.correct/(BQ.total||1)*1000)/10,scope:SESSION.filterKey});}catch(e){}}
 }
 function openBQList(){
   const grid=document.getElementById('bql-grid');if(!grid)return;
@@ -5434,7 +5435,7 @@ const BORDERS={
   sr:['gy','br'],uy:['br','ar'],ve:['co','br','gy'],pg:['id']
 };
 
-const S={cur:null,correct:0,revealed:0,wrong:{},status:{},total:0,activeSet:null,saveKey:'wq_all'};
+const S={cur:null,correct:0,revealed:0,wrong:{},status:{},total:0,activeSet:null,saveKey:'wq_all',recorded:false};
 function done(i){return!!S.status[i];}
 function inActive(i){return S.activeSet?S.activeSet.has(i):!!COUNTRIES[i];}
 
@@ -5461,7 +5462,7 @@ function initActiveSet(key){
 
 const SAVE_KEY='wq_state_v2'; /* legacy — not used for new slots */
 function saveGame(){
-  localStorage.setItem(S.saveKey,JSON.stringify({status:S.status,correct:S.correct,revealed:S.revealed,wrong:S.wrong}));
+  localStorage.setItem(S.saveKey,JSON.stringify({status:S.status,correct:S.correct,revealed:S.revealed,wrong:S.wrong,recorded:S.recorded}));
   const btn=document.getElementById('ui-save');
   if(btn){btn.textContent='✓ 저장됨';btn.classList.add('saved');
   setTimeout(()=>{btn.textContent='💾 저장';btn.classList.remove('saved');},1500);}
@@ -5479,14 +5480,14 @@ function loadGame(){
     for(const[k,v]of Object.entries(d.wrong||{})){
       if(S.activeSet&&S.activeSet.has(k))S.wrong[k]=v;
     }
-    S.correct=cor;S.revealed=rev;return true;
+    S.correct=cor;S.revealed=rev;S.recorded=!!d.recorded;return true;
   }catch(e){return false;}
 }
 function resetMapQuiz(){
   const modeName=S.saveKey.replace('wq_','');
   if(!confirm('현재 모드('+modeName+') 진행 상황을 초기화할까요?'))return;
   localStorage.removeItem(S.saveKey);
-  S.correct=0;S.revealed=0;S.wrong={};S.status={};S.cur=null;
+  S.correct=0;S.revealed=0;S.wrong={};S.status={};S.cur=null;S.recorded=false;
   Object.keys(colors).forEach(k=>delete colors[k]);
   paint();
   closeModal();
@@ -5735,7 +5736,7 @@ function retryWrong(){
   document.getElementById('ui-end').style.display='none';
   S.activeSet=new Set(wrongISOs);S.total=wrongISOs.length;
   S.saveKey='wq__retry';
-  S.correct=0;S.revealed=0;S.status={};S.wrong={};
+  S.correct=0;S.revealed=0;S.status={};S.wrong={};S.recorded=false;
   Object.keys(colors).forEach(k=>stopJsBlink(k));
   for(const k in colors)delete colors[k];
   paintMask();paint();stats();
@@ -5758,7 +5759,7 @@ function startOopsQuiz(){
   document.getElementById('ui-end').style.display='none';
   S.activeSet=new Set(saved);S.total=saved.length;
   S.saveKey='wq__oops';
-  S.correct=0;S.revealed=0;S.status={};S.wrong={};
+  S.correct=0;S.revealed=0;S.status={};S.wrong={};S.recorded=false;
   Object.keys(colors).forEach(k=>stopJsBlink(k));
   for(const k in colors)delete colors[k];
   paintMask();paint();stats();
@@ -5771,7 +5772,7 @@ function endScreen(){
   document.getElementById('ui-e2').textContent=cnt.c2;
   document.getElementById('ui-e3').textContent=cnt.c3;
   document.getElementById('ui-er').textContent=S.revealed;
-  try{window.SejiAccount&&window.SejiAccount.submitScore({category:'name',correct:S.correct,total:S.total,accuracy:Math.round(S.correct/(S.total||1)*1000)/10,scope:SESSION.filterKey});}catch(e){}
+  if(!S.recorded){S.recorded=true;try{saveGame();}catch(e){}try{window.SejiAccount&&window.SejiAccount.submitScore({category:'name',correct:S.correct,total:S.total,accuracy:Math.round(S.correct/(S.total||1)*1000)/10,scope:SESSION.filterKey});}catch(e){}}
   const revISOs=Object.entries(S.status).filter(([,v])=>v==='cr').map(([k])=>k);
   const tagsEl=document.getElementById('ui-wrong-tags');tagsEl.innerHTML='';
   revISOs.forEach(iso=>{
@@ -5894,7 +5895,7 @@ function animateTo(tx,ty,sc,dur,cb){
 }
 
 /* ── Religion Quiz ── */
-const RQ={list:[],idx:0,correct:0,errors:0,skipped:0,wrongItems:[],wrongCounts:{},earnedPoints:0,maxPoints:0,cur:null,submitted:false,attempts:0,sel1:null,sel2:null,contKey:'all',saveKey:'wq_rq_all'};
+const RQ={list:[],idx:0,correct:0,errors:0,skipped:0,wrongItems:[],wrongCounts:{},earnedPoints:0,maxPoints:0,cur:null,submitted:false,attempts:0,sel1:null,sel2:null,contKey:'all',saveKey:'wq_rq_all',recorded:false};
 /* 조합별 저장 키 (나라이름/접경국과 동일한 방식) */
 function rqSaveKeyFor(key){return 'wq_rq_'+(key||'all');}
 /* 모드별 점수: 1→1pt, 2→3pt, 3→5pt */
@@ -5908,7 +5909,7 @@ function rqCalcEarned(d,r1ok,r2ok,p1ok,p2ok){
 }
 function saveRQ(){
   if(RQ.idx===0&&RQ.correct===0)return;
-  localStorage.setItem(RQ.saveKey,JSON.stringify({list:RQ.list,idx:RQ.idx,correct:RQ.correct,errors:RQ.errors,skipped:RQ.skipped,wrongItems:RQ.wrongItems,wrongCounts:RQ.wrongCounts,earnedPoints:RQ.earnedPoints,maxPoints:RQ.maxPoints,contKey:RQ.contKey}));
+  localStorage.setItem(RQ.saveKey,JSON.stringify({list:RQ.list,idx:RQ.idx,correct:RQ.correct,errors:RQ.errors,skipped:RQ.skipped,wrongItems:RQ.wrongItems,wrongCounts:RQ.wrongCounts,earnedPoints:RQ.earnedPoints,maxPoints:RQ.maxPoints,contKey:RQ.contKey,recorded:RQ.recorded}));
 }
 function loadRQ(filterKey){
   /* filterKey 지정 시 해당 조합 저장만 불러옴(조합 불일치면 실패) */
@@ -5920,7 +5921,7 @@ function loadRQ(filterKey){
     RQ.list=d.list||[];RQ.idx=d.idx||0;RQ.correct=d.correct||0;
     RQ.errors=d.errors||0;RQ.skipped=d.skipped||0;RQ.wrongItems=d.wrongItems||[];
     RQ.wrongCounts=d.wrongCounts||{};RQ.earnedPoints=d.earnedPoints||0;RQ.maxPoints=d.maxPoints||0;
-    RQ.contKey=d.contKey||'all';RQ.submitted=false;
+    RQ.contKey=d.contKey||'all';RQ.submitted=false;RQ.recorded=!!d.recorded;
     return RQ.list.length>0&&RQ.idx<RQ.list.length;
   }catch(e){return false;}
 }
@@ -5942,7 +5943,7 @@ function buildRQList(filterKey){
   RQ.list=isos.sort(()=>Math.random()-.5);
   RQ.idx=0;RQ.correct=0;RQ.errors=0;RQ.skipped=0;RQ.wrongItems=[];RQ.wrongCounts={};
   RQ.earnedPoints=0;RQ.maxPoints=RQ.list.reduce((s,iso)=>s+rqMaxPts(RELIGION_DATA[iso].mode),0);
-  RQ.submitted=false;RQ.attempts=0;RQ.sel1=null;RQ.sel2=null;
+  RQ.submitted=false;RQ.attempts=0;RQ.sel1=null;RQ.sel2=null;RQ.recorded=false;
   localStorage.removeItem(RQ.saveKey);
 }
 function resetReligionQuiz(){
@@ -6105,7 +6106,7 @@ function openRQList(){
 function endReligionQuiz(){
   const pct=RQ.maxPoints>0?(RQ.earnedPoints/RQ.maxPoints*100).toFixed(1):0;
   document.getElementById('rq-escore').textContent=pct+'%';
-  try{window.SejiAccount&&window.SejiAccount.submitScore({category:'religion',correct:RQ.correct,total:RQ.list.length,accuracy:Number(pct),scope:RQ.contKey});}catch(e){}
+  if(!RQ.recorded){RQ.recorded=true;try{window.SejiAccount&&window.SejiAccount.submitScore({category:'religion',correct:RQ.correct,total:RQ.list.length,accuracy:Number(pct),scope:RQ.contKey});}catch(e){}}
   document.getElementById('rq-e1').textContent=RQ.correct;
   document.getElementById('rq-e2').textContent=RQ.errors;
   document.getElementById('rq-e3').textContent=RQ.skipped;
@@ -6128,7 +6129,7 @@ function retryWrongRQ(){
   if(!isos.length)return;
   document.getElementById('rq-end').classList.remove('on');
   RQ.list=isos.sort(()=>Math.random()-.5);
-  RQ.idx=0;RQ.correct=0;RQ.errors=0;RQ.skipped=0;RQ.wrongItems=[];RQ.submitted=false;RQ.attempts=0;
+  RQ.idx=0;RQ.correct=0;RQ.errors=0;RQ.skipped=0;RQ.wrongItems=[];RQ.submitted=false;RQ.attempts=0;RQ.recorded=false;
   RQ.earnedPoints=0;RQ.maxPoints=RQ.list.reduce((s,iso)=>s+rqMaxPts(RELIGION_DATA[iso].mode),0);
   localStorage.removeItem(RQ.saveKey);
   showRQCard();
@@ -6137,7 +6138,7 @@ function retryWrongRQ(){
 
 /* ═══ Korea Quiz ═══ */
 const KQ_SAVE_KEY='kq_state_v1';
-const KR={units:{},status:{},wrong:{},correct:0,revealed:0,total:0,cur:null,inited:false};
+const KR={units:{},status:{},wrong:{},correct:0,revealed:0,total:0,cur:null,inited:false,recorded:false};
 let krModalOpen=false;
 let k_s=1,k_x=0,k_y=0;
 const KSW=509,KSH=716.105;
@@ -6268,7 +6269,7 @@ function krStats(){
   if(KR.total&&d>=KR.total)setTimeout(krEndScreen,600);
 }
 function saveKR(showFb){
-  localStorage.setItem(KQ_SAVE_KEY,JSON.stringify({status:KR.status,correct:KR.correct,revealed:KR.revealed,wrong:KR.wrong}));
+  localStorage.setItem(KQ_SAVE_KEY,JSON.stringify({status:KR.status,correct:KR.correct,revealed:KR.revealed,wrong:KR.wrong,recorded:KR.recorded}));
   if(showFb){
     const btn=document.getElementById('kr-save');
     btn.textContent='✓ 저장됨';btn.classList.add('saved');
@@ -6289,13 +6290,13 @@ function loadKR(){
     for(const[k,v]of Object.entries(d.wrong||{})){
       if(KR.units[k])KR.wrong[k]=v;
     }
-    KR.correct=cor;KR.revealed=rev;return true;
+    KR.correct=cor;KR.revealed=rev;KR.recorded=!!d.recorded;return true;
   }catch(e){return false;}
 }
 function resetKR(skipConfirm){
   if(skipConfirm!==true&&!confirm('한국지리 진행 상황을 모두 초기화할까요?'))return;
   localStorage.removeItem(KQ_SAVE_KEY);
-  KR.correct=0;KR.revealed=0;KR.wrong={};KR.status={};KR.cur=null;
+  KR.correct=0;KR.revealed=0;KR.wrong={};KR.status={};KR.cur=null;KR.recorded=false;
   Object.keys(kColors).forEach(k=>{stopKBlink(k);delete kColors[k];});
   paintK();
   krCloseModal();
@@ -6407,7 +6408,7 @@ function krRandom(){
 }
 function krEndScreen(){
   document.getElementById('kr-escore').textContent=Math.round(KR.correct/KR.total*100)+'%';
-  try{window.SejiAccount&&window.SejiAccount.submitScore({category:'korea',correct:KR.correct,total:KR.total,accuracy:Math.round(KR.correct/(KR.total||1)*1000)/10,scope:'korea'});}catch(e){}
+  if(!KR.recorded){KR.recorded=true;try{saveKR();}catch(e){}try{window.SejiAccount&&window.SejiAccount.submitScore({category:'korea',correct:KR.correct,total:KR.total,accuracy:Math.round(KR.correct/(KR.total||1)*1000)/10,scope:'korea'});}catch(e){}}
   document.getElementById('kr-e1').textContent=KR.correct;
   document.getElementById('kr-e2').textContent=KR.revealed;
   const tags=document.getElementById('kr-wrong-tags');tags.innerHTML='';
