@@ -38,6 +38,9 @@ body.mob-mode main{padding-bottom:72px}
 #world-svg .limitxx{fill:transparent;stroke:none;pointer-events:none}
 #world-svg .circlexx,#world-svg .subxx,#world-svg .noxx,#world-svg .unxx{opacity:0;pointer-events:none}
 #world-svg circle{opacity:0!important;pointer-events:none!important}
+/* 접경국 모드: 소국 마커 원을 보이게 + 클릭 가능하게 (확대해서 클릭) */
+body.border-mode #world-svg circle.circlexx{opacity:.9!important;pointer-events:all!important;cursor:pointer!important;fill:#3d4451;stroke:#0d1117;stroke-width:.4}
+body.border-mode #world-svg circle.circlexx:hover{fill:#556070!important}
 #world-svg .xk.limitxx,#world-svg .xz.limitxx{fill:var(--land);stroke:#0d1117;stroke-width:.5;pointer-events:all;opacity:1}
 #world-svg .eh.landxx{fill:var(--land);pointer-events:all;cursor:pointer}
 #world-svg .landxx:hover,#world-svg .xk.limitxx:hover,#world-svg .xz.limitxx:hover,#world-svg .eh.landxx:hover{fill:#3a4050}
@@ -5144,8 +5147,9 @@ function closeMenu(){}
 const BQ={activeSet:null,total:0,queue:[],status:{},correct:0,wrong:0,curWrong:0,target:null,remaining:null,currentGroup:[],wrongCounts:{},saveKey:'bq_all',recorded:false,isRetry:false};
 function bqPool(){
   let base=S.activeSet?[...S.activeSet]:Object.keys(COUNTRIES);
-  /* 원형으로만 표시되는 소국은 지도 클릭이 불가능하므로 접경국 퀴즈에서 제외 */
-  return base.filter(i=>BORDERS[i]&&!CIRCLE_ISOS.has(i));
+  /* 원형으로 표시되는 소국(리히텐슈타인·동티모르·안도라 등)도 포함
+     — 접경국 모드에서 원을 보이게 + 클릭 가능하게 처리함 (확대해서 클릭) */
+  return base.filter(i=>BORDERS[i]);
 }
 function bqBuildGroupQueue(activeSet){
   const groups=new Map();
@@ -5362,8 +5366,14 @@ function isClickable(el){
 /* 모든 SVG 요소에 소유 국가(data-iso) 부여 — 분쟁지역 공유 경로는 마지막 클래스가 소유자 */
 function assignOwnership(){
   document.querySelectorAll('#world-svg [class]').forEach(el=>{
-    /* 마커 원(circle)은 항상 숨김 유지 */
-    if(el.tagName.toLowerCase()==='circle')return;
+    if(el.tagName.toLowerCase()==='circle'){
+      /* 소국 마커 원(circlexx)에 소유 국가를 부여 — 접경국 모드에서 클릭/색칠 가능
+         (그 외 마커 원은 그대로 숨김 유지) */
+      if(el.classList.contains('circlexx')){
+        for(const cc of el.classList)if(COUNTRIES[cc]){el.dataset.iso=cc;break;}
+      }
+      return;
+    }
     let owner=null;
     /* 그린란드는 덴마크 영토로 취급 */
     if(el.classList.contains('gl'))owner='dk';
