@@ -38,9 +38,8 @@ body.mob-mode main{padding-bottom:72px}
 #world-svg .limitxx{fill:transparent;stroke:none;pointer-events:none}
 #world-svg .circlexx,#world-svg .subxx,#world-svg .noxx,#world-svg .unxx{opacity:0;pointer-events:none}
 #world-svg circle{opacity:0!important;pointer-events:none!important}
-/* 접경국 모드: 소국 마커 원을 보이게 + 클릭 가능하게 (확대해서 클릭) */
-body.border-mode #world-svg circle.circlexx{opacity:.9!important;pointer-events:all!important;cursor:pointer!important;fill:#3d4451;stroke:#0d1117;stroke-width:.4}
-body.border-mode #world-svg circle.circlexx:hover{fill:#556070!important}
+/* 접경국 모드: 소국 마커 원은 보이지 않게(투명) 두되, 실제 작은 위치를 터치할 수 있게 클릭만 허용 */
+body.border-mode #world-svg circle.circlexx{opacity:0!important;pointer-events:all!important;cursor:pointer!important}
 #world-svg .xk.limitxx,#world-svg .xz.limitxx{fill:var(--land);stroke:#0d1117;stroke-width:.5;pointer-events:all;opacity:1}
 #world-svg .eh.landxx{fill:var(--land);pointer-events:all;cursor:pointer}
 #world-svg .landxx:hover,#world-svg .xk.limitxx:hover,#world-svg .xz.limitxx:hover,#world-svg .eh.landxx:hover{fill:#3a4050}
@@ -6146,6 +6145,8 @@ function retryWrongRQ(minOverride){
   if(!isos.length)isos=RQ.wrongItems.map(w=>w.iso).filter(Boolean);
   if(!isos.length)return;
   document.getElementById('rq-end').classList.remove('on');
+  /* 원본 기록을 지우지 않도록 별도 재시도 슬롯 사용 */
+  RQ.saveKey='wq_rq__retry';
   RQ.list=isos.sort(()=>Math.random()-.5);
   RQ.idx=0;RQ.correct=0;RQ.errors=0;RQ.skipped=0;RQ.wrongItems=[];RQ.submitted=false;RQ.attempts=0;RQ.recorded=false;RQ.isRetry=true;
   RQ.earnedPoints=0;RQ.maxPoints=RQ.list.reduce((s,iso)=>s+rqMaxPts(RELIGION_DATA[iso].mode),0);
@@ -6780,6 +6781,7 @@ function listSaves(){
     try{d=JSON.parse(localStorage.getItem(k));}catch(e){continue;}
     if(!d||typeof d!=='object')continue;
     if(k.startsWith('wq_rq_')){
+      if(k.startsWith('wq_rq__'))continue; /* 재시도 슬롯 제외 */
       if(!Array.isArray(d.list)||!d.list.length)continue;
       out.push({type:'religion',key:k,scope:d.contKey||'all',done:d.idx||0,total:d.list.length,wrong:Object.keys(d.wrongCounts||{}).length});
     }else if(k.startsWith('bq_')&&!k.startsWith('bq__')){
@@ -6945,7 +6947,7 @@ let profile = null;
  * localStorage.setItem 을 가로채서 로그인 상태면 서버로 올린다. */
 const SYNC_RE = /^(wq_|bq_|kq_)/;
 const SYNC_EXCLUDE = new Set(['wq_mode']);
-function shouldSync(k) { return SYNC_RE.test(k) && !SYNC_EXCLUDE.has(k); }
+function shouldSync(k) { return SYNC_RE.test(k) && !SYNC_EXCLUDE.has(k) && !k.includes('__'); }
 // 로그인했거나(세션) 로그인 토큰이 남아있으면(세션 로딩 중) 계정 사용자로 취급
 function isAccountUser() { return !!session || (supabaseEnabled && hasStoredSession()); }
 const _origSet = localStorage.setItem.bind(localStorage);
