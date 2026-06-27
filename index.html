@@ -7695,32 +7695,29 @@ function renderRanking() {
   const unified = (_rankMode === 'unified');
   let rows;
   if (unified) {
-    // 통합 점수: 모든 유형을 점수로 환산해 (유형+범위)별 최고 점수를 합산
-    // (나라이름·접경국·한국: 맞춘 1개=1점, 종교: 1/3/5 가중 점수)
+    // 통합 점수: 모든 플레이의 점수를 누적 합산 (나라이름·접경국·한국 1개=1점, 종교 1/3/5)
     const byUser = {};
     for (const r of _rankScores) {
       if (!rankMatch(r)) continue;
-      const u = byUser[r.user_id] || (byUser[r.user_id] = { best: {}, games: 0 });
-      const g = (r.category || '') + '|' + (r.scope || '');
-      const c = Number(r.points != null ? r.points : (r.correct || 0));
-      if (!(g in u.best) || c > u.best[g]) u.best[g] = c;
+      const u = byUser[r.user_id] || (byUser[r.user_id] = { score: 0, games: 0 });
+      u.score += Number(r.points != null ? r.points : (r.correct || 0)) || 0;
       u.games++;
     }
     rows = Object.entries(byUser).map(([uid, u]) => {
-      const score = Math.round(Object.values(u.best).reduce((a, b) => a + b, 0) * 10) / 10;
       const p = (_rankProfs && _rankProfs[uid]) || {};
-      return { id: uid, nickname: p.nickname, avatar_url: p.avatar_url, games: u.games, score, sub: '통합 점수' };
+      return { id: uid, nickname: p.nickname, avatar_url: p.avatar_url, games: u.games, score: Math.round(u.score * 10) / 10, sub: '누적' };
     }).sort((a, b) => b.score - a.score).slice(0, 100);
   } else {
-    // 특정 유형/대륙: 최고 또는 평균 정답률, 판수=해당 조건 플레이 수, 최고 기록의 범위 표시
+    // 특정 유형/대륙: 최고/평균 정답률. 판수=그 대륙을 직접 선택한 판만(전체대륙 응시는 정답률만 반영)
     const byUser = {};
     for (const r of _rankScores) {
       if (!rankMatch(r)) continue;
-      // 특정 대륙은 그 대륙 부분 정답률, 전체는 기록 전체 정답률
       const acc = _rankCont === 'all' ? (r.accuracy == null ? null : Number(r.accuracy)) : contAccuracy(r, _rankCont);
-      if (acc == null || isNaN(acc)) continue; // 정답률 없는 진행중/다중 기록은 정답률 랭킹에서 제외
-      const u = byUser[r.user_id] || (byUser[r.user_id] = { accs: [], bestRow: null, bestAcc: -1 });
+      if (acc == null || isNaN(acc)) continue;
+      const u = byUser[r.user_id] || (byUser[r.user_id] = { accs: [], bestRow: null, bestAcc: -1, plays: 0 });
       u.accs.push(acc);
+      const conts = scopeContinents(r.scope);
+      if (_rankCont === 'all' || conts.includes(_rankCont)) u.plays++; // 직접 선택한 판만 카운트
       if (acc > u.bestAcc) { u.bestAcc = acc; u.bestRow = r; }
     }
     const key = _rankSort === 'avg' ? 'avg' : 'best';
@@ -7729,7 +7726,8 @@ function renderRanking() {
       const best = Math.round(Math.max(...u.accs) * 10) / 10;
       const p = (_rankProfs && _rankProfs[uid]) || {};
       const sl = u.bestRow ? (u.bestRow.category === 'korea' ? '시·군' : scopeLabel(u.bestRow.scope)) : '';
-      return { id: uid, nickname: p.nickname, avatar_url: p.avatar_url, games: u.accs.length, avg, best, val: (key === 'avg' ? avg : best), sub: sl };
+      const sub = u.plays > 0 ? `${sl ? sl + ' · ' : ''}${u.plays}판` : '전체 응시 기준';
+      return { id: uid, nickname: p.nickname, avatar_url: p.avatar_url, avg, best, val: (key === 'avg' ? avg : best), sub };
     }).sort((a, b) => b.val - a.val).slice(0, 100);
   }
   if (!rows.length) { list.innerHTML = `<div class="acct-empty">이 조건의 기록이 아직 없습니다.</div>`; return; }
@@ -7737,7 +7735,7 @@ function renderRanking() {
   rows.forEach((r, i) => {
     const me = r.id === myId;
     const valTxt = unified ? `${r.score}점` : `${r.val.toFixed(1)}%`;
-    const subTxt = unified ? `통합 · ${r.games}판` : `${r.sub ? r.sub + ' · ' : ''}${r.games}판`;
+    const subTxt = unified ? `누적 · ${r.games}판` : r.sub;
     const item = el(`<div class="rank-item${me ? ' me' : ''}">
       <div class="rank-no${i < 3 ? ' top' : ''}">${i + 1}</div>
       <div class="rank-av"></div>
