@@ -77,18 +77,18 @@ group by p.id, p.nickname, p.avatar_url, s.category;
 alter table public.profiles enable row level security;
 alter table public.scores   enable row level security;
 
--- 프로필: 로그인 사용자만 조회(랭킹 표시용), 본인만 생성/수정. 삭제 정책 없음=불가
+-- 프로필: 직접 조회는 '본인 것만'(테이블 덤프 방지), 본인만 생성/수정. 삭제 불가
 drop policy if exists "profiles read"   on public.profiles;
 drop policy if exists "profiles insert" on public.profiles;
 drop policy if exists "profiles update" on public.profiles;
-create policy "profiles read"   on public.profiles for select to authenticated using (true);
+create policy "profiles read"   on public.profiles for select to authenticated using (auth.uid() = id);
 create policy "profiles insert" on public.profiles for insert to authenticated with check (auth.uid() = id);
 create policy "profiles update" on public.profiles for update to authenticated using (auth.uid() = id);
 
--- 점수: 로그인 사용자만 조회(랭킹 집계용), 본인 것만 추가. 수정/삭제 정책 없음=불가
+-- 점수: 직접 조회는 '본인 것만', 본인 것만(합리적 값) 추가. 수정/삭제 불가
 drop policy if exists "scores read"   on public.scores;
 drop policy if exists "scores insert" on public.scores;
-create policy "scores read"   on public.scores for select to authenticated using (true);
+create policy "scores read"   on public.scores for select to authenticated using (auth.uid() = user_id);
 create policy "scores insert" on public.scores for insert to authenticated
   with check (
     auth.uid() = user_id
@@ -96,6 +96,20 @@ create policy "scores insert" on public.scores for insert to authenticated
     and accuracy >= 0 and accuracy <= 100
     and category in ('name','border','religion','korea')
   );
+
+-- 랭킹용 집계 데이터만 노출하는 보안 함수 (테이블 직접 접근 대신 이걸로만 제공)
+create or replace function public.app_leaderboard()
+returns table(user_id uuid, nickname text, avatar_url text, category text, scope text,
+              accuracy numeric, points numeric, correct int, cont_stats jsonb)
+language sql security definer set search_path = public stable as $$
+  select s.user_id, p.nickname, p.avatar_url, s.category, s.scope,
+         s.accuracy, s.points, s.correct, s.cont_stats
+  from public.scores s
+  join public.profiles p on p.id = s.user_id
+  where coalesce(s.is_retry, false) = false;
+$$;
+revoke all on function public.app_leaderboard() from public, anon;
+grant execute on function public.app_leaderboard() to authenticated;
 
 -- ════════════════════════════════════════════════════════════
 --  Storage: 프로필 사진 버킷 'avatars'

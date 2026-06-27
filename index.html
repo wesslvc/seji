@@ -7639,14 +7639,12 @@ async function openRanking() {
   document.getElementById('acct-rank-list').innerHTML = `<div class="acct-empty">불러오는 중…</div>`;
   await ensureSB();
   if (!supabase) return;
-  const [sc, pf] = await Promise.all([
-    supabase.from('scores').select('user_id,category,scope,accuracy,correct,points,max_points,is_retry,cont_stats'),
-    supabase.from('profiles').select('id,nickname,avatar_url'),
-  ]);
-  if (sc.error) { document.getElementById('acct-rank-list').innerHTML = `<div class="acct-empty">랭킹 불러오기 실패</div>`; return; }
-  _rankScores = sc.data || [];
+  // 랭킹은 집계 전용 보안 함수(RPC)로만 받음 — 테이블 직접 덤프 불가
+  const { data, error } = await supabase.rpc('app_leaderboard');
+  if (error) { document.getElementById('acct-rank-list').innerHTML = `<div class="acct-empty">랭킹 불러오기 실패 (SQL 함수 미적용 — SETUP 참고)</div>`; return; }
+  _rankScores = data || [];
   _rankProfs = {};
-  (pf.data || []).forEach((p) => { _rankProfs[p.id] = p; });
+  (_rankScores).forEach((r) => { if (!_rankProfs[r.user_id]) _rankProfs[r.user_id] = { nickname: r.nickname, avatar_url: r.avatar_url }; });
   renderRanking();
 }
 
