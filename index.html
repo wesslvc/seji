@@ -5047,7 +5047,7 @@ function startSession(cat,acts,filterKey,rqContKey){
   if(cat==='world'){
     if(acts.includes('name')||acts.includes('border')){initActiveSet(filterKey);}
     if(acts.includes('name')){
-      S.correct=0;S.revealed=0;S.status={};S.wrong={};S.recorded=false;
+      S.correct=0;S.revealed=0;S.status={};S.wrong={};S.recorded=false;S.isRetry=false;
       loadGame();
     }
     if(acts.includes('border')){bqInit(filterKey);}
@@ -5141,7 +5141,7 @@ function toggleMenu(){}
 function closeMenu(){}
 
 /* ══════════ 접경국 맞추기 퀴즈 (BQ) ══════════ */
-const BQ={activeSet:null,total:0,queue:[],status:{},correct:0,wrong:0,curWrong:0,target:null,remaining:null,currentGroup:[],wrongCounts:{},saveKey:'bq_all',recorded:false};
+const BQ={activeSet:null,total:0,queue:[],status:{},correct:0,wrong:0,curWrong:0,target:null,remaining:null,currentGroup:[],wrongCounts:{},saveKey:'bq_all',recorded:false,isRetry:false};
 function bqPool(){
   let base=S.activeSet?[...S.activeSet]:Object.keys(COUNTRIES);
   /* 원형으로만 표시되는 소국은 지도 클릭이 불가능하므로 접경국 퀴즈에서 제외 */
@@ -5161,7 +5161,7 @@ function bqInit(filterKey){
   BQ.saveKey='bq_'+(filterKey||'all');
   BQ.activeSet=new Set(bqPool());
   BQ.total=BQ.activeSet.size;
-  BQ.status={};BQ.correct=0;BQ.wrong=0;BQ.curWrong=0;BQ.target=null;BQ.remaining=null;BQ.currentGroup=[];BQ.wrongCounts={};BQ.recorded=false;
+  BQ.status={};BQ.correct=0;BQ.wrong=0;BQ.curWrong=0;BQ.target=null;BQ.remaining=null;BQ.currentGroup=[];BQ.wrongCounts={};BQ.recorded=false;BQ.isRetry=false;
   bqLoad();
   const done=new Set(Object.keys(BQ.status));
   const allGroups=bqBuildGroupQueue(BQ.activeSet);
@@ -5268,7 +5268,7 @@ function bqEnd(){
   document.getElementById('bq-e1').textContent=BQ.correct;
   document.getElementById('bq-e2').textContent=BQ.wrong;
   el.classList.add('on');
-  if(!BQ.recorded){BQ.recorded=true;try{bqSave();}catch(e){}try{window.SejiAccount&&window.SejiAccount.submitScore({category:'border',correct:BQ.correct,total:BQ.total,accuracy:Math.round(BQ.correct/(BQ.total||1)*1000)/10,scope:SESSION.filterKey});}catch(e){}}
+  if(!BQ.recorded){BQ.recorded=true;try{bqSave();}catch(e){}try{window.SejiAccount&&window.SejiAccount.submitScore({category:'border',correct:BQ.correct,total:BQ.total,accuracy:Math.round(BQ.correct/(BQ.total||1)*1000)/10,scope:SESSION.filterKey,points:BQ.correct,maxPoints:BQ.total,isRetry:BQ.isRetry});}catch(e){}}
 }
 function openBQList(){
   const grid=document.getElementById('bql-grid');if(!grid)return;
@@ -5435,7 +5435,7 @@ const BORDERS={
   sr:['gy','br'],uy:['br','ar'],ve:['co','br','gy'],pg:['id']
 };
 
-const S={cur:null,correct:0,revealed:0,wrong:{},status:{},total:0,activeSet:null,saveKey:'wq_all',recorded:false};
+const S={cur:null,correct:0,revealed:0,wrong:{},status:{},total:0,activeSet:null,saveKey:'wq_all',recorded:false,isRetry:false};
 function done(i){return!!S.status[i];}
 function inActive(i){return S.activeSet?S.activeSet.has(i):!!COUNTRIES[i];}
 
@@ -5736,7 +5736,7 @@ function retryWrong(minOverride){
   document.getElementById('ui-end').style.display='none';
   S.activeSet=new Set(wrongISOs);S.total=wrongISOs.length;
   S.saveKey='wq__retry';
-  S.correct=0;S.revealed=0;S.status={};S.wrong={};S.recorded=false;
+  S.correct=0;S.revealed=0;S.status={};S.wrong={};S.recorded=false;S.isRetry=true;
   Object.keys(colors).forEach(k=>stopJsBlink(k));
   for(const k in colors)delete colors[k];
   paintMask();paint();stats();
@@ -5759,7 +5759,7 @@ function startOopsQuiz(){
   document.getElementById('ui-end').style.display='none';
   S.activeSet=new Set(saved);S.total=saved.length;
   S.saveKey='wq__oops';
-  S.correct=0;S.revealed=0;S.status={};S.wrong={};S.recorded=false;
+  S.correct=0;S.revealed=0;S.status={};S.wrong={};S.recorded=false;S.isRetry=true;
   Object.keys(colors).forEach(k=>stopJsBlink(k));
   for(const k in colors)delete colors[k];
   paintMask();paint();stats();
@@ -5772,7 +5772,7 @@ function endScreen(){
   document.getElementById('ui-e2').textContent=cnt.c2;
   document.getElementById('ui-e3').textContent=cnt.c3;
   document.getElementById('ui-er').textContent=S.revealed;
-  if(!S.recorded){S.recorded=true;try{saveGame();}catch(e){}try{window.SejiAccount&&window.SejiAccount.submitScore({category:'name',correct:S.correct,total:S.total,accuracy:Math.round(S.correct/(S.total||1)*1000)/10,scope:SESSION.filterKey});}catch(e){}}
+  if(!S.recorded){S.recorded=true;try{saveGame();}catch(e){}try{window.SejiAccount&&window.SejiAccount.submitScore({category:'name',correct:S.correct,total:S.total,accuracy:Math.round(S.correct/(S.total||1)*1000)/10,scope:SESSION.filterKey,points:S.correct,maxPoints:S.total,isRetry:S.isRetry});}catch(e){}}
   const revISOs=Object.entries(S.status).filter(([,v])=>v==='cr').map(([k])=>k);
   const tagsEl=document.getElementById('ui-wrong-tags');tagsEl.innerHTML='';
   revISOs.forEach(iso=>{
@@ -5903,7 +5903,7 @@ function animateTo(tx,ty,sc,dur,cb){
 }
 
 /* ── Religion Quiz ── */
-const RQ={list:[],idx:0,correct:0,errors:0,skipped:0,wrongItems:[],wrongCounts:{},earnedPoints:0,maxPoints:0,cur:null,submitted:false,attempts:0,sel1:null,sel2:null,contKey:'all',saveKey:'wq_rq_all',recorded:false};
+const RQ={list:[],idx:0,correct:0,errors:0,skipped:0,wrongItems:[],wrongCounts:{},earnedPoints:0,maxPoints:0,cur:null,submitted:false,attempts:0,sel1:null,sel2:null,contKey:'all',saveKey:'wq_rq_all',recorded:false,isRetry:false};
 /* 조합별 저장 키 (나라이름/접경국과 동일한 방식) */
 function rqSaveKeyFor(key){return 'wq_rq_'+(key||'all');}
 /* 모드별 점수: 1→1pt, 2→3pt, 3→5pt */
@@ -5951,7 +5951,7 @@ function buildRQList(filterKey){
   RQ.list=isos.sort(()=>Math.random()-.5);
   RQ.idx=0;RQ.correct=0;RQ.errors=0;RQ.skipped=0;RQ.wrongItems=[];RQ.wrongCounts={};
   RQ.earnedPoints=0;RQ.maxPoints=RQ.list.reduce((s,iso)=>s+rqMaxPts(RELIGION_DATA[iso].mode),0);
-  RQ.submitted=false;RQ.attempts=0;RQ.sel1=null;RQ.sel2=null;RQ.recorded=false;
+  RQ.submitted=false;RQ.attempts=0;RQ.sel1=null;RQ.sel2=null;RQ.recorded=false;RQ.isRetry=false;
   localStorage.removeItem(RQ.saveKey);
 }
 function resetReligionQuiz(){
@@ -6114,7 +6114,7 @@ function openRQList(){
 function endReligionQuiz(){
   const pct=RQ.maxPoints>0?(RQ.earnedPoints/RQ.maxPoints*100).toFixed(1):0;
   document.getElementById('rq-escore').textContent=pct+'%';
-  if(!RQ.recorded){RQ.recorded=true;try{window.SejiAccount&&window.SejiAccount.submitScore({category:'religion',correct:RQ.correct,total:RQ.list.length,accuracy:Number(pct),scope:RQ.contKey});}catch(e){}}
+  if(!RQ.recorded){RQ.recorded=true;try{window.SejiAccount&&window.SejiAccount.submitScore({category:'religion',correct:RQ.correct,total:RQ.list.length,accuracy:Number(pct),scope:RQ.contKey,points:RQ.earnedPoints,maxPoints:RQ.maxPoints,isRetry:RQ.isRetry});}catch(e){}}
   document.getElementById('rq-e1').textContent=RQ.correct;
   document.getElementById('rq-e2').textContent=RQ.errors;
   document.getElementById('rq-e3').textContent=RQ.skipped;
@@ -6137,7 +6137,7 @@ function retryWrongRQ(minOverride){
   if(!isos.length)return;
   document.getElementById('rq-end').classList.remove('on');
   RQ.list=isos.sort(()=>Math.random()-.5);
-  RQ.idx=0;RQ.correct=0;RQ.errors=0;RQ.skipped=0;RQ.wrongItems=[];RQ.submitted=false;RQ.attempts=0;RQ.recorded=false;
+  RQ.idx=0;RQ.correct=0;RQ.errors=0;RQ.skipped=0;RQ.wrongItems=[];RQ.submitted=false;RQ.attempts=0;RQ.recorded=false;RQ.isRetry=true;
   RQ.earnedPoints=0;RQ.maxPoints=RQ.list.reduce((s,iso)=>s+rqMaxPts(RELIGION_DATA[iso].mode),0);
   localStorage.removeItem(RQ.saveKey);
   showRQCard();
@@ -6424,7 +6424,7 @@ function krRandom(){
 }
 function krEndScreen(){
   document.getElementById('kr-escore').textContent=Math.round(KR.correct/KR.total*100)+'%';
-  if(!KR.recorded){KR.recorded=true;try{saveKR();}catch(e){}try{window.SejiAccount&&window.SejiAccount.submitScore({category:'korea',correct:KR.correct,total:KR.total,accuracy:Math.round(KR.correct/(KR.total||1)*1000)/10,scope:'korea'});}catch(e){}}
+  if(!KR.recorded){KR.recorded=true;try{saveKR();}catch(e){}try{window.SejiAccount&&window.SejiAccount.submitScore({category:'korea',correct:KR.correct,total:KR.total,accuracy:Math.round(KR.correct/(KR.total||1)*1000)/10,scope:'korea',points:KR.correct,maxPoints:KR.total,isRetry:false});}catch(e){}}
   document.getElementById('kr-e1').textContent=KR.correct;
   document.getElementById('kr-e2').textContent=KR.revealed;
   const tags=document.getElementById('kr-wrong-tags');tags.innerHTML='';
@@ -6829,11 +6829,43 @@ function bqRetryWrong(){
   if(!wrongISOs.length){bqStats();return;}
   BQ.activeSet=new Set(wrongISOs);BQ.total=wrongISOs.length;
   BQ.saveKey='bq__retry';
-  BQ.status={};BQ.correct=0;BQ.wrong=0;BQ.wrongCounts={};BQ.recorded=false;
+  BQ.status={};BQ.correct=0;BQ.wrong=0;BQ.wrongCounts={};BQ.recorded=false;BQ.isRetry=true;
   BQ.queue=bqBuildGroupQueue(BQ.activeSet).sort(()=>Math.random()-.5);
   clearMapColors();paint();bqStats();bqShowCurrent();
 }
-window.SejiGame={listSaves,resumeSave,resumeWrongRetry,resumeWrongView};
+function _keyFor(category,scope){
+  if(category==='name')return 'wq_'+(scope||'all');
+  if(category==='border')return 'bq_'+(scope||'all');
+  if(category==='religion')return 'wq_rq_'+(scope||'all');
+  if(category==='korea')return KQ_SAVE_KEY;
+  return null;
+}
+/* 기록 상세: 저장 상태에서 맞춘/틀린 목록 추출 */
+function getBreakdown(category,scope){
+  const key=_keyFor(category,scope);let d;
+  try{d=JSON.parse(localStorage.getItem(key));}catch(e){d=null;}
+  const res={right:[],wrong:[],hasState:false,hasWrong:false};
+  if(!d)return res;
+  res.hasState=true;
+  if(category==='religion'){
+    (d.wrongItems||[]).forEach(w=>{res.wrong.push((w.country||w.iso)+(w.answer?' → '+w.answer:''));});
+    res.hasWrong=res.wrong.length>0;
+    return res;
+  }
+  const st=d.status||{};const wr=d.wrong||{};
+  const nameOf=(iso)=> category==='korea' ? (KR.units&&KR.units[iso]?KR.units[iso].n:iso) : (COUNTRIES[iso]?COUNTRIES[iso].k:iso);
+  const wset=new Set(Object.keys(st).filter(x=>st[x]==='cr'));Object.keys(wr).forEach(x=>{if(wr[x]>0)wset.add(x);});
+  Object.keys(st).forEach(iso=>{ if(wset.has(iso))return; res.right.push(nameOf(iso)); });
+  wset.forEach(iso=>res.wrong.push(nameOf(iso)));
+  res.right.sort((a,b)=>a.localeCompare(b));res.wrong.sort((a,b)=>a.localeCompare(b));
+  res.hasWrong=res.wrong.length>0;
+  return res;
+}
+function resumeWrongByScope(category,scope){
+  const t=category;
+  resumeWrongRetry(t,_keyFor(category,scope));
+}
+window.SejiGame={listSaves,resumeSave,resumeWrongRetry,resumeWrongView,getBreakdown,resumeWrongByScope};
 </script>
 <!-- ════════════════════════════════════════════════════════════
      계정 · 소셜로그인 · 랭킹 (Supabase) — 빌드/명령어 불필요, 이 파일만으로 동작
@@ -7042,6 +7074,11 @@ function injectStyle() {
     font-size:.74rem;cursor:pointer;font-family:'Pretendard','Noto Sans KR',sans-serif}
   .sv-btn.go{background:#eee;color:#000;border-color:#eee;font-weight:600}
   .sv-btn.wr{color:#d08a8a;border-color:rgba(176,56,56,.4)}
+  .rd-score{font-size:.95rem;color:#ddd;margin-top:.6rem;background:#181818;border:1px solid #242424;border-radius:6px;padding:.6rem .7rem}
+  .rd-tags{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.35rem;max-height:30vh;overflow-y:auto}
+  .rd-tag{font-size:.74rem;color:#cfcfcf;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:4px;padding:.18rem .45rem}
+  .rd-wrong .rd-tag{color:#d89090;border-color:rgba(176,56,56,.35);background:rgba(176,56,56,.08)}
+  .rec-row:hover{background:#161616}
   `;
   const s = document.createElement('style');
   s.textContent = css;
@@ -7199,6 +7236,11 @@ function buildUI() {
     }
   });
   document.body.appendChild(rank);
+
+  // 기록 상세 모달
+  const rd = el(`<div class="acct-ov" id="acct-recdetail"><div class="acct-card" style="position:relative" id="acct-rec-card"></div></div>`);
+  rd.addEventListener('click', (e) => { if (e.target === rd) rd.classList.remove('on'); });
+  document.body.appendChild(rd);
 }
 
 function closeAll() {
@@ -7353,32 +7395,24 @@ function avHtml(node, url, name) {
 function renderSaves() {
   const box = document.getElementById('acct-saves');
   if (!box) return;
-  const saves = (window.SejiGame && window.SejiGame.listSaves) ? window.SejiGame.listSaves() : [];
+  const all = (window.SejiGame && window.SejiGame.listSaves) ? window.SejiGame.listSaves() : [];
+  const saves = all.filter((s) => s.inProgress); // 진행 중만 (완료는 최근 기록에)
   box.innerHTML = '';
-  if (!saves.length) { box.innerHTML = `<div style="font-size:.78rem;color:#666">저장된 진행 중인 퀴즈가 없습니다.</div>`; return; }
+  if (!saves.length) { box.innerHTML = `<div style="font-size:.78rem;color:#666">진행 중인 퀴즈가 없습니다.</div>`; return; }
   saves.forEach((s) => {
-    const badge = s.inProgress
-      ? `<span class="sv-badge prog">진행중 ${s.done}/${s.total}</span>`
-      : `<span class="sv-badge done">완료 ${s.done}/${s.total}</span>`;
     const scope = s.type === 'korea' ? '시·군 전체' : scopeLabel(s.scope);
     const item = el(`<div class="sv-item">
       <div class="sv-top">
         <div class="sv-info"><div class="sv-title">${CAT_NAME[s.type]}</div><div class="sv-scope">${scope}</div></div>
-        ${badge}
+        <span class="sv-badge prog">진행중 ${s.done}/${s.total}</span>
       </div>
       <div class="sv-acts">
         <button class="sv-btn go" data-go>이어하기</button>
-        ${s.wrong > 0 && (s.type === 'name' || s.type === 'border') ? `<button class="sv-btn wr" data-view>오답 보기 (${s.wrong})</button>` : ''}
-        ${s.wrong > 0 && (s.type === 'name' || s.type === 'border' || s.type === 'religion') ? `<button class="sv-btn wr" data-retry>오답만 다시</button>` : ''}
       </div>
     </div>`);
     const go = () => { closeAll(); window.SejiGame.resumeSave(s.type, s.key); };
     item.querySelector('[data-go]').addEventListener('click', go);
     item.querySelector('.sv-top').addEventListener('click', go);
-    const vb = item.querySelector('[data-view]');
-    if (vb) vb.addEventListener('click', () => { closeAll(); window.SejiGame.resumeWrongView(s.type, s.key); });
-    const rb = item.querySelector('[data-retry]');
-    if (rb) rb.addEventListener('click', () => { closeAll(); window.SejiGame.resumeWrongRetry(s.type, s.key); });
     box.appendChild(item);
   });
 }
@@ -7389,9 +7423,10 @@ async function openMenuData() {
   document.getElementById('acct-menu-em').textContent = session?.user?.email || '';
   avHtml(document.getElementById('acct-menu-av'), profile?.avatar_url, profile?.nickname);
   renderSaves();
-  // 전체 + 유형별 + 최근 기록
+  // 전체 + 유형별 + 최근 기록 (통계는 정식 기록만, 오답 다시풀기 제외)
   const rows = await myScores();
-  const overall = aggregate(rows);
+  const graded = rows.filter((r) => !r.is_retry);
+  const overall = aggregate(graded);
   document.getElementById('acct-st-games').textContent = overall.games;
   document.getElementById('acct-st-avg').textContent = overall.games ? overall.avg + '%' : '-';
   document.getElementById('acct-st-best').textContent = overall.games ? overall.best + '%' : '-';
@@ -7399,27 +7434,66 @@ async function openMenuData() {
   const catBox = document.getElementById('acct-cat-stats');
   catBox.innerHTML = '';
   const cats = ['name', 'border', 'religion', 'korea'];
-  const has = cats.filter((c) => rows.some((r) => r.category === c));
+  const has = cats.filter((c) => graded.some((r) => r.category === c));
   if (!has.length) catBox.innerHTML = `<div style="font-size:.78rem;color:#666">아직 기록이 없습니다.</div>`;
   has.forEach((c) => {
-    const a = aggregate(rows.filter((r) => r.category === c));
-    catBox.appendChild(el(`<div style="display:flex;justify-content:space-between;font-size:.8rem;color:#ccc;padding:.25rem 0;border-bottom:1px solid #1c1c1c">
-      <span>${CAT_NAME[c]}</span>
-      <span style="color:#888">${a.games}판 · 평균 <b style="color:#ddd">${a.avg}%</b> · 최고 <b style="color:#ddd">${a.best}%</b></span></div>`));
+    const cr = graded.filter((r) => r.category === c);
+    const a = aggregate(cr);
+    let val;
+    if (c === 'religion') {
+      const bestPts = Math.max(...cr.map((r) => Number(r.points || 0)));
+      val = `${a.games}판 · 최고 <b style="color:#ddd">${bestPts}pt</b> (${a.best}%)`;
+    } else {
+      val = `${a.games}판 · 평균 <b style="color:#ddd">${a.avg}%</b> · 최고 <b style="color:#ddd">${a.best}%</b>`;
+    }
+    catBox.appendChild(el(`<div style="display:flex;justify-content:space-between;gap:.5rem;font-size:.8rem;color:#ccc;padding:.25rem 0;border-bottom:1px solid #1c1c1c">
+      <span style="flex-shrink:0">${CAT_NAME[c]}</span><span style="color:#888;text-align:right">${val}</span></div>`));
   });
-  // 최근 기록 5개
+  // 최근 기록 8개 (클릭 → 상세) — 오답 다시풀기도 표시
   const recBox = document.getElementById('acct-recent');
   recBox.innerHTML = '';
-  const recent = rows.slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 5);
+  const recent = rows.slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 8);
   if (!recent.length) recBox.innerHTML = `<div style="font-size:.78rem;color:#666">아직 기록이 없습니다.</div>`;
   recent.forEach((r) => {
     const d = new Date(r.created_at);
     const ds = `${d.getMonth() + 1}/${d.getDate()}`;
     const sc = r.category === 'korea' ? '' : scopeLabel(r.scope);
-    recBox.appendChild(el(`<div style="display:flex;justify-content:space-between;gap:.5rem;font-size:.78rem;color:#bbb;padding:.28rem 0;border-bottom:1px solid #1c1c1c">
-      <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ds} · ${CAT_NAME[r.category] || r.category}${sc ? ` <span style="color:#777">${sc}</span>` : ''}</span>
-      <span style="color:#888;flex-shrink:0">${r.correct}/${r.total} · <b style="color:#ddd">${Number(r.accuracy).toFixed(1)}%</b></span></div>`));
+    const val = r.category === 'religion'
+      ? `${r.points}/${r.max_points}<b style="color:#ddd">pt</b>`
+      : `${r.correct}/${r.total} · <b style="color:#ddd">${Number(r.accuracy).toFixed(1)}%</b>`;
+    const row = el(`<div class="rec-row" style="display:flex;justify-content:space-between;gap:.5rem;font-size:.78rem;color:#bbb;padding:.34rem .2rem;border-bottom:1px solid #1c1c1c;cursor:pointer">
+      <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ds} · ${CAT_NAME[r.category] || r.category}${sc ? ` <span style="color:#777">${sc}</span>` : ''}${r.is_retry ? ' <span style="color:#a06060">·오답</span>' : ''}</span>
+      <span style="color:#888;flex-shrink:0">${val} ›</span></div>`);
+    row.addEventListener('click', () => openRecordDetail(r));
+    recBox.appendChild(row);
   });
+}
+
+function openRecordDetail(r) {
+  const d = new Date(r.created_at);
+  const dateStr = `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  const scope = r.category === 'korea' ? '시·군 전체' : scopeLabel(r.scope);
+  const bd = (window.SejiGame && window.SejiGame.getBreakdown) ? window.SejiGame.getBreakdown(r.category, r.scope) : { right: [], wrong: [], hasState: false, hasWrong: false };
+  const scoreLine = r.category === 'religion'
+    ? `<b>${r.points}/${r.max_points}점</b> · 정답 ${r.correct}/${r.total} (${Number(r.accuracy).toFixed(1)}%)`
+    : `<b>${r.correct}/${r.total}</b> · 정답률 ${Number(r.accuracy).toFixed(1)}%`;
+  const tags = (arr) => arr.length ? arr.map((n) => `<span class="rd-tag">${escapeHtml(n)}</span>`).join('') : `<span style="color:#666;font-size:.76rem">목록 없음</span>`;
+  const card = document.getElementById('acct-rec-card');
+  card.innerHTML = `
+    <button class="acct-x" data-close>✕</button>
+    <h2>${CAT_NAME[r.category]} 기록</h2>
+    <div class="sub">${dateStr} · ${scope}${r.is_retry ? ' · 오답 다시풀기(랭킹 제외)' : ''}</div>
+    <div class="rd-score">${scoreLine}</div>
+    ${bd.hasState ? `
+      ${r.category !== 'religion' ? `<div class="acct-lbl" style="margin-top:.8rem">맞춘 것 (${bd.right.length})</div><div class="rd-tags">${tags(bd.right)}</div>` : ''}
+      <div class="acct-lbl" style="margin-top:.8rem">틀린 것 (${bd.wrong.length})</div><div class="rd-tags rd-wrong">${tags(bd.wrong)}</div>
+    ` : `<div style="color:#666;font-size:.78rem;margin-top:.8rem">상세 정/오답은 해당 범위를 다시 풀면 기록됩니다.</div>`}
+    ${bd.hasWrong ? `<button class="acct-btn" id="rd-retry" style="background:rgba(176,56,56,.15);color:#e08a8a;border-color:rgba(176,56,56,.4);margin-top:1rem">틀린 것만 다시 풀기</button>` : ''}
+  `;
+  card.querySelector('[data-close]').addEventListener('click', () => document.getElementById('acct-recdetail').classList.remove('on'));
+  const rt = card.querySelector('#rd-retry');
+  if (rt) rt.addEventListener('click', () => { closeAll(); window.SejiGame.resumeWrongByScope(r.category, r.scope); });
+  document.getElementById('acct-recdetail').classList.add('on');
 }
 
 function openProfile() {
@@ -7476,7 +7550,7 @@ async function myScores() {
   if (!supabase) return [];
   const { data } = await supabase
     .from('scores')
-    .select('category,scope,correct,total,accuracy,created_at')
+    .select('id,category,scope,correct,total,accuracy,points,max_points,is_retry,created_at')
     .eq('user_id', session.user.id);
   return data || [];
 }
@@ -7504,7 +7578,7 @@ async function openRanking() {
   await ensureSB();
   if (!supabase) return;
   const [sc, pf] = await Promise.all([
-    supabase.from('scores').select('user_id,category,scope,accuracy'),
+    supabase.from('scores').select('user_id,category,scope,accuracy,correct,points,max_points,is_retry'),
     supabase.from('profiles').select('id,nickname,avatar_url'),
   ]);
   if (sc.error) { document.getElementById('acct-rank-list').innerHTML = `<div class="acct-empty">랭킹 불러오기 실패</div>`; return; }
@@ -7515,6 +7589,7 @@ async function openRanking() {
 }
 
 function rankMatch(r) {
+  if (r.is_retry) return false; // 오답 다시풀기는 랭킹 제외
   if (_rankCat !== 'all' && r.category !== _rankCat) return false;
   if (_rankCont !== 'all') {
     const conts = scopeContinents(r.scope);
@@ -7526,31 +7601,57 @@ function rankMatch(r) {
 function renderRanking() {
   const list = document.getElementById('acct-rank-list');
   if (!_rankScores) { list.innerHTML = `<div class="acct-empty">불러오는 중…</div>`; return; }
-  // 사용자별 집계
-  const byUser = {};
-  for (const r of _rankScores) {
-    if (!rankMatch(r)) continue;
-    (byUser[r.user_id] || (byUser[r.user_id] = [])).push(Number(r.accuracy));
-  }
-  const key = _rankSort === 'avg' ? 'avg' : 'best';
-  const rows = Object.entries(byUser).map(([uid, accs]) => {
-    const avg = Math.round((accs.reduce((a, b) => a + b, 0) / accs.length) * 10) / 10;
-    const best = Math.round(Math.max(...accs) * 10) / 10;
-    const p = (_rankProfs && _rankProfs[uid]) || {};
-    return { id: uid, nickname: p.nickname, avatar_url: p.avatar_url, games: accs.length, avg, best };
-  }).sort((a, b) => b[key] - a[key]).slice(0, 100);
-  if (!rows.length) { list.innerHTML = `<div class="acct-empty">이 조건의 기록이 아직 없습니다.</div>`; return; }
   const myId = session?.user?.id;
+  const unified = (_rankCat === 'all' && _rankCont === 'all');
+  let rows;
+  if (unified) {
+    // 통합 점수: 사용자별로 (유형+범위)별 최고 '맞춘 수'를 합산 — 푼 국가 수에 가중
+    const byUser = {};
+    for (const r of _rankScores) {
+      if (!rankMatch(r)) continue;
+      const u = byUser[r.user_id] || (byUser[r.user_id] = { best: {}, games: 0 });
+      const g = (r.category || '') + '|' + (r.scope || '');
+      const c = Number(r.correct || 0);
+      if (!(g in u.best) || c > u.best[g]) u.best[g] = c;
+      u.games++;
+    }
+    rows = Object.entries(byUser).map(([uid, u]) => {
+      const score = Object.values(u.best).reduce((a, b) => a + b, 0);
+      const p = (_rankProfs && _rankProfs[uid]) || {};
+      return { id: uid, nickname: p.nickname, avatar_url: p.avatar_url, games: u.games, score, sub: '통합 점수' };
+    }).sort((a, b) => b.score - a.score).slice(0, 100);
+  } else {
+    // 특정 유형/대륙: 최고 또는 평균 정답률, 판수=해당 조건 플레이 수, 최고 기록의 범위 표시
+    const byUser = {};
+    for (const r of _rankScores) {
+      if (!rankMatch(r)) continue;
+      const u = byUser[r.user_id] || (byUser[r.user_id] = { accs: [], bestRow: null });
+      const acc = Number(r.accuracy);
+      u.accs.push(acc);
+      if (!u.bestRow || acc > Number(u.bestRow.accuracy)) u.bestRow = r;
+    }
+    const key = _rankSort === 'avg' ? 'avg' : 'best';
+    rows = Object.entries(byUser).map(([uid, u]) => {
+      const avg = Math.round((u.accs.reduce((a, b) => a + b, 0) / u.accs.length) * 10) / 10;
+      const best = Math.round(Math.max(...u.accs) * 10) / 10;
+      const p = (_rankProfs && _rankProfs[uid]) || {};
+      const sl = u.bestRow ? (u.bestRow.category === 'korea' ? '시·군' : scopeLabel(u.bestRow.scope)) : '';
+      return { id: uid, nickname: p.nickname, avatar_url: p.avatar_url, games: u.accs.length, avg, best, val: (key === 'avg' ? avg : best), sub: sl };
+    }).sort((a, b) => b.val - a.val).slice(0, 100);
+  }
+  if (!rows.length) { list.innerHTML = `<div class="acct-empty">이 조건의 기록이 아직 없습니다.</div>`; return; }
   list.innerHTML = '';
   rows.forEach((r, i) => {
     const me = r.id === myId;
+    const valTxt = unified ? `${r.score}점` : `${r.val.toFixed(1)}%`;
+    const subTxt = unified ? `통합 · ${r.games}판` : `${r.sub ? r.sub + ' · ' : ''}${r.games}판`;
     const item = el(`<div class="rank-item${me ? ' me' : ''}">
       <div class="rank-no${i < 3 ? ' top' : ''}">${i + 1}</div>
       <div class="rank-av"></div>
       <div class="rank-nm">${escapeHtml(r.nickname || '익명')}${me ? ' (나)' : ''}</div>
       <div class="rank-right">
-        <div class="rank-val">${r[key].toFixed(1)}%</div>
-        <div class="rank-sub">${_rankSort === 'avg' ? '평균' : '최고'} · ${r.games}판</div>
+        <div class="rank-val">${valTxt}</div>
+        <div class="rank-sub">${subTxt}</div>
       </div>
     </div>`);
     avHtml(item.querySelector('.rank-av'), r.avatar_url, r.nickname);
@@ -7564,11 +7665,11 @@ function escapeHtml(s) {
 
 /* ──────────────── 점수 제출 (게임에서 호출) ──────────────── */
 let _lastSubmit = { sig: '', t: 0 };
-async function submitScore({ category, correct, total, accuracy, scope }) {
+async function submitScore({ category, correct, total, accuracy, scope, points, maxPoints, isRetry }) {
   if (!session) return; // 비로그인 시 무시
   if (!total) return;
   // 종료 함수가 중복 호출돼도 한 번만 기록 (3초 내 동일 결과 무시)
-  const sig = `${category}|${correct}|${total}|${accuracy}|${scope}`;
+  const sig = `${category}|${correct}|${total}|${accuracy}|${scope}|${isRetry}`;
   const now = Date.now();
   if (sig === _lastSubmit.sig && now - _lastSubmit.t < 3000) return;
   _lastSubmit = { sig, t: now };
@@ -7582,8 +7683,14 @@ async function submitScore({ category, correct, total, accuracy, scope }) {
     correct: correct | 0,
     total: total | 0,
     accuracy: acc,
+    points: points != null ? points : (correct | 0),
+    max_points: maxPoints != null ? maxPoints : (total | 0),
+    is_retry: !!isRetry,
   });
-  if (!error) toast(`${CAT_NAME[category] || ''} 기록 저장 · ${acc}%`);
+  if (!error) {
+    const lbl = category === 'religion' ? `${points}/${maxPoints}pt` : `${acc}%`;
+    toast(`${CAT_NAME[category] || ''} 기록 저장 · ${lbl}${isRetry ? ' (오답·랭킹 제외)' : ''}`);
+  }
 }
 
 /* ──────────────── 부트스트랩 ──────────────── */

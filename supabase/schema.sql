@@ -30,6 +30,9 @@ create table if not exists public.scores (
   user_id    uuid not null references auth.users on delete cascade,
   category   text not null,                       -- name | border | religion | korea
   scope      text,                                -- 출제범위 키 (예: as+eu_big, all, korea)
+  points     numeric,                             -- 종교: 획득 점수 / 그 외: 맞춘 수
+  max_points numeric,                             -- 만점
+  is_retry   boolean default false,               -- 오답 다시풀기 (랭킹 제외)
   correct    int  not null,
   total      int  not null,
   accuracy   numeric(5,1) not null,               -- 0.0 ~ 100.0
