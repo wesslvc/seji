@@ -7667,11 +7667,15 @@ function rankMatch(r) {
   }
   return true;
 }
-/* 해당 대륙에 대한 이 기록의 정답률 (대륙별 통계 우선, 없으면 전체 정답률 폴백) */
+/* 해당 대륙에 대한 이 기록의 정답률.
+   대륙별 통계가 있으면 그 값, 없고 단일 대륙 기록이면 전체 정답률,
+   그 외(대륙별 통계 없는 다중/전체 기록)는 판정 불가(null) → 집계 제외 */
 function contAccuracy(r, cont) {
   const cs = r.cont_stats;
   if (cs && cs[cont] && cs[cont].total > 0) return cs[cont].correct / cs[cont].total * 100;
-  return Number(r.accuracy);
+  const conts = scopeContinents(r.scope);
+  if (conts.length === 1 && conts[0] === cont) return Number(r.accuracy);
+  return null;
 }
 
 function renderRanking() {
@@ -7702,9 +7706,10 @@ function renderRanking() {
     const byUser = {};
     for (const r of _rankScores) {
       if (!rankMatch(r)) continue;
-      const u = byUser[r.user_id] || (byUser[r.user_id] = { accs: [], bestRow: null, bestAcc: -1 });
       // 특정 대륙은 그 대륙 부분 정답률, 전체는 기록 전체 정답률
       const acc = _rankCont === 'all' ? Number(r.accuracy) : contAccuracy(r, _rankCont);
+      if (acc == null) continue; // 대륙별 통계 없는 다중/전체 기록은 대륙 섹션에서 제외
+      const u = byUser[r.user_id] || (byUser[r.user_id] = { accs: [], bestRow: null, bestAcc: -1 });
       u.accs.push(acc);
       if (acc > u.bestAcc) { u.bestAcc = acc; u.bestRow = r; }
     }
@@ -7754,7 +7759,7 @@ async function submitScore({ category, correct, total, accuracy, scope, points, 
   await ensureSB();
   if (!supabase) return;
   const acc = accuracy != null ? Number(accuracy) : Math.round((correct / total) * 1000) / 10;
-  const { error } = await supabase.from('scores').insert({
+  const row = {
     user_id: session.user.id,
     category: category || 'name',
     scope: scope || null,
@@ -7765,7 +7770,15 @@ async function submitScore({ category, correct, total, accuracy, scope, points, 
     max_points: maxPoints != null ? maxPoints : (total | 0),
     is_retry: !!isRetry,
     cont_stats: contStats || null,
-  });
+  };
+  let { error } = await supabase.from('scores').insert(row);
+  // 컬럼 미생성 등으로 실패하면 신규 컬럼 빼고 재시도 (점수 유실 방지)
+  if (error) {
+    const r2 = { ...row }; delete r2.cont_stats; delete r2.points; delete r2.max_points; delete r2.is_retry;
+    const retry = await supabase.from('scores').insert(r2);
+    error = retry.error;
+    if (!error) toast('기록 저장됨 (일부 컬럼 SQL 미적용 — SETUP 참고)');
+  }
   if (!error) {
     const lbl = category === 'religion' ? `${points}/${maxPoints}pt` : `${acc}%`;
     toast(`${CAT_NAME[category] || ''} 기록 저장 · ${lbl}${isRetry ? ' (오답·랭킹 제외)' : ''}`);
