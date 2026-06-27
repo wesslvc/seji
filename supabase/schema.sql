@@ -102,11 +102,33 @@ create or replace function public.app_leaderboard()
 returns table(user_id uuid, nickname text, avatar_url text, category text, scope text,
               accuracy numeric, points numeric, correct int, cont_stats jsonb)
 language sql security definer set search_path = public stable as $$
+  -- 완료한 정식 기록 (정답률·대륙별·점수 모두 포함)
   select s.user_id, p.nickname, p.avatar_url, s.category, s.scope,
          s.accuracy, s.points, s.correct, s.cont_stats
   from public.scores s
   join public.profiles p on p.id = s.user_id
-  where coalesce(s.is_retry, false) = false;
+  where coalesce(s.is_retry, false) = false
+  union all
+  -- 진행 중(미완료) 기록도 통합 점수에 반영 (정답률/대륙은 불완전 → null)
+  select ud.user_id, p.nickname, p.avatar_url,
+    case when ud.key like 'wq\_rq\_%' then 'religion'
+         when ud.key like 'bq\_%'    then 'border'
+         when ud.key = 'kq_state_v1' then 'korea'
+         else 'name' end,
+    case when ud.key like 'wq\_rq\_%' then substring(ud.key from 7)
+         when ud.key like 'bq\_%'    then substring(ud.key from 4)
+         when ud.key = 'kq_state_v1' then 'korea'
+         else substring(ud.key from 4) end,
+    null::numeric,
+    case when ud.key like 'wq\_rq\_%' then coalesce((ud.data->>'earnedPoints')::numeric, 0)
+         else coalesce((ud.data->>'correct')::numeric, 0) end,
+    coalesce((ud.data->>'correct')::int, 0),
+    null::jsonb
+  from public.user_data ud
+  join public.profiles p on p.id = ud.user_id
+  where ud.key <> 'wq_mode'
+    and ud.key not like '%\_\_%'
+    and coalesce((ud.data->>'recorded')::boolean, false) = false;
 $$;
 revoke all on function public.app_leaderboard() from public, anon;
 grant execute on function public.app_leaderboard() to authenticated;

@@ -7705,8 +7705,8 @@ function renderRanking() {
     for (const r of _rankScores) {
       if (!rankMatch(r)) continue;
       // 특정 대륙은 그 대륙 부분 정답률, 전체는 기록 전체 정답률
-      const acc = _rankCont === 'all' ? Number(r.accuracy) : contAccuracy(r, _rankCont);
-      if (acc == null) continue; // 대륙별 통계 없는 다중/전체 기록은 대륙 섹션에서 제외
+      const acc = _rankCont === 'all' ? (r.accuracy == null ? null : Number(r.accuracy)) : contAccuracy(r, _rankCont);
+      if (acc == null || isNaN(acc)) continue; // 정답률 없는 진행중/다중 기록은 정답률 랭킹에서 제외
       const u = byUser[r.user_id] || (byUser[r.user_id] = { accs: [], bestRow: null, bestAcc: -1 });
       u.accs.push(acc);
       if (acc > u.bestAcc) { u.bestAcc = acc; u.bestRow = r; }
