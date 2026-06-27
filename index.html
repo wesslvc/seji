@@ -6908,13 +6908,14 @@ function hasStoredSession() {
 const CAT_NAME = { name: '나라이름', border: '접경국', religion: '종교', korea: '한국지리' };
 const CONT_KO = { as: '아시아', eu: '유럽', af: '아프리카', na: '북아메리카', sa: '남아메리카', oc: '오세아니아' };
 function scopeContinents(scope) {
-  if (!scope || scope === 'korea') return [];
+  if (scope === 'korea') return [];
+  if (!scope) return ['all']; // 이전 기록(범위 미저장)은 전체 대륙으로 간주
   const base = scope.split('_')[0];
   if (base === 'all' || !base) return ['all'];
   return base.split('+');
 }
 function scopeLabel(scope) {
-  if (!scope) return '';
+  if (!scope) return '전체';
   if (scope === 'korea') return '한국';
   const parts = scope.split('_');
   const base = parts[0];
