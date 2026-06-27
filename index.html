@@ -7472,9 +7472,10 @@ async function openMenuData() {
     const d = new Date(r.created_at);
     const ds = `${d.getMonth() + 1}/${d.getDate()}`;
     const sc = r.category === 'korea' ? '' : scopeLabel(r.scope);
+    const pts = r.points != null ? r.points : r.correct;
     const val = r.category === 'religion'
-      ? `${r.points}/${r.max_points}<b style="color:#ddd">pt</b>`
-      : `${r.correct}/${r.total} · <b style="color:#ddd">${Number(r.accuracy).toFixed(1)}%</b>`;
+      ? `${Number(r.accuracy).toFixed(1)}% · <b style="color:#ddd">${pts}점</b>`
+      : `${Number(r.accuracy).toFixed(1)}% · <b style="color:#ddd">${pts}점</b>`;
     const row = el(`<div class="rec-row" style="display:flex;justify-content:space-between;gap:.5rem;font-size:.78rem;color:#bbb;padding:.34rem .2rem;border-bottom:1px solid #1c1c1c;cursor:pointer">
       <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ds} · ${CAT_NAME[r.category] || r.category}${sc ? ` <span style="color:#777">${sc}</span>` : ''}${r.is_retry ? ' <span style="color:#a06060">·오답</span>' : ''}</span>
       <span style="color:#888;flex-shrink:0">${val} ›</span></div>`);
@@ -7488,9 +7489,10 @@ function openRecordDetail(r) {
   const dateStr = `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
   const scope = r.category === 'korea' ? '시·군 전체' : scopeLabel(r.scope);
   const bd = (window.SejiGame && window.SejiGame.getBreakdown) ? window.SejiGame.getBreakdown(r.category, r.scope) : { right: [], wrong: [], hasState: false, hasWrong: false };
+  const pts = r.points != null ? r.points : r.correct;
   const scoreLine = r.category === 'religion'
-    ? `<b>${r.points}/${r.max_points}점</b> · 정답 ${r.correct}/${r.total} (${Number(r.accuracy).toFixed(1)}%)`
-    : `<b>${r.correct}/${r.total}</b> · 정답률 ${Number(r.accuracy).toFixed(1)}%`;
+    ? `정답 ${r.correct}/${r.total} · 정답률 ${Number(r.accuracy).toFixed(1)}% · <b>환산 ${pts}/${r.max_points}점</b>`
+    : `<b>${r.correct}/${r.total}</b> · 정답률 ${Number(r.accuracy).toFixed(1)}% · 환산 <b>${pts}점</b>`;
   const tags = (arr) => arr.length ? arr.map((n) => `<span class="rd-tag">${escapeHtml(n)}</span>`).join('') : `<span style="color:#666;font-size:.76rem">목록 없음</span>`;
   const card = document.getElementById('acct-rec-card');
   card.innerHTML = `
