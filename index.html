@@ -7605,12 +7605,18 @@ async function openRanking() {
   renderRanking();
 }
 
+const _ALL6 = ['as', 'eu', 'af', 'na', 'sa', 'oc'];
+function isAllScope(conts) { return conts.includes('all') || _ALL6.every((c) => conts.includes(c)); }
 function rankMatch(r) {
   if (r.is_retry) return false; // 오답 다시풀기는 랭킹 제외
   if (_rankMode === 'unified') return true; // 통합: 모든 유형·대륙
   if (_rankCat !== 'all' && r.category !== _rankCat) return false;
-  if (_rankCont !== 'all') {
-    const conts = scopeContinents(r.scope);
+  const conts = scopeContinents(r.scope); // [] = 한국(대륙 개념 없음)
+  if (_rankCont === 'all') {
+    // '전체'는 모든 대륙을 한 번에 플레이한 기록만 (한국은 대륙 개념 없어 포함)
+    if (r.category === 'korea') return true;
+    if (!isAllScope(conts)) return false;
+  } else {
     if (!conts.includes(_rankCont)) return false;
   }
   return true;
