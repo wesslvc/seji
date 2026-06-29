@@ -268,6 +268,15 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 .ld-seg-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:.4rem;padding:.5rem;background:transparent;border:none;border-radius:4px;color:var(--tx2);font-family:'Pretendard','Noto Sans KR',sans-serif;font-size:.82rem;font-weight:500;cursor:pointer}
 .ld-seg-btn svg{width:1.05em;height:1.05em}
 .ld-seg-btn.active{background:var(--tx);color:#000}
+.ld-portion{background:var(--bg);border:1px solid var(--bd);border-radius:6px;padding:.6rem .8rem .5rem;margin-bottom:1.1rem}
+.ld-portion-h{display:flex;align-items:center;gap:.4rem;font-size:.82rem;color:var(--tx2);margin-bottom:.55rem}
+.ld-portion-h svg{width:1.05em;height:1.05em}
+.ld-portion-h b{color:var(--tx);font-weight:700;font-size:.9rem}
+.ld-portion-note{margin-left:auto;font-size:.66rem;color:var(--tx2)}
+.ld-portion-sl{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:2px;background:var(--ac2);outline:none;cursor:pointer}
+.ld-portion-sl::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--tx);cursor:pointer;border:2px solid var(--sf)}
+.ld-portion-sl::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--tx);border:2px solid var(--sf);cursor:pointer}
+.ld-portion-ticks{display:flex;justify-content:space-between;margin-top:.35rem;font-size:.62rem;color:var(--tx2);padding:0 1px}
 .ld-group{border:1px solid var(--bd);border-radius:8px;margin-bottom:.7rem;overflow:hidden;transition:border-color .25s var(--ease)}
 .ld-group.open{border-color:var(--tx2)}
 .ld-cat{display:flex;align-items:center;gap:.65rem;padding:.85rem .95rem;cursor:pointer;user-select:none}
@@ -419,10 +428,10 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
 #tq-pf{height:100%;width:0;background:var(--tx);transition:width .4s var(--ease)}
 #tq-card{flex:1;display:flex;flex-direction:column;min-height:0;padding:.6rem .8rem .2rem}
 .tq-hint{font-size:.72rem;color:var(--tx2);text-align:center;margin-bottom:.4rem}
-#tq-match{position:relative;flex:1;display:flex;gap:0;min-height:0;width:100%;max-width:580px;align-self:center;margin:0 auto}
+#tq-match{position:relative;flex:1;display:flex;gap:2.4rem;min-height:0;width:100%;max-width:640px;align-self:center;margin:0 auto}
 #tq-lines{position:absolute;inset:0;pointer-events:none;z-index:5}
 #tq-left{flex:1;display:flex;flex-direction:column;gap:.5rem;min-width:0;justify-content:space-between}
-#tq-right{width:38%;max-width:9rem;display:flex;flex-direction:column;gap:.5rem;justify-content:space-around;padding-left:.4rem}
+#tq-right{width:34%;max-width:8.5rem;display:flex;flex-direction:column;gap:.5rem;justify-content:space-between}
 .tq-map-card{position:relative;flex:1;min-height:0;border:1.5px solid var(--bd);border-radius:6px;overflow:hidden;cursor:pointer;background:var(--sf);transition:border-color .15s var(--ease),box-shadow .15s}
 .tq-map-card.sel{border-color:var(--tx);box-shadow:0 0 0 2px rgba(238,238,238,.25)}
 .tq-map-card.linked{border-color:#5c96d0}
@@ -473,6 +482,11 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
     <div class="ld-seg" id="ld-mode">
       <button class="ld-seg-btn" data-mode="pc"><span data-ic="monitor"></span>PC</button>
       <button class="ld-seg-btn" data-mode="mob"><span data-ic="phone"></span>모바일</button>
+    </div>
+    <div class="ld-portion">
+      <div class="ld-portion-h"><span data-ic="range"></span>출제 비율 <b id="ld-portion-val">100%</b><span class="ld-portion-note">전체 문항 중 일부만 출제</span></div>
+      <input type="range" id="ld-portion" class="ld-portion-sl" min="0" max="5" step="1" value="5">
+      <div class="ld-portion-ticks"><span>5</span><span>10</span><span>12.5</span><span>25</span><span>50</span><span>100</span></div>
     </div>
     <div class="ld-group" data-cat="world">
       <label class="ld-cat">
@@ -5103,6 +5117,13 @@ function setupLanding(){
   document.querySelectorAll('.ld-act').forEach(cb=>{
     cb.addEventListener('change',updateStartState);
   });
+  /* 출제 비율 슬라이더 */
+  const psl=document.getElementById('ld-portion');
+  if(psl){
+    const pv=document.getElementById('ld-portion-val');
+    const upd=()=>{const f=PORTION_VALUES[+psl.value]||1;pv.textContent=(f*100)+'%';};
+    psl.addEventListener('input',upd);upd();
+  }
   /* 대륙 전체 선택/해제 토글 */
   const contAll=document.getElementById('ld-cont-all');
   function syncContAll(){
@@ -5144,6 +5165,9 @@ function startFromLanding(){
   if(document.getElementById('ld-big').checked)key+='_big';
   if(document.getElementById('ld-noisle').checked)key+='_noisle';
   if(document.getElementById('ld-terr')&&document.getElementById('ld-terr').checked)key+='_terr';
+  const psl=document.getElementById('ld-portion');
+  const por=psl?(PORTION_VALUES[+psl.value]||1):1;
+  if(por<1)key+='_p'+Math.round(por*1000);
   startSession('world',acts,key,key);
 }
 
@@ -5539,6 +5563,25 @@ try{Object.assign(COUNTRIES,TERR_COUNTRIES);}catch(e){}
 const TERRITORIES=new Set(Object.keys(TERR_COUNTRIES));
 const TERR_CONT={aw:'na',cw:'na',gf:'sa',gg:'eu',gp:'na',gu:'oc',hk:'as',mo:'as',mq:'na',nc:'oc',pf:'oc',pr:'na',re:'af',vi:'na',yt:'af'};
 
+/* ── 출제 비율(부분 출제) ── 필터키에 _pNNN (NNN=비율*1000) 토큰으로 인코딩.
+   같은 설정이면 항상 같은 부분집합이 나오도록 키 해시 시드로 결정적 샘플링한다. */
+const PORTION_VALUES=[0.05,0.10,0.125,0.25,0.50,1.0];
+function _portion(key){const m=(key||'').match(/(?:^|_)p(\d+)(?=_|$)/);return m?Math.max(1,parseInt(m[1]))/1000:1;}
+function _seedFromKey(k){k=k||'';let h=2166136261;for(let i=0;i<k.length;i++){h=Math.imul(h^k.charCodeAt(i),16777619);}return h>>>0;}
+function _seededSample(arr,key,n){
+  let t=_seedFromKey(key)>>>0;
+  const rnd=()=>{t+=0x6D2B79F5;let x=Math.imul(t^t>>>15,1|t);x^=x+Math.imul(x^x>>>7,61|x);return((x^x>>>14)>>>0)/4294967296;};
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a.slice(0,Math.max(1,n));
+}
+function _applyPortion(arr,key,minN){
+  const por=_portion(key);
+  if(por>=1)return arr;
+  const n=Math.max(minN||1,Math.round(arr.length*por));
+  return _seededSample(arr,key,n);
+}
+
 /* ── 육지 접경(인접국) 데이터 — 접경국 맞추기 퀴즈용 ── */
 const BORDERS={
   dz:['ma','eh','mr','ml','ne','ly','tn'],ao:['cd','cg','zm','na'],bj:['tg','bf','ne','ng'],bw:['na','zm','zw','za'],
@@ -5601,6 +5644,7 @@ function initActiveSet(key){
   }
   if(parts.includes('big'))base=base.filter(i=>!SMALL.has(i));
   if(parts.includes('noisle'))base=base.filter(i=>!ISLE.has(i));
+  base=_applyPortion(base,key,1);
   S.activeSet=new Set(base);
   S.total=S.activeSet.size;
   /* 현재 status 중 activeSet 외 항목 제거 */
@@ -6113,6 +6157,7 @@ function buildRQList(filterKey){
   if(!wantTerr)isos=isos.filter(iso=>!TERRITORIES.has(iso)); /* 자치령 분리 해제 시 자치령 제외 */
   if(parts.includes('big'))isos=isos.filter(iso=>!SMALL.has(iso));
   if(parts.includes('noisle'))isos=isos.filter(iso=>!ISLE.has(iso));
+  isos=_applyPortion(isos,key,1);
   RQ.list=isos.sort(()=>Math.random()-.5);
   RQ.idx=0;RQ.correct=0;RQ.errors=0;RQ.skipped=0;RQ.wrongItems=[];RQ.wrongCounts={};
   RQ.earnedPoints=0;RQ.maxPoints=RQ.list.reduce((s,iso)=>s+rqMaxPts(RELIGION_DATA[iso].mode),0);
@@ -7113,7 +7158,15 @@ function renderTreemap(el,cells){
     el.appendChild(d);
   });
 }
-const TQ_MAX=50; /* 한 세션 최대 출제 국가 수 (무역규모 상위) */
+/* 필터 적용 후 무역규모(v) 큰 나라 순으로 정렬, 출제 비율(_pNNN)만큼 상위 N국 */
+function tqPoolFor(filterKey){
+  const set=_countSetForFilter(filterKey);
+  let pool=[...set].filter(tqEligible);
+  pool.sort((a,b)=>((TRADE_DATA[b]||{}).v||0)-((TRADE_DATA[a]||{}).v||0));
+  const por=_portion(filterKey);
+  if(por<1)pool=pool.slice(0,Math.max(2,Math.round(pool.length*por)));
+  return pool;
+}
 const TQ={mode:'x',filterKey:'all',saveKey:'tq_x_all',pool:[],queue:[],round:[],
   leftOrder:[],rightOrder:[],matches:{},selLeft:null,selRight:null,
   tries:0,revealed:false,totalCountries:0,correctCountries:0,
@@ -7126,11 +7179,7 @@ function tqInit(mode,filterKey){
   TQ.mode=mode; TQ.filterKey=filterKey||'all'; TQ.isRetry=false;
   TQ.saveKey=tqSaveKeyFor(mode,TQ.filterKey);
   if(tqLoad(TQ.saveKey))return;
-  const set=_countSetForFilter(TQ.filterKey);
-  /* 무역규모(v) 큰 나라 위주로 — 매칭이 의미있고 한 판 길이도 적당하게 (최대 TQ_MAX국) */
-  let pool=[...set].filter(tqEligible);
-  pool.sort((a,b)=>((TRADE_DATA[b]||{}).v||0)-((TRADE_DATA[a]||{}).v||0));
-  TQ.pool=pool.slice(0,TQ_MAX);
+  TQ.pool=tqPoolFor(TQ.filterKey);
   tqBuildFromPool();
 }
 function tqBuildFromPool(){
@@ -7381,10 +7430,7 @@ function tqRetryWrong(){
 function tqRestart(){
   const fk=(typeof SESSION!=='undefined'&&SESSION.filterKey)?SESSION.filterKey:(TQ.filterKey||'all');
   TQ.isRetry=false; TQ.saveKey=tqSaveKeyFor(TQ.mode,fk); TQ.filterKey=fk;
-  const set=_countSetForFilter(fk);
-  let pool=[...set].filter(tqEligible);
-  pool.sort((a,b)=>((TRADE_DATA[b]||{}).v||0)-((TRADE_DATA[a]||{}).v||0));
-  TQ.pool=pool.slice(0,TQ_MAX);
+  TQ.pool=tqPoolFor(fk);
   document.getElementById('tq-end').classList.remove('on');
   tqBuildFromPool(); tqRender();
 }
@@ -7449,6 +7495,8 @@ function scopeLabel(scope) {
   if (parts.includes('big')) tags.push('소국 제외');
   if (parts.includes('noisle')) tags.push('섬 제외');
   if (parts.includes('terr')) tags.push('자치령 포함');
+  const pm = scope.match(/(?:^|_)p(\d+)(?=_|$)/);
+  if (pm) tags.push((parseInt(pm[1]) / 10) + '% 출제');
   if (tags.length) lbl += ' (' + tags.join(', ') + ')';
   return lbl;
 }
