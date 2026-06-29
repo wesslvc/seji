@@ -440,6 +440,7 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
           <div class="ld-cont-hint" id="ld-cont-hint">선택 안 하면 전체 대륙</div>
           <label class="ld-chk"><input type="checkbox" id="ld-big">인구 40만+ 국가만 (소국 제외)</label>
           <label class="ld-chk"><input type="checkbox" id="ld-noisle">섬나라 제외</label>
+          <label class="ld-chk"><input type="checkbox" id="ld-terr">자치령 분리 (퀴라소·프랑스령 기아나 등 포함)</label>
         </div>
       </div>
     </div>
@@ -5039,6 +5040,7 @@ function startFromLanding(){
   let key=conts.length?conts.join('+'):'all';
   if(document.getElementById('ld-big').checked)key+='_big';
   if(document.getElementById('ld-noisle').checked)key+='_noisle';
+  if(document.getElementById('ld-terr')&&document.getElementById('ld-terr').checked)key+='_terr';
   startSession('world',acts,key,key);
 }
 
@@ -5405,6 +5407,27 @@ const ISLE=new Set(['ag','au','bs','bb','cv','cu','cy','dm','fj','fm','gd','ht',
 const SMALL=new Set(['ad','ag','bb','dm','fm','gd','ki','kn','lc','li','mc','mh','nr','pw','sc','sm','st','to','tv','va','vc','vu','ws']);
 
 const CONT_NAME={af:'아프리카',as:'아시아',eu:'유럽',na:'북아메리카',sa:'남아메리카',oc:'오세아니아'};
+/* ── 자치령(속령) ── 기본 제외, '자치령 분리' 체크 시 별도 출제 ── */
+const TERR_COUNTRIES={
+  aw:{k:'아루바',e:'Aruba',x:['aruba']},
+  cw:{k:'퀴라소',e:'Curacao',x:['curacao','쿠라사오','쿠라카오']},
+  gf:{k:'프랑스령 기아나',e:'French Guiana',x:['french guiana','기아나','프랑스령기아나']},
+  gg:{k:'채널 제도',e:'Channel Islands',x:['channel islands','채널제도']},
+  gp:{k:'과들루프',e:'Guadeloupe',x:['guadeloupe']},
+  gu:{k:'괌',e:'Guam',x:['guam']},
+  hk:{k:'홍콩',e:'Hong Kong',x:['hong kong','hongkong']},
+  mo:{k:'마카오',e:'Macao',x:['macao','macau','마카우']},
+  mq:{k:'마르티니크',e:'Martinique',x:['martinique']},
+  nc:{k:'누벨칼레도니',e:'New Caledonia',x:['new caledonia','뉴칼레도니아','누벨칼레도니아']},
+  pf:{k:'프랑스령 폴리네시아',e:'French Polynesia',x:['french polynesia','폴리네시아','프랑스령폴리네시아']},
+  pr:{k:'푸에르토리코',e:'Puerto Rico',x:['puerto rico','푸에르토 리코']},
+  re:{k:'레위니옹',e:'Reunion',x:['reunion','réunion','레위니옹섬']},
+  vi:{k:'미국령 버진아일랜드',e:'U.S. Virgin Islands',x:['virgin islands','버진아일랜드','미국령버진아일랜드']},
+  yt:{k:'마요트',e:'Mayotte',x:['mayotte']},
+};
+try{Object.assign(COUNTRIES,TERR_COUNTRIES);}catch(e){}
+const TERRITORIES=new Set(Object.keys(TERR_COUNTRIES));
+const TERR_CONT={aw:'na',cw:'na',gf:'sa',gg:'eu',gp:'na',gu:'oc',hk:'as',mo:'as',mq:'na',nc:'oc',pf:'oc',pr:'na',re:'af',vi:'na',yt:'af'};
 
 /* ── 육지 접경(인접국) 데이터 — 접경국 맞추기 퀴즈용 ── */
 const BORDERS={
@@ -5451,13 +5474,20 @@ function inActive(i){return S.activeSet?S.activeSet.has(i):!!COUNTRIES[i];}
 function initActiveSet(key){
   /* key examples: 'all','all_big','af','as_noisle','eu_big' */
   S.saveKey='wq_'+key;
-  let base=Object.keys(COUNTRIES);
   const parts=key.split('_');
   const contKey=parts[0];
+  const wantTerr=parts.includes('terr');
+  let base;
   if(contKey!=='all'){
     const set=new Set();
-    contKey.split('+').forEach(c=>{(CONT[c]||[]).forEach(i=>set.add(i));});
+    contKey.split('+').forEach(c=>{
+      (CONT[c]||[]).forEach(i=>set.add(i));
+      if(wantTerr)for(const t in TERR_CONT)if(TERR_CONT[t]===c)set.add(t);
+    });
     base=[...set].filter(i=>COUNTRIES[i]);
+  }else{
+    base=Object.keys(COUNTRIES);
+    if(!wantTerr)base=base.filter(i=>!TERRITORIES.has(i));
   }
   if(parts.includes('big'))base=base.filter(i=>!SMALL.has(i));
   if(parts.includes('noisle'))base=base.filter(i=>!ISLE.has(i));
@@ -5775,7 +5805,7 @@ function startOopsQuiz(){
 }
 let _ISO_CONT=null;
 function isoCont(iso){
-  if(!_ISO_CONT){_ISO_CONT={};for(const c of ['as','eu','af','na','sa','oc'])(CONT[c]||[]).forEach(i=>{_ISO_CONT[i]=c;});}
+  if(!_ISO_CONT){_ISO_CONT={};for(const c of ['as','eu','af','na','sa','oc'])(CONT[c]||[]).forEach(i=>{_ISO_CONT[i]=c;});for(const t in TERR_CONT)_ISO_CONT[t]=TERR_CONT[t];}
   return _ISO_CONT[iso];
 }
 /* 대륙별 정답/문항 수 — 다중·전체 대륙 기록을 대륙 섹션별로 분배하기 위함 */
@@ -5960,12 +5990,17 @@ function buildRQList(filterKey){
   RQ.saveKey=rqSaveKeyFor(key);
   const parts=key.split('_');
   const contKey=parts[0];
+  const wantTerr=parts.includes('terr');
   let isos=Object.keys(RELIGION_DATA);
   if(contKey!=='all'){
     const contSet=new Set();
-    contKey.split('+').forEach(c=>{(CONT[c]||[]).forEach(i=>contSet.add(i));});
+    contKey.split('+').forEach(c=>{
+      (CONT[c]||[]).forEach(i=>contSet.add(i));
+      if(wantTerr)for(const t in TERR_CONT)if(TERR_CONT[t]===c)contSet.add(t);
+    });
     isos=isos.filter(iso=>contSet.has(iso));
   }
+  if(!wantTerr)isos=isos.filter(iso=>!TERRITORIES.has(iso)); /* 자치령 분리 해제 시 자치령 제외 */
   if(parts.includes('big'))isos=isos.filter(iso=>!SMALL.has(iso));
   if(parts.includes('noisle'))isos=isos.filter(iso=>!ISLE.has(iso));
   RQ.list=isos.sort(()=>Math.random()-.5);
@@ -6777,10 +6812,21 @@ window.addEventListener('load',initMap);
 
 /* ── 저장된 퀴즈(이어하기/오답) 외부 API: 계정 메뉴에서 사용 ── */
 function _countSetForFilter(filterKey){
-  let base=Object.keys(COUNTRIES);
   const parts=(filterKey||'all').split('_');
   const contKey=parts[0];
-  if(contKey&&contKey!=='all'){const set=new Set();contKey.split('+').forEach(c=>{(CONT[c]||[]).forEach(i=>set.add(i));});base=[...set].filter(i=>COUNTRIES[i]);}
+  const wantTerr=parts.includes('terr');
+  let base;
+  if(contKey&&contKey!=='all'){
+    const set=new Set();
+    contKey.split('+').forEach(c=>{
+      (CONT[c]||[]).forEach(i=>set.add(i));
+      if(wantTerr)for(const t in TERR_CONT)if(TERR_CONT[t]===c)set.add(t);
+    });
+    base=[...set].filter(i=>COUNTRIES[i]);
+  }else{
+    base=Object.keys(COUNTRIES);
+    if(!wantTerr)base=base.filter(i=>!TERRITORIES.has(i));
+  }
   if(parts.includes('big'))base=base.filter(i=>!SMALL.has(i));
   if(parts.includes('noisle'))base=base.filter(i=>!ISLE.has(i));
   return new Set(base);
@@ -6965,6 +7011,7 @@ function scopeLabel(scope) {
   const tags = [];
   if (parts.includes('big')) tags.push('소국 제외');
   if (parts.includes('noisle')) tags.push('섬 제외');
+  if (parts.includes('terr')) tags.push('자치령 포함');
   if (tags.length) lbl += ' (' + tags.join(', ') + ')';
   return lbl;
 }
