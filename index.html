@@ -421,6 +421,12 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
 .tq-th{display:flex;align-items:baseline;gap:.5rem}
 #tq-title{font-size:1rem;font-weight:700;color:var(--tx);letter-spacing:.02em}
 #tq-sub{font-size:.7rem;color:var(--tx2)}
+.tq-hbtn{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:6px;background:var(--sf2);border:1px solid var(--bd);color:var(--tx2);cursor:pointer;transition:.15s var(--ease);padding:0}
+.tq-hbtn:hover{color:var(--tx);border-color:var(--tx2)}
+.tq-hbtn.danger:hover{color:var(--wr);border-color:var(--wr)}
+.tq-hbtn svg{width:1.05em;height:1.05em}
+.tq-hbtn:first-of-type{margin-left:auto}
+.tq-foot .bq-dots{margin-bottom:0}
 .tq-stats{display:flex;gap:1.3rem;margin-top:.35rem}
 .tq-stats .sv{font-size:1rem;font-weight:700;line-height:1}
 .tq-stats .sl{font-size:.62rem;color:var(--tx2);margin-top:.1rem}
@@ -4879,7 +4885,11 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
 <!-- 무역구조 매칭 퀴즈 (수출/수입) -->
 <div id="tq-screen">
   <div class="tq-top">
-    <div class="tq-th"><span id="tq-title">수출구조 맞추기</span><span id="tq-sub">Export structure</span></div>
+    <div class="tq-th">
+      <span id="tq-title">수출구조 맞추기</span><span id="tq-sub">Export structure</span>
+      <button class="tq-hbtn" id="tq-shuffle" title="재배치 (연결 지우고 다시 배치)" onclick="tqRearrange()"><span data-ic="shuffle"></span></button>
+      <button class="tq-hbtn danger" id="tq-reset" title="초기화 (처음부터 다시)" onclick="tqResetConfirm()"><span data-ic="reset"></span></button>
+    </div>
     <div class="tq-stats">
       <div><div class="sv" style="color:#4a9060" id="tq-cor">0</div><div class="sl">맞춘 나라</div></div>
       <div><div class="sv" style="color:var(--tx2)" id="tq-rem">0</div><div class="sl">남은</div></div>
@@ -4887,13 +4897,14 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
     <div class="tq-progress"><div id="tq-pf"></div></div>
   </div>
   <div id="tq-card">
-    <div class="tq-hint">트리맵(무역구조)과 국가명을 선으로 연결하세요 · 확인을 누르면 채점됩니다</div>
+    <div class="tq-hint">트리맵(무역구조)과 국가명을 선으로 연결하세요 · 연결된 걸 다시 누르면 해제됩니다</div>
     <div id="tq-match">
       <svg id="tq-lines"></svg>
       <div id="tq-left"></div>
       <div id="tq-right"></div>
     </div>
     <div class="tq-foot">
+      <div class="bq-dots" id="tq-dots"><div class="bq-dot"></div><div class="bq-dot"></div><div class="bq-dot"></div></div>
       <span id="tq-tries"></span>
       <button class="tq-btn" id="tq-ok" onclick="tqSubmit()" disabled>확인</button>
       <button class="tq-btn" id="tq-next" onclick="tqNext()" style="display:none">다음 →</button>
@@ -5070,7 +5081,8 @@ const ICON={
   check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>',
   power:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 4v8"/><path d="M7.5 7a7 7 0 1 0 9 0"/></svg>',
   trophy:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M7 4h10v4a5 5 0 0 1-10 0z"/><path d="M7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3M9 19h6M12 13v6"/></svg>',
-  chart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="1.5"/><path d="M3 13h11M14 3v18M14 9h7"/></svg>'
+  chart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="1.5"/><path d="M3 13h11M14 3v18M14 9h7"/></svg>',
+  shuffle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h4l9 10h5M3 17h4l3-3.5M16 5l4 2-4 2M14 11.5 17 7M16 19l4-2-4-2"/></svg>'
 };
 function ic(name){return ICON[name]||'';}
 function injectIcons(root){(root||document).querySelectorAll('[data-ic]').forEach(e=>{if(!e.dataset.icDone){e.innerHTML=ICON[e.dataset.ic]||'';e.dataset.icDone='1';}});}
@@ -7014,6 +7026,10 @@ function listSaves(){
       const st=d.status||{};const wr=d.wrong||{};
       const wset=new Set(Object.keys(st).filter(x=>st[x]==='cr'));Object.keys(wr).forEach(x=>{if(wr[x]>0)wset.add(x);});
       out.push({type:'korea',key:k,scope:'korea',done:Object.keys(st).length,total:d.total||0,wrong:wset.size});
+    }else if((k.startsWith('tq_x_')||k.startsWith('tq_m_'))&&!k.includes('__')){
+      const done=(d.done||[]).length;if(!done)continue; /* 시작만 한 건 제외 */
+      out.push({type:k.startsWith('tq_x_')?'texp':'timp',key:k,scope:d.filterKey||k.slice(5),
+        done,total:d.totalCountries||0,wrong:(d.wrong||[]).length});
     }
   }
   // 진행 중(미완료) 먼저, 그다음 완료
@@ -7026,6 +7042,8 @@ function _resumeStart(type,key){
   if(type==='name')startSession('world',['name'],key.slice(3));
   else if(type==='border')startSession('world',['border'],key.slice(3));
   else if(type==='religion'){const rk=key.slice(6);startSession('world',['religion'],rk,rk);}
+  else if(type==='texp')startSession('world',['texp'],key.slice(5),key.slice(5));
+  else if(type==='timp')startSession('world',['timp'],key.slice(5),key.slice(5));
   else if(type==='korea')startSession('korea',['korea'],null);
 }
 function resumeSave(type,key){_resumeStart(type,key);}
@@ -7055,6 +7073,7 @@ function resumeWrongRetry(type,key){
       if(type==='name')retryWrong(1);
       else if(type==='religion')rqStartRetryList(relIsos);
       else if(type==='border')bqRetryWrong();
+      else if(type==='texp'||type==='timp')tqRetryWrong();
     }catch(e){}
   },140);
 }
@@ -7080,6 +7099,8 @@ function _keyFor(category,scope){
   if(category==='name')return 'wq_'+(scope||'all');
   if(category==='border')return 'bq_'+(scope||'all');
   if(category==='religion')return 'wq_rq_'+(scope||'all');
+  if(category==='texp')return 'tq_x_'+(scope||'all');
+  if(category==='timp')return 'tq_m_'+(scope||'all');
   if(category==='korea')return KQ_SAVE_KEY;
   return null;
 }
@@ -7287,14 +7308,36 @@ function tqRender(){
 function tqPickLeft(iso){
   if(TQ.revealed)return;
   if(TQ.selRight){ tqAssign(iso,TQ.selRight); TQ.selRight=null; TQ.selLeft=null; }
+  else if(TQ.matches[iso]){ delete TQ.matches[iso]; TQ.selLeft=null; TQ.selRight=null; } /* 연결된 카드 다시 누르면 해제 */
   else { TQ.selLeft=(TQ.selLeft===iso)?null:iso; }
   tqRefresh();
 }
 function tqPickRight(iso){
   if(TQ.revealed)return;
+  const linkedLeft=Object.keys(TQ.matches).find(l=>TQ.matches[l]===iso);
   if(TQ.selLeft){ tqAssign(TQ.selLeft,iso); TQ.selLeft=null; TQ.selRight=null; }
+  else if(linkedLeft){ delete TQ.matches[linkedLeft]; TQ.selLeft=null; TQ.selRight=null; } /* 연결된 이름 다시 누르면 해제 */
   else { TQ.selRight=(TQ.selRight===iso)?null:iso; }
   tqRefresh();
+}
+/* 현재 라운드 연결 모두 지우고 위치 재배치 */
+function tqRearrange(){
+  if(TQ.revealed||!TQ.round.length)return;
+  TQ.matches={}; TQ.selLeft=null; TQ.selRight=null;
+  TQ.leftOrder=shuffle(TQ.round); TQ.rightOrder=shuffle(TQ.round);
+  tqRender();
+}
+/* 초기화: 현재 모드 처음부터 다시 */
+function tqResetConfirm(){
+  if(!confirm((TQ.mode==='x'?'수출구조':'수입구조')+' 진행 상황을 처음부터 다시 시작할까요?'))return;
+  tqRestart();
+}
+/* 시도 점 3개 표시 */
+function tqUpdateDots(){
+  const wrap=document.getElementById('tq-dots'); if(!wrap)return;
+  const dots=wrap.querySelectorAll('.bq-dot');
+  dots.forEach((d,i)=>{ d.classList.toggle('ng', !TQ.revealed && i<TQ.tries); });
+  wrap.style.visibility=TQ.revealed?'hidden':'visible';
 }
 function tqAssign(leftIso,rightIso){
   for(const l in TQ.matches){ if(TQ.matches[l]===rightIso) delete TQ.matches[l]; }
@@ -7317,6 +7360,7 @@ function tqRefresh(){
   ok.disabled=!allMatched||TQ.revealed;
   const tr=document.getElementById('tq-tries');
   tr.textContent=TQ.tries>0&&!TQ.revealed?('시도 '+TQ.tries+'/3'):'';
+  tqUpdateDots();
   tqDrawLines();
 }
 function tqDrawLines(){
@@ -7367,6 +7411,7 @@ function tqSubmit(){
   else {
     const tr=document.getElementById('tq-tries');
     tr.textContent='틀렸어요 · 다시 시도 ('+TQ.tries+'/3)';
+    tqUpdateDots();
     const m=document.getElementById('tq-match'); m.classList.remove('shake'); void m.offsetWidth; m.classList.add('shake');
   }
 }
@@ -7390,7 +7435,7 @@ function tqReveal(allCorrect){
   document.getElementById('tq-next').style.display='inline-flex';
   const tr=document.getElementById('tq-tries');
   tr.textContent=allCorrect?'정답! 🎉':'정답 공개';
-  tqHeader(); tqSave(); tqDrawLines();
+  tqHeader(); tqUpdateDots(); tqSave(); tqDrawLines();
 }
 function tqNext(){
   document.getElementById('tq-ok').style.display='inline-flex';
