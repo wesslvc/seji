@@ -28,7 +28,7 @@ create policy "user_data own" on public.user_data
 create table if not exists public.scores (
   id         bigint generated always as identity primary key,
   user_id    uuid not null references auth.users on delete cascade,
-  category   text not null,                       -- name | border | religion | korea
+  category   text not null,                       -- name | border | religion | texp | timp | korea
   scope      text,                                -- 출제범위 키 (예: as+eu_big, all, korea)
   points     numeric,                             -- 종교: 획득 점수 / 그 외: 맞춘 수
   max_points numeric,                             -- 만점
@@ -94,7 +94,7 @@ create policy "scores insert" on public.scores for insert to authenticated
     auth.uid() = user_id
     and total > 0 and correct >= 0 and correct <= total
     and accuracy >= 0 and accuracy <= 100
-    and category in ('name','border','religion','korea')
+    and category in ('name','border','religion','texp','timp','korea')
   );
 
 -- 랭킹용 집계 데이터만 노출하는 보안 함수 (테이블 직접 접근 대신 이걸로만 제공)
@@ -112,17 +112,21 @@ language sql security definer set search_path = public stable as $$
   -- 진행 중(미완료) 기록도 통합 점수에 반영 (정답률/대륙은 불완전 → null)
   select ud.user_id, p.nickname, p.avatar_url,
     case when ud.key like 'wq\_rq\_%' then 'religion'
+         when ud.key like 'tq\_x\_%'  then 'texp'
+         when ud.key like 'tq\_m\_%'  then 'timp'
          when ud.key like 'bq\_%'    then 'border'
          when ud.key = 'kq_state_v1' then 'korea'
          else 'name' end,
     case when ud.key like 'wq\_rq\_%' then substring(ud.key from 7)
+         when ud.key like 'tq\_%'    then substring(ud.key from 6)
          when ud.key like 'bq\_%'    then substring(ud.key from 4)
          when ud.key = 'kq_state_v1' then 'korea'
          else substring(ud.key from 4) end,
     null::numeric,
     case when ud.key like 'wq\_rq\_%' then coalesce((ud.data->>'earnedPoints')::numeric, 0)
+         when ud.key like 'tq\_%'    then coalesce((ud.data->>'correctCountries')::numeric, 0)
          else coalesce((ud.data->>'correct')::numeric, 0) end,
-    coalesce((ud.data->>'correct')::int, 0),
+    coalesce((ud.data->>'correct')::int, coalesce((ud.data->>'correctCountries')::int, 0)),
     null::jsonb
   from public.user_data ud
   join public.profiles p on p.id = ud.user_id
