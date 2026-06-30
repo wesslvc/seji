@@ -4946,7 +4946,7 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
     </div>
   </div>
   <div id="tq-hint-pop" class="tq-hint-pop" style="display:none">
-    <div class="tq-hint-pop-h" onclick="tqToggleHints()"><span>💡 힌트 (번호=트리맵)</span><span id="tq-hint-arrow">▾</span></div>
+    <div class="tq-hint-pop-h" onclick="tqToggleHints()"><span>💡 힌트</span><span id="tq-hint-arrow">▾</span></div>
     <div class="tq-hint-pop-body" id="tq-hint-list"></div>
   </div>
   <div id="tq-end">
@@ -7245,6 +7245,47 @@ function tqHintFor(iso){
   if(_diff(TQ.filterKey)==='M'&&MAJOR_TRADE.has(iso))return ''; /* 중: 쉬운(주요)국 설명 생략 */
   return tqHint(iso,TQ.mode);
 }
+/* 포괄적 힌트 — 특정 나라를 지목하지 않고 '품목↔기후·지리'로 추론하게 돕는 일반 상식 */
+const CHAP_TIP_X={
+  527:'⛽ 석유·가스가 크면 산유국 — 중동·러시아·중앙아시아·서아프리카·베네수엘라 등',
+  526:'⛏ 광석·원광이 크면 광물 자원 부국 — 호주·칠레·페루·서아프리카 등',
+  1471:'💎 금·은·보석이 크면 광물 자원국 또는 가공 허브',
+  631:'🌱 비료가 크면 인광석·천연가스를 가진 나라 — 모로코·러시아 등',
+  1685:'🔌 전자기기가 크면 동아시아·동남아 공업국 — 중국·대만·한국·베트남·말레이시아 등',
+  1684:'⚙️ 기계류가 크면 독일·일본·미국 등 산업 강국',
+  1787:'🚗 자동차·부품이 크면 독일·일본·한국·멕시코·체코 등',
+  1788:'✈️ 항공기가 크면 미국·프랑스 등 소수 선진국',
+  630:'💊 의약품이 크면 선진 제약국 — 스위스·독일·아일랜드 등',
+  209:'☕ 커피·차·향신료는 열대 — 에티오피아·콜롬비아·베트남 등',
+  208:'🍌 과일·견과는 온대~열대 농업국',
+  315:'🫒 팜유 등 식물성 유지는 열대 — 인도네시아·말레이시아 등',
+  418:'🍫 코코아는 서아프리카 열대 — 코트디부아르·가나 등',
+  1264:'👟 신발이 크면 동남아 경공업국 — 베트남 등',
+  1163:'👕 의류가 크면 저임금 노동집약 — 방글라데시·캄보디아 등',
+  1162:'👕 의류가 크면 저임금 노동집약 — 방글라데시·캄보디아 등',
+  1161:'👕 의류가 크면 저임금 노동집약 — 방글라데시·캄보디아 등',
+  103:'🐟 어패류가 크면 수산 강국 — 노르웨이·칠레 등',
+  1572:'🏗 철강이 크면 중공업·광물 국가',
+  422:'🍷 음료·주류는 유럽 온대 농업국',
+  944:'🌲 목재가 크면 한대림(러시아·캐나다·북유럽) — 사막·건조 기후엔 나무가 없어 목재 수출이 거의 없어요',
+  210:'🌾 곡물이 크면 대평원 농업국 — 미국·우크라이나·아르헨티나 등'
+};
+const CHAP_TIP_M={
+  527:'⛽ 석유·가스 수입이 크면 에너지가 부족한 공업·소비국 — 산유국이 아님(일본·한국·인도 등)',
+  210:'🌾 곡물 수입이 크면 사막·건조 기후거나 농지가 부족한 나라',
+  1685:'🔌 전자·기계 수입이 크면 조립·소비 중심 경제',
+  1787:'🚗 자동차 수입이 크면 자국 자동차 산업이 약한 나라',
+  630:'💊 의약품 수입이 크면 자체 제약 기반이 약한 나라',
+  311:'💊 의약품·소비재 수입 비중이 크면 제조 기반이 약한 편'
+};
+function tqRoundTips(){
+  const dict=TQ.mode==='m'?CHAP_TIP_M:CHAP_TIP_X;
+  const seen=new Set(), tips=[];
+  TQ.round.forEach(iso=>{
+    tqShare(iso).slice(0,2).forEach(c=>{const t=dict[c[0]]; if(t&&!seen.has(t)){seen.add(t);tips.push(t);}});
+  });
+  return tips;
+}
 /* ════════════════════════════════════════════════════════════
    무역구조 매칭 퀴즈 (수출구조 texp / 수입구조 timp)
    5개국 트리맵 ↔ 5개 국가명 선으로 잇기 · 3회 시도 후 정답 공개 · 틀린 나라 다시하기
@@ -7422,22 +7463,14 @@ function tqRender(){
   tqRefresh();
   requestAnimationFrame(()=>{ TQ.leftOrder.forEach(iso=>{ const tm=document.querySelector('.tq-map-card[data-iso="'+iso+'"] .tq-map'); if(tm)(isR?renderPie:renderTreemap)(tm,tqShare(iso)); }); tqApplyFeedback(); tqDrawLines(); });
 }
-/* 힌트는 카드에 직접 쓰지 않고 접이식 팝업에 모아서 표시(카드엔 번호 배지만). 부분정답은 tqDrawLines에서 처리 */
+/* 포괄적 힌트를 접이식 팝업에 표시(특정 카드 지목 없음). 부분정답은 tqDrawLines에서 처리 */
 function tqApplyFeedback(){
   const pop=document.getElementById('tq-hint-pop'), list=document.getElementById('tq-hint-list');
-  document.querySelectorAll('#tq-left .tq-card-no').forEach(b=>b.remove());
   if(!pop)return;
   if(!(TQ.feedback>=1)||TQ.mode==='r'||TQ.revealed){ pop.style.display='none'; return; }
-  let n=0, rows='';
-  TQ.leftOrder.forEach(iso=>{
-    const h=tqHintFor(iso); if(!h)return;
-    n++;
-    const card=document.querySelector('.tq-map-card[data-iso="'+iso+'"]');
-    if(card){const b=document.createElement('div');b.className='tq-card-no';b.textContent=n;card.appendChild(b);}
-    rows+=`<div class="tq-hint-row"><span class="tq-hint-no">${n}</span><span>${h}</span></div>`;
-  });
-  if(!n){ pop.style.display='none'; return; }
-  list.innerHTML=rows;
+  let tips=tqRoundTips();
+  if(!tips.length)tips=[TQ.mode==='m'?'수입 1위 품목과 대륙을 단서로 좁혀보세요.':'1위 품목과 대륙·기후를 단서로 좁혀보세요.'];
+  list.innerHTML=tips.map(t=>`<div class="tq-hint-row"><span>${t}</span></div>`).join('');
   pop.style.display='block';
   pop.classList.toggle('collapsed',!!TQ._hintCollapsed);
   const ar=document.getElementById('tq-hint-arrow'); if(ar)ar.textContent=TQ._hintCollapsed?'▸':'▾';
