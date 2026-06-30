@@ -466,8 +466,14 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
 .tq-lg-sw{width:10px;height:10px;border-radius:2px;flex-shrink:0}
 .tq-lg-nm{color:var(--tx);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tq-lg-pct{margin-left:auto;color:var(--tx2);font-weight:700;flex-shrink:0}
-/* 힌트 캡션 */
-.tq-hint-cap{position:absolute;left:0;right:0;bottom:0;background:rgba(168,112,32,.92);color:#fff;font-size:.68rem;font-weight:600;text-align:center;padding:.22rem .3rem;z-index:4;line-height:1.25}
+/* 힌트 팝업(접이식) + 카드 번호 배지 */
+.tq-card-no{position:absolute;top:4px;left:4px;width:18px;height:18px;border-radius:50%;background:rgba(168,112,32,.95);color:#000;font-size:.66rem;font-weight:800;display:flex;align-items:center;justify-content:center;z-index:5;box-shadow:0 1px 3px rgba(0,0,0,.4)}
+.tq-hint-pop{position:fixed;left:.6rem;bottom:4.6rem;z-index:60;width:min(290px,76vw);background:rgba(18,18,18,.97);border:1px solid var(--bd);border-radius:9px;box-shadow:0 6px 22px rgba(0,0,0,.55);overflow:hidden;backdrop-filter:blur(6px)}
+.tq-hint-pop-h{display:flex;justify-content:space-between;align-items:center;gap:.5rem;padding:.55rem .75rem;cursor:pointer;font-size:.8rem;font-weight:700;color:var(--gd);background:rgba(168,112,32,.14);user-select:none}
+.tq-hint-pop-body{max-height:40vh;overflow-y:auto;padding:.55rem .75rem;display:flex;flex-direction:column;gap:.45rem}
+.tq-hint-pop.collapsed .tq-hint-pop-body{display:none}
+.tq-hint-row{display:flex;gap:.5rem;align-items:center;font-size:.76rem;color:var(--tx);line-height:1.35}
+.tq-hint-no{flex-shrink:0;width:18px;height:18px;border-radius:50%;background:var(--gd);color:#000;font-size:.64rem;font-weight:800;display:flex;align-items:center;justify-content:center}
 .tq-dot{position:absolute;width:11px;height:11px;border-radius:50%;background:var(--sf2);border:2px solid var(--tx2);top:50%;transform:translateY(-50%);z-index:6}
 .tq-dot-l{right:-6px}
 .tq-dot-r{left:-6px}
@@ -4939,6 +4945,10 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
       <button class="tq-btn" id="tq-next" onclick="tqNext()" style="display:none">다음 →</button>
     </div>
   </div>
+  <div id="tq-hint-pop" class="tq-hint-pop" style="display:none">
+    <div class="tq-hint-pop-h" onclick="tqToggleHints()"><span>💡 힌트 (번호=트리맵)</span><span id="tq-hint-arrow">▾</span></div>
+    <div class="tq-hint-pop-body" id="tq-hint-list"></div>
+  </div>
   <div id="tq-end">
       <div class="esc" id="tq-escore">0%</div>
       <div class="est-row">
@@ -7222,11 +7232,13 @@ function tqArch(cells){if(!cells||!cells.length)return '여러 품목을 고루 
 function tqHint(iso,mode){
   if(mode==='r')return '';
   const cont=CONT_NAME[isoCont(iso)]||'';
-  const cells=(TRADE_DATA[iso]||{})[mode]||[];
-  let s=''; if(HUGE_POP.has(iso))s+='인구 대국 · ';
-  if(cont)s+=cont+'의 ';
-  s+=tqArch(cells)+' 나라';
-  return s;
+  const v=(TRADE_DATA[iso]||{}).v||0;
+  const size=v>=800?'세계적 무역 대국':(v>=200?'무역 규모가 큰 편':(v>=40?'중간 규모 경제':'무역 규모가 작은 편'));
+  const parts=[];
+  if(cont)parts.push(cont+' 지역');
+  if(HUGE_POP.has(iso))parts.push('인구 대국');
+  parts.push(size);
+  return parts.join(' · ');
 }
 function tqHintFor(iso){
   if(TQ.mode==='r')return '';
@@ -7341,7 +7353,7 @@ function tqStartRetry(isos){
   tqNextRound(); tqRender();
 }
 function tqNextRound(){
-  TQ.matches={}; TQ.selLeft=null; TQ.selRight=null; TQ.tries=0; TQ.revealed=false; TQ.feedback=0;
+  TQ.matches={}; TQ.selLeft=null; TQ.selRight=null; TQ.tries=0; TQ.revealed=false; TQ.feedback=0; TQ._hintCollapsed=false;
   if(!TQ.queue.length){TQ.round=[];return;}
   let n=Math.min(5,TQ.queue.length);
   if(TQ.queue.length-n===1)n=TQ.queue.length-2; // 마지막에 1개만 남는 라운드 방지(최소 2개)
@@ -7410,17 +7422,30 @@ function tqRender(){
   tqRefresh();
   requestAnimationFrame(()=>{ TQ.leftOrder.forEach(iso=>{ const tm=document.querySelector('.tq-map-card[data-iso="'+iso+'"] .tq-map'); if(tm)(isR?renderPie:renderTreemap)(tm,tqShare(iso)); }); tqApplyFeedback(); tqDrawLines(); });
 }
-/* 힌트 캡션 표시(피드백 1+) + 부분 정답 표시는 tqDrawLines에서 처리 */
+/* 힌트는 카드에 직접 쓰지 않고 접이식 팝업에 모아서 표시(카드엔 번호 배지만). 부분정답은 tqDrawLines에서 처리 */
 function tqApplyFeedback(){
-  const fb=TQ.feedback||0;
-  document.querySelectorAll('#tq-left .tq-map-card').forEach(c=>{
-    const iso=c.dataset.iso; let cap=c.querySelector('.tq-hint-cap');
-    if(fb>=1&&!TQ.revealed){
-      const h=tqHintFor(iso);
-      if(h){ if(!cap){cap=document.createElement('div');cap.className='tq-hint-cap';c.appendChild(cap);} cap.textContent='💡 '+h; }
-      else if(cap){cap.remove();}
-    } else if(cap){cap.remove();}
+  const pop=document.getElementById('tq-hint-pop'), list=document.getElementById('tq-hint-list');
+  document.querySelectorAll('#tq-left .tq-card-no').forEach(b=>b.remove());
+  if(!pop)return;
+  if(!(TQ.feedback>=1)||TQ.mode==='r'||TQ.revealed){ pop.style.display='none'; return; }
+  let n=0, rows='';
+  TQ.leftOrder.forEach(iso=>{
+    const h=tqHintFor(iso); if(!h)return;
+    n++;
+    const card=document.querySelector('.tq-map-card[data-iso="'+iso+'"]');
+    if(card){const b=document.createElement('div');b.className='tq-card-no';b.textContent=n;card.appendChild(b);}
+    rows+=`<div class="tq-hint-row"><span class="tq-hint-no">${n}</span><span>${h}</span></div>`;
   });
+  if(!n){ pop.style.display='none'; return; }
+  list.innerHTML=rows;
+  pop.style.display='block';
+  pop.classList.toggle('collapsed',!!TQ._hintCollapsed);
+  const ar=document.getElementById('tq-hint-arrow'); if(ar)ar.textContent=TQ._hintCollapsed?'▸':'▾';
+}
+function tqToggleHints(){
+  TQ._hintCollapsed=!TQ._hintCollapsed;
+  const pop=document.getElementById('tq-hint-pop'); if(pop)pop.classList.toggle('collapsed',TQ._hintCollapsed);
+  const ar=document.getElementById('tq-hint-arrow'); if(ar)ar.textContent=TQ._hintCollapsed?'▸':'▾';
 }
 function tqPickLeft(iso){
   if(TQ.revealed)return;
@@ -7548,7 +7573,7 @@ function tqReveal(allCorrect){
     const iso=c.dataset.iso; c.classList.add('revealed');
     c.classList.toggle('good',TQ.matches[iso]===iso);
     c.classList.toggle('bad',TQ.matches[iso]!==iso);
-    const cap=c.querySelector('.tq-hint-cap'); if(cap)cap.remove();
+    const bno=c.querySelector('.tq-card-no'); if(bno)bno.remove();
     let tag=c.querySelector('.tq-ans'); if(!tag){tag=document.createElement('div');tag.className='tq-ans';c.appendChild(tag);}
     tag.textContent=(COUNTRIES[iso]?COUNTRIES[iso].k:iso);
   });
@@ -7557,6 +7582,7 @@ function tqReveal(allCorrect){
   document.getElementById('tq-next').style.display='inline-flex';
   const tr=document.getElementById('tq-tries');
   tr.textContent=allCorrect?'정답! 🎉':'정답 공개';
+  const hp=document.getElementById('tq-hint-pop'); if(hp)hp.style.display='none';
   tqHeader(); tqUpdateDots(); tqSave(); tqDrawLines();
   /* 한 라운드 끝나면 잠시 뒤 자동으로 다음 라운드 */
   clearTimeout(TQ._advT);
