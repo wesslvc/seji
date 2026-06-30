@@ -277,6 +277,14 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 .ld-portion-sl::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--tx);cursor:pointer;border:2px solid var(--sf)}
 .ld-portion-sl::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--tx);border:2px solid var(--sf);cursor:pointer}
 .ld-portion-ticks{display:flex;justify-content:space-between;margin-top:.35rem;font-size:.62rem;color:var(--tx2);padding:0 1px}
+.ld-score{margin-top:.7rem;border:1px solid var(--bd);border-radius:6px;background:var(--bg);overflow:hidden}
+.ld-score summary{padding:.55rem .75rem;cursor:pointer;font-size:.8rem;color:var(--tx2);font-weight:600;user-select:none;list-style:none}
+.ld-score summary::-webkit-details-marker{display:none}
+.ld-score[open] summary{color:var(--tx);border-bottom:1px solid var(--bd)}
+.ld-score-tb{width:100%;border-collapse:collapse;font-size:.76rem}
+.ld-score-tb th{text-align:left;color:var(--tx2);font-weight:600;padding:.4rem .75rem;background:var(--sf2)}
+.ld-score-tb td{padding:.4rem .75rem;color:var(--tx);border-top:1px solid var(--bd)}
+.ld-score-tb td:last-child{text-align:right;color:var(--gd);font-weight:600;white-space:nowrap}
 .ld-tq-diff{margin:.1rem 0 .5rem;padding:.55rem .65rem;background:var(--bg);border:1px solid var(--bd);border-radius:6px}
 .ld-tq-diff-h{font-size:.78rem;color:var(--tx);font-weight:600;margin-bottom:.45rem}
 .ld-tq-diff-sub{font-size:.66rem;color:var(--tx2);font-weight:400;margin-left:.3rem}
@@ -353,6 +361,13 @@ body.in-session #rq-screen,body.in-session #kr-screen,body.in-session #tq-screen
 .bq-fb.ok{color:#4a9060;font-weight:600}.bq-fb.ng{color:var(--wr)}
 .bq-skip{padding:.32rem .7rem;background:transparent;border:1px solid var(--bd);border-radius:4px;color:var(--tx2);font-family:'Pretendard','Noto Sans KR',sans-serif;font-size:.74rem;cursor:pointer}
 .bq-skip:hover{color:var(--tx);border-color:var(--tx2)}
+.bq-type{display:flex;gap:.5rem;margin-bottom:.5rem}
+.bq-type #bq-gi{flex:1;padding:.55rem .8rem;background:rgba(16,16,16,.9);border:1px solid var(--bd);border-radius:5px;color:var(--tx);font-size:.95rem;font-family:'Pretendard','Noto Sans KR',sans-serif;outline:none}
+.bq-type #bq-gi:focus{border-color:var(--ac)}
+.bq-type #bq-gi.shake{animation:shk .35s ease;border-color:var(--wr)}
+.bq-type .btn{flex:0 0 auto;padding:.55rem 1.1rem}
+body.bq-nomap #ui-map,body.bq-nomap #ui-mob-bar{display:none!important}
+body.bq-nomap #bq-box{position:fixed;top:46%;left:50%;transform:translate(-50%,-50%);width:min(460px,92vw)}
 #bq-box.shake{animation:shk .35s ease}
 #bq-flash{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.75);background:rgba(6,6,6,.96);border-radius:10px;padding:.9rem 2.4rem;font-size:1.5rem;font-weight:700;pointer-events:none;z-index:200;opacity:0;transition:opacity .18s var(--ease),transform .22s var(--ease-spring);letter-spacing:.05em;white-space:nowrap}
 #bq-flash.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
@@ -544,7 +559,15 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
       </label>
       <div class="ld-subs">
         <label class="ld-sub-item"><input type="checkbox" class="ld-act" value="name"><span data-ic="globe"></span>나라 이름 맞추기</label>
-        <label class="ld-sub-item"><input type="checkbox" class="ld-act" value="border"><span data-ic="border"></span>접경국 맞추기</label>
+        <label class="ld-sub-item"><input type="checkbox" class="ld-act ld-act-bq" value="border"><span data-ic="border"></span>접경국 맞추기</label>
+        <div class="ld-tq-diff" id="ld-bq-map" style="display:none">
+          <div class="ld-tq-diff-h">지도 <span class="ld-tq-diff-sub">접경국</span></div>
+          <div class="ld-diff-seg" id="ld-bqmap">
+            <button type="button" data-bqmap="O">지도 O</button>
+            <button type="button" data-bqmap="X">지도 X (이름입력)</button>
+          </div>
+          <div class="ld-tq-diff-desc" id="ld-bqmap-desc"></div>
+        </div>
         <label class="ld-sub-item"><input type="checkbox" class="ld-act" value="religion" id="ld-act-religion"><span data-ic="book"></span>국가별 종교 맞추기</label>
         <label class="ld-sub-item"><input type="checkbox" class="ld-act ld-act-tq" value="texp"><span data-ic="chart"></span>수출구조 맞추기</label>
         <label class="ld-sub-item"><input type="checkbox" class="ld-act ld-act-tq" value="timp"><span data-ic="chart"></span>수입구조 맞추기</label>
@@ -587,6 +610,19 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
     </div>
     <button id="ld-start" class="ld-start"><span>시작하기</span><span data-ic="arrow"></span></button>
     <div class="ld-warn" id="ld-warn"></div>
+    <details class="ld-score">
+      <summary>📊 배점표 보기</summary>
+      <table class="ld-score-tb">
+        <tr><th>모드</th><th>국가당 점수</th></tr>
+        <tr><td>나라 이름</td><td>1점</td></tr>
+        <tr><td>접경국 (지도 O)</td><td>1점</td></tr>
+        <tr><td>접경국 (지도 X)</td><td>3점</td></tr>
+        <tr><td>종교 구성</td><td>2점</td></tr>
+        <tr><td>수출구조 (상·중·하)</td><td>3 · 2 · 1점</td></tr>
+        <tr><td>수입구조 (상·중·하)</td><td>9 · 6 · 3점</td></tr>
+        <tr><td>한국지리</td><td>1점</td></tr>
+      </table>
+    </details>
     <div id="ld-guest-note">⚠ 로그인하지 않으면 기록·오답·랭킹이 저장되지 않아요.<br><b>우측 상단에서 로그인하세요</b></div>
   </div>
 </div>
@@ -610,6 +646,10 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
       <div class="bq-q" id="bq-q-text">아래 나라들과 <b>모두 접한</b> 나라를 지도에서 클릭하세요</div>
       <div class="bq-dots"><div class="bq-dot" id="bq-d0"></div><div class="bq-dot" id="bq-d1"></div><div class="bq-dot" id="bq-d2"></div></div>
       <div class="bq-neighbors" id="bq-neighbors"></div>
+      <div class="bq-type" id="bq-type" style="display:none">
+        <input type="text" id="bq-gi" placeholder="접한 나라 이름을 입력..." autocomplete="off"/>
+        <button class="btn bp" id="bq-gsub" onclick="bqTypeSubmit()">확인</button>
+      </div>
       <div class="bq-foot">
         <div class="bq-fb" id="bq-fb"></div>
         <button class="bq-skip" id="bq-skip" onclick="bqSkip()">건너뛰기</button>
@@ -5188,7 +5228,7 @@ function setupLanding(){
     });
   });
   document.querySelectorAll('.ld-act').forEach(cb=>{
-    cb.addEventListener('change',()=>{updateStartState();if(window._syncTqDiff)window._syncTqDiff();});
+    cb.addEventListener('change',()=>{updateStartState();if(window._syncTqDiff)window._syncTqDiff();if(window._syncBqMap)window._syncBqMap();});
   });
   /* 출제 비율 슬라이더 */
   const psl=document.getElementById('ld-portion');
@@ -5215,6 +5255,21 @@ function setupLanding(){
     const el=document.getElementById('ld-tq-diff'); if(el)el.style.display=on?'block':'none';
   };
   window._syncTqDiff();
+  /* 접경국 지도 유무 — 접경국 체크 시에만 노출 */
+  window._ldBorderMap=window._ldBorderMap||'O';
+  const BQMAP_DESC={O:'지도에서 나라를 클릭 (국가당 1점)',X:'지도 없이 나라 이름을 직접 입력 (국가당 3점)'};
+  const bqSeg=document.getElementById('ld-bqmap');
+  function setBqMap(v){
+    window._ldBorderMap=v;
+    bqSeg.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.bqmap===v));
+    document.getElementById('ld-bqmap-desc').textContent=BQMAP_DESC[v]||'';
+  }
+  if(bqSeg){ bqSeg.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>setBqMap(b.dataset.bqmap))); setBqMap(window._ldBorderMap); }
+  window._syncBqMap=function(){
+    const on=[...document.querySelectorAll('.ld-act-bq')].some(c=>c.checked);
+    const el=document.getElementById('ld-bq-map'); if(el)el.style.display=on?'block':'none';
+  };
+  window._syncBqMap();
   /* 대륙 전체 선택/해제 토글 */
   const contAll=document.getElementById('ld-cont-all');
   function syncContAll(){
@@ -5261,6 +5316,8 @@ function startFromLanding(){
   if(por<1)key+='_p'+Math.round(por*1000);
   /* 수출/수입 난이도(상중하) — 무역 활동 선택 시에만 키에 반영 */
   if(acts.includes('texp')||acts.includes('timp'))key+='_d'+(window._ldDiff||'M');
+  /* 접경국 지도 없는 모드 */
+  if(acts.includes('border')&&window._ldBorderMap==='X')key+='_nomap';
   startSession('world',acts,key,key);
 }
 
@@ -5300,7 +5357,7 @@ function switchTab(key){
   if(modalOpen)closeModal();
   SESSION.cur=key;
   document.querySelectorAll('#act-tabs-list .act-tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===key));
-  const showMap=(key==='name'||key==='border');
+  const showMap=(key==='name'||(key==='border'&&!BQ.noMap));
   document.getElementById('rq-screen').classList.remove('on');
   document.getElementById('kr-screen').classList.toggle('on',key==='korea');
   document.getElementById('tq-screen').classList.toggle('on',key==='texp'||key==='timp'||key==='religion');
@@ -5312,10 +5369,12 @@ function switchTab(key){
     logo.innerHTML=(key==='name')?'나라 이름 <span>/ Countries</span>':'접경국 <span>/ Borders</span>';
     repaintMap();
     if(key==='name'){stats();}else{bqStats();bqShowCurrent();}
-  }else if(key==='religion'){tqEnter('r');}
+  }else if(key==='border'){ /* 지도 없는 접경국 */ mapMode='border';document.getElementById('ui-logo').innerHTML='접경국 <span>/ Borders</span>';bqStats();bqShowCurrent(); }
+  else if(key==='religion'){tqEnter('r');}
   else if(key==='texp'){tqEnter('x');}
   else if(key==='timp'){tqEnter('m');}
   else if(key==='korea'){openKoreaTab();}
+  document.body.classList.toggle('bq-nomap',key==='border'&&!!BQ.noMap);
   try{applyModeUI();}catch(e){}
 }
 function endSession(){
@@ -5391,6 +5450,7 @@ function bqBuildGroupQueue(activeSet){
 }
 function bqInit(filterKey){
   BQ.saveKey='bq_'+(filterKey||'all');
+  BQ.noMap=/(^|_)nomap(_|$)/.test(filterKey||'');
   BQ.activeSet=new Set(bqPool());
   BQ.total=BQ.activeSet.size;
   BQ.status={};BQ.correct=0;BQ.wrong=0;BQ.curWrong=0;BQ.target=null;BQ.remaining=null;BQ.currentGroup=[];BQ.wrongCounts={};BQ.recorded=false;BQ.isRetry=false;
@@ -5428,8 +5488,12 @@ function bqShowCurrent(){
   const nb=document.getElementById('bq-neighbors');nb.innerHTML='';
   BORDERS[grp[0]].forEach(n=>{if(!COUNTRIES[n])return;const s=document.createElement('span');s.className='bq-nb';s.textContent=COUNTRIES[n].k;nb.appendChild(s);});
   const qEl=document.getElementById('bq-q-text');
-  if(grp.length>1){qEl.innerHTML='아래 나라들과 <b>모두 접한</b> 나라 <b>'+grp.length+'개</b>를 클릭하세요';}
-  else{qEl.innerHTML='아래 나라들과 <b>모두 접한</b> 나라를 지도에서 클릭하세요';}
+  const how=BQ.noMap?'이름을 입력하세요':'지도에서 클릭하세요';
+  if(grp.length>1){qEl.innerHTML='아래 나라들과 <b>모두 접한</b> 나라 <b>'+grp.length+'개</b>의 '+how;}
+  else{qEl.innerHTML='아래 나라들과 <b>모두 접한</b> 나라의 '+how;}
+  const tp=document.getElementById('bq-type'); if(tp)tp.style.display=BQ.noMap?'flex':'none';
+  document.body.classList.toggle('bq-nomap',!!BQ.noMap);
+  if(BQ.noMap){const gi=document.getElementById('bq-gi');if(gi){gi.value='';setTimeout(()=>{try{gi.focus();}catch(e){}},50);}}
   const fb=document.getElementById('bq-fb');fb.textContent='';fb.className='bq-fb';
   if(SESSION.cur==='border')box.classList.add('on');
 }
@@ -5455,7 +5519,7 @@ function bqHandleClick(iso){
       BQ.queue.shift();bqSave();bqStats();
       bqFlash('정답!','bfok');
       fb.textContent='정답!';fb.className='bq-fb ok';
-      centerCountry(iso);
+      if(!BQ.noMap)centerCountry(iso);
       setTimeout(bqShowCurrent,900);
     }else{
       /* 그룹 내 일부 남음 */
@@ -5471,7 +5535,7 @@ function bqHandleClick(iso){
     if(BQ.curWrong>=3){
       /* 오답으로 공개 */
       const revNames=[...BQ.remaining].map(i=>COUNTRIES[i]?COUNTRIES[i].k:i);
-      for(const tgt of BQ.remaining){BQ.status[tgt]='cr';BQ.wrong++;setColor(tgt,'cr');centerCountry(tgt);}
+      for(const tgt of BQ.remaining){BQ.status[tgt]='cr';BQ.wrong++;setColor(tgt,'cr');if(!BQ.noMap)centerCountry(tgt);}
       BQ.remaining=new Set();
       fb.textContent='정답: '+revNames.join(', ');fb.className='bq-fb ng';
       bqFlash('오답  →  '+revNames.join(', '),'bfng');
@@ -5485,6 +5549,18 @@ function bqHandleClick(iso){
   }
 }
 function bqSkip(){const g=BQ.queue.shift();if(g)BQ.queue.push(g);bqShowCurrent();}
+/* 지도 없는 모드: 타이핑으로 답 제출 */
+function bqTypeSubmit(){
+  if(!BQ.remaining||!BQ.remaining.size)return;
+  const inp=document.getElementById('bq-gi'); if(!inp)return;
+  const t=inp.value.trim(); if(!t)return; inp.value='';
+  let iso=[...BQ.remaining].find(i=>check(t,i));
+  if(iso){ bqHandleClick(iso); return; }
+  const any=Object.keys(COUNTRIES).find(i=>check(t,i));
+  if(any){ bqHandleClick(any); }
+  else { bqFlash('그런 나라가 없어요','bfng'); inp.classList.add('shake'); setTimeout(()=>inp.classList.remove('shake'),360); }
+  try{inp.focus();}catch(e){}
+}
 function resetBorderQuiz(){
   if(!confirm('접경국 퀴즈 진행 상황을 초기화할까요?'))return;
   localStorage.removeItem(BQ.saveKey);
@@ -5500,7 +5576,7 @@ function bqEnd(){
   document.getElementById('bq-e1').textContent=BQ.correct;
   document.getElementById('bq-e2').textContent=BQ.wrong;
   el.classList.add('on');
-  if(!BQ.recorded){BQ.recorded=true;try{bqSave();}catch(e){}try{window.SejiAccount&&window.SejiAccount.submitScore({category:'border',correct:BQ.correct,total:BQ.total,accuracy:Math.round(BQ.correct/(BQ.total||1)*1000)/10,scope:SESSION.filterKey,points:BQ.correct,maxPoints:BQ.total,isRetry:BQ.isRetry,contStats:contStatsOf([...BQ.activeSet],iso=>BQ.status[iso]&&BQ.status[iso]!=='cr')});}catch(e){}}
+  if(!BQ.recorded){BQ.recorded=true;const bper=BQ.noMap?3:1;try{bqSave();}catch(e){}try{window.SejiAccount&&window.SejiAccount.submitScore({category:'border',correct:BQ.correct,total:BQ.total,accuracy:Math.round(BQ.correct/(BQ.total||1)*1000)/10,scope:SESSION.filterKey,points:BQ.correct*bper,maxPoints:BQ.total*bper,isRetry:BQ.isRetry,contStats:contStatsOf([...BQ.activeSet],iso=>BQ.status[iso]&&BQ.status[iso]!=='cr')});}catch(e){}}
 }
 function openBQList(){
   const grid=document.getElementById('bql-grid');if(!grid)return;
@@ -6966,6 +7042,8 @@ function initMap(){
   });
   document.querySelector('.modal').addEventListener('click',e=>e.stopPropagation());
   document.getElementById('ui-ov').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
+  const bqgi=document.getElementById('bq-gi');
+  if(bqgi)bqgi.addEventListener('keydown',function(e){e.stopPropagation();if(e.key==='Enter'){e.preventDefault();bqTypeSubmit();}});
   document.addEventListener('keydown',function(e){
     const rqOn=document.getElementById('rq-screen').classList.contains('on');
     const krOn=document.getElementById('kr-screen').classList.contains('on');
@@ -7919,6 +7997,7 @@ function scopeLabel(scope) {
   if (pm) tags.push((parseInt(pm[1]) / 10) + '% 출제');
   const dm = scope.match(/_d([HML])(?=_|$)/);
   if (dm) tags.push({ H: '상', M: '중', L: '하' }[dm[1]] + ' 난이도');
+  if (/(^|_)nomap(_|$)/.test(scope)) tags.push('지도 없음');
   if (tags.length) lbl += ' (' + tags.join(', ') + ')';
   return lbl;
 }
