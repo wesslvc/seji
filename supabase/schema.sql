@@ -94,7 +94,7 @@ create policy "scores insert" on public.scores for insert to authenticated
     auth.uid() = user_id
     and total > 0 and correct >= 0 and correct <= total
     and accuracy >= 0 and accuracy <= 100
-    and category in ('name','border','religion','texp','timp','korea')
+    and category in ('name','border','religion','texp','timp','tenergy','korea')
   );
 
 -- 랭킹용 집계 데이터만 노출하는 보안 함수 (테이블 직접 접근 대신 이걸로만 제공)
@@ -114,6 +114,7 @@ language sql security definer set search_path = public stable as $$
     case when ud.key like 'tq\_x\_%'  then 'texp'
          when ud.key like 'tq\_m\_%'  then 'timp'
          when ud.key like 'tq\_r\_%'  then 'religion'
+         when ud.key like 'tq\_e\_%'  then 'tenergy'
          when ud.key like 'bq\_%'    then 'border'
          when ud.key = 'kq_state_v1' then 'korea'
          else 'name' end,
