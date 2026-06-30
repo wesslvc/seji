@@ -5462,12 +5462,13 @@ function bqInit(filterKey){
 function bqLoad(){
   try{const raw=localStorage.getItem(BQ.saveKey);if(!raw)return false;
     const d=JSON.parse(raw);BQ.status=d.status||{};BQ.wrongCounts=d.wrongCounts||{};
+    if(Array.isArray(d.active)&&d.active.length){BQ.activeSet=new Set(d.active);BQ.total=BQ.activeSet.size;} /* 랜덤 출제 집합 복원 */
     for(const k of Object.keys(BQ.status))if(!BQ.activeSet.has(k))delete BQ.status[k];
     let c=0,w=0;for(const v of Object.values(BQ.status)){if(v==='cr')w++;else c++;}BQ.correct=c;BQ.wrong=w;
     BQ.recorded=!!d.recorded;
     return true;}catch(e){return false;}
 }
-function bqSave(){if(BQ.activeSet)localStorage.setItem(BQ.saveKey,JSON.stringify({status:BQ.status,correct:BQ.correct,wrong:BQ.wrong,wrongCounts:BQ.wrongCounts,recorded:BQ.recorded}));}
+function bqSave(){if(BQ.activeSet)localStorage.setItem(BQ.saveKey,JSON.stringify({status:BQ.status,correct:BQ.correct,wrong:BQ.wrong,wrongCounts:BQ.wrongCounts,recorded:BQ.recorded,active:[...BQ.activeSet]}));}
 function bqCurrentGroup(){return BQ.queue.length?BQ.queue[0]:null;}
 function bqStats(){
   const done=BQ.correct+BQ.wrong,rem=BQ.total-done;
@@ -5744,11 +5745,16 @@ function _seededSample(arr,key,n){
   for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
   return a.slice(0,Math.max(1,n));
 }
+function _rnSample(arr,n){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a.slice(0,Math.max(1,n));
+}
 function _applyPortion(arr,key,minN){
   const por=_portion(key);
   if(por>=1)return arr;
   const n=Math.max(minN||1,Math.round(arr.length*por));
-  return _seededSample(arr,key,n);
+  return _rnSample(arr,n); /* 매번 랜덤 (시작할 때마다 다른 나라) */
 }
 
 /* ── 육지 접경(인접국) 데이터 — 접경국 맞추기 퀴즈용 ── */
@@ -5824,7 +5830,7 @@ function initActiveSet(key){
 
 const SAVE_KEY='wq_state_v2'; /* legacy — not used for new slots */
 function saveGame(){
-  localStorage.setItem(S.saveKey,JSON.stringify({status:S.status,correct:S.correct,revealed:S.revealed,wrong:S.wrong,recorded:S.recorded}));
+  localStorage.setItem(S.saveKey,JSON.stringify({status:S.status,correct:S.correct,revealed:S.revealed,wrong:S.wrong,recorded:S.recorded,active:S.activeSet?[...S.activeSet]:null}));
   const btn=document.getElementById('ui-save');
   if(btn){btn.textContent='✓ 저장됨';btn.classList.add('saved');
   setTimeout(()=>{btn.textContent='💾 저장';btn.classList.remove('saved');},1500);}
@@ -5833,6 +5839,7 @@ function loadGame(){
   try{
     const raw=localStorage.getItem(S.saveKey);if(!raw)return false;
     const d=JSON.parse(raw);
+    if(Array.isArray(d.active)&&d.active.length){S.activeSet=new Set(d.active);S.total=S.activeSet.size;} /* 랜덤 출제 집합 복원 */
     let cor=0,rev=0;
     for(const[k,v]of Object.entries(d.status||{})){
       if(!S.activeSet||!S.activeSet.has(k))continue;
@@ -7171,14 +7178,14 @@ function listSaves(){
     }else if(k.startsWith('bq_')&&!k.startsWith('bq__')){
       if(!d.status||typeof d.status!=='object')continue;
       const fk=k.slice(3);const st=d.status;
-      const total=[..._countSetForFilter(fk)].filter(x=>BORDERS[x]&&!CIRCLE_ISOS.has(x)).length;
+      const total=Array.isArray(d.active)&&d.active.length?d.active.filter(x=>BORDERS[x]&&!CIRCLE_ISOS.has(x)).length:[..._countSetForFilter(fk)].filter(x=>BORDERS[x]&&!CIRCLE_ISOS.has(x)).length;
       if(!total||!Object.keys(st).length)continue;
       const wrong=Object.keys(st).filter(x=>st[x]==='cr').length;
       out.push({type:'border',key:k,scope:fk,done:Object.keys(st).length,total,wrong});
     }else if(k.startsWith('wq_')&&k!=='wq_mode'&&k!=='wq_oops_note'&&!k.startsWith('wq__')){
       if(!d.status||typeof d.status!=='object'||!Object.keys(d.status).length)continue;
       const fk=k.slice(3);const st=d.status;const wr=d.wrong||{};
-      const total=_countSetForFilter(fk).size;if(!total)continue;
+      const total=Array.isArray(d.active)&&d.active.length?d.active.length:_countSetForFilter(fk).size;if(!total)continue;
       const wset=new Set(Object.keys(st).filter(x=>st[x]==='cr'));Object.keys(wr).forEach(x=>{if(wr[x]>0)wset.add(x);});
       out.push({type:'name',key:k,scope:fk,done:Object.keys(st).length,total,wrong:wset.size});
     }else if(k===KQ_SAVE_KEY){
@@ -7485,6 +7492,51 @@ const SECTOR_WHY={
   212:'유지작물(콩 등) 재배가 많아서', 0:'다양한 산업이 고루 발달해서'
 };
 function sectorWhyFor(id){return SECTOR_WHY[id]||SECTOR_WHY[Math.floor(id/100)*100]||'그 산업이 발달해서';}
+/* 수출 구조 '전반' 서술(역사·지리 배경, 2~3문장) — 1위 품목(HS2)으로 유형 판별 */
+const CHAP_NARR_X={
+  527:'석유류(원유·정유제품)가 수출의 큰 축이에요. 유전을 가진 산유국이거나, 원유를 수입해 정제·재수출하는 정유 산업이 발달한 나라입니다.',
+  526:'철광석·구리 등 광물을 캐서 파는 자원 부국이에요. 식민지 시기부터 광산이 개발돼 원자재 수출 구조가 굳어졌고, 가공보다 원광 형태의 수출이 많습니다.',
+  1471:'금·다이아몬드 등 귀금속이 수출의 큰 축이에요. 광산 자원을 가졌거나, 자본·기술을 바탕으로 귀금속을 들여와 가공·중계하기도 합니다.',
+  631:'인광석·천연가스를 바탕으로 비료를 만들어 파는 자원·화학 경제예요. 풍부한 광물 자원이 비료 산업으로 이어졌습니다.',
+  1685:'전자·기계 등 공산품 수출이 중심인 제조 강국이에요. 전후 수출주도 산업화로 외국 자본·공장을 끌어들여 제조업을 키웠고, 부가가치 높은 완제품을 세계에 팝니다.',
+  1684:'기계·설비 등 공산품 수출이 중심인 제조 선진국이에요. 오랜 산업화로 축적한 기술을 바탕으로 고부가 완제품을 수출합니다.',
+  1787:'자동차·부품 수출이 중심인 제조 강국이에요. 자동차 산업을 국가 전략으로 키워 완성차와 부품을 세계에 수출합니다.',
+  1788:'항공기 등 최첨단 제조업까지 갖춘 기술 선진국이에요. 오랜 산업화와 막대한 자본·기술 축적이 바탕입니다.',
+  630:'의약품·화학 등 고부가 산업이 수출을 이끄는 선진 경제예요. 높은 기술력과 자본(때로는 유리한 세제) 덕에 제약·화학 기업이 모였습니다.',
+  629:'화학·정밀화학 제품 수출이 큰 산업 경제예요. 자본·기술 집약 산업이 발달했습니다.',
+  209:'커피·차 등 기호작물 수출 비중이 큰 농업 경제예요. 식민지 시대에 들어선 플랜테이션과 덥고 습한 기후가 지금의 수출 구조를 만들었습니다.',
+  208:'과일 등 농산물 수출 비중이 큰 농업 경제예요. 온화한 기후를 바탕으로 한 농업이 수출의 중심입니다.',
+  207:'채소·농산물 수출 비중이 큰 농업 경제예요. 넓은 농경지를 바탕으로 합니다.',
+  418:'카카오 등 기호작물 수출 비중이 큰 열대 농업 경제예요. 식민지 시대 플랜테이션의 흔적이 남아 있습니다.',
+  315:'식용유 등 농가공품 수출 비중이 큰 나라예요. 유리한 기후의 유지작물 재배가 바탕입니다.',
+  212:'유지작물(콩 등) 수출 비중이 큰 농업 경제예요. 넓은 경작지를 바탕으로 합니다.',
+  1264:'신발·의류 등 노동집약 경공업이 수출의 중심이에요. 값싼 노동력을 노린 외국 공장이 들어서며 신흥 공업국이 됐습니다.',
+  1163:'의류 등 노동집약 경공업이 수출의 중심이에요. 값싼 노동력을 바탕으로 봉제업이 발달한 신흥 공업국입니다.',
+  1162:'의류 등 노동집약 경공업이 수출의 중심이에요. 값싼 노동력을 바탕으로 봉제업이 발달한 신흥 공업국입니다.',
+  1161:'의류 등 노동집약 경공업이 수출의 중심이에요. 값싼 노동력을 바탕으로 봉제업이 발달한 신흥 공업국입니다.',
+  103:'수산물 수출 비중이 큰 나라예요. 긴 해안선과 풍부한 어장을 바탕으로 어업이 발달했습니다.',
+  1572:'철강·금속 등 중공업 제품 수출이 큰 산업 경제예요. 풍부한 광물 자원과 제련·가공 산업이 결합한 결과입니다.',
+  1576:'알루미늄 등 금속 가공품 수출이 큰 나라예요. 값싼 전력과 광물을 바탕으로 제련 산업이 발달했습니다.',
+  628:'알루미나 등 광물 가공품 수출 비중이 큰 자원 경제예요. 보크사이트 등 광물을 가공해 수출합니다.',
+  422:'음료·가공식품 수출이 발달한 농업 경제예요. 온화한 기후의 오랜 농업·양조 전통이 바탕입니다.',
+  944:'목재 등 임산물 수출 비중이 큰 나라예요. 국토에 넓게 펼쳐진 침엽수림(타이가)이 바탕입니다.',
+  210:'곡물 등 농산물 수출 비중이 큰 농업 대국이에요. 광활한 평야와 비옥한 토양이 곡창지대를 이뤘습니다.'
+};
+const CHAP_NARR_M={
+  527:'에너지를 자급하지 못해 원유·가스를 많이 들여오는 나라예요. 산업과 소비에 쓸 연료를 수입에 의존하며, 보통 제조·소비가 활발한 경제입니다.',
+  210:'곡물을 수입에 의존하는 나라예요. 농지가 부족하거나 건조한 기후 탓에 식량을 사 옵니다.',
+  1685:'전자·기계 등 공산품을 주로 들여오는 소비 중심 경제예요. 자체 제조 기반이 약해 완제품 수입이 큽니다.',
+  1684:'기계·설비를 많이 들여오는 나라예요. 제조 기반을 키우는 과정이거나 자체 생산이 약합니다.',
+  1787:'자동차를 수입에 의존하는 나라예요. 자국 자동차 산업이 거의 없습니다.',
+  630:'의약품을 수입에 의존하는 나라예요. 자체 제약 기반이 약합니다.'
+};
+function tqNarr(iso,mode){
+  const cells=(TRADE_DATA[iso]||{})[mode]||[];
+  const tbl=mode==='m'?CHAP_NARR_M:CHAP_NARR_X;
+  let t=cells.length?tbl[cells[0][0]]:'';
+  if(!t)t=mode==='m'?'공산품과 에너지를 두루 수입하는 구조예요.':'특정 산업에 치우치기보다 여러 품목을 고루 수출하는 편이에요.';
+  return t;
+}
 /* 종교별 '왜 이 종교가 있나' 짧은 이유 */
 const RELIG_WHY=[
   '유럽의 식민·선교로 전파됐고', '이슬람 세력 확장·교역로로 퍼졌고', '오래전 전파된 불교 전통이 남았고',
@@ -7579,14 +7631,19 @@ function renderTreemap(el,cells){
     el.appendChild(d);
   });
 }
-/* 필터 적용 후 정렬, 출제 비율(_pNNN)만큼 상위 N국. 수출/수입은 '하'에서 주요국만 */
+/* 필터 적용 후, 출제 비율(_pNNN)이 있으면 '무역규모 큰 후보군 중에서 매번 랜덤'으로 N국 추출.
+   (똑같은 나라만 반복되지 않게) 수출/수입은 '하'에서 주요국만. */
 function tqPoolFor(filterKey){
   const set=_countSetForFilter(filterKey);
   let pool=[...set].filter(tqEligible);
   if(TQ.mode!=='r'&&_diff(filterKey)==='L')pool=pool.filter(i=>MAJOR_TRADE.has(i));
   pool.sort((a,b)=>((TRADE_DATA[b]||{}).v||0)-((TRADE_DATA[a]||{}).v||0));
   const por=_portion(filterKey);
-  if(por<1)pool=pool.slice(0,Math.max(2,Math.round(pool.length*por)));
+  if(por<1){
+    const n=Math.max(2,Math.round(pool.length*por));
+    const cand=pool.slice(0,Math.min(pool.length,Math.max(n*3,40))); /* 너무 생소한 소국은 제외한 후보군 */
+    pool=_rnSample(cand,n); /* 매번 랜덤 */
+  }
   return pool;
 }
 const TQ={mode:'x',filterKey:'all',saveKey:'tq_x_all',pool:[],queue:[],round:[],
@@ -7761,10 +7818,9 @@ function tqExplainRow(iso){
     const cells=(TRADE_DATA[iso]||{})[TQ.mode]||[];
     const verb=TQ.mode==='m'?'수입':'수출';
     head='주요 '+verb+'품: '+(cells.slice(0,3).map(c=>(HS2_KO[String(c[0])]||'')+' '+c[1]+'%').join(' · ')||'데이터 없음');
+    /* 항목별이 아니라 전반적 구조를 역사·지리 배경으로 서술 */
     if(TQ.mode==='x'&&TRADE_STORY[iso])lines.push(TRADE_STORY[iso]);
-    /* 상위 품목들이 각각 왜 나오는지 전반적으로 설명 */
-    const detail=cells.slice(0,3).map(c=>(HS2_KO[String(c[0])]||'')+'은(는) '+sectorWhyFor(c[0]));
-    if(detail.length)lines.push('• '+detail.join('<br>• '));
+    lines.push(tqNarr(iso,TQ.mode));
   }
   return `<div class="tq-ex-row"><div class="tq-ex-nm">${name} ${tag}</div><div class="tq-ex-tx"><b>${head}</b><br>${lines.filter(Boolean).join('<br>')}</div></div>`;
 }
@@ -7801,7 +7857,8 @@ function tqRearrange(){
 }
 /* 초기화: 현재 모드 처음부터 다시 */
 function tqResetConfirm(){
-  if(!confirm((TQ.mode==='x'?'수출구조':'수입구조')+' 진행 상황을 처음부터 다시 시작할까요?'))return;
+  const lbl={x:'수출구조',m:'수입구조',r:'종교 구성'}[TQ.mode]||'';
+  if(!confirm(lbl+' 진행 상황을 처음부터 다시 시작할까요?'))return;
   tqRestart();
 }
 /* 시도 점 3개 표시 */
