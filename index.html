@@ -471,6 +471,8 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
 .tq-hint-pop{position:fixed;left:.6rem;bottom:4.6rem;z-index:60;width:min(290px,76vw);background:rgba(18,18,18,.97);border:1px solid var(--bd);border-radius:9px;box-shadow:0 6px 22px rgba(0,0,0,.55);overflow:hidden;backdrop-filter:blur(6px)}
 .tq-hint-pop-h{display:flex;justify-content:space-between;align-items:center;gap:.5rem;padding:.55rem .75rem;cursor:pointer;font-size:.8rem;font-weight:700;color:var(--gd);background:rgba(168,112,32,.14);user-select:none}
 .tq-hint-pop-body{max-height:40vh;overflow-y:auto;padding:.55rem .75rem;display:flex;flex-direction:column;gap:.45rem}
+.tq-hint-pop.collapsed{width:auto}
+.tq-hint-pop.collapsed .tq-hint-pop-h{padding:.4rem .6rem;font-size:.74rem;opacity:.82}
 .tq-hint-pop.collapsed .tq-hint-pop-body{display:none}
 .tq-hint-row{display:flex;gap:.5rem;align-items:center;font-size:.76rem;color:var(--tx);line-height:1.35}
 .tq-hint-no{flex-shrink:0;width:18px;height:18px;border-radius:50%;background:var(--gd);color:#000;font-size:.64rem;font-weight:800;display:flex;align-items:center;justify-content:center}
@@ -7286,6 +7288,41 @@ function tqRoundTips(){
   });
   return tips;
 }
+/* 종교 비율이 거의 같아(모든 종교 5%p 이내) 구분이 안 되는 두 나라인지 */
+const _RVEC={};
+function _religVec(iso){ if(_RVEC[iso])return _RVEC[iso]; const v=[0,0,0,0,0,0]; (RELIG2_DATA[iso]||[]).forEach(c=>{v[c[0]]=c[1];}); return (_RVEC[iso]=v); }
+function religSimilar(a,b){ const va=_religVec(a),vb=_religVec(b); for(let i=0;i<6;i++){ if(Math.abs(va[i]-vb[i])>5)return false; } return true; }
+/* 비슷한 나라들을 묶고(유니온-파인드), 큰 묶음부터 라운드로빈으로 펼쳐 큐를 만든다
+   → 비슷한 나라가 한 라운드(5개)에 겹칠 확률을 최소화 */
+function _religClusters(isos){
+  const parent={}; isos.forEach(i=>parent[i]=i);
+  const find=x=>{while(parent[x]!==x){parent[x]=parent[parent[x]];x=parent[x];}return x;};
+  for(let i=0;i<isos.length;i++)for(let j=i+1;j<isos.length;j++){ if(religSimilar(isos[i],isos[j]))parent[find(isos[i])]=find(isos[j]); }
+  const g={}; isos.forEach(i=>{const r=find(i);(g[r]=g[r]||[]).push(i);});
+  return Object.values(g);
+}
+function tqOrderQueue(pool){
+  if(TQ.mode!=='r')return shuffle(pool);
+  const groups=_religClusters(pool).map(shuffle).sort((a,b)=>b.length-a.length);
+  const out=[]; let more=true;
+  while(more){ more=false; for(const grp of groups){ if(grp.length){out.push(grp.pop());more=true;} } }
+  return out;
+}
+/* 종교 라운드 사전 구성: 모든 종교 비율이 5%p 이내라 '구분 안 되는' 나라는 절대 한 라운드에 같이 두지 않는다.
+   비슷한 나라가 많은(=제약 큰) 것부터 골라 1개씩 흩뿌리며 라운드(최대 5)를 만든다.
+   dropSingles=true면, 구분 가능한 짝이 없어 혼자 남는 나라(예: 100% 기독교 국가들)는 출제에서 제외 — 헷갈리는 단독/짝 라운드를 없애기 위함. */
+function tqPackRelig(pool,dropSingles){
+  let q=pool.slice(); const R=[];
+  while(q.length){
+    const sim={}; q.forEach(a=>{let c=0;q.forEach(b=>{if(religSimilar(a,b))c++;});sim[a]=c;});
+    const ord=q.slice().sort((a,b)=>sim[b]-sim[a]);
+    const round=[];
+    for(const iso of ord){ if(round.length>=5)break; if(round.every(o=>!religSimilar(o,iso)))round.push(iso); }
+    const ch=new Set(round); q=q.filter(i=>!ch.has(i)); R.push(round);
+  }
+  if(dropSingles){ const m=R.filter(r=>r.length>=2); if(m.length)return m; }
+  return R;
+}
 /* ════════════════════════════════════════════════════════════
    무역구조 매칭 퀴즈 (수출구조 texp / 수입구조 timp)
    5개국 트리맵 ↔ 5개 국가명 선으로 잇기 · 3회 시도 후 정답 공개 · 틀린 나라 다시하기
@@ -7344,7 +7381,7 @@ function tqPoolFor(filterKey){
 }
 const TQ={mode:'x',filterKey:'all',saveKey:'tq_x_all',pool:[],queue:[],round:[],
   leftOrder:[],rightOrder:[],matches:{},selLeft:null,selRight:null,
-  tries:0,revealed:false,feedback:0,totalCountries:0,correctCountries:0,
+  tries:0,revealed:false,feedback:0,totalCountries:0,correctCountries:0,rbuilt:null,
   wrongSet:new Set(),doneSet:new Set(),isRetry:false,recorded:false};
 function tqShare(iso){return TQ.mode==='r'?(RELIG2_DATA[iso]||[]):((TRADE_DATA[iso]||{})[TQ.mode]||[]);}
 function tqEligible(iso){const a=tqShare(iso);return TQ.mode==='r'?(a&&a.length>=1):(a&&a.length>=5);}
@@ -7358,14 +7395,18 @@ function tqInit(mode,filterKey){
   tqBuildFromPool();
 }
 function tqBuildFromPool(){
-  TQ.queue=shuffle(TQ.pool);
-  TQ.totalCountries=TQ.queue.length; TQ.correctCountries=0;
-  TQ.wrongSet=new Set(); TQ.doneSet=new Set(); TQ.recorded=false;
+  TQ.correctCountries=0; TQ.wrongSet=new Set(); TQ.doneSet=new Set(); TQ.recorded=false;
+  if(TQ.mode==='r'){
+    TQ.rbuilt=tqPackRelig(tqOrderQueue(TQ.pool),true); TQ.queue=[];
+    TQ.totalCountries=TQ.rbuilt.reduce((s,r)=>s+r.length,0);
+  }else{
+    TQ.rbuilt=null; TQ.queue=tqOrderQueue(TQ.pool); TQ.totalCountries=TQ.queue.length;
+  }
   tqNextRound(); tqSave();
 }
 /* 두 모드(수출/수입) 동시 선택 시 메모리에서 상태 분리 (게스트도 탭 전환 보존) */
 const TQ_CACHE={};
-const TQ_FIELDS=['mode','filterKey','saveKey','pool','queue','round','leftOrder','rightOrder','matches','selLeft','selRight','tries','revealed','totalCountries','correctCountries','isRetry','recorded'];
+const TQ_FIELDS=['mode','filterKey','saveKey','pool','queue','round','leftOrder','rightOrder','matches','selLeft','selRight','tries','revealed','totalCountries','correctCountries','isRetry','recorded','rbuilt'];
 function tqSnapshot(){
   const o={}; TQ_FIELDS.forEach(f=>o[f]=TQ[f]);
   o.wrong=[...TQ.wrongSet]; o.done=[...TQ.doneSet];
@@ -7388,23 +7429,32 @@ function tqEnter(mode){
 function tqStartRetry(isos){
   TQ.isRetry=true; TQ.saveKey='tq_'+TQ.mode+'__retry';
   TQ.pool=isos.filter(tqEligible);
-  TQ.queue=shuffle(TQ.pool);
-  TQ.totalCountries=TQ.queue.length; TQ.correctCountries=0;
-  TQ.wrongSet=new Set(); TQ.doneSet=new Set(); TQ.recorded=false;
+  TQ.correctCountries=0; TQ.wrongSet=new Set(); TQ.doneSet=new Set(); TQ.recorded=false;
+  if(TQ.mode==='r'){
+    TQ.rbuilt=tqPackRelig(tqOrderQueue(TQ.pool),false); TQ.queue=[]; /* 재시도는 단독도 그대로 다시 */
+    TQ.totalCountries=TQ.rbuilt.reduce((s,r)=>s+r.length,0);
+  }else{
+    TQ.rbuilt=null; TQ.queue=tqOrderQueue(TQ.pool); TQ.totalCountries=TQ.queue.length;
+  }
   tqNextRound(); tqRender();
 }
 function tqNextRound(){
   TQ.matches={}; TQ.selLeft=null; TQ.selRight=null; TQ.tries=0; TQ.revealed=false; TQ.feedback=0; TQ._hintCollapsed=false;
-  if(!TQ.queue.length){TQ.round=[];return;}
-  let n=Math.min(5,TQ.queue.length);
-  if(TQ.queue.length-n===1)n=TQ.queue.length-2; // 마지막에 1개만 남는 라운드 방지(최소 2개)
-  TQ.round=TQ.queue.splice(0,n);
-  TQ.leftOrder=shuffle(TQ.round);
-  TQ.rightOrder=shuffle(TQ.round);
+  if(TQ.mode==='r'){
+    TQ.round=(TQ.rbuilt&&TQ.rbuilt.length)?TQ.rbuilt.shift():[];
+  }else if(!TQ.queue.length){
+    TQ.round=[];
+  }else{
+    let n=Math.min(5,TQ.queue.length);
+    if(TQ.queue.length-n===1)n=TQ.queue.length-2; // 마지막에 1개만 남는 라운드 방지(최소 2개)
+    TQ.round=TQ.queue.splice(0,n);
+  }
+  TQ.leftOrder=shuffle(TQ.round||[]);
+  TQ.rightOrder=shuffle(TQ.round||[]);
 }
 function tqSave(){
   try{localStorage.setItem(TQ.saveKey,JSON.stringify({mode:TQ.mode,filterKey:TQ.filterKey,
-    pool:TQ.pool,queue:TQ.queue,round:TQ.round,leftOrder:TQ.leftOrder,rightOrder:TQ.rightOrder,
+    pool:TQ.pool,queue:TQ.queue,round:TQ.round,leftOrder:TQ.leftOrder,rightOrder:TQ.rightOrder,rbuilt:TQ.rbuilt,
     totalCountries:TQ.totalCountries,correctCountries:TQ.correctCountries,
     wrong:[...TQ.wrongSet],done:[...TQ.doneSet],recorded:TQ.recorded,isRetry:TQ.isRetry}));}catch(e){}
 }
@@ -7415,6 +7465,7 @@ function tqLoad(key){
     TQ.pool=d.pool||[]; TQ.queue=d.queue||[]; TQ.round=d.round||[];
     TQ.leftOrder=d.leftOrder&&d.leftOrder.length?d.leftOrder:shuffle(TQ.round);
     TQ.rightOrder=d.rightOrder&&d.rightOrder.length?d.rightOrder:shuffle(TQ.round);
+    TQ.rbuilt=d.rbuilt||null;
     TQ.totalCountries=d.totalCountries||0; TQ.correctCountries=d.correctCountries||0;
     TQ.wrongSet=new Set(d.wrong||[]); TQ.doneSet=new Set(d.done||[]);
     TQ.recorded=!!d.recorded; TQ.isRetry=!!d.isRetry;
