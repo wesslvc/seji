@@ -475,7 +475,7 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
 .tq-map-card.bad .tq-ans{color:#e89090}
 /* 종교 원그래프 카드 */
 .tq-map.pie{display:flex;align-items:center;gap:8px;padding:5px 9px;background:var(--sf)}
-.tq-pie{height:92%;max-height:100%;width:auto;aspect-ratio:1/1;flex-shrink:0;filter:drop-shadow(0 1px 2px rgba(0,0,0,.3))}
+.tq-pie{width:34%;max-width:118px;max-height:90%;height:auto;aspect-ratio:1/1;flex-shrink:0;filter:drop-shadow(0 1px 2px rgba(0,0,0,.3))}
 .tq-legend{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1;overflow:hidden}
 .tq-lg-row{display:flex;align-items:center;gap:6px;font-size:.74rem;line-height:1.3}
 .tq-lg-sw{width:10px;height:10px;border-radius:2px;flex-shrink:0}
@@ -618,7 +618,7 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
         <tr><td>접경국 (지도 O)</td><td>1점</td></tr>
         <tr><td>접경국 (지도 X)</td><td>3점</td></tr>
         <tr><td>종교 구성</td><td>2점</td></tr>
-        <tr><td>수출구조 (상·중·하)</td><td>3 · 2 · 1점</td></tr>
+        <tr><td>수출구조 (상·중·하)</td><td>6 · 4 · 2점</td></tr>
         <tr><td>수입구조 (상·중·하)</td><td>9 · 6 · 3점</td></tr>
         <tr><td>한국지리</td><td>1점</td></tr>
       </table>
@@ -5240,9 +5240,9 @@ function setupLanding(){
   /* 수출/수입 난이도(상중하) — 무역 활동 체크 시에만 노출 */
   window._ldDiff=window._ldDiff||'M';
   const DIFF_DESC={
-    L:'주요국만 출제 · 첫 오답에 힌트 · 둘째 오답에 맞은 것 표시 (수출 1점 / 수입 3점)',
-    M:'모든 국가 · 첫 오답에 힌트 · 둘째 오답에 맞은 것 표시 (수출 2점 / 수입 6점)',
-    H:'모든 국가 · 힌트 없음 · 3번 틀려야 정답 공개 (수출 3점 / 수입 9점)'};
+    L:'주요국만 출제 · 첫 오답에 힌트 · 둘째 오답에 맞은 것 표시 (수출 2점 / 수입 3점)',
+    M:'모든 국가 · 첫 오답에 힌트 · 둘째 오답에 맞은 것 표시 (수출 4점 / 수입 6점)',
+    H:'모든 국가 · 힌트 없음 · 3번 틀려야 정답 공개 (수출 6점 / 수입 9점)'};
   const diffSeg=document.getElementById('ld-diff');
   function setDiff(dv){
     window._ldDiff=dv;
@@ -6256,7 +6256,10 @@ function _flushT(){
 }
 function _commitRes(){
   if(!_svgEl)return;
-  const r=Math.min(_s,isMobile?3:4); /* 재래스터 배율 상한 (레이어 메모리/크기 한계 방지) */
+  /* 재래스터 배율 상한 — PC는 거대한 합성 레이어가 렉을 유발하므로 더 낮게(2x).
+     절대 픽셀폭도 제한해 GPU 메모리/래스터 비용을 낮춘다. */
+  let r=Math.min(_s,isMobile?3:2);
+  const MAXW=isMobile?8400:5600; if(SW*r>MAXW)r=MAXW/SW; if(r<0.1)r=0.1;
   _svgEl.style.width=(SW*r)+'px';_svgEl.style.height=(SH*r)+'px';
   const extra=_s/r;
   _svgEl.style.transform=extra===1?('translate('+_x+'px,'+_y+'px)'):('translate('+_x+'px,'+_y+'px) scale('+extra+')');
@@ -7317,7 +7320,7 @@ function renderPie(el,cells){
 }
 /* ── 난이도(상중하) · 점수 · 힌트 (수출/수입 모드 전용) ── */
 function _diff(key){const m=(key||'').match(/_d([HML])(?=_|$)/);return m?m[1]:'M';}
-const TQ_PTS={x:{H:3,M:2,L:1}, m:{H:9,M:6,L:3}, r:{H:2,M:2,L:2}};
+const TQ_PTS={x:{H:6,M:4,L:2}, m:{H:9,M:6,L:3}, r:{H:2,M:2,L:2}};
 function tqPoints(mode,key){const t=TQ_PTS[mode]||TQ_PTS.x;return t[_diff(key)]||1;}
 /* '하' 출제 대상: ASEAN·EU·APEC·MERCOSUR + 주요 아프리카 산업국 + 인구대국/주요경제국 */
 const MAJOR_TRADE=new Set(('id th vn my ph sg mm kh la bn '+
@@ -7467,6 +7470,26 @@ function religStory(iso){
   const cells=RELIG2_DATA[iso]||[];
   return cells.length?(RELIG_TEMPL[cells[0][0]]||''):'';
 }
+/* 품목(HS2)별 '왜 이 품목을 수출/수입하나' 짧은 이유 — 전반적 구성 설명용 */
+const SECTOR_WHY={
+  527:'석유·천연가스가 묻혀 있어서', 526:'광물 자원이 풍부해서', 1471:'귀금속 광산이 있거나 가공이 발달해서',
+  631:'인광석·천연가스로 비료를 만들어서', 1685:'전자·IT 제조업이 발달해서', 1684:'기계 제조 기술이 뛰어나서',
+  1787:'자동차 산업이 발달해서', 1788:'항공·우주 산업이 있어서', 630:'제약·바이오 산업이 발달해서',
+  629:'화학 산업이 발달해서', 209:'열대 기후라 커피·차가 잘 자라서', 208:'기후가 과일 농사에 맞아서',
+  207:'농경지가 넓어서', 315:'식용유(해바라기·팜유 등) 생산이 많아서', 418:'열대라 카카오가 자라서',
+  628:'광물 가공(알루미나 등) 산업이 있어서',
+  1264:'값싼 노동력의 경공업이 있어서', 1163:'값싼 노동력의 봉제업이 있어서', 1162:'값싼 노동력의 봉제업이 있어서',
+  1161:'값싼 노동력의 봉제업이 있어서', 103:'어장이 풍부해서', 1572:'철광석·석탄으로 제철을 해서',
+  1573:'철강 가공업이 있어서', 422:'온대 농업·양조 전통이 있어서', 944:'침엽수림이 넓어서',
+  210:'대평원 곡물 농업이 발달해서', 1576:'알루미늄 제련이 발달해서', 1574:'구리 제련이 발달해서',
+  212:'유지작물(콩 등) 재배가 많아서', 0:'다양한 산업이 고루 발달해서'
+};
+function sectorWhyFor(id){return SECTOR_WHY[id]||SECTOR_WHY[Math.floor(id/100)*100]||'그 산업이 발달해서';}
+/* 종교별 '왜 이 종교가 있나' 짧은 이유 */
+const RELIG_WHY=[
+  '유럽의 식민·선교로 전파됐고', '이슬람 세력 확장·교역로로 퍼졌고', '오래전 전파된 불교 전통이 남았고',
+  '고대 힌두 문화권이라', '유대인 공동체가 있어', '토착·민속 신앙(부족 종교·애니미즘 등)이 남아'
+];
 function tqRoundTips(){
   const dict=TQ.mode==='m'?CHAP_TIP_M:CHAP_TIP_X;
   const seen=new Set(), tips=[];
@@ -7723,20 +7746,27 @@ function tqExplainRow(iso){
   const name=COUNTRIES[iso]?COUNTRIES[iso].k:iso;
   const ok=TQ.matches[iso]===iso;
   const tag=`<span class="${ok?'tq-ex-ok':'tq-ex-no'}">${ok?'정답':'오답'}</span>`;
-  let head='', reason='';
+  let head='', lines=[];
   if(TQ.mode==='r'){
     const cells=RELIG2_DATA[iso]||[];
-    head=cells.slice(0,3).map(c=>RELIG2_NAME[c[0]]+' '+c[1]+'%').join(' · ');
-    reason=religStory(iso);
+    head=cells.slice(0,4).map(c=>RELIG2_NAME[c[0]]+' '+c[1]+'%').join(' · ');
+    lines.push(religStory(iso));
+    /* 1위뿐 아니라 5%↑ 종교들이 왜 있는지 각각 설명 */
+    const detail=cells.filter(c=>c[1]>=5).map(c=>{
+      if(c[0]===5)return '기타('+c[1]+'%)는 토착·민속 신앙(부족 종교·애니미즘 등)이에요';
+      return RELIG2_NAME[c[0]]+'('+c[1]+'%)는 '+RELIG_WHY[c[0]]+' 자리잡았어요';
+    });
+    if(detail.length)lines.push('• '+detail.join('<br>• '));
   }else{
     const cells=(TRADE_DATA[iso]||{})[TQ.mode]||[];
     const verb=TQ.mode==='m'?'수입':'수출';
-    const parts=cells.slice(0,2).map(c=>(HS2_KO[String(c[0])]||'')+' '+c[1]+'%');
-    head='최대 '+verb+'품: '+(parts.join(' · ')||'데이터 없음');
-    const dict=TQ.mode==='m'?CHAP_TIP_M:CHAP_TIP_X;
-    reason=(TQ.mode==='x'&&TRADE_STORY[iso])?TRADE_STORY[iso]:(cells.length?(dict[cells[0][0]]||''):'');
+    head='주요 '+verb+'품: '+(cells.slice(0,3).map(c=>(HS2_KO[String(c[0])]||'')+' '+c[1]+'%').join(' · ')||'데이터 없음');
+    if(TQ.mode==='x'&&TRADE_STORY[iso])lines.push(TRADE_STORY[iso]);
+    /* 상위 품목들이 각각 왜 나오는지 전반적으로 설명 */
+    const detail=cells.slice(0,3).map(c=>(HS2_KO[String(c[0])]||'')+'은(는) '+sectorWhyFor(c[0]));
+    if(detail.length)lines.push('• '+detail.join('<br>• '));
   }
-  return `<div class="tq-ex-row"><div class="tq-ex-nm">${name} ${tag}</div><div class="tq-ex-tx"><b>${head}</b><br>${reason}</div></div>`;
+  return `<div class="tq-ex-row"><div class="tq-ex-nm">${name} ${tag}</div><div class="tq-ex-tx"><b>${head}</b><br>${lines.filter(Boolean).join('<br>')}</div></div>`;
 }
 function tqShowExplain(){
   const m=document.getElementById('tq-explain'); if(!m)return;
