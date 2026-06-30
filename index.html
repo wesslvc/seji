@@ -476,6 +476,19 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
 .tq-hint-pop.collapsed .tq-hint-pop-body{display:none}
 .tq-hint-row{display:flex;gap:.5rem;align-items:center;font-size:.76rem;color:var(--tx);line-height:1.35}
 .tq-hint-no{flex-shrink:0;width:18px;height:18px;border-radius:50%;background:var(--gd);color:#000;font-size:.64rem;font-weight:800;display:flex;align-items:center;justify-content:center}
+/* 라운드 종료 설명 모달 */
+.tq-explain{position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.78);padding:1rem}
+.tq-explain.on{display:flex}
+.tq-explain-card{background:var(--sf);border:1px solid var(--bd);border-radius:10px;width:min(440px,94vw);max-height:88vh;display:flex;flex-direction:column;padding:1.1rem 1.1rem 1rem;animation:acctPop .28s cubic-bezier(.34,1.3,.64,1)}
+.tq-explain-h{font-size:1rem;font-weight:700;color:var(--tx);margin-bottom:.7rem;flex-shrink:0}
+.tq-explain-list{overflow-y:auto;display:flex;flex-direction:column;gap:.6rem;margin-bottom:.9rem}
+.tq-ex-row{border:1px solid var(--bd);border-radius:7px;padding:.55rem .7rem;background:var(--bg)}
+.tq-ex-nm{font-size:.9rem;font-weight:700;color:var(--tx);margin-bottom:.2rem;display:flex;align-items:center;gap:.4rem}
+.tq-ex-ok{font-size:.64rem;font-weight:700;color:#4a9060;border:1px solid #4a9060;border-radius:3px;padding:.02rem .28rem}
+.tq-ex-no{font-size:.64rem;font-weight:700;color:var(--wr);border:1px solid var(--wr);border-radius:3px;padding:.02rem .28rem}
+.tq-ex-tx{font-size:.78rem;color:var(--tx2);line-height:1.45}
+.tq-ex-tx b{color:var(--tx)}
+.tq-explain-card .tq-btn{align-self:center}
 .tq-dot{position:absolute;width:11px;height:11px;border-radius:50%;background:var(--sf2);border:2px solid var(--tx2);top:50%;transform:translateY(-50%);z-index:6}
 .tq-dot-l{right:-6px}
 .tq-dot-r{left:-6px}
@@ -4951,6 +4964,13 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
     <div class="tq-hint-pop-h" onclick="tqToggleHints()"><span>💡 힌트</span><span id="tq-hint-arrow">▾</span></div>
     <div class="tq-hint-pop-body" id="tq-hint-list"></div>
   </div>
+  <div id="tq-explain" class="tq-explain">
+    <div class="tq-explain-card">
+      <div class="tq-explain-h">왜 이런 무역 구조일까?</div>
+      <div class="tq-explain-list" id="tq-explain-list"></div>
+      <button class="tq-btn" id="tq-explain-next" onclick="tqExplainNext()">다음 →</button>
+    </div>
+  </div>
   <div id="tq-end">
       <div class="esc" id="tq-escore">0%</div>
       <div class="est-row">
@@ -5311,7 +5331,7 @@ function endSession(){
   document.getElementById('tq-screen').classList.remove('on');
   document.getElementById('bq-box').classList.remove('on');
   document.getElementById('ui-end').style.display='none';
-  ['rq-end','kr-end','bq-end','tq-end'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.remove('on');});
+  ['rq-end','kr-end','bq-end','tq-end','tq-explain'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.remove('on');});
   document.getElementById('landing-overlay').style.display='flex';
   updateStartState();
 }
@@ -7531,6 +7551,26 @@ function tqToggleHints(){
   const pop=document.getElementById('tq-hint-pop'); if(pop)pop.classList.toggle('collapsed',TQ._hintCollapsed);
   const ar=document.getElementById('tq-hint-arrow'); if(ar)ar.textContent=TQ._hintCollapsed?'▸':'▾';
 }
+/* 라운드 종료 시 각국이 왜 그런 무역 구조인지 설명 (상중하 공통) */
+function tqExplainRow(iso){
+  const name=COUNTRIES[iso]?COUNTRIES[iso].k:iso;
+  const cells=(TRADE_DATA[iso]||{})[TQ.mode]||[];
+  const verb=TQ.mode==='m'?'수입':'수출';
+  const dict=TQ.mode==='m'?CHAP_TIP_M:CHAP_TIP_X;
+  let topName='', reason='';
+  if(cells.length){ topName=HS2_KO[String(cells[0][0])]||''; reason=dict[cells[0][0]]||('주력 '+verb+'품은 '+topName+'예요.'); }
+  const ok=TQ.matches[iso]===iso;
+  const tag=`<span class="${ok?'tq-ex-ok':'tq-ex-no'}">${ok?'정답':'오답'}</span>`;
+  const head=cells.length?`최대 ${verb}품: <b>${topName}</b> (${cells[0][1]}%)`:'데이터 없음';
+  return `<div class="tq-ex-row"><div class="tq-ex-nm">${name} ${tag}</div><div class="tq-ex-tx">${head}<br>${reason}</div></div>`;
+}
+function tqShowExplain(){
+  const m=document.getElementById('tq-explain'); if(!m)return;
+  document.getElementById('tq-explain-list').innerHTML=TQ.leftOrder.map(tqExplainRow).join('');
+  m.classList.add('on');
+}
+function tqHideExplain(){ const m=document.getElementById('tq-explain'); if(m)m.classList.remove('on'); }
+function tqExplainNext(){ tqHideExplain(); tqNext(); }
 function tqPickLeft(iso){
   if(TQ.revealed)return;
   if(TQ.selRight){ tqAssign(iso,TQ.selRight); TQ.selRight=null; TQ.selLeft=null; }
@@ -7668,12 +7708,17 @@ function tqReveal(allCorrect){
   tr.textContent=allCorrect?'정답! 🎉':'정답 공개';
   const hp=document.getElementById('tq-hint-pop'); if(hp)hp.style.display='none';
   tqHeader(); tqUpdateDots(); tqSave(); tqDrawLines();
-  /* 한 라운드 끝나면 잠시 뒤 자동으로 다음 라운드 */
   clearTimeout(TQ._advT);
-  TQ._advT=setTimeout(()=>{ if(TQ.revealed&&document.getElementById('tq-screen').classList.contains('on'))tqNext(); }, 2400);
+  if(TQ.mode==='r'){
+    /* 종교: 잠시 뒤 자동으로 다음 라운드 */
+    TQ._advT=setTimeout(()=>{ if(TQ.revealed&&document.getElementById('tq-screen').classList.contains('on'))tqNext(); }, 2400);
+  }else{
+    /* 수출/수입: 각국이 왜 그런 구조인지 설명 팝업을 띄우고, 읽은 뒤 직접 넘어감 */
+    tqShowExplain();
+  }
 }
 function tqNext(){
-  clearTimeout(TQ._advT);
+  clearTimeout(TQ._advT); tqHideExplain();
   document.getElementById('tq-ok').style.display='inline-flex';
   document.getElementById('tq-next').style.display='none';
   tqNextRound();
