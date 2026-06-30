@@ -473,14 +473,14 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
 .tq-ans{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.72);color:#fff;font-size:.74rem;font-weight:700;text-align:center;padding:.18rem;z-index:3}
 .tq-map-card.good .tq-ans{color:#7fd6a0}
 .tq-map-card.bad .tq-ans{color:#e89090}
-/* 종교 원그래프 카드 */
-.tq-map.pie{display:flex;align-items:center;gap:8px;padding:5px 9px;background:var(--sf)}
-.tq-pie{width:34%;max-width:118px;max-height:90%;height:auto;aspect-ratio:1/1;flex-shrink:0;filter:drop-shadow(0 1px 2px rgba(0,0,0,.3))}
-.tq-legend{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1;overflow:hidden}
-.tq-lg-row{display:flex;align-items:center;gap:6px;font-size:.74rem;line-height:1.3}
-.tq-lg-sw{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+/* 종교·에너지 원그래프 카드 */
+.tq-map.pie{display:flex;align-items:center;gap:5px;padding:4px 7px;background:var(--sf)}
+.tq-pie{width:28%;max-width:100px;max-height:90%;height:auto;aspect-ratio:1/1;flex-shrink:0;filter:drop-shadow(0 1px 2px rgba(0,0,0,.3))}
+.tq-legend{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1;overflow:hidden}
+.tq-lg-row{display:flex;align-items:center;gap:4px;font-size:.68rem;line-height:1.3}
+.tq-lg-sw{width:9px;height:9px;border-radius:2px;flex-shrink:0}
 .tq-lg-nm{color:var(--tx);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tq-lg-pct{margin-left:auto;color:var(--tx2);font-weight:700;flex-shrink:0}
+.tq-lg-pct{margin-left:auto;color:var(--tx2);font-weight:700;flex-shrink:0;font-size:.64rem}
 /* 힌트 팝업(접이식) + 카드 번호 배지 */
 .tq-card-no{position:absolute;top:4px;left:4px;width:18px;height:18px;border-radius:50%;background:rgba(168,112,32,.95);color:#000;font-size:.66rem;font-weight:800;display:flex;align-items:center;justify-content:center;z-index:5;box-shadow:0 1px 3px rgba(0,0,0,.4)}
 .tq-hint-pop{position:fixed;left:.6rem;bottom:4.6rem;z-index:60;width:min(290px,76vw);background:rgba(18,18,18,.97);border:1px solid var(--bd);border-radius:9px;box-shadow:0 6px 22px rgba(0,0,0,.55);overflow:hidden;backdrop-filter:blur(6px)}
@@ -569,9 +569,27 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
           <div class="ld-tq-diff-desc" id="ld-bqmap-desc"></div>
         </div>
         <label class="ld-sub-item"><input type="checkbox" class="ld-act" value="religion" id="ld-act-religion"><span data-ic="book"></span>국가별 종교 맞추기</label>
+        <div class="ld-tq-diff" id="ld-relig-diff" style="display:none">
+          <div class="ld-tq-diff-h">난이도 <span class="ld-tq-diff-sub">종교 구성</span></div>
+          <div class="ld-diff-seg" id="ld-rdiff">
+            <button type="button" data-rdiff="L">하</button>
+            <button type="button" data-rdiff="M">중</button>
+            <button type="button" data-rdiff="H">상</button>
+          </div>
+          <div class="ld-tq-diff-desc" id="ld-rdiff-desc"></div>
+        </div>
         <label class="ld-sub-item"><input type="checkbox" class="ld-act ld-act-tq" value="texp"><span data-ic="chart"></span>수출구조 맞추기</label>
         <label class="ld-sub-item"><input type="checkbox" class="ld-act ld-act-tq" value="timp"><span data-ic="chart"></span>수입구조 맞추기</label>
-        <label class="ld-sub-item"><input type="checkbox" class="ld-act" value="tenergy"><span data-ic="chart"></span>에너지 구성 맞추기</label>
+        <label class="ld-sub-item"><input type="checkbox" class="ld-act" value="tenergy" id="ld-act-tenergy"><span data-ic="chart"></span>에너지 구성 맞추기</label>
+        <div class="ld-tq-diff" id="ld-energy-diff" style="display:none">
+          <div class="ld-tq-diff-h">난이도 <span class="ld-tq-diff-sub">에너지 구성</span></div>
+          <div class="ld-diff-seg" id="ld-ediff">
+            <button type="button" data-ediff="L">하</button>
+            <button type="button" data-ediff="M">중</button>
+            <button type="button" data-ediff="H">상</button>
+          </div>
+          <div class="ld-tq-diff-desc" id="ld-ediff-desc"></div>
+        </div>
         <div class="ld-tq-diff" id="ld-tq-diff" style="display:none">
           <div class="ld-tq-diff-h">난이도 <span class="ld-tq-diff-sub">수출/수입 구조</span></div>
           <div class="ld-diff-seg" id="ld-diff">
@@ -618,8 +636,8 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
         <tr><td>나라 이름</td><td>1점</td></tr>
         <tr><td>접경국 (지도 O)</td><td>1점</td></tr>
         <tr><td>접경국 (지도 X)</td><td>3점</td></tr>
-        <tr><td>종교 구성</td><td>2점</td></tr>
-        <tr><td>에너지 구성</td><td>2점</td></tr>
+        <tr><td>종교 구성 (상·중·하)</td><td>3 · 2 · 1점</td></tr>
+        <tr><td>에너지 구성 (상·중·하)</td><td>6 · 4 · 2점</td></tr>
         <tr><td>수출구조 (상·중·하)</td><td>6 · 4 · 2점</td></tr>
         <tr><td>수입구조 (상·중·하)</td><td>9 · 6 · 3점</td></tr>
         <tr><td>한국지리</td><td>1점</td></tr>
@@ -5231,7 +5249,7 @@ function setupLanding(){
     });
   });
   document.querySelectorAll('.ld-act').forEach(cb=>{
-    cb.addEventListener('change',()=>{updateStartState();if(window._syncTqDiff)window._syncTqDiff();if(window._syncBqMap)window._syncBqMap();});
+    cb.addEventListener('change',()=>{updateStartState();if(window._syncTqDiff)window._syncTqDiff();if(window._syncBqMap)window._syncBqMap();if(window._syncReligDiff)window._syncReligDiff();if(window._syncEnergyDiff)window._syncEnergyDiff();});
   });
   /* 출제 비율 슬라이더 */
   const psl=document.getElementById('ld-portion');
@@ -5273,6 +5291,28 @@ function setupLanding(){
     const el=document.getElementById('ld-bq-map'); if(el)el.style.display=on?'block':'none';
   };
   window._syncBqMap();
+  /* 종교 구성 난이도(상중하) */
+  window._ldRDiff=window._ldRDiff||'M';
+  const RDIFF_DESC={
+    L:'상위 종교 70% 이상 국가만 출제 (국가당 1점)',
+    M:'모든 국가 · 2번째 오답에 정답 표시 (국가당 2점)',
+    H:'모든 국가 · 3번 틀려야 공개 (국가당 3점)'};
+  const rdiffSeg=document.getElementById('ld-rdiff');
+  function setRDiff(dv){window._ldRDiff=dv;rdiffSeg.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.rdiff===dv));document.getElementById('ld-rdiff-desc').textContent=RDIFF_DESC[dv]||'';}
+  if(rdiffSeg){rdiffSeg.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>setRDiff(b.dataset.rdiff)));setRDiff(window._ldRDiff);}
+  window._syncReligDiff=function(){const on=document.getElementById('ld-act-religion').checked;const el=document.getElementById('ld-relig-diff');if(el)el.style.display=on?'block':'none';};
+  window._syncReligDiff();
+  /* 에너지 구성 난이도(상중하) */
+  window._ldEDiff=window._ldEDiff||'M';
+  const EDIFF_DESC={
+    L:'주력 에너지원 60% 이상 국가만 출제 (국가당 2점)',
+    M:'모든 국가 · 2번째 오답에 정답 표시 (국가당 4점)',
+    H:'모든 국가 · 3번 틀려야 공개 (국가당 6점)'};
+  const ediffSeg=document.getElementById('ld-ediff');
+  function setEDiff(dv){window._ldEDiff=dv;ediffSeg.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.ediff===dv));document.getElementById('ld-ediff-desc').textContent=EDIFF_DESC[dv]||'';}
+  if(ediffSeg){ediffSeg.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>setEDiff(b.dataset.ediff)));setEDiff(window._ldEDiff);}
+  window._syncEnergyDiff=function(){const on=document.getElementById('ld-act-tenergy').checked;const el=document.getElementById('ld-energy-diff');if(el)el.style.display=on?'block':'none';};
+  window._syncEnergyDiff();
   /* 대륙 전체 선택/해제 토글 */
   const contAll=document.getElementById('ld-cont-all');
   function syncContAll(){
@@ -5319,6 +5359,9 @@ function startFromLanding(){
   if(por<1)key+='_p'+Math.round(por*1000);
   /* 수출/수입 난이도(상중하) — 무역 활동 선택 시에만 키에 반영 */
   if(acts.includes('texp')||acts.includes('timp'))key+='_d'+(window._ldDiff||'M');
+  /* 종교/에너지 난이도 */
+  if(acts.includes('religion'))key+='_r'+(window._ldRDiff||'M');
+  if(acts.includes('tenergy'))key+='_e'+(window._ldEDiff||'M');
   /* 접경국 지도 없는 모드 */
   if(acts.includes('border')&&window._ldBorderMap==='X')key+='_nomap';
   startSession('world',acts,key,key);
@@ -7339,10 +7382,15 @@ function renderPie(el,cells){
   const legend=cells.map(c=>`<div class="tq-lg-row"><span class="tq-lg-sw" style="background:${PIE_COLOR[c[0]]||'#888'}"></span><span class="tq-lg-nm">${PIE_NAME[c[0]]||c[0]}</span><span class="tq-lg-pct">${c[1]}%</span></div>`).join('');
   el.innerHTML=`<svg class="tq-pie" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">${paths}</svg><div class="tq-legend">${legend}</div>`;
 }
-/* ── 난이도(상중하) · 점수 · 힌트 (수출/수입 모드 전용) ── */
+/* ── 난이도(상중하) · 점수 · 힌트 ── */
 function _diff(key){const m=(key||'').match(/_d([HML])(?=_|$)/);return m?m[1]:'M';}
-const TQ_PTS={x:{H:6,M:4,L:2}, m:{H:9,M:6,L:3}, r:{H:2,M:2,L:2}, e:{H:2,M:2,L:2}};
-function tqPoints(mode,key){const t=TQ_PTS[mode]||TQ_PTS.x;return t[_diff(key)]||1;}
+function tqDiff(mode,key){
+  if(mode==='r'){const m=(key||'').match(/_r([HML])(?=_|$)/);return m?m[1]:'M';}
+  if(mode==='e'){const m=(key||'').match(/_e([HML])(?=_|$)/);return m?m[1]:'M';}
+  return _diff(key);
+}
+const TQ_PTS={x:{H:6,M:4,L:2}, m:{H:9,M:6,L:3}, r:{H:3,M:2,L:1}, e:{H:6,M:4,L:2}};
+function tqPoints(mode,key){const t=TQ_PTS[mode]||TQ_PTS.x;return t[tqDiff(mode,key)]||1;}
 /* '하' 출제 대상: ASEAN·EU·APEC·MERCOSUR + 주요 아프리카 산업국 + 인구대국/주요경제국 */
 const MAJOR_TRADE=new Set(('id th vn my ph sg mm kh la bn '+
  'at be bg hr cy cz dk ee fi fr de gr hu ie it lv lt lu mt nl pl pt ro sk si es se '+
@@ -7354,7 +7402,7 @@ const HUGE_POP=new Set('cn in us id pk ng br bd ru mx jp et ph eg vn cd tr ir'.s
 const _ARCH_BY_SEC={5:'자원·에너지 비중이 큰',16:'기계·전자 제조 강국인',17:'자동차·운송장비 산업이 발달한',1:'축산·수산물 비중이 큰',2:'농산물 비중이 큰',3:'유지·식용유 비중이 큰',4:'식품·음료 가공이 많은',11:'섬유·의류 산업 비중이 큰',12:'신발·잡화 산업 비중이 큰',14:'귀금속·보석 비중이 큰',15:'철강·금속 비중이 큰',13:'석재·광물 가공이 많은',6:'화학·의약품 산업이 발달한',7:'플라스틱·고무 비중이 큰',9:'목재 비중이 큰',10:'펄프·종이 비중이 큰'};
 function tqArch(cells){if(!cells||!cells.length)return '여러 품목을 고루 거래하는';const sec=Math.floor(cells[0][0]/100);return _ARCH_BY_SEC[sec]||'여러 품목을 고루 거래하는';}
 function tqHint(iso,mode){
-  if(mode==='r')return '';
+  if(mode==='r'||mode==='e')return '';
   const cont=CONT_NAME[isoCont(iso)]||'';
   const v=(TRADE_DATA[iso]||{}).v||0;
   const size=v>=800?'세계적 무역 대국':(v>=200?'무역 규모가 큰 편':(v>=40?'중간 규모 경제':'무역 규모가 작은 편'));
@@ -7365,7 +7413,7 @@ function tqHint(iso,mode){
   return parts.join(' · ');
 }
 function tqHintFor(iso){
-  if(TQ.mode==='r')return '';
+  if(TQ.mode==='r'||TQ.mode==='e')return '';
   if(_diff(TQ.filterKey)==='M'&&MAJOR_TRADE.has(iso))return ''; /* 중: 쉬운(주요)국 설명 생략 */
   return tqHint(iso,TQ.mode);
 }
@@ -7657,6 +7705,8 @@ function tqPoolFor(filterKey){
   const set=_countSetForFilter(filterKey);
   let pool=[...set].filter(tqEligible);
   if(TQ.mode!=='r'&&TQ.mode!=='e'&&_diff(filterKey)==='L')pool=pool.filter(i=>MAJOR_TRADE.has(i));
+  if(TQ.mode==='r'&&tqDiff('r',filterKey)==='L')pool=pool.filter(i=>{const a=RELIG2_DATA[i]||[];return a.length&&a[0][1]>=70;});
+  if(TQ.mode==='e'&&tqDiff('e',filterKey)==='L')pool=pool.filter(i=>{const a=ENERGY_DATA[i]||[];return a.length&&a[0][1]>=60;});
   if(TQ.mode!=='e')pool.sort((a,b)=>((TRADE_DATA[b]||{}).v||0)-((TRADE_DATA[a]||{}).v||0));
   const por=_portion(filterKey);
   if(por<1){
@@ -7766,7 +7816,7 @@ function tqHeader(){
   document.getElementById('tq-title').textContent = T[0];
   document.getElementById('tq-sub').textContent = T[1];
   const ht=document.getElementById('tq-hint-txt');
-  if(ht)ht.textContent=(TQ.mode==='r'?'종교 구성':'무역 구조')+'과 국가명을 선으로 연결하세요 · 연결된 걸 다시 누르면 해제됩니다';
+  if(ht)ht.textContent=(TQ.mode==='r'?'종교 구성':TQ.mode==='e'?'에너지 구성':'무역 구조')+'과 국가명을 선으로 연결하세요 · 연결된 걸 다시 누르면 해제됩니다';
   const done=TQ.doneSet.size, tot=TQ.totalCountries||0;
   document.getElementById('tq-cor').textContent=TQ.correctCountries;
   document.getElementById('tq-rem').textContent=Math.max(0,tot-done);
@@ -7805,7 +7855,7 @@ function tqRender(){
 function tqApplyFeedback(){
   const pop=document.getElementById('tq-hint-pop'), list=document.getElementById('tq-hint-list');
   if(!pop)return;
-  if(!(TQ.feedback>=1)||TQ.mode==='r'||TQ.revealed){ pop.style.display='none'; return; }
+  if(!(TQ.feedback>=1)||TQ.mode==='r'||TQ.mode==='e'||TQ.revealed){ pop.style.display='none'; return; }
   let tips=tqRoundTips();
   if(!tips.length)tips=['1위 품목의 특징(기후·자원·기술 수준)으로 어떤 나라일지 떠올려 보세요.'];
   list.innerHTML=tips.map(t=>`<div class="tq-hint-row"><span>${t}</span></div>`).join('');
@@ -7965,11 +8015,17 @@ function tqSubmit(){
   const allCorrect=TQ.round.every(iso=>TQ.matches[iso]===iso);
   if(allCorrect||TQ.tries>=3){ tqReveal(allCorrect); }
   else {
-    const diff=_diff(TQ.filterKey), hinted=(TQ.mode!=='r'&&(diff==='M'||diff==='L'));
-    /* 상(H)·종교: 정오 정보 없음. 중·하: 1번째→힌트, 2번째→맞은 것 초록 표시 */
-    if(hinted) TQ.feedback=TQ.tries;
+    const diff=tqDiff(TQ.mode,TQ.filterKey);
+    const tradeHinted=(TQ.mode!=='r'&&TQ.mode!=='e'&&(diff==='M'||diff==='L'));
+    const pieHinted=(TQ.mode==='r'||TQ.mode==='e')&&diff!=='H';
+    /* 중·하: 종교/에너지는 2번째 오답에 맞은 것 초록 표시. 무역은 1번째→힌트, 2번째→초록 */
+    if(tradeHinted||pieHinted) TQ.feedback=TQ.tries;
     const tr=document.getElementById('tq-tries');
-    tr.textContent = hinted ? (TQ.tries===1?'💡 힌트를 참고해 다시 시도':'맞은 연결은 초록색 · 다시 시도') : ('틀렸어요 · 다시 시도 ('+TQ.tries+'/3)');
+    tr.textContent = tradeHinted
+      ? (TQ.tries===1?'💡 힌트를 참고해 다시 시도':'맞은 연결은 초록색 · 다시 시도')
+      : pieHinted
+        ? (TQ.tries===1?'다시 시도해 보세요':'맞은 연결은 초록색 · 다시 시도')
+        : '틀렸어요 · 다시 시도 ('+TQ.tries+'/3)';
     tqUpdateDots(); tqApplyFeedback();
     const m=document.getElementById('tq-match'); m.classList.remove('shake'); void m.offsetWidth; m.classList.add('shake');
   }
