@@ -277,6 +277,13 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 .ld-portion-sl::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--tx);cursor:pointer;border:2px solid var(--sf)}
 .ld-portion-sl::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--tx);border:2px solid var(--sf);cursor:pointer}
 .ld-portion-ticks{display:flex;justify-content:space-between;margin-top:.35rem;font-size:.62rem;color:var(--tx2);padding:0 1px}
+.ld-tq-diff{margin:.1rem 0 .5rem;padding:.55rem .65rem;background:var(--bg);border:1px solid var(--bd);border-radius:6px}
+.ld-tq-diff-h{font-size:.78rem;color:var(--tx);font-weight:600;margin-bottom:.45rem}
+.ld-tq-diff-sub{font-size:.66rem;color:var(--tx2);font-weight:400;margin-left:.3rem}
+.ld-diff-seg{display:flex;gap:.4rem}
+.ld-diff-seg button{flex:1;padding:.45rem;background:var(--sf2);border:1px solid var(--bd);border-radius:5px;color:var(--tx2);font-family:'Pretendard','Noto Sans KR',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;transition:.15s var(--ease)}
+.ld-diff-seg button.active{background:var(--tx);color:#000;border-color:var(--tx)}
+.ld-tq-diff-desc{font-size:.68rem;color:var(--tx2);margin-top:.45rem;line-height:1.4;min-height:1.4em}
 .ld-group{border:1px solid var(--bd);border-radius:8px;margin-bottom:.7rem;overflow:hidden;transition:border-color .25s var(--ease)}
 .ld-group.open{border-color:var(--tx2)}
 .ld-cat{display:flex;align-items:center;gap:.65rem;padding:.85rem .95rem;cursor:pointer;user-select:none}
@@ -451,6 +458,16 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
 .tq-ans{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.72);color:#fff;font-size:.74rem;font-weight:700;text-align:center;padding:.18rem;z-index:3}
 .tq-map-card.good .tq-ans{color:#7fd6a0}
 .tq-map-card.bad .tq-ans{color:#e89090}
+/* 종교 원그래프 카드 */
+.tq-map.pie{display:flex;align-items:center;gap:8px;padding:5px 9px;background:var(--sf)}
+.tq-pie{height:92%;max-height:100%;width:auto;aspect-ratio:1/1;flex-shrink:0;filter:drop-shadow(0 1px 2px rgba(0,0,0,.3))}
+.tq-legend{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1;overflow:hidden}
+.tq-lg-row{display:flex;align-items:center;gap:6px;font-size:.74rem;line-height:1.3}
+.tq-lg-sw{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.tq-lg-nm{color:var(--tx);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tq-lg-pct{margin-left:auto;color:var(--tx2);font-weight:700;flex-shrink:0}
+/* 힌트 캡션 */
+.tq-hint-cap{position:absolute;left:0;right:0;bottom:0;background:rgba(168,112,32,.92);color:#fff;font-size:.68rem;font-weight:600;text-align:center;padding:.22rem .3rem;z-index:4;line-height:1.25}
 .tq-dot{position:absolute;width:11px;height:11px;border-radius:50%;background:var(--sf2);border:2px solid var(--tx2);top:50%;transform:translateY(-50%);z-index:6}
 .tq-dot-l{right:-6px}
 .tq-dot-r{left:-6px}
@@ -464,6 +481,9 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
 #tq-tries{font-size:.76rem;color:var(--wr);min-width:5rem;text-align:right}
 .tq-btn{display:inline-flex;align-items:center;gap:.35rem;padding:.6rem 1.6rem;border:none;border-radius:6px;background:var(--tx);color:#000;font-family:'Pretendard','Noto Sans KR',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;transition:.15s var(--ease)}
 .tq-btn:disabled{background:var(--sf2);color:var(--tx2);cursor:not-allowed}
+#tq-next{padding:.85rem 2.8rem;font-size:1.05rem;border-radius:8px;box-shadow:0 3px 14px rgba(238,238,238,.18);animation:tqNextPop .25s var(--ease-spring)}
+#tq-next:hover{transform:translateY(-1px)}
+@keyframes tqNextPop{from{transform:scale(.9);opacity:.4}to{transform:none;opacity:1}}
 .shake{animation:tqShake .35s}
 @keyframes tqShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
 #tq-end{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem;text-align:center;background:var(--bg);z-index:10}
@@ -504,9 +524,18 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
       <div class="ld-subs">
         <label class="ld-sub-item"><input type="checkbox" class="ld-act" value="name"><span data-ic="globe"></span>나라 이름 맞추기</label>
         <label class="ld-sub-item"><input type="checkbox" class="ld-act" value="border"><span data-ic="border"></span>접경국 맞추기</label>
-        <label class="ld-sub-item"><input type="checkbox" class="ld-act" value="religion" id="ld-act-religion"><span data-ic="book"></span>국가별 종교 퀴즈</label>
-        <label class="ld-sub-item"><input type="checkbox" class="ld-act" value="texp"><span data-ic="chart"></span>수출구조 맞추기</label>
-        <label class="ld-sub-item"><input type="checkbox" class="ld-act" value="timp"><span data-ic="chart"></span>수입구조 맞추기</label>
+        <label class="ld-sub-item"><input type="checkbox" class="ld-act" value="religion" id="ld-act-religion"><span data-ic="book"></span>국가별 종교 맞추기 (원그래프)</label>
+        <label class="ld-sub-item"><input type="checkbox" class="ld-act ld-act-tq" value="texp"><span data-ic="chart"></span>수출구조 맞추기</label>
+        <label class="ld-sub-item"><input type="checkbox" class="ld-act ld-act-tq" value="timp"><span data-ic="chart"></span>수입구조 맞추기</label>
+        <div class="ld-tq-diff" id="ld-tq-diff" style="display:none">
+          <div class="ld-tq-diff-h">난이도 <span class="ld-tq-diff-sub">수출/수입 구조</span></div>
+          <div class="ld-diff-seg" id="ld-diff">
+            <button type="button" data-diff="L">하</button>
+            <button type="button" data-diff="M">중</button>
+            <button type="button" data-diff="H">상</button>
+          </div>
+          <div class="ld-tq-diff-desc" id="ld-diff-desc"></div>
+        </div>
         <div class="ld-range">
           <div class="ld-range-h"><span data-ic="range"></span>출제 범위 <span class="ld-range-note">· 중복 선택 가능</span><button type="button" class="ld-cont-all" id="ld-cont-all">전체 선택</button></div>
           <div class="ld-cont-grid" id="ld-cont-grid">
@@ -4897,7 +4926,7 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
     <div class="tq-progress"><div id="tq-pf"></div></div>
   </div>
   <div id="tq-card">
-    <div class="tq-hint">트리맵(무역구조)과 국가명을 선으로 연결하세요 · 연결된 걸 다시 누르면 해제됩니다</div>
+    <div class="tq-hint" id="tq-hint-txt">트리맵(무역구조)과 국가명을 선으로 연결하세요 · 연결된 걸 다시 누르면 해제됩니다</div>
     <div id="tq-match">
       <svg id="tq-lines"></svg>
       <div id="tq-left"></div>
@@ -5127,7 +5156,7 @@ function setupLanding(){
     });
   });
   document.querySelectorAll('.ld-act').forEach(cb=>{
-    cb.addEventListener('change',updateStartState);
+    cb.addEventListener('change',()=>{updateStartState();if(window._syncTqDiff)window._syncTqDiff();});
   });
   /* 출제 비율 슬라이더 */
   const psl=document.getElementById('ld-portion');
@@ -5136,6 +5165,24 @@ function setupLanding(){
     const upd=()=>{const f=PORTION_VALUES[+psl.value]||1;pv.textContent=(f*100)+'%';};
     psl.addEventListener('input',upd);upd();
   }
+  /* 수출/수입 난이도(상중하) — 무역 활동 체크 시에만 노출 */
+  window._ldDiff=window._ldDiff||'M';
+  const DIFF_DESC={
+    L:'주요국만 출제 · 첫 오답에 힌트 · 둘째 오답에 맞은 것 표시 (수출 1점 / 수입 3점)',
+    M:'모든 국가 · 첫 오답에 힌트 · 둘째 오답에 맞은 것 표시 (수출 2점 / 수입 6점)',
+    H:'모든 국가 · 힌트 없음 · 3번 틀려야 정답 공개 (수출 3점 / 수입 9점)'};
+  const diffSeg=document.getElementById('ld-diff');
+  function setDiff(dv){
+    window._ldDiff=dv;
+    diffSeg.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.diff===dv));
+    document.getElementById('ld-diff-desc').textContent=DIFF_DESC[dv]||'';
+  }
+  if(diffSeg){ diffSeg.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>setDiff(b.dataset.diff))); setDiff(window._ldDiff); }
+  window._syncTqDiff=function(){
+    const on=[...document.querySelectorAll('.ld-act-tq')].some(c=>c.checked);
+    const el=document.getElementById('ld-tq-diff'); if(el)el.style.display=on?'block':'none';
+  };
+  window._syncTqDiff();
   /* 대륙 전체 선택/해제 토글 */
   const contAll=document.getElementById('ld-cont-all');
   function syncContAll(){
@@ -5180,6 +5227,8 @@ function startFromLanding(){
   const psl=document.getElementById('ld-portion');
   const por=psl?(PORTION_VALUES[+psl.value]||1):1;
   if(por<1)key+='_p'+Math.round(por*1000);
+  /* 수출/수입 난이도(상중하) — 무역 활동 선택 시에만 키에 반영 */
+  if(acts.includes('texp')||acts.includes('timp'))key+='_d'+(window._ldDiff||'M');
   startSession('world',acts,key,key);
 }
 
@@ -5194,7 +5243,7 @@ function startSession(cat,acts,filterKey,rqContKey){
       loadGame();
     }
     if(acts.includes('border')){bqInit(filterKey);}
-    if(acts.includes('religion')){const rk=rqContKey||'all';if(!loadRQ(rk))buildRQList(rk);}
+    if(acts.includes('religion')){tqInit('r',filterKey);}
     if(acts.includes('texp')){tqInit('x',filterKey);}
     if(acts.includes('timp')){tqInit('m',filterKey);}
     try{const mw=document.getElementById('ui-map');_s=Math.min(mw.clientWidth/SW,mw.clientHeight/SH);_x=(mw.clientWidth-SW*_s)/2;_y=(mw.clientHeight-SH*_s)/2;applyT();}catch(e){}
@@ -5220,9 +5269,9 @@ function switchTab(key){
   SESSION.cur=key;
   document.querySelectorAll('#act-tabs-list .act-tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===key));
   const showMap=(key==='name'||key==='border');
-  document.getElementById('rq-screen').classList.toggle('on',key==='religion');
+  document.getElementById('rq-screen').classList.remove('on');
   document.getElementById('kr-screen').classList.toggle('on',key==='korea');
-  document.getElementById('tq-screen').classList.toggle('on',key==='texp'||key==='timp');
+  document.getElementById('tq-screen').classList.toggle('on',key==='texp'||key==='timp'||key==='religion');
   document.getElementById('bq-box').classList.toggle('on',key==='border');
   document.body.classList.toggle('border-mode',key==='border');
   if(showMap){
@@ -5231,7 +5280,7 @@ function switchTab(key){
     logo.innerHTML=(key==='name')?'나라 이름 <span>/ Countries</span>':'접경국 <span>/ Borders</span>';
     repaintMap();
     if(key==='name'){stats();}else{bqStats();bqShowCurrent();}
-  }else if(key==='religion'){openReligionTab();}
+  }else if(key==='religion'){tqEnter('r');}
   else if(key==='texp'){tqEnter('x');}
   else if(key==='timp'){tqEnter('m');}
   else if(key==='korea'){openKoreaTab();}
@@ -7005,9 +7054,7 @@ function listSaves(){
     try{d=JSON.parse(localStorage.getItem(k));}catch(e){continue;}
     if(!d||typeof d!=='object')continue;
     if(k.startsWith('wq_rq_')){
-      if(k.startsWith('wq_rq__'))continue; /* 재시도 슬롯 제외 */
-      if(!Array.isArray(d.list)||!d.list.length)continue;
-      out.push({type:'religion',key:k,scope:d.contKey||'all',done:d.idx||0,total:d.list.length,wrong:Object.keys(d.wrongCounts||{}).length});
+      continue; /* 구 종교비율 모드 폐기 — 목록에서 제외 */
     }else if(k.startsWith('bq_')&&!k.startsWith('bq__')){
       if(!d.status||typeof d.status!=='object')continue;
       const fk=k.slice(3);const st=d.status;
@@ -7026,9 +7073,10 @@ function listSaves(){
       const st=d.status||{};const wr=d.wrong||{};
       const wset=new Set(Object.keys(st).filter(x=>st[x]==='cr'));Object.keys(wr).forEach(x=>{if(wr[x]>0)wset.add(x);});
       out.push({type:'korea',key:k,scope:'korea',done:Object.keys(st).length,total:d.total||0,wrong:wset.size});
-    }else if((k.startsWith('tq_x_')||k.startsWith('tq_m_'))&&!k.includes('__')){
+    }else if((k.startsWith('tq_x_')||k.startsWith('tq_m_')||k.startsWith('tq_r_'))&&!k.includes('__')){
       const done=(d.done||[]).length;if(!done)continue; /* 시작만 한 건 제외 */
-      out.push({type:k.startsWith('tq_x_')?'texp':'timp',key:k,scope:d.filterKey||k.slice(5),
+      const ty=k.startsWith('tq_x_')?'texp':(k.startsWith('tq_m_')?'timp':'religion');
+      out.push({type:ty,key:k,scope:d.filterKey||k.slice(5),
         done,total:d.totalCountries||0,wrong:(d.wrong||[]).length});
     }
   }
@@ -7041,7 +7089,7 @@ function _resumeStart(type,key){
   if(document.getElementById('landing-overlay'))document.getElementById('landing-overlay').style.display='none';
   if(type==='name')startSession('world',['name'],key.slice(3));
   else if(type==='border')startSession('world',['border'],key.slice(3));
-  else if(type==='religion'){const rk=key.slice(6);startSession('world',['religion'],rk,rk);}
+  else if(type==='religion')startSession('world',['religion'],key.slice(5),key.slice(5));
   else if(type==='texp')startSession('world',['texp'],key.slice(5),key.slice(5));
   else if(type==='timp')startSession('world',['timp'],key.slice(5),key.slice(5));
   else if(type==='korea')startSession('korea',['korea'],null);
@@ -7066,16 +7114,14 @@ function rqStartRetryList(isos){
   showRQCard();
 }
 function resumeWrongRetry(type,key){
-  const relIsos=type==='religion'?_religionWrongIsos(key):null;
   _resumeStart(type,key);
   setTimeout(()=>{
     try{
       if(type==='name')retryWrong(1);
-      else if(type==='religion')rqStartRetryList(relIsos);
       else if(type==='border')bqRetryWrong();
-      else if(type==='texp'||type==='timp')tqRetryWrong();
+      else if(type==='religion'||type==='texp'||type==='timp')tqRetryWrong();
     }catch(e){}
-  },140);
+  },180);
 }
 function resumeWrongView(type,key){
   _resumeStart(type,key);
@@ -7098,7 +7144,7 @@ function bqRetryWrong(){
 function _keyFor(category,scope){
   if(category==='name')return 'wq_'+(scope||'all');
   if(category==='border')return 'bq_'+(scope||'all');
-  if(category==='religion')return 'wq_rq_'+(scope||'all');
+  if(category==='religion')return 'tq_r_'+(scope||'all');
   if(category==='texp')return 'tq_x_'+(scope||'all');
   if(category==='timp')return 'tq_m_'+(scope||'all');
   if(category==='korea')return KQ_SAVE_KEY;
@@ -7111,8 +7157,10 @@ function getBreakdown(category,scope){
   const res={right:[],wrong:[],hasState:false,hasWrong:false};
   if(!d)return res;
   res.hasState=true;
-  if(category==='religion'){
-    (d.wrongItems||[]).forEach(w=>{res.wrong.push((w.country||w.iso)+(w.answer?' → '+w.answer:''));});
+  if(category==='religion'||category==='texp'||category==='timp'){
+    const wrongSet=new Set(d.wrong||[]);
+    (d.done||[]).forEach(iso=>{const nm=COUNTRIES[iso]?COUNTRIES[iso].k:iso;(wrongSet.has(iso)?res.wrong:res.right).push(nm);});
+    res.right.sort((a,b)=>a.localeCompare(b));res.wrong.sort((a,b)=>a.localeCompare(b));
     res.hasWrong=res.wrong.length>0;
     return res;
   }
@@ -7133,6 +7181,58 @@ const TRADE_DATA={"ad":{"x":[[1685,38.2],[1890,18.4],[1787,13.5],[1684,3.1],[189
 const HS2_KO={"101":"산동물","102":"육류","103":"어패류","104":"동물성 식품","105":"동물성 생산품","206":"화훼·식물","207":"채소","208":"과일·견과","209":"커피·차·향신료","210":"곡물","211":"제분 제품","212":"유지종자·사료","213":"천연수지","214":"식물성 편조재료","315":"동·식물성 유지","416":"수산 가공품","417":"설탕·과자","418":"코코아","419":"곡물 가공품","420":"채소·과일 가공","421":"기타 식품","422":"음료·주류","423":"식품 잔재·사료","424":"담배","525":"소금·시멘트·석재","526":"광석·슬래그","527":"광물성 연료","628":"무기화학품","629":"유기화학품","630":"의약품","631":"비료","632":"페인트·염료","633":"화장품·향료","634":"비누·세제","635":"접착제·전분","636":"화약·성냥","637":"사진용품","638":"기타 화학품","739":"플라스틱","740":"고무","841":"원피·가죽(원료)","842":"가죽 제품","843":"모피","944":"목재·목탄","945":"코르크","946":"짚·조물제품","1047":"펄프·폐지","1048":"종이 제품","1049":"서적·인쇄물","1150":"견(실크)","1151":"양모","1152":"면","1153":"식물성 섬유","1154":"인조 필라멘트","1155":"인조 스테이플 섬유","1156":"부직포·끈","1157":"카펫","1158":"특수 직물","1159":"코팅 직물","1160":"편물","1161":"편물 의류","1162":"직물 의류","1163":"중고 의류","1264":"신발","1265":"모자","1266":"우산·지팡이","1267":"깃털·인조꽃 제품","1368":"석재·시멘트 제품","1369":"도자기","1370":"유리","1471":"보석·귀금속","1572":"철강","1573":"철강 제품","1574":"구리 제품","1575":"니켈 제품","1576":"알루미늄 제품","1578":"납 제품","1579":"아연 제품","1580":"주석 제품","1581":"서멧 제품","1582":"공구·날붙이","1583":"기타 금속 제품","1684":"기계류","1685":"전자기기","1786":"철도차량","1787":"자동차","1788":"항공기·우주선","1789":"선박","1890":"광학·의료기기","1891":"시계","1892":"악기","1993":"무기","2094":"가구·조명","2095":"완구·스포츠","2096":"기타 제조품","2197":"예술품·골동품"};
 const HS_SEC_NAME={"1":"동물성 제품","2":"식물성 제품","3":"동·식물성 유지","4":"식품·음료","5":"광물","6":"화학공업","7":"플라스틱·고무","8":"가죽·모피","9":"목재","10":"종이·인쇄","11":"섬유·의류","12":"신발·모자","13":"석재·유리","14":"귀금속·보석","15":"비금속(금속)","16":"기계·전자","17":"운송수단","18":"정밀기기","19":"무기","20":"기타 제조품","21":"예술품"};
 const HS_SEC_COLOR={"1":"#cf5b6b","2":"#6aab4d","3":"#a7c957","4":"#e6a532","5":"#8a6d3b","6":"#d65aa8","7":"#9b6bc4","8":"#b07a4e","9":"#c0563f","10":"#9aa0a6","11":"#46b888","12":"#2aa198","13":"#c9a227","14":"#8e57c9","15":"#5a78b0","16":"#3f8fd6","17":"#6fb3e0","18":"#b24fa0","19":"#4a5568","20":"#7f8c8d","21":"#d98c3a"};
+const RELIG2_DATA={"af":[[1,100.0]],"al":[[1,80.7],[0,19.3]],"dz":[[1,99.7]],"ao":[[0,99.7]],"ar":[[0,98.5],[1,1.0]],"am":[[0,99.7]],"aw":[[0,98.2],[2,0.7]],"au":[[0,83.1],[1,6.2],[3,5.3],[2,4.6],[4,0.7]],"at":[[0,88.6],[1,10.8]],"az":[[1,99.5]],"bs":[[0,99.7]],"bh":[[1,74.7],[0,13.8],[3,11.3]],"bd":[[1,91.2],[3,7.9],[2,0.6]],"bb":[[0,98.3],[1,0.9],[3,0.6]],"by":[[0,99.6]],"be":[[0,87.2],[1,11.7]],"bz":[[0,98.9]],"bj":[[0,62.9],[1,37.1]],"bt":[[2,76.2],[3,23.0],[0,0.6]],"bo":[[0,100.0]],"ba":[[1,54.6],[0,45.4]],"bw":[[0,99.2]],"br":[[0,99.8]],"bn":[[1,85.2],[0,6.9],[2,6.5],[3,1.4]],"bg":[[0,88.5],[1,11.4]],"bf":[[1,70.6],[0,29.3]],"bi":[[0,96.9],[1,3.1]],"kh":[[2,97.6],[1,2.1]],"cm":[[0,73.5],[1,26.5]],"ca":[[0,85.5],[1,7.8],[2,2.8],[3,2.4],[4,1.5]],"cv":[[0,99.6]],"cf":[[0,93.6],[1,6.4]],"td":[[1,59.2],[0,40.8]],"gg":[[0,99.7]],"cl":[[0,99.7]],"cn":[[2,36.1],[5,29.2],[1,17.6],[0,17.2]],"co":[[0,100.0]],"km":[[1,99.5],[0,0.5]],"cr":[[0,99.8]],"hr":[[0,98.5],[1,1.5]],"cu":[[0,77.4],[5,22.2]],"cw":[[0,96.8],[3,2.1],[1,0.5]],"cy":[[0,72.9],[1,26.2],[2,0.6]],"cz":[[0,98.4],[1,1.2]],"cd":[[0,98.7],[1,1.3]],"dk":[[0,93.4],[1,5.1],[2,0.8],[3,0.5]],"dj":[[1,98.8],[0,1.1]],"do":[[0,99.9]],"ec":[[0,99.9]],"eg":[[1,95.2],[0,4.8]],"sv":[[0,100.0]],"gq":[[0,95.5],[1,4.4]],"er":[[1,52.5],[0,47.4]],"ee":[[0,98.1],[1,1.1]],"sz":[[0,99.7]],"et":[[0,62.9],[1,37.0]],"fm":[[0,99.9]],"fj":[[0,69.9],[3,24.2],[1,5.8]],"fi":[[0,97.1],[1,2.2]],"fr":[[0,81.4],[1,15.9],[2,1.2],[4,1.2]],"gf":[[0,96.4],[3,1.8],[1,1.1],[2,0.7]],"pf":[[0,99.4]],"ga":[[0,90.6],[1,9.4]],"gm":[[1,97.0],[0,2.9]],"ge":[[0,89.3],[1,10.6]],"de":[[0,88.7],[1,10.3],[2,0.5]],"gh":[[0,78.2],[1,21.8]],"gr":[[0,94.4],[1,5.4]],"gd":[[0,99.3]],"gp":[[0,98.5],[3,0.5]],"gu":[[0,98.9],[2,1.1]],"gt":[[0,100.0]],"gn":[[1,88.0],[0,11.9]],"gw":[[1,72.0],[0,28.0]],"gy":[[0,68.7],[3,24.4],[1,6.8]],"ht":[[0,100.0]],"hn":[[0,100.0]],"hk":[[0,67.5],[2,30.3],[3,1.1],[1,1.0]],"hu":[[0,99.3]],"is":[[0,96.3],[2,1.7],[1,1.6]],"in":[[3,81.4],[1,15.6],[0,2.3],[2,0.7]],"id":[[1,87.4],[0,10.3],[3,1.6],[2,0.7]],"ir":[[1,99.8]],"iq":[[1,99.6]],"ie":[[0,96.9],[1,2.0],[3,0.8]],"il":[[4,82.1],[1,15.7],[0,2.0]],"it":[[0,93.6],[1,5.1],[2,0.7],[3,0.5]],"ci":[[1,50.8],[0,49.2]],"jm":[[0,99.9]],"jp":[[2,93.8],[0,5.7]],"jo":[[1,97.1],[0,2.8]],"kz":[[1,80.0],[0,19.8]],"ke":[[0,88.6],[1,11.3]],"ki":[[0,99.9]],"xk":[[1,94.4],[0,5.6]],"kw":[[1,80.7],[0,10.6],[3,8.6]],"kg":[[1,94.1],[0,5.9]],"la":[[2,64.2],[5,34.2],[0,1.5]],"lv":[[0,98.7],[1,0.9]],"lb":[[1,70.8],[0,29.2]],"ls":[[0,99.7]],"lr":[[0,87.0],[1,13.0]],"ly":[[1,99.1],[0,0.5]],"lt":[[0,99.8]],"lu":[[0,95.4],[1,2.6],[2,0.7],[4,0.7],[3,0.5]],"mo":[[2,64.9],[0,33.6],[1,1.6]],"mg":[[0,98.3],[1,1.5]],"mw":[[0,88.3],[1,11.7]],"my":[[1,65.2],[2,19.2],[0,9.3],[3,6.2]],"mv":[[1,94.5],[3,2.6],[0,1.7],[2,1.3]],"ml":[[1,97.3],[0,2.7]],"mt":[[0,93.7],[1,3.9],[3,1.5],[2,0.6]],"mq":[[0,99.5]],"mr":[[1,99.8]],"mu":[[3,48.7],[0,33.2],[1,17.7]],"yt":[[1,99.5],[0,0.5]],"mx":[[0,99.9]],"md":[[0,99.8]],"mn":[[2,91.3],[1,6.3],[0,2.4]],"me":[[0,78.1],[1,21.9]],"ma":[[1,99.9]],"mz":[[0,75.9],[1,24.0]],"mm":[[2,90.0],[0,6.2],[1,3.4]],"na":[[0,99.8]],"np":[[3,84.4],[2,8.5],[1,5.3],[0,1.8]],"nl":[[0,84.3],[1,13.2],[3,1.4],[2,0.7]],"nc":[[0,96.1],[1,3.1],[2,0.7]],"nz":[[0,88.1],[3,6.1],[1,3.0],[2,2.6]],"ni":[[0,100.0]],"ne":[[1,99.4],[0,0.6]],"ng":[[1,56.4],[0,43.6]],"kp":[[5,93.0],[2,5.6],[0,1.4]],"mk":[[0,65.1],[1,34.9]],"no":[[0,93.3],[1,5.4],[2,0.9]],"om":[[1,82.2],[3,9.6],[0,8.1]],"pk":[[1,96.6],[3,2.1],[0,1.3]],"ps":[[1,99.0],[0,1.0]],"pa":[[0,99.4]],"pg":[[0,99.9]],"py":[[0,99.9]],"pe":[[0,99.9]],"ph":[[0,93.4],[1,6.6]],"pl":[[0,100.0]],"pt":[[0,99.0],[1,0.5]],"pr":[[0,99.4]],"qa":[[1,76.4],[0,12.6],[3,10.7]],"cg":[[0,98.4],[1,1.6]],"re":[[0,90.7],[3,4.7],[1,4.3]],"ro":[[0,99.5]],"ru":[[0,88.9],[1,10.4]],"rw":[[0,98.2],[1,1.8]],"ws":[[0,99.9]],"st":[[0,99.9]],"sa":[[1,92.9],[0,4.4],[3,2.6]],"sn":[[1,97.6],[0,2.4]],"rs":[[0,95.4],[1,4.6]],"sc":[[0,96.8],[3,1.5],[1,0.9],[2,0.8]],"sl":[[1,80.2],[0,19.8]],"sg":[[2,43.4],[0,26.4],[1,22.7],[3,7.5]],"sk":[[0,99.7]],"si":[[0,97.5],[1,2.4]],"sb":[[0,99.3]],"so":[[1,99.9]],"za":[[0,96.9],[1,1.8],[3,1.2]],"kr":[[0,62.2],[2,37.0],[1,0.6]],"ss":[[0,60.8],[5,33.0],[1,6.3]],"es":[[0,94.9],[1,4.9]],"lk":[[2,69.7],[3,14.5],[1,10.2],[0,5.6]],"lc":[[0,99.6]],"vc":[[0,99.8]],"sd":[[1,99.5],[0,0.5]],"sr":[[0,59.5],[3,25.3],[1,14.7]],"se":[[0,86.4],[1,11.5],[2,1.2],[3,0.6]],"ch":[[0,89.2],[1,8.8],[2,0.9],[3,0.8]],"sy":[[1,96.1],[0,3.9]],"tw":[[5,67.2],[2,25.0],[0,7.2],[1,0.6]],"tj":[[1,99.0],[0,1.0]],"tz":[[0,68.4],[1,31.6]],"th":[[2,94.4],[1,4.5],[0,1.0]],"tl":[[0,99.7]],"tg":[[0,61.8],[5,20.6],[1,17.5]],"to":[[0,99.8]],"tt":[[0,72.8],[3,21.4],[1,5.7]],"tn":[[1,99.7]],"tr":[[1,99.7]],"tm":[[1,94.4],[0,5.6]],"vi":[[0,99.1]],"ug":[[0,88.5],[1,11.5]],"ua":[[0,98.8],[1,0.7]],"ae":[[1,73.5],[0,14.4],[3,11.8]],"gb":[[0,84.6],[1,10.9],[3,2.9],[2,0.8],[4,0.8]],"us":[[0,92.7],[4,2.4],[2,1.9],[1,1.7],[3,1.3]],"uy":[[0,98.7],[4,1.1]],"uz":[[1,97.1],[0,2.8]],"vu":[[0,84.7],[5,15.3]],"ve":[[0,99.9]],"vn":[[2,73.2],[0,26.5]],"eh":[[1,99.8]],"ye":[[1,99.9]],"zm":[[0,99.5],[1,0.5]],"zw":[[0,99.3],[1,0.6]]};
+const RELIG2_NAME=["기독교","이슬람교","불교","힌두교","유대교","기타"];
+const RELIG2_COLOR=["#4f86c6","#2e9e6b","#e0a13a","#d9663a","#8a6bd0","#888888"];
+
+/* ── 종교 구성 데이터 (원그래프 매칭) · 무교/기타 처리 규칙 반영 ── */
+/* 원그래프 렌더러 (종교 모드) — 좌측 파이 + 우측 범례(이름·%) */
+function renderPie(el,cells){
+  el.innerHTML='';
+  if(!cells||!cells.length){el.textContent='데이터 없음';return;}
+  const tot=cells.reduce((s,c)=>s+c[1],0)||1;
+  const cx=50,cy=50,r=46; let ang=-Math.PI/2; let paths='';
+  cells.forEach(c=>{
+    const frac=c[1]/tot, col=RELIG2_COLOR[c[0]]||'#888';
+    if(frac>=0.999){ paths+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${col}"/>`; return; }
+    const a2=ang+frac*2*Math.PI;
+    const x1=(cx+r*Math.cos(ang)).toFixed(2),y1=(cy+r*Math.sin(ang)).toFixed(2);
+    const x2=(cx+r*Math.cos(a2)).toFixed(2),y2=(cy+r*Math.sin(a2)).toFixed(2);
+    const large=frac>0.5?1:0;
+    paths+=`<path d="M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${large} 1 ${x2},${y2} Z" fill="${col}"/>`;
+    ang=a2;
+  });
+  const legend=cells.map(c=>`<div class="tq-lg-row"><span class="tq-lg-sw" style="background:${RELIG2_COLOR[c[0]]||'#888'}"></span><span class="tq-lg-nm">${RELIG2_NAME[c[0]]}</span><span class="tq-lg-pct">${c[1]}%</span></div>`).join('');
+  el.innerHTML=`<svg class="tq-pie" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">${paths}</svg><div class="tq-legend">${legend}</div>`;
+}
+/* ── 난이도(상중하) · 점수 · 힌트 (수출/수입 모드 전용) ── */
+function _diff(key){const m=(key||'').match(/_d([HML])(?=_|$)/);return m?m[1]:'M';}
+const TQ_PTS={x:{H:3,M:2,L:1}, m:{H:9,M:6,L:3}, r:{H:1,M:1,L:1}};
+function tqPoints(mode,key){const t=TQ_PTS[mode]||TQ_PTS.x;return t[_diff(key)]||1;}
+/* '하' 출제 대상: ASEAN·EU·APEC·MERCOSUR + 주요 아프리카 산업국 + 인구대국/주요경제국 */
+const MAJOR_TRADE=new Set(('id th vn my ph sg mm kh la bn '+
+ 'at be bg hr cy cz dk ee fi fr de gr hu ie it lv lt lu mt nl pl pt ro sk si es se '+
+ 'au ca cl cn hk jp kr mx nz pg pe ru tw us '+
+ 'ar br py uy bo ve '+
+ 'za eg ng ma dz ke et gh ci tn ao '+
+ 'in pk bd tr sa ae il ch no ua ir iq qa kw kz np lk').split(/\s+/));
+const HUGE_POP=new Set('cn in us id pk ng br bd ru mx jp et ph eg vn cd tr ir'.split(' '));
+const _ARCH_BY_SEC={5:'자원·에너지 비중이 큰',16:'기계·전자 제조 강국인',17:'자동차·운송장비 산업이 발달한',1:'축산·수산물 비중이 큰',2:'농산물 비중이 큰',3:'유지·식용유 비중이 큰',4:'식품·음료 가공이 많은',11:'섬유·의류 산업 비중이 큰',12:'신발·잡화 산업 비중이 큰',14:'귀금속·보석 비중이 큰',15:'철강·금속 비중이 큰',13:'석재·광물 가공이 많은',6:'화학·의약품 산업이 발달한',7:'플라스틱·고무 비중이 큰',9:'목재 비중이 큰',10:'펄프·종이 비중이 큰'};
+function tqArch(cells){if(!cells||!cells.length)return '여러 품목을 고루 거래하는';const sec=Math.floor(cells[0][0]/100);return _ARCH_BY_SEC[sec]||'여러 품목을 고루 거래하는';}
+function tqHint(iso,mode){
+  if(mode==='r')return '';
+  const cont=CONT_NAME[isoCont(iso)]||'';
+  const cells=(TRADE_DATA[iso]||{})[mode]||[];
+  let s=''; if(HUGE_POP.has(iso))s+='인구 대국 · ';
+  if(cont)s+=cont+'의 ';
+  s+=tqArch(cells)+' 나라';
+  return s;
+}
+function tqHintFor(iso){
+  if(TQ.mode==='r')return '';
+  if(_diff(TQ.filterKey)==='M'&&MAJOR_TRADE.has(iso))return ''; /* 중: 쉬운(주요)국 설명 생략 */
+  return tqHint(iso,TQ.mode);
+}
 /* ════════════════════════════════════════════════════════════
    무역구조 매칭 퀴즈 (수출구조 texp / 수입구조 timp)
    5개국 트리맵 ↔ 5개 국가명 선으로 잇기 · 3회 시도 후 정답 공개 · 틀린 나라 다시하기
@@ -7179,10 +7279,11 @@ function renderTreemap(el,cells){
     el.appendChild(d);
   });
 }
-/* 필터 적용 후 무역규모(v) 큰 나라 순으로 정렬, 출제 비율(_pNNN)만큼 상위 N국 */
+/* 필터 적용 후 정렬, 출제 비율(_pNNN)만큼 상위 N국. 수출/수입은 '하'에서 주요국만 */
 function tqPoolFor(filterKey){
   const set=_countSetForFilter(filterKey);
   let pool=[...set].filter(tqEligible);
+  if(TQ.mode!=='r'&&_diff(filterKey)==='L')pool=pool.filter(i=>MAJOR_TRADE.has(i));
   pool.sort((a,b)=>((TRADE_DATA[b]||{}).v||0)-((TRADE_DATA[a]||{}).v||0));
   const por=_portion(filterKey);
   if(por<1)pool=pool.slice(0,Math.max(2,Math.round(pool.length*por)));
@@ -7190,10 +7291,10 @@ function tqPoolFor(filterKey){
 }
 const TQ={mode:'x',filterKey:'all',saveKey:'tq_x_all',pool:[],queue:[],round:[],
   leftOrder:[],rightOrder:[],matches:{},selLeft:null,selRight:null,
-  tries:0,revealed:false,totalCountries:0,correctCountries:0,
+  tries:0,revealed:false,feedback:0,totalCountries:0,correctCountries:0,
   wrongSet:new Set(),doneSet:new Set(),isRetry:false,recorded:false};
-function tqShare(iso){return (TRADE_DATA[iso]||{})[TQ.mode]||[];}
-function tqEligible(iso){const a=tqShare(iso);return a&&a.length>=5;}
+function tqShare(iso){return TQ.mode==='r'?(RELIG2_DATA[iso]||[]):((TRADE_DATA[iso]||{})[TQ.mode]||[]);}
+function tqEligible(iso){const a=tqShare(iso);return TQ.mode==='r'?(a&&a.length>=1):(a&&a.length>=5);}
 function tqSaveKeyFor(mode,fk){return 'tq_'+mode+'_'+(fk||'all');}
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 function tqInit(mode,filterKey){
@@ -7240,7 +7341,7 @@ function tqStartRetry(isos){
   tqNextRound(); tqRender();
 }
 function tqNextRound(){
-  TQ.matches={}; TQ.selLeft=null; TQ.selRight=null; TQ.tries=0; TQ.revealed=false;
+  TQ.matches={}; TQ.selLeft=null; TQ.selRight=null; TQ.tries=0; TQ.revealed=false; TQ.feedback=0;
   if(!TQ.queue.length){TQ.round=[];return;}
   let n=Math.min(5,TQ.queue.length);
   if(TQ.queue.length-n===1)n=TQ.queue.length-2; // 마지막에 1개만 남는 라운드 방지(최소 2개)
@@ -7270,8 +7371,11 @@ function tqLoad(key){
 }
 function openTradeTab(){ setTimeout(()=>{tqRender();},20); }
 function tqHeader(){
-  document.getElementById('tq-title').textContent = TQ.mode==='x'?'수출구조 맞추기':'수입구조 맞추기';
-  document.getElementById('tq-sub').textContent = TQ.mode==='x'?'Export structure':'Import structure';
+  const T={x:['수출구조 맞추기','Export structure'],m:['수입구조 맞추기','Import structure'],r:['국가별 종교 맞추기','Religion composition']}[TQ.mode]||['',''];
+  document.getElementById('tq-title').textContent = T[0];
+  document.getElementById('tq-sub').textContent = T[1];
+  const ht=document.getElementById('tq-hint-txt');
+  if(ht)ht.textContent=(TQ.mode==='r'?'원그래프(종교 구성)':'트리맵(무역 구조)')+'와 국가명을 선으로 연결하세요 · 연결된 걸 다시 누르면 해제됩니다';
   const done=TQ.doneSet.size, tot=TQ.totalCountries||0;
   document.getElementById('tq-cor').textContent=TQ.correctCountries;
   document.getElementById('tq-rem').textContent=Math.max(0,tot-done);
@@ -7286,13 +7390,14 @@ function tqRender(){
   document.getElementById('tq-next').style.display='none';
   const L=document.getElementById('tq-left'), R=document.getElementById('tq-right');
   L.innerHTML=''; R.innerHTML='';
+  const isR=TQ.mode==='r';
   TQ.leftOrder.forEach(iso=>{
-    const c=document.createElement('div'); c.className='tq-map-card'; c.dataset.iso=iso;
-    const tm=document.createElement('div'); tm.className='tq-map'; c.appendChild(tm);
+    const c=document.createElement('div'); c.className='tq-map-card'+(isR?' pie-card':''); c.dataset.iso=iso;
+    const tm=document.createElement('div'); tm.className='tq-map'+(isR?' pie':''); c.appendChild(tm);
     const dot=document.createElement('span'); dot.className='tq-dot tq-dot-l'; c.appendChild(dot);
     c.addEventListener('click',()=>tqPickLeft(iso));
     L.appendChild(c);
-    renderTreemap(tm, tqShare(iso));
+    (isR?renderPie:renderTreemap)(tm, tqShare(iso));
   });
   TQ.rightOrder.forEach(iso=>{
     const b=document.createElement('div'); b.className='tq-name'; b.dataset.iso=iso;
@@ -7303,7 +7408,19 @@ function tqRender(){
     R.appendChild(b);
   });
   tqRefresh();
-  requestAnimationFrame(()=>{ TQ.leftOrder.forEach(iso=>{ const tm=document.querySelector('.tq-map-card[data-iso="'+iso+'"] .tq-map'); if(tm)renderTreemap(tm,tqShare(iso)); }); tqDrawLines(); });
+  requestAnimationFrame(()=>{ TQ.leftOrder.forEach(iso=>{ const tm=document.querySelector('.tq-map-card[data-iso="'+iso+'"] .tq-map'); if(tm)(isR?renderPie:renderTreemap)(tm,tqShare(iso)); }); tqApplyFeedback(); tqDrawLines(); });
+}
+/* 힌트 캡션 표시(피드백 1+) + 부분 정답 표시는 tqDrawLines에서 처리 */
+function tqApplyFeedback(){
+  const fb=TQ.feedback||0;
+  document.querySelectorAll('#tq-left .tq-map-card').forEach(c=>{
+    const iso=c.dataset.iso; let cap=c.querySelector('.tq-hint-cap');
+    if(fb>=1&&!TQ.revealed){
+      const h=tqHintFor(iso);
+      if(h){ if(!cap){cap=document.createElement('div');cap.className='tq-hint-cap';c.appendChild(cap);} cap.textContent='💡 '+h; }
+      else if(cap){cap.remove();}
+    } else if(cap){cap.remove();}
+  });
 }
 function tqPickLeft(iso){
   if(TQ.revealed)return;
@@ -7379,6 +7496,7 @@ function tqDrawLines(){
     const x2=b.left+b.width/2-wr.left, y2=b.top+b.height/2-wr.top;
     let col='#5c96d0';
     if(TQ.revealed) col=(l===r)?'#4a9060':'#b03838';
+    else if(TQ.feedback>=2 && l===r) col='#4a9060'; /* 2번째 틀림: 맞은 것만 초록 표시 */
     const ln=document.createElementNS('http://www.w3.org/2000/svg','path');
     const mx=(x1+x2)/2;
     ln.setAttribute('d',`M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`);
@@ -7409,9 +7527,12 @@ function tqSubmit(){
   const allCorrect=TQ.round.every(iso=>TQ.matches[iso]===iso);
   if(allCorrect||TQ.tries>=3){ tqReveal(allCorrect); }
   else {
+    const diff=_diff(TQ.filterKey), hinted=(TQ.mode!=='r'&&(diff==='M'||diff==='L'));
+    /* 상(H)·종교: 정오 정보 없음. 중·하: 1번째→힌트, 2번째→맞은 것 초록 표시 */
+    if(hinted) TQ.feedback=TQ.tries;
     const tr=document.getElementById('tq-tries');
-    tr.textContent='틀렸어요 · 다시 시도 ('+TQ.tries+'/3)';
-    tqUpdateDots();
+    tr.textContent = hinted ? (TQ.tries===1?'💡 힌트를 참고해 다시 시도':'맞은 연결은 초록색 · 다시 시도') : ('틀렸어요 · 다시 시도 ('+TQ.tries+'/3)');
+    tqUpdateDots(); tqApplyFeedback();
     const m=document.getElementById('tq-match'); m.classList.remove('shake'); void m.offsetWidth; m.classList.add('shake');
   }
 }
@@ -7422,11 +7543,12 @@ function tqReveal(allCorrect){
     if(TQ.matches[iso]===iso){TQ.correctCountries++; TQ.wrongSet.delete(iso);}
     else TQ.wrongSet.add(iso);
   });
-  // 카드에 정답 국가명 표시
+  // 카드에 정답 국가명 표시 (힌트 캡션 제거)
   document.querySelectorAll('#tq-left .tq-map-card').forEach(c=>{
     const iso=c.dataset.iso; c.classList.add('revealed');
     c.classList.toggle('good',TQ.matches[iso]===iso);
     c.classList.toggle('bad',TQ.matches[iso]!==iso);
+    const cap=c.querySelector('.tq-hint-cap'); if(cap)cap.remove();
     let tag=c.querySelector('.tq-ans'); if(!tag){tag=document.createElement('div');tag.className='tq-ans';c.appendChild(tag);}
     tag.textContent=(COUNTRIES[iso]?COUNTRIES[iso].k:iso);
   });
@@ -7436,12 +7558,15 @@ function tqReveal(allCorrect){
   const tr=document.getElementById('tq-tries');
   tr.textContent=allCorrect?'정답! 🎉':'정답 공개';
   tqHeader(); tqUpdateDots(); tqSave(); tqDrawLines();
+  /* 한 라운드 끝나면 잠시 뒤 자동으로 다음 라운드 */
+  clearTimeout(TQ._advT);
+  TQ._advT=setTimeout(()=>{ if(TQ.revealed&&document.getElementById('tq-screen').classList.contains('on'))tqNext(); }, 2400);
 }
 function tqNext(){
+  clearTimeout(TQ._advT);
   document.getElementById('tq-ok').style.display='inline-flex';
   document.getElementById('tq-next').style.display='none';
   tqNextRound();
-  if(!TQ.round.length){ tqSave(); tqRender(); return; }
   tqSave(); tqRender();
 }
 function tqShowEnd(){
@@ -7460,9 +7585,11 @@ function tqShowEnd(){
   const rb=document.getElementById('tq-retry-wrong'); rb.style.display=wrong.length?'inline-flex':'none';
   if(!TQ.recorded){
     TQ.recorded=true; tqSave();
+    const cat=TQ.mode==='x'?'texp':(TQ.mode==='m'?'timp':'religion');
+    const per=tqPoints(TQ.mode,TQ.filterKey);
     try{ window.SejiAccount&&window.SejiAccount.submitScore({
-      category:TQ.mode==='x'?'texp':'timp', correct:cor, total:tot,
-      accuracy:acc, scope:TQ.filterKey, points:cor, maxPoints:tot,
+      category:cat, correct:cor, total:tot,
+      accuracy:acc, scope:TQ.filterKey, points:cor*per, maxPoints:tot*per,
       isRetry:TQ.isRetry, contStats:contStatsOf([...TQ.doneSet],iso=>!TQ.wrongSet.has(iso))
     }); }catch(e){}
   }
@@ -7542,6 +7669,8 @@ function scopeLabel(scope) {
   if (parts.includes('terr')) tags.push('자치령 포함');
   const pm = scope.match(/(?:^|_)p(\d+)(?=_|$)/);
   if (pm) tags.push((parseInt(pm[1]) / 10) + '% 출제');
+  const dm = scope.match(/_d([HML])(?=_|$)/);
+  if (dm) tags.push({ H: '상', M: '중', L: '하' }[dm[1]] + ' 난이도');
   if (tags.length) lbl += ' (' + tags.join(', ') + ')';
   return lbl;
 }

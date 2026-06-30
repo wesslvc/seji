@@ -111,20 +111,18 @@ language sql security definer set search_path = public stable as $$
   union all
   -- 진행 중(미완료) 기록도 통합 점수에 반영 (정답률/대륙은 불완전 → null)
   select ud.user_id, p.nickname, p.avatar_url,
-    case when ud.key like 'wq\_rq\_%' then 'religion'
-         when ud.key like 'tq\_x\_%'  then 'texp'
+    case when ud.key like 'tq\_x\_%'  then 'texp'
          when ud.key like 'tq\_m\_%'  then 'timp'
+         when ud.key like 'tq\_r\_%'  then 'religion'
          when ud.key like 'bq\_%'    then 'border'
          when ud.key = 'kq_state_v1' then 'korea'
          else 'name' end,
-    case when ud.key like 'wq\_rq\_%' then substring(ud.key from 7)
-         when ud.key like 'tq\_%'    then substring(ud.key from 6)
+    case when ud.key like 'tq\_%'    then substring(ud.key from 6)
          when ud.key like 'bq\_%'    then substring(ud.key from 4)
          when ud.key = 'kq_state_v1' then 'korea'
          else substring(ud.key from 4) end,
     null::numeric,
-    case when ud.key like 'wq\_rq\_%' then coalesce((ud.data->>'earnedPoints')::numeric, 0)
-         when ud.key like 'tq\_%'    then coalesce((ud.data->>'correctCountries')::numeric, 0)
+    case when ud.key like 'tq\_%'    then coalesce((ud.data->>'correctCountries')::numeric, 0)
          else coalesce((ud.data->>'correct')::numeric, 0) end,
     coalesce((ud.data->>'correct')::int, coalesce((ud.data->>'correctCountries')::int, 0)),
     null::jsonb
@@ -132,6 +130,7 @@ language sql security definer set search_path = public stable as $$
   join public.profiles p on p.id = ud.user_id
   where ud.key <> 'wq_mode'
     and ud.key not like '%\_\_%'
+    and ud.key not like 'wq\_rq\_%'   -- 구 종교비율 모드 폐기
     and coalesce((ud.data->>'recorded')::boolean, false) = false;
 $$;
 revoke all on function public.app_leaderboard() from public, anon;
