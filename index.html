@@ -474,7 +474,7 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
 .tq-map-card.good .tq-ans{color:#7fd6a0}
 .tq-map-card.bad .tq-ans{color:#e89090}
 /* 종교·에너지 원그래프 카드 */
-.tq-map.pie{display:flex;align-items:center;gap:5px;padding:4px 7px;background:var(--sf)}
+.tq-map.pie{display:flex;align-items:center;gap:5px;padding:4px 18px 4px 7px;background:var(--sf)}
 .tq-pie{width:28%;max-width:100px;max-height:90%;height:auto;aspect-ratio:1/1;flex-shrink:0;filter:drop-shadow(0 1px 2px rgba(0,0,0,.3))}
 .tq-legend{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1;overflow:hidden}
 .tq-lg-row{display:flex;align-items:center;gap:4px;font-size:.68rem;line-height:1.3}
@@ -483,6 +483,9 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
 .tq-map-card.locked{border-color:#4a9060;cursor:default}
 .tq-name.locked{border-color:#4a9060;color:#7fd6a0;cursor:default}
 .tq-lg-pct{margin-left:auto;color:var(--tx2);font-weight:700;flex-shrink:0;font-size:.64rem}
+.tq-esub{display:flex;gap:4px;padding:.25rem .8rem;flex-shrink:0;border-bottom:1px solid var(--bd)}
+.tq-esub-btn{font-size:.7rem;padding:.15rem .55rem;border:1.5px solid var(--bd);border-radius:4px;background:transparent;color:var(--tx2);cursor:pointer;font-family:inherit;font-weight:600;transition:.15s}
+.tq-esub-btn.active{border-color:var(--tx);color:var(--tx);background:rgba(255,255,255,.07)}
 @media(max-width:400px){
   .tq-map.pie{padding:3px 4px;gap:4px}
   .tq-pie{width:24%}
@@ -5013,6 +5016,11 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
       <div><div class="sv" style="color:var(--tx2)" id="tq-rem">0</div><div class="sl">남은</div></div>
     </div>
     <div class="tq-progress"><div id="tq-pf"></div></div>
+    <div class="tq-esub" id="tq-esub" style="display:none">
+      <button class="tq-esub-btn" data-sub="all" onclick="tqSetESub('all')">전체</button>
+      <button class="tq-esub-btn" data-sub="ff" onclick="tqSetESub('ff')">화석연료</button>
+      <button class="tq-esub-btn" data-sub="re" onclick="tqSetESub('re')">신재생에너지</button>
+    </div>
   </div>
   <div id="tq-card">
     <div class="tq-hint" id="tq-hint-txt">트리맵(무역구조)과 국가명을 선으로 연결하세요 · 연결된 걸 다시 누르면 해제됩니다</div>
@@ -7743,7 +7751,7 @@ function tqPoolFor(filterKey){
   let pool=[...set].filter(tqEligible);
   if(TQ.mode!=='r'&&TQ.mode!=='e'&&_diff(filterKey)==='L')pool=pool.filter(i=>MAJOR_TRADE.has(i));
   if(TQ.mode==='r'&&tqDiff('r',filterKey)==='L')pool=pool.filter(i=>{const a=RELIG2_DATA[i]||[];return a.length&&a[0][1]>=70;});
-  if(TQ.mode==='e'&&tqDiff('e',filterKey)==='L')pool=pool.filter(i=>{const a=ENERGY_DATA[i]||[];return a.length&&a[0][1]>=60;});
+  if(TQ.mode==='e'&&tqDiff('e',filterKey)==='L')pool=pool.filter(i=>{const a=tqShare(i);return a.length&&a[0][1]>=55;});
   if(TQ.mode!=='e')pool.sort((a,b)=>((TRADE_DATA[b]||{}).v||0)-((TRADE_DATA[a]||{}).v||0));
   const por=_portion(filterKey);
   if(por<1){
@@ -7757,12 +7765,37 @@ const TQ={mode:'x',filterKey:'all',saveKey:'tq_x_all',pool:[],queue:[],round:[],
   leftOrder:[],rightOrder:[],matches:{},selLeft:null,selRight:null,
   tries:0,revealed:false,feedback:0,totalCountries:0,correctCountries:0,rbuilt:null,
   wrongSet:new Set(),doneSet:new Set(),isRetry:false,recorded:false};
-function tqShare(iso){return TQ.mode==='r'?(RELIG2_DATA[iso]||[]):TQ.mode==='e'?(ENERGY_DATA[iso]||[]):((TRADE_DATA[iso]||{})[TQ.mode]||[]);}
-function tqEligible(iso){const a=tqShare(iso);return (TQ.mode==='r'||TQ.mode==='e')?(a&&a.length>=1):(a&&a.length>=5);}
+function tqShare(iso){
+  if(TQ.mode==='r')return RELIG2_DATA[iso]||[];
+  if(TQ.mode==='e'){
+    const all=ENERGY_DATA[iso]||[];
+    const sub=TQ.eSub||'all';
+    if(sub==='all')return all;
+    const FOSSIL=[0,1,2],RENEW=[4,5,6,7,8];
+    const keys=sub==='ff'?FOSSIL:RENEW;
+    const f=all.filter(([i])=>keys.includes(i));
+    const tot=f.reduce((s,[,v])=>s+v,0);
+    if(!tot)return [];
+    return f.map(([i,v])=>[i,Math.round(v/tot*10)/10]).sort((a,b)=>b[1]-a[1]);
+  }
+  return((TRADE_DATA[iso]||{})[TQ.mode]||[]);
+}
+function tqEligible(iso){
+  if(TQ.mode==='r')return(RELIG2_DATA[iso]||[]).length>=1;
+  if(TQ.mode==='e'){
+    const all=ENERGY_DATA[iso]||[];if(!all.length)return false;
+    const sub=TQ.eSub||'all';
+    if(sub==='ff'){return all.filter(([i])=>[0,1,2].includes(i)).reduce((s,[,v])=>s+v,0)>=5;}
+    if(sub==='re'){return all.filter(([i])=>[4,5,6,7,8].includes(i)).reduce((s,[,v])=>s+v,0)>=5;}
+    return true;
+  }
+  return((TRADE_DATA[iso]||{})[TQ.mode]||[]).length>=5;
+}
 function tqSaveKeyFor(mode,fk){return 'tq_'+mode+'_'+(fk||'all');}
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 function tqInit(mode,filterKey){
   TQ.mode=mode; TQ.filterKey=filterKey||'all'; TQ.isRetry=false;
+  if(mode==='e'&&!TQ.eSub)TQ.eSub='all';
   TQ.saveKey=tqSaveKeyFor(mode,TQ.filterKey);
   if(tqLoad(TQ.saveKey))return;
   TQ.pool=tqPoolFor(TQ.filterKey);
@@ -7780,7 +7813,7 @@ function tqBuildFromPool(){
 }
 /* 두 모드(수출/수입) 동시 선택 시 메모리에서 상태 분리 (게스트도 탭 전환 보존) */
 const TQ_CACHE={};
-const TQ_FIELDS=['mode','filterKey','saveKey','pool','queue','round','leftOrder','rightOrder','matches','selLeft','selRight','tries','revealed','totalCountries','correctCountries','isRetry','recorded','rbuilt'];
+const TQ_FIELDS=['mode','filterKey','saveKey','pool','queue','round','leftOrder','rightOrder','matches','selLeft','selRight','tries','revealed','totalCountries','correctCountries','isRetry','recorded','rbuilt','eSub'];
 function tqSnapshot(){
   const o={}; TQ_FIELDS.forEach(f=>o[f]=TQ[f]);
   o.wrong=[...TQ.wrongSet]; o.done=[...TQ.doneSet];
@@ -7791,6 +7824,17 @@ function tqRestoreFrom(o){
   TQ.wrongSet=new Set(o.wrong||[]); TQ.doneSet=new Set(o.done||[]);
 }
 /* 탭 진입 시: 해당 모드 슬롯을 메모리로 로드(둘 다 선택했을 때 상태 분리) */
+function tqSetESub(sub){
+  if((TQ.eSub||'all')===sub)return;
+  TQ.eSub=sub;
+  TQ.matches={};TQ.selLeft=null;TQ.selRight=null;TQ.lockedCorrect=new Set();TQ.feedback=0;
+  tqHeader();
+  TQ.leftOrder.forEach(iso=>{
+    const tm=document.querySelector('.tq-map-card[data-iso="'+iso+'"] .tq-map');
+    if(tm)renderPie(tm,tqShare(iso));
+  });
+  tqRefresh();tqDrawLines();
+}
 function tqEnter(mode){
   const fk=(typeof SESSION!=='undefined'&&SESSION.filterKey)?SESSION.filterKey:'all';
   const targetKey=tqSaveKeyFor(mode,fk);
@@ -7849,12 +7893,18 @@ function tqLoad(key){
 }
 function openTradeTab(){ setTimeout(()=>{tqRender();},20); }
 function tqHeader(){
-  const T={x:['수출구조 맞추기','Export structure'],m:['수입구조 맞추기','Import structure'],r:['국가별 종교 맞추기','Religion composition']}[TQ.mode]||['',''];
-  document.getElementById('tq-title').textContent = T[0];
-  document.getElementById('tq-sub').textContent = T[1];
+  const isE=TQ.mode==='e';
+  const sub=isE?(TQ.eSub||'all'):null;
+  let pair;
+  if(isE)pair=sub==='ff'?['화석연료 구성 맞추기','Fossil fuels']:sub==='re'?['신재생에너지 맞추기','Renewables']:['에너지 구성 맞추기','Energy mix'];
+  else pair={x:['수출구조 맞추기','Export structure'],m:['수입구조 맞추기','Import structure'],r:['국가별 종교 맞추기','Religion composition']}[TQ.mode]||['',''];
+  document.getElementById('tq-title').textContent=pair[0];
+  document.getElementById('tq-sub').textContent=pair[1];
+  const esubEl=document.getElementById('tq-esub');
+  if(esubEl){esubEl.style.display=isE?'flex':'none';esubEl.querySelectorAll('.tq-esub-btn').forEach(b=>b.classList.toggle('active',b.dataset.sub===sub));}
   const ht=document.getElementById('tq-hint-txt');
-  if(ht)ht.textContent=(TQ.mode==='r'?'종교 구성':TQ.mode==='e'?'에너지 구성':'무역 구조')+'과 국가명을 선으로 연결하세요 · 연결된 걸 다시 누르면 해제됩니다';
-  const done=TQ.doneSet.size, tot=TQ.totalCountries||0;
+  if(ht){const base=TQ.mode==='r'?'종교 구성':isE?(sub==='ff'?'화석연료 구성':sub==='re'?'신재생에너지 구성':'에너지 구성'):'무역 구조';ht.textContent=base+'과 국가명을 선으로 연결하세요 · 연결된 걸 다시 누르면 해제됩니다';}
+  const done=TQ.doneSet.size,tot=TQ.totalCountries||0;
   document.getElementById('tq-cor').textContent=TQ.correctCountries;
   document.getElementById('tq-rem').textContent=Math.max(0,tot-done);
   document.getElementById('tq-pf').style.width=(tot?Math.round(done/tot*100):0)+'%';
@@ -7896,7 +7946,7 @@ function tqApplyFeedback(){
   let tips=tqRoundTips();
   if(!tips.length){
     if(TQ.mode==='r')tips=['각 파이 차트에서 가장 넓은 색깔(1위 종교)이 어느 지역에 주로 분포하는지 생각해 보세요.'];
-    else if(TQ.mode==='e')tips=['각 파이 차트에서 가장 넓은 색깔(1위 에너지원)의 특징으로 어떤 나라일지 생각해 보세요.'];
+    else if(TQ.mode==='e'){const sub=TQ.eSub||'all';tips=[sub==='ff'?'석탄·가스·석유 중 어떤 것이 주요 에너지인지 보고, 그 특징(자원 보유·공업화 수준)으로 나라를 떠올려 보세요.':sub==='re'?'수력·태양광·풍력·바이오 중 주도하는 재생에너지가 어느 기후·지형과 연결되는지 생각해 보세요.':'각 파이 차트에서 가장 넓은 색깔(1위 에너지원)의 특징으로 어떤 나라일지 생각해 보세요.'];}
     else tips=['1위 품목의 특징(기후·자원·기술 수준)으로 어떤 나라일지 떠올려 보세요.'];
   }
   list.innerHTML=tips.map(t=>`<div class="tq-hint-row"><span>${t}</span></div>`).join('');
@@ -7944,7 +7994,7 @@ function tqExplainRow(iso){
 function tqShowExplain(){
   const m=document.getElementById('tq-explain'); if(!m)return;
   const h=document.querySelector('#tq-explain .tq-explain-h');
-  if(h)h.textContent=TQ.mode==='r'?'왜 이런 종교 구성일까?':TQ.mode==='e'?'왜 이런 에너지 구성일까?':'왜 이런 무역 구조일까?';
+  if(h){const sub=TQ.eSub||'all';h.textContent=TQ.mode==='r'?'왜 이런 종교 구성일까?':TQ.mode==='e'?(sub==='ff'?'왜 이런 화석연료 구성일까?':sub==='re'?'왜 이런 신재생에너지 구성일까?':'왜 이런 에너지 구성일까?'):'왜 이런 무역 구조일까?';}
   document.getElementById('tq-explain-list').innerHTML=TQ.leftOrder.map(tqExplainRow).join('');
   m.classList.add('on');
 }
