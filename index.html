@@ -600,6 +600,12 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
             <button type="button" data-ediff="H">상</button>
           </div>
           <div class="ld-tq-diff-desc" id="ld-ediff-desc"></div>
+          <div class="ld-tq-diff-h" style="margin-top:.5rem">에너지 유형</div>
+          <div class="ld-diff-seg" id="ld-esub">
+            <button type="button" data-esub="all">전체</button>
+            <button type="button" data-esub="ff">화석연료만</button>
+            <button type="button" data-esub="re">신재생에너지만</button>
+          </div>
         </div>
         <div class="ld-tq-diff" id="ld-tq-diff" style="display:none">
           <div class="ld-tq-diff-h">난이도 <span class="ld-tq-diff-sub">수출/수입 구조</span></div>
@@ -5016,11 +5022,6 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
       <div><div class="sv" style="color:var(--tx2)" id="tq-rem">0</div><div class="sl">남은</div></div>
     </div>
     <div class="tq-progress"><div id="tq-pf"></div></div>
-    <div class="tq-esub" id="tq-esub" style="display:none">
-      <button class="tq-esub-btn" data-sub="all" onclick="tqSetESub('all')">전체</button>
-      <button class="tq-esub-btn" data-sub="ff" onclick="tqSetESub('ff')">화석연료</button>
-      <button class="tq-esub-btn" data-sub="re" onclick="tqSetESub('re')">신재생에너지</button>
-    </div>
   </div>
   <div id="tq-card">
     <div class="tq-hint" id="tq-hint-txt">트리맵(무역구조)과 국가명을 선으로 연결하세요 · 연결된 걸 다시 누르면 해제됩니다</div>
@@ -5329,6 +5330,11 @@ function setupLanding(){
   if(ediffSeg){ediffSeg.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>setEDiff(b.dataset.ediff)));setEDiff(window._ldEDiff);}
   window._syncEnergyDiff=function(){const on=document.getElementById('ld-act-tenergy').checked;const el=document.getElementById('ld-energy-diff');if(el)el.style.display=on?'block':'none';};
   window._syncEnergyDiff();
+  /* 에너지 유형(전체/화석연료만/신재생에너지만) */
+  window._ldESub=window._ldESub||'all';
+  const esubSeg=document.getElementById('ld-esub');
+  function setESub(v){window._ldESub=v;if(esubSeg)esubSeg.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.esub===v));}
+  if(esubSeg){esubSeg.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>setESub(b.dataset.esub)));setESub(window._ldESub);}
   /* 대륙 전체 선택/해제 토글 */
   const contAll=document.getElementById('ld-cont-all');
   function syncContAll(){
@@ -5377,7 +5383,7 @@ function startFromLanding(){
   if(acts.includes('texp')||acts.includes('timp'))key+='_d'+(window._ldDiff||'M');
   /* 종교/에너지 난이도 */
   if(acts.includes('religion'))key+='_r'+(window._ldRDiff||'M');
-  if(acts.includes('tenergy'))key+='_e'+(window._ldEDiff||'M');
+  if(acts.includes('tenergy')){key+='_e'+(window._ldEDiff||'M');if((window._ldESub||'all')!=='all')key+='_esub'+(window._ldESub||'all');}
   /* 접경국 지도 없는 모드 */
   if(acts.includes('border')&&window._ldBorderMap==='X')key+='_nomap';
   startSession('world',acts,key,key);
@@ -7690,7 +7696,7 @@ function tqPackRelig(pool,dropSingles){
   let q=pool.slice(); const R=[];
   while(q.length){
     const sim={}; q.forEach(a=>{let c=0;q.forEach(b=>{if(_pieSimilar(a,b))c++;});sim[a]=c;});
-    const ord=q.slice().sort((a,b)=>sim[b]-sim[a]);
+    const ord=shuffle(q.slice()).sort((a,b)=>sim[b]-sim[a]);
     const round=[];
     for(const iso of ord){ if(round.length>=5)break; if(round.every(o=>!_pieSimilar(o,iso)))round.push(iso); }
     const ch=new Set(round); q=q.filter(i=>!ch.has(i)); R.push(round);
@@ -7795,7 +7801,7 @@ function tqSaveKeyFor(mode,fk){return 'tq_'+mode+'_'+(fk||'all');}
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 function tqInit(mode,filterKey){
   TQ.mode=mode; TQ.filterKey=filterKey||'all'; TQ.isRetry=false;
-  if(mode==='e'&&!TQ.eSub)TQ.eSub='all';
+  if(mode==='e'){const em=(TQ.filterKey||'').match(/_esub(ff|re)/);TQ.eSub=em?em[1]:'all';}
   TQ.saveKey=tqSaveKeyFor(mode,TQ.filterKey);
   if(tqLoad(TQ.saveKey))return;
   TQ.pool=tqPoolFor(TQ.filterKey);
@@ -7822,18 +7828,6 @@ function tqSnapshot(){
 function tqRestoreFrom(o){
   TQ_FIELDS.forEach(f=>{ TQ[f]=o[f]; });
   TQ.wrongSet=new Set(o.wrong||[]); TQ.doneSet=new Set(o.done||[]);
-}
-/* 탭 진입 시: 해당 모드 슬롯을 메모리로 로드(둘 다 선택했을 때 상태 분리) */
-function tqSetESub(sub){
-  if((TQ.eSub||'all')===sub)return;
-  TQ.eSub=sub;
-  TQ.matches={};TQ.selLeft=null;TQ.selRight=null;TQ.lockedCorrect=new Set();TQ.feedback=0;
-  tqHeader();
-  TQ.leftOrder.forEach(iso=>{
-    const tm=document.querySelector('.tq-map-card[data-iso="'+iso+'"] .tq-map');
-    if(tm)renderPie(tm,tqShare(iso));
-  });
-  tqRefresh();tqDrawLines();
 }
 function tqEnter(mode){
   const fk=(typeof SESSION!=='undefined'&&SESSION.filterKey)?SESSION.filterKey:'all';
@@ -7880,10 +7874,11 @@ function tqLoad(key){
   try{const raw=localStorage.getItem(key);if(!raw)return false;const d=JSON.parse(raw);
     if(!d||!Array.isArray(d.queue))return false;
     TQ.mode=d.mode; TQ.filterKey=d.filterKey; TQ.saveKey=key;
+    if(TQ.mode==='e'){const em=(TQ.filterKey||'').match(/_esub(ff|re)/);TQ.eSub=em?em[1]:'all';}
     TQ.pool=d.pool||[]; TQ.queue=d.queue||[]; TQ.round=d.round||[];
-    TQ.leftOrder=d.leftOrder&&d.leftOrder.length?d.leftOrder:shuffle(TQ.round);
-    TQ.rightOrder=d.rightOrder&&d.rightOrder.length?d.rightOrder:shuffle(TQ.round);
-    TQ.rbuilt=d.rbuilt||null;
+    TQ.leftOrder=shuffle(TQ.round);
+    TQ.rightOrder=shuffle(TQ.round);
+    TQ.rbuilt=d.rbuilt?shuffle(d.rbuilt):null;
     TQ.totalCountries=d.totalCountries||0; TQ.correctCountries=d.correctCountries||0;
     TQ.wrongSet=new Set(d.wrong||[]); TQ.doneSet=new Set(d.done||[]);
     TQ.recorded=!!d.recorded; TQ.isRetry=!!d.isRetry;
@@ -7900,8 +7895,6 @@ function tqHeader(){
   else pair={x:['수출구조 맞추기','Export structure'],m:['수입구조 맞추기','Import structure'],r:['국가별 종교 맞추기','Religion composition']}[TQ.mode]||['',''];
   document.getElementById('tq-title').textContent=pair[0];
   document.getElementById('tq-sub').textContent=pair[1];
-  const esubEl=document.getElementById('tq-esub');
-  if(esubEl){esubEl.style.display=isE?'flex':'none';esubEl.querySelectorAll('.tq-esub-btn').forEach(b=>b.classList.toggle('active',b.dataset.sub===sub));}
   const ht=document.getElementById('tq-hint-txt');
   if(ht){const base=TQ.mode==='r'?'종교 구성':isE?(sub==='ff'?'화석연료 구성':sub==='re'?'신재생에너지 구성':'에너지 구성'):'무역 구조';ht.textContent=base+'과 국가명을 선으로 연결하세요 · 연결된 걸 다시 누르면 해제됩니다';}
   const done=TQ.doneSet.size,tot=TQ.totalCountries||0;
@@ -8557,6 +8550,7 @@ function buildUI() {
         <button class="rank-tab" data-cat="name">나라이름</button>
         <button class="rank-tab" data-cat="border">접경국</button>
         <button class="rank-tab" data-cat="religion">종교</button>
+        <button class="rank-tab" data-cat="tenergy">에너지</button>
         <button class="rank-tab" data-cat="texp">수출구조</button>
         <button class="rank-tab" data-cat="timp">수입구조</button>
         <button class="rank-tab" data-cat="korea">한국</button>
