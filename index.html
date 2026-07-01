@@ -476,21 +476,22 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
 /* 종교·에너지 원그래프 카드 */
 .tq-map.pie{display:flex;align-items:center;gap:5px;padding:4px 18px 4px 7px;background:var(--sf)}
 .tq-pie{width:28%;max-width:100px;max-height:90%;height:auto;aspect-ratio:1/1;flex-shrink:0;filter:drop-shadow(0 1px 2px rgba(0,0,0,.3))}
-.tq-legend{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1;overflow:hidden}
-.tq-lg-row{display:flex;align-items:center;gap:4px;font-size:.68rem;line-height:1.3}
-.tq-lg-sw{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+.tq-legend{display:flex;flex-direction:column;gap:0;min-width:0;flex:1;overflow:hidden}
+.tq-lg-row{display:flex;align-items:center;gap:3px;font-size:.62rem;line-height:1.15}
+.tq-lg-sw{width:8px;height:8px;border-radius:2px;flex-shrink:0}
 .tq-lg-nm{color:var(--tx);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
 .tq-map-card.locked{border-color:#4a9060;cursor:default}
 .tq-name.locked{border-color:#4a9060;color:#7fd6a0;cursor:default}
-.tq-lg-pct{margin-left:auto;color:var(--tx2);font-weight:700;flex-shrink:0;font-size:.64rem}
+.tq-lg-pct{margin-left:auto;color:var(--tx2);font-weight:700;flex-shrink:0;font-size:.58rem}
 .tq-esub{display:flex;gap:4px;padding:.25rem .8rem;flex-shrink:0;border-bottom:1px solid var(--bd)}
 .tq-esub-btn{font-size:.7rem;padding:.15rem .55rem;border:1.5px solid var(--bd);border-radius:4px;background:transparent;color:var(--tx2);cursor:pointer;font-family:inherit;font-weight:600;transition:.15s}
 .tq-esub-btn.active{border-color:var(--tx);color:var(--tx);background:rgba(255,255,255,.07)}
 @media(max-width:400px){
-  .tq-map.pie{padding:3px 4px;gap:4px}
-  .tq-pie{width:24%}
-  .tq-lg-row{font-size:.60rem;gap:3px}
-  .tq-lg-pct{font-size:.57rem}
+  .tq-map.pie{padding:2px 14px 2px 4px;gap:3px}
+  .tq-pie{width:22%}
+  .tq-lg-row{font-size:.53rem;line-height:1.1;gap:2px}
+  .tq-lg-sw{width:7px;height:7px}
+  .tq-lg-pct{font-size:.50rem}
 }
 /* 힌트 팝업(접이식) + 카드 번호 배지 */
 .tq-card-no{position:absolute;top:4px;left:4px;width:18px;height:18px;border-radius:50%;background:rgba(168,112,32,.95);color:#000;font-size:.66rem;font-weight:800;display:flex;align-items:center;justify-content:center;z-index:5;box-shadow:0 1px 3px rgba(0,0,0,.4)}
@@ -7401,7 +7402,8 @@ function renderPie(el,cells){
     paths+=`<path d="M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${large} 1 ${x2},${y2} Z" fill="${col}"/>`;
     ang=a2;
   });
-  const legend=cells.map(c=>`<div class="tq-lg-row"><span class="tq-lg-sw" style="background:${PIE_COLOR[c[0]]||'#888'}"></span><span class="tq-lg-nm">${PIE_NAME[c[0]]||c[0]}</span><span class="tq-lg-pct">${c[1]}%</span></div>`).join('');
+  const legendCells=isE&&cells.length>6?cells.slice(0,6):cells;
+  const legend=legendCells.map(c=>`<div class="tq-lg-row"><span class="tq-lg-sw" style="background:${PIE_COLOR[c[0]]||'#888'}"></span><span class="tq-lg-nm">${PIE_NAME[c[0]]||c[0]}</span><span class="tq-lg-pct">${c[1]}%</span></div>`).join('');
   el.innerHTML=`<svg class="tq-pie" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">${paths}</svg><div class="tq-legend">${legend}</div>`;
 }
 /* ── 난이도(상중하) · 점수 · 힌트 ── */
