@@ -368,8 +368,9 @@ body.in-session #rq-screen,body.in-session #kr-screen,body.in-session #tq-screen
 .bq-type .btn{flex:0 0 auto;padding:.55rem 1.1rem}
 body.bq-nomap #ui-map,body.bq-nomap #ui-mob-bar{display:none!important}
 body.bq-nomap #bq-box,body.bq-nomap #rbq-box{position:fixed;top:46%;left:50%;transform:translate(-50%,-50%);width:min(460px,92vw)}
-.rbq-target{font-size:1.3rem;font-weight:700;color:var(--tx);text-align:center;padding:.25rem 0 .1rem;letter-spacing:.02em}
-.rbq-progress{font-size:.68rem;color:var(--tx2);text-align:center;margin-bottom:.35rem}
+.rbq-target-tag{background:rgba(30,66,112,.35);color:#8ab4e8;border-color:rgba(100,150,210,.45);font-size:.9rem;font-weight:700;padding:.3rem .85rem}
+.rbq-meta{display:flex;align-items:center;justify-content:center;gap:.6rem;margin-bottom:.35rem}
+.rbq-progress{font-size:.67rem;color:var(--tx2)}
 .rbq-found-tag{background:rgba(74,144,96,.18);color:#7fd6a0;border:1px solid rgba(74,144,96,.4)}
 #bq-box.shake{animation:shk .35s ease}
 #bq-flash{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.75);background:rgba(6,6,6,.96);border-radius:10px;padding:.9rem 2.4rem;font-size:1.5rem;font-weight:700;pointer-events:none;z-index:200;opacity:0;transition:opacity .18s var(--ease),transform .22s var(--ease-spring);letter-spacing:.05em;white-space:nowrap}
@@ -701,13 +702,17 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
       </div>
     </div>
     <div id="rbq-box">
-      <div class="bq-q" id="rbq-q-text">이 나라와 접한 나라를 <b>모두</b> 지도에서 클릭하세요</div>
-      <div class="rbq-target" id="rbq-target-name">—</div>
-      <div class="rbq-progress" id="rbq-progress">0 / 0개</div>
-      <div class="bq-dots"><div class="bq-dot" id="rbq-d0"></div><div class="bq-dot" id="rbq-d1"></div><div class="bq-dot" id="rbq-d2"></div></div>
+      <div class="bq-q" id="rbq-q-text">이 나라와 접한 나라를 <b>모두</b> 입력하세요 <span style="font-size:.6rem;color:var(--tx2)">(한 나라씩)</span></div>
+      <div class="bq-neighbors" style="margin-bottom:.3rem">
+        <span class="bq-nb rbq-target-tag" id="rbq-target-name">—</span>
+      </div>
+      <div class="rbq-meta">
+        <div class="bq-dots"><div class="bq-dot" id="rbq-d0"></div><div class="bq-dot" id="rbq-d1"></div><div class="bq-dot" id="rbq-d2"></div></div>
+        <span class="rbq-progress" id="rbq-progress">0 / 0개</span>
+      </div>
       <div class="bq-neighbors" id="rbq-found"></div>
-      <div class="bq-type" id="rbq-type" style="display:none">
-        <input type="text" id="rbq-gi" placeholder="접한 나라 이름을 입력..." autocomplete="off"/>
+      <div class="bq-type" id="rbq-type">
+        <input type="text" id="rbq-gi" placeholder="접한 나라 이름 입력..." autocomplete="off"/>
         <button class="btn bp" onclick="rbqTypeSubmit()">확인</button>
       </div>
       <div class="bq-foot">
@@ -5783,6 +5788,15 @@ function rbqShowCurrent(){
   if(SESSION.cur==='rborder'&&box)box.classList.add('on');
   if(!RBQ.noMap){try{clearMapColors();for(const[k,v]of Object.entries(RBQ.status)){if(v&&v!=='blink')colors[k]=v;}paint();setColor(iso,'c1');centerCountry(iso);}catch(e){}}
 }
+function rbqCountryPts(found,total){
+  if(!total)return 0;
+  const r=found/total;
+  if(r>=1)return 9;
+  if(r>=0.6)return 6;
+  if(r>=0.5)return 4;
+  if(r>=0.3)return 2;
+  return 0;
+}
 function rbqHandleClick(iso){
   if(!RBQ.remaining||!RBQ.remaining.size)return;
   const fb=document.getElementById('rbq-fb');
@@ -5790,15 +5804,13 @@ function rbqHandleClick(iso){
     RBQ.remaining.delete(iso);RBQ.correct++;
     const found=document.getElementById('rbq-found');
     if(found){const s=document.createElement('span');s.className='bq-nb rbq-found-tag';s.textContent=COUNTRIES[iso]?COUNTRIES[iso].k:iso;found.appendChild(s);}
-    if(!RBQ.noMap)try{setColor(iso,'c2');}catch(e){}
     const total=(BORDERS[RBQ.target]||[]).length,found_count=total-RBQ.remaining.size;
     const prog=document.getElementById('rbq-progress');if(prog)prog.textContent=found_count+' / '+total+'개';
     bqFlash((COUNTRIES[iso]?COUNTRIES[iso].k:iso)+' ✓','bfok');
     if(fb){fb.textContent=(COUNTRIES[iso]?COUNTRIES[iso].k:iso)+' ✓'+(RBQ.remaining.size?' | '+RBQ.remaining.size+'개 남음':'');fb.className='bq-fb ok';}
     if(RBQ.remaining.size===0){
-      const total2=(BORDERS[RBQ.target]||[]).length;
-      RBQ.status[RBQ.target]='c2';RBQ.scoreCounts[RBQ.target]={c:total2,w:0};
-      if(!RBQ.noMap)try{setColor(RBQ.target,'c2');}catch(e){}
+      RBQ.status[RBQ.target]='c2';RBQ.scoreCounts[RBQ.target]={c:total,w:0};
+      if(fb){fb.textContent='모두 정답! +9점';fb.className='bq-fb ok';}
       RBQ.queue.shift();rbqSave();rbqStats();
       setTimeout(rbqShowCurrent,900);
     }
@@ -5813,11 +5825,11 @@ function rbqHandleClick(iso){
       const total=(BORDERS[RBQ.target]||[]).length,found_count=total-RBQ.remaining.size;
       RBQ.wrong+=RBQ.remaining.size;
       RBQ.status[RBQ.target]='cr';RBQ.scoreCounts[RBQ.target]={c:found_count,w:RBQ.remaining.size};
-      if(!RBQ.noMap)[...RBQ.remaining].forEach(i=>{try{setColor(i,'cr');}catch(e){}});
       RBQ.remaining=new Set();
-      if(fb){fb.textContent='정답: '+revNames.join(', ');fb.className='bq-fb ng';}
+      const pts=rbqCountryPts(found_count,total);
+      const ptsStr=pts>0?' (+'+pts+'점)':'';
+      if(fb){fb.textContent='정답: '+revNames.join(', ')+ptsStr;fb.className='bq-fb ng';}
       bqFlash('오답  →  '+revNames.join(', '),'bfng');
-      if(!RBQ.noMap)try{setColor(RBQ.target,'cr');}catch(e){}
       RBQ.queue.shift();rbqSave();rbqStats();
       setTimeout(rbqShowCurrent,1900);
     }else{
@@ -5847,13 +5859,14 @@ function resetRBQ(){
 }
 function rbqEnd(){
   const el=document.getElementById('rbq-end');if(!el)return;
-  const points=RBQ.correct*9;
+  const points=Object.values(RBQ.scoreCounts).reduce((s,sc)=>s+rbqCountryPts(sc.c,sc.c+sc.w),0);
+  const maxPts=Object.values(RBQ.scoreCounts).length*9;
   document.getElementById('rbq-escore').textContent=points+'점';
   document.getElementById('rbq-e1').textContent=RBQ.correct;
   document.getElementById('rbq-e2').textContent=RBQ.wrong;
   el.classList.add('on');
   if(!RBQ.recorded){RBQ.recorded=true;try{rbqSave();}catch(e){}
-    try{window.SejiAccount&&window.SejiAccount.submitScore({category:'rborder',correct:RBQ.correct,total:RBQ.total,accuracy:Math.round(RBQ.correct/(RBQ.total||1)*1000)/10,scope:SESSION.filterKey,points:RBQ.correct*9,maxPoints:RBQ.total*9,isRetry:RBQ.isRetry});}catch(e){}}
+    try{window.SejiAccount&&window.SejiAccount.submitScore({category:'rborder',correct:RBQ.correct,total:RBQ.total,accuracy:Math.round(RBQ.correct/(RBQ.total||1)*1000)/10,scope:SESSION.filterKey,points,maxPoints:maxPts,isRetry:RBQ.isRetry});}catch(e){}}
 }
 function openRBQList(){
   const grid=document.getElementById('rbql-grid');if(!grid)return;
