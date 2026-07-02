@@ -351,8 +351,8 @@ body.in-session #rq-screen,body.in-session #kr-screen,body.in-session #tq-screen
 .hicon.danger:hover{color:var(--wr);border-color:rgba(176,56,56,.5)}
 
 /* ── 접경국 퀴즈 박스 ── */
-#bq-box{position:absolute;top:.7rem;left:50%;transform:translateX(-50%);width:min(440px,calc(100vw - 1.4rem));background:rgba(6,6,6,.95);border:1px solid var(--bd);border-radius:8px;padding:.7rem .9rem;z-index:12;backdrop-filter:blur(10px);display:none}
-#bq-box.on{display:block;animation:fadeUp .3s var(--ease)}
+#bq-box,#rbq-box{position:absolute;top:.7rem;left:50%;transform:translateX(-50%);width:min(440px,calc(100vw - 1.4rem));background:rgba(6,6,6,.95);border:1px solid var(--bd);border-radius:8px;padding:.7rem .9rem;z-index:12;backdrop-filter:blur(10px);display:none}
+#bq-box.on,#rbq-box.on{display:block;animation:fadeUp .3s var(--ease)}
 .bq-q{font-size:.72rem;color:var(--tx2);letter-spacing:.04em;margin-bottom:.5rem;text-align:center}
 .bq-neighbors{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-bottom:.55rem}
 .bq-nb{background:var(--sf2);border:1px solid var(--bd);border-radius:4px;padding:3px 9px;font-size:.82rem;color:var(--tx);font-weight:500}
@@ -367,7 +367,10 @@ body.in-session #rq-screen,body.in-session #kr-screen,body.in-session #tq-screen
 .bq-type #bq-gi.shake{animation:shk .35s ease;border-color:var(--wr)}
 .bq-type .btn{flex:0 0 auto;padding:.55rem 1.1rem}
 body.bq-nomap #ui-map,body.bq-nomap #ui-mob-bar{display:none!important}
-body.bq-nomap #bq-box{position:fixed;top:46%;left:50%;transform:translate(-50%,-50%);width:min(460px,92vw)}
+body.bq-nomap #bq-box,body.bq-nomap #rbq-box{position:fixed;top:46%;left:50%;transform:translate(-50%,-50%);width:min(460px,92vw)}
+.rbq-target{font-size:1.3rem;font-weight:700;color:var(--tx);text-align:center;padding:.25rem 0 .1rem;letter-spacing:.02em}
+.rbq-progress{font-size:.68rem;color:var(--tx2);text-align:center;margin-bottom:.35rem}
+.rbq-found-tag{background:rgba(74,144,96,.18);color:#7fd6a0;border:1px solid rgba(74,144,96,.4)}
 #bq-box.shake{animation:shk .35s ease}
 #bq-flash{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.75);background:rgba(6,6,6,.96);border-radius:10px;padding:.9rem 2.4rem;font-size:1.5rem;font-weight:700;pointer-events:none;z-index:200;opacity:0;transition:opacity .18s var(--ease),transform .22s var(--ease-spring);letter-spacing:.05em;white-space:nowrap}
 #bq-flash.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
@@ -377,6 +380,8 @@ body.border-mode .leg,body.border-mode .info{display:none}
 #bq-list-panel.on{display:flex!important}
 #bq-end{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:800;display:none;align-items:center;justify-content:center}
 #bq-end.on{display:flex}
+#rbq-end.on{display:flex}
+#rbq-list-panel.on{display:flex!important}
 
 /* ── 아이콘 ── */
 [data-ic]{display:inline-flex;align-items:center;justify-content:center}
@@ -571,12 +576,13 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
       </label>
       <div class="ld-subs">
         <label class="ld-sub-item"><input type="checkbox" class="ld-act" value="name"><span data-ic="globe"></span>나라 이름 맞추기</label>
-        <label class="ld-sub-item"><input type="checkbox" class="ld-act ld-act-bq" value="border"><span data-ic="border"></span>접경국 맞추기</label>
+        <label class="ld-sub-item"><input type="checkbox" class="ld-act ld-act-bq" value="border"><span data-ic="border"></span>접경국 퀴즈</label>
         <div class="ld-tq-diff" id="ld-bq-map" style="display:none">
-          <div class="ld-tq-diff-h">지도 <span class="ld-tq-diff-sub">접경국</span></div>
+          <div class="ld-tq-diff-h">난이도 <span class="ld-tq-diff-sub">접경국</span></div>
           <div class="ld-diff-seg" id="ld-bqmap">
-            <button type="button" data-bqmap="O">지도 O</button>
-            <button type="button" data-bqmap="X">지도 X (이름입력)</button>
+            <button type="button" data-bqmap="L">하</button>
+            <button type="button" data-bqmap="M">중</button>
+            <button type="button" data-bqmap="H">상</button>
           </div>
           <div class="ld-tq-diff-desc" id="ld-bqmap-desc"></div>
         </div>
@@ -654,6 +660,7 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
         <tr><td>나라 이름</td><td>1점</td></tr>
         <tr><td>접경국 (지도 O)</td><td>1점</td></tr>
         <tr><td>접경국 (지도 X)</td><td>3점</td></tr>
+        <tr><td>접경국 쓰기</td><td>접경국당 9점</td></tr>
         <tr><td>종교 구성 (상·중·하)</td><td>3 · 2 · 1점</td></tr>
         <tr><td>에너지 구성 (상·중·하)</td><td>6 · 4 · 2점</td></tr>
         <tr><td>수출구조 (상·중·하)</td><td>6 · 4 · 2점</td></tr>
@@ -691,6 +698,21 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
       <div class="bq-foot">
         <div class="bq-fb" id="bq-fb"></div>
         <button class="bq-skip" id="bq-skip" onclick="bqSkip()">건너뛰기</button>
+      </div>
+    </div>
+    <div id="rbq-box">
+      <div class="bq-q" id="rbq-q-text">이 나라와 접한 나라를 <b>모두</b> 지도에서 클릭하세요</div>
+      <div class="rbq-target" id="rbq-target-name">—</div>
+      <div class="rbq-progress" id="rbq-progress">0 / 0개</div>
+      <div class="bq-dots"><div class="bq-dot" id="rbq-d0"></div><div class="bq-dot" id="rbq-d1"></div><div class="bq-dot" id="rbq-d2"></div></div>
+      <div class="bq-neighbors" id="rbq-found"></div>
+      <div class="bq-type" id="rbq-type" style="display:none">
+        <input type="text" id="rbq-gi" placeholder="접한 나라 이름을 입력..." autocomplete="off"/>
+        <button class="btn bp" onclick="rbqTypeSubmit()">확인</button>
+      </div>
+      <div class="bq-foot">
+        <div class="bq-fb" id="rbq-fb"></div>
+        <button class="bq-skip" onclick="rbqSkip()">건너뛰기</button>
       </div>
     </div>
     <div id="bq-flash"></div>
@@ -5187,6 +5209,19 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
     <div class="cl-body"><div class="cl-grid" id="bql-grid"></div></div>
   </div>
 </div>
+<!-- 역접경국 퀴즈 목록 -->
+<div id="rbq-list-panel" class="rq-list-panel-like" style="position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:800;display:none;align-items:center;justify-content:center">
+  <div class="cl-card">
+    <div class="cl-head">
+      <div>
+        <h2>접경국 쓰기 목록</h2>
+        <div style="font-size:.78rem;color:var(--tx2);margin-top:.3rem">남은 나라: <span id="rbql-rem-cnt">0</span></div>
+      </div>
+      <button class="cl-close" onclick="document.getElementById('rbq-list-panel').classList.remove('on')"><span data-ic="close"></span></button>
+    </div>
+    <div class="cl-body"><div class="cl-grid" id="rbql-grid"></div></div>
+  </div>
+</div>
 <!-- 접경국 퀴즈 완료 -->
 <div id="bq-end">
   <div class="rq-end-card">
@@ -5199,6 +5234,19 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
     </div>
     <button class="reb" onclick="resetBorderQuiz();document.getElementById('bq-end').classList.remove('on')">다시 시작</button>
     <button class="reb secondary" onclick="document.getElementById('bq-end').classList.remove('on')">닫기</button>
+  </div>
+</div>
+<div id="rbq-end" style="position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:800;display:none;align-items:center;justify-content:center">
+  <div class="rq-end-card">
+    <div class="ico" data-ic="border" style="display:flex;justify-content:center;color:var(--tx2)"></div>
+    <h1>접경국 쓰기 완료!</h1>
+    <div class="esc" id="rbq-escore">0점</div>
+    <div class="eg" style="grid-template-columns:1fr 1fr">
+      <div class="est"><div class="esv" style="color:#4a9060" id="rbq-e1">0</div><div class="esl">정답(접경국)</div></div>
+      <div class="est"><div class="esv" style="color:var(--wr)" id="rbq-e2">0</div><div class="esl">놓친 접경국</div></div>
+    </div>
+    <button class="reb" onclick="resetRBQ();document.getElementById('rbq-end').classList.remove('on')">다시 시작</button>
+    <button class="reb secondary" onclick="document.getElementById('rbq-end').classList.remove('on')">닫기</button>
   </div>
 </div>
 <script>
@@ -5235,6 +5283,7 @@ let mapMode='name'; /* 'name' | 'border' */
 const TAB_META={
   name:{label:'나라 이름',ic:'globe'},
   border:{label:'접경국',ic:'border'},
+  rborder:{label:'접경국 쓰기',ic:'border'},
   religion:{label:'종교',ic:'book'},
   texp:{label:'수출구조',ic:'chart'},
   timp:{label:'수입구조',ic:'chart'},
@@ -5294,14 +5343,18 @@ function setupLanding(){
     const el=document.getElementById('ld-tq-diff'); if(el)el.style.display=on?'block':'none';
   };
   window._syncTqDiff();
-  /* 접경국 지도 유무 — 접경국 체크 시에만 노출 */
-  window._ldBorderMap=window._ldBorderMap||'O';
-  const BQMAP_DESC={O:'지도에서 나라를 클릭 (국가당 1점)',X:'지도 없이 나라 이름을 직접 입력 (국가당 3점)'};
+  /* 접경국 난이도 (하=지도O, 중=지도X이름입력, 상=접경국모두쓰기) */
+  window._ldBorderMap=window._ldBorderMap||'L';
+  const BQMAP_DESC={
+    L:'지도에서 나라를 클릭해 맞추기 (국가당 1점)',
+    M:'지도 없이 나라 이름을 직접 입력 (국가당 3점)',
+    H:'지도 없이 접한 나라를 모두 입력 (접경국당 9점)'
+  };
   const bqSeg=document.getElementById('ld-bqmap');
   function setBqMap(v){
     window._ldBorderMap=v;
-    bqSeg.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.bqmap===v));
-    document.getElementById('ld-bqmap-desc').textContent=BQMAP_DESC[v]||'';
+    if(bqSeg)bqSeg.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.bqmap===v));
+    const desc=document.getElementById('ld-bqmap-desc');if(desc)desc.textContent=BQMAP_DESC[v]||'';
   }
   if(bqSeg){ bqSeg.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>setBqMap(b.dataset.bqmap))); setBqMap(window._ldBorderMap); }
   window._syncBqMap=function(){
@@ -5369,8 +5422,16 @@ function startFromLanding(){
   const k=document.getElementById('cat-korea').checked;
   if(k){startSession('korea',['korea'],null);return;}
   if(!w)return;
-  const order=['name','border','religion','texp','timp','tenergy'];
-  const acts=[...document.querySelectorAll('.ld-act')].filter(c=>c.checked).map(c=>c.value).sort((a,b)=>order.indexOf(a)-order.indexOf(b));
+  const order=['name','border','rborder','religion','texp','timp','tenergy'];
+  let rawActs=[...document.querySelectorAll('.ld-act')].filter(c=>c.checked).map(c=>c.value);
+  /* border 체크박스를 난이도에 따라 실제 액티비티로 변환 */
+  const borderDiff=window._ldBorderMap||'L';
+  if(rawActs.includes('border')){
+    rawActs=rawActs.filter(a=>a!=='border');
+    if(borderDiff==='H')rawActs.push('rborder');
+    else rawActs.push('border');
+  }
+  const acts=rawActs.sort((a,b)=>order.indexOf(a)-order.indexOf(b));
   if(!acts.length)return;
   const conts=[...document.querySelectorAll('.ld-cont-cb')].filter(c=>c.checked).map(c=>c.value);
   let key=conts.length?conts.join('+'):'all';
@@ -5385,8 +5446,8 @@ function startFromLanding(){
   /* 종교/에너지 난이도 */
   if(acts.includes('religion'))key+='_r'+(window._ldRDiff||'M');
   if(acts.includes('tenergy')){key+='_e'+(window._ldEDiff||'M');if((window._ldESub||'all')!=='all')key+='_esub'+(window._ldESub||'all');}
-  /* 접경국 지도 없는 모드 */
-  if(acts.includes('border')&&window._ldBorderMap==='X')key+='_nomap';
+  /* 접경국 난이도: 중=nomap, 상=rborder+nomap */
+  if((acts.includes('border')&&borderDiff==='M')||acts.includes('rborder'))key+='_nomap';
   startSession('world',acts,key,key);
 }
 
@@ -5401,6 +5462,7 @@ function startSession(cat,acts,filterKey,rqContKey){
       loadGame();
     }
     if(acts.includes('border')){bqInit(filterKey);}
+    if(acts.includes('rborder')){rbqInit(filterKey);}
     if(acts.includes('religion')){tqInit('r',filterKey);}
     if(acts.includes('texp')){tqInit('x',filterKey);}
     if(acts.includes('timp')){tqInit('m',filterKey);}
@@ -5427,25 +5489,27 @@ function switchTab(key){
   if(modalOpen)closeModal();
   SESSION.cur=key;
   document.querySelectorAll('#act-tabs-list .act-tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===key));
-  const showMap=(key==='name'||(key==='border'&&!BQ.noMap));
+  const showMap=(key==='name'||(key==='border'&&!BQ.noMap)||(key==='rborder'&&!RBQ.noMap));
   document.getElementById('rq-screen').classList.remove('on');
   document.getElementById('kr-screen').classList.toggle('on',key==='korea');
   document.getElementById('tq-screen').classList.toggle('on',key==='texp'||key==='timp'||key==='religion'||key==='tenergy');
   document.getElementById('bq-box').classList.toggle('on',key==='border');
-  document.body.classList.toggle('border-mode',key==='border');
+  document.getElementById('rbq-box').classList.toggle('on',key==='rborder');
+  document.body.classList.toggle('border-mode',key==='border'||key==='rborder');
   if(showMap){
     mapMode=key;
     const logo=document.getElementById('ui-logo');
     logo.innerHTML=(key==='name')?'나라 이름 <span>/ Countries</span>':'접경국 <span>/ Borders</span>';
     repaintMap();
-    if(key==='name'){stats();}else{bqStats();bqShowCurrent();}
+    if(key==='name'){stats();}else if(key==='border'){bqStats();bqShowCurrent();}else{rbqStats();rbqShowCurrent();}
   }else if(key==='border'){ /* 지도 없는 접경국 */ mapMode='border';document.getElementById('ui-logo').innerHTML='접경국 <span>/ Borders</span>';bqStats();bqShowCurrent(); }
+  else if(key==='rborder'){ /* 지도 없는 역접경국 */ mapMode='rborder';document.getElementById('ui-logo').innerHTML='접경국 쓰기 <span>/ Borders</span>';rbqStats();rbqShowCurrent(); }
   else if(key==='religion'){tqEnter('r');}
   else if(key==='texp'){tqEnter('x');}
   else if(key==='timp'){tqEnter('m');}
   else if(key==='tenergy'){tqEnter('e');}
   else if(key==='korea'){openKoreaTab();}
-  document.body.classList.toggle('bq-nomap',key==='border'&&!!BQ.noMap);
+  document.body.classList.toggle('bq-nomap',(key==='border'&&!!BQ.noMap)||(key==='rborder'&&!!RBQ.noMap));
   try{applyModeUI();}catch(e){}
 }
 function endSession(){
@@ -5461,20 +5525,20 @@ function endSession(){
   document.getElementById('tq-screen').classList.remove('on');
   document.getElementById('bq-box').classList.remove('on');
   document.getElementById('ui-end').style.display='none';
-  ['rq-end','kr-end','bq-end','tq-end','tq-explain'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.remove('on');});
+  ['rq-end','kr-end','bq-end','rbq-end','tq-end','tq-explain'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.remove('on');});
   document.getElementById('landing-overlay').style.display='flex';
   updateStartState();
 }
 /* 지도 헤더 액션 — 현재 모드(나라이름/접경국)에 따라 분기 */
-function mapListAction(){if(mapMode==='border')openBQList();else openCountryList();}
-function mapResetAction(){if(mapMode==='border')resetBorderQuiz();else resetMapQuiz();}
+function mapListAction(){if(mapMode==='border')openBQList();else if(mapMode==='rborder')openRBQList();else openCountryList();}
+function mapResetAction(){if(mapMode==='border')resetBorderQuiz();else if(mapMode==='rborder')resetRBQ();else resetMapQuiz();}
 function openReligionTab(){if(!RQ.list||!RQ.list.length){if(!loadRQ())buildRQList();}showRQCard();}
 function openKoreaTab(){setTimeout(()=>{initKorea();applyModeUI();},30);}
 
 function clearMapColors(){Object.keys(colors).forEach(k=>stopJsBlink(k));for(const k in colors)delete colors[k];}
 function repaintMap(){
   clearMapColors();
-  const src=(mapMode==='border')?BQ.status:S.status;
+  const src=(mapMode==='border')?BQ.status:(mapMode==='rborder')?RBQ.status:S.status;
   for(const[iso,cls]of Object.entries(src)){if(cls&&cls!=='blink')colors[iso]=cls;}
   paint();
 }
@@ -5663,6 +5727,147 @@ function openBQList(){
   });
   document.getElementById('bql-rem-cnt').textContent=BQ.total-(BQ.correct+BQ.wrong);
   document.getElementById('bq-list-panel').classList.add('on');
+}
+
+/* ══════════ 역접경국 퀴즈 (RBQ) ══════════ */
+const RBQ={activeSet:null,total:0,queue:[],status:{},scoreCounts:{},correct:0,wrong:0,curWrong:0,target:null,remaining:null,saveKey:'rbq_all',recorded:false,isRetry:false,noMap:false};
+function rbqPool(){
+  let base=S.activeSet?[...S.activeSet]:Object.keys(COUNTRIES);
+  return base.filter(i=>BORDERS[i]&&BORDERS[i].length>0);
+}
+function rbqInit(filterKey){
+  RBQ.saveKey='rbq_'+(filterKey||'all');
+  RBQ.noMap=true;
+  RBQ.activeSet=new Set(rbqPool());
+  RBQ.total=0;RBQ.activeSet.forEach(iso=>{RBQ.total+=(BORDERS[iso]||[]).length;});
+  RBQ.status={};RBQ.scoreCounts={};RBQ.correct=0;RBQ.wrong=0;RBQ.curWrong=0;RBQ.target=null;RBQ.remaining=null;RBQ.recorded=false;RBQ.isRetry=false;
+  rbqLoad();
+  const done=new Set(Object.keys(RBQ.status));
+  RBQ.queue=[...RBQ.activeSet].filter(iso=>!done.has(iso)).sort(()=>Math.random()-.5);
+}
+function rbqLoad(){
+  try{
+    const raw=localStorage.getItem(RBQ.saveKey);if(!raw)return false;
+    const d=JSON.parse(raw);RBQ.status=d.status||{};RBQ.scoreCounts=d.scoreCounts||{};
+    if(Array.isArray(d.active)&&d.active.length){RBQ.activeSet=new Set(d.active);RBQ.total=0;RBQ.activeSet.forEach(iso=>{RBQ.total+=(BORDERS[iso]||[]).length;});}
+    let c=0,w=0;for(const sc of Object.values(RBQ.scoreCounts)){c+=sc.c||0;w+=sc.w||0;}
+    RBQ.correct=c;RBQ.wrong=w;RBQ.recorded=!!d.recorded;return true;
+  }catch(e){return false;}
+}
+function rbqSave(){
+  if(RBQ.activeSet)localStorage.setItem(RBQ.saveKey,JSON.stringify({status:RBQ.status,scoreCounts:RBQ.scoreCounts,correct:RBQ.correct,wrong:RBQ.wrong,recorded:RBQ.recorded,active:[...RBQ.activeSet]}));
+}
+function rbqStats(){
+  const done=Object.keys(RBQ.status).length,total=RBQ.activeSet?RBQ.activeSet.size:0;
+  document.getElementById('ui-rem').textContent=total-done;
+  document.getElementById('ui-cor').textContent=RBQ.correct;
+  document.getElementById('ui-rev').textContent=RBQ.wrong;
+  document.getElementById('ui-pf').style.width=(total?done/total*100:0)+'%';
+}
+function rbqSetDots(n){for(let i=0;i<3;i++){const d=document.getElementById('rbq-d'+i);if(d)d.className='bq-dot'+(i<n?' ng':'');}}
+function rbqShowCurrent(){
+  const box=document.getElementById('rbq-box');
+  if(!RBQ.queue||!RBQ.queue.length){if(box)box.classList.remove('on');rbqEnd();return;}
+  const iso=RBQ.queue[0];
+  RBQ.target=iso;RBQ.remaining=new Set(BORDERS[iso]||[]);RBQ.curWrong=0;
+  rbqSetDots(0);
+  const tEl=document.getElementById('rbq-target-name');if(tEl)tEl.textContent=COUNTRIES[iso]?COUNTRIES[iso].k:iso;
+  const prog=document.getElementById('rbq-progress');if(prog)prog.textContent='0 / '+RBQ.remaining.size+'개';
+  const found=document.getElementById('rbq-found');if(found)found.innerHTML='';
+  const qEl=document.getElementById('rbq-q-text');
+  if(qEl)qEl.innerHTML='이 나라와 접한 나라를 <b>모두</b> 입력하세요 <span style="font-size:.6rem;color:var(--tx2)">(한 나라씩)</span>';
+  const tp=document.getElementById('rbq-type');if(tp)tp.style.display='flex';
+  document.body.classList.add('bq-nomap');
+  const gi=document.getElementById('rbq-gi');if(gi){gi.value='';setTimeout(()=>{try{gi.focus();}catch(e){}},50);}
+  const fb=document.getElementById('rbq-fb');if(fb){fb.textContent='';fb.className='bq-fb';}
+  if(SESSION.cur==='rborder'&&box)box.classList.add('on');
+  if(!RBQ.noMap){try{clearMapColors();for(const[k,v]of Object.entries(RBQ.status)){if(v&&v!=='blink')colors[k]=v;}paint();setColor(iso,'c1');centerCountry(iso);}catch(e){}}
+}
+function rbqHandleClick(iso){
+  if(!RBQ.remaining||!RBQ.remaining.size)return;
+  const fb=document.getElementById('rbq-fb');
+  if(RBQ.remaining.has(iso)){
+    RBQ.remaining.delete(iso);RBQ.correct++;
+    const found=document.getElementById('rbq-found');
+    if(found){const s=document.createElement('span');s.className='bq-nb rbq-found-tag';s.textContent=COUNTRIES[iso]?COUNTRIES[iso].k:iso;found.appendChild(s);}
+    if(!RBQ.noMap)try{setColor(iso,'c2');}catch(e){}
+    const total=(BORDERS[RBQ.target]||[]).length,found_count=total-RBQ.remaining.size;
+    const prog=document.getElementById('rbq-progress');if(prog)prog.textContent=found_count+' / '+total+'개';
+    bqFlash((COUNTRIES[iso]?COUNTRIES[iso].k:iso)+' ✓','bfok');
+    if(fb){fb.textContent=(COUNTRIES[iso]?COUNTRIES[iso].k:iso)+' ✓'+(RBQ.remaining.size?' | '+RBQ.remaining.size+'개 남음':'');fb.className='bq-fb ok';}
+    if(RBQ.remaining.size===0){
+      const total2=(BORDERS[RBQ.target]||[]).length;
+      RBQ.status[RBQ.target]='c2';RBQ.scoreCounts[RBQ.target]={c:total2,w:0};
+      if(!RBQ.noMap)try{setColor(RBQ.target,'c2');}catch(e){}
+      RBQ.queue.shift();rbqSave();rbqStats();
+      setTimeout(rbqShowCurrent,900);
+    }
+  }else if(iso===RBQ.target){
+    if(fb){fb.textContent='이 나라가 출제 중인 나라예요!';fb.className='bq-fb ng';}
+  }else{
+    RBQ.curWrong++;rbqSetDots(RBQ.curWrong);
+    const box=document.getElementById('rbq-box');if(box){box.classList.add('shake');setTimeout(()=>box.classList.remove('shake'),360);}
+    const nm=COUNTRIES[iso]?COUNTRIES[iso].k:iso;
+    if(RBQ.curWrong>=3){
+      const revNames=[...RBQ.remaining].map(i=>COUNTRIES[i]?COUNTRIES[i].k:i);
+      const total=(BORDERS[RBQ.target]||[]).length,found_count=total-RBQ.remaining.size;
+      RBQ.wrong+=RBQ.remaining.size;
+      RBQ.status[RBQ.target]='cr';RBQ.scoreCounts[RBQ.target]={c:found_count,w:RBQ.remaining.size};
+      if(!RBQ.noMap)[...RBQ.remaining].forEach(i=>{try{setColor(i,'cr');}catch(e){}});
+      RBQ.remaining=new Set();
+      if(fb){fb.textContent='정답: '+revNames.join(', ');fb.className='bq-fb ng';}
+      bqFlash('오답  →  '+revNames.join(', '),'bfng');
+      if(!RBQ.noMap)try{setColor(RBQ.target,'cr');}catch(e){}
+      RBQ.queue.shift();rbqSave();rbqStats();
+      setTimeout(rbqShowCurrent,1900);
+    }else{
+      if(fb){fb.textContent=nm+' — 다시 (기회 '+(3-RBQ.curWrong)+')';fb.className='bq-fb ng';}
+      bqFlash(nm+' — 아님','bfng');
+    }
+  }
+}
+function rbqTypeSubmit(){
+  if(!RBQ.remaining||!RBQ.remaining.size)return;
+  const inp=document.getElementById('rbq-gi');if(!inp)return;
+  const t=inp.value.trim();if(!t)return;inp.value='';
+  let iso=[...RBQ.remaining].find(i=>check(t,i));
+  if(iso){rbqHandleClick(iso);try{inp.focus();}catch(e){}return;}
+  const any=Object.keys(COUNTRIES).find(i=>check(t,i));
+  if(any){rbqHandleClick(any);}
+  else{bqFlash('그런 나라가 없어요','bfng');inp.classList.add('shake');setTimeout(()=>inp.classList.remove('shake'),360);}
+  try{inp.focus();}catch(e){}
+}
+function rbqSkip(){if(RBQ.queue&&RBQ.queue.length>1){const g=RBQ.queue.shift();RBQ.queue.push(g);rbqShowCurrent();}}
+function resetRBQ(){
+  if(!confirm('역접경국 퀸즈 진행 상황을 초기화할까요?'))return;
+  localStorage.removeItem(RBQ.saveKey);
+  RBQ.status={};RBQ.scoreCounts={};RBQ.correct=0;RBQ.wrong=0;RBQ.recorded=false;
+  RBQ.queue=[...RBQ.activeSet].sort(()=>Math.random()-.5);
+  try{clearMapColors();paint();}catch(e){}rbqStats();rbqShowCurrent();
+}
+function rbqEnd(){
+  const el=document.getElementById('rbq-end');if(!el)return;
+  const points=RBQ.correct*9;
+  document.getElementById('rbq-escore').textContent=points+'점';
+  document.getElementById('rbq-e1').textContent=RBQ.correct;
+  document.getElementById('rbq-e2').textContent=RBQ.wrong;
+  el.classList.add('on');
+  if(!RBQ.recorded){RBQ.recorded=true;try{rbqSave();}catch(e){}
+    try{window.SejiAccount&&window.SejiAccount.submitScore({category:'rborder',correct:RBQ.correct,total:RBQ.total,accuracy:Math.round(RBQ.correct/(RBQ.total||1)*1000)/10,scope:SESSION.filterKey,points:RBQ.correct*9,maxPoints:RBQ.total*9,isRetry:RBQ.isRetry});}catch(e){}}
+}
+function openRBQList(){
+  const grid=document.getElementById('rbql-grid');if(!grid)return;
+  grid.innerHTML='';
+  const items=[...RBQ.activeSet].sort((a,b)=>(COUNTRIES[a]?COUNTRIES[a].k:'').localeCompare(COUNTRIES[b]?COUNTRIES[b].k:''));
+  items.forEach(iso=>{
+    const sp=document.createElement('span');
+    const st=RBQ.status[iso];
+    sp.className='cl-tag '+(st==='c2'?'done2':st==='cr'?'revealed':'remain');
+    sp.textContent=COUNTRIES[iso]?COUNTRIES[iso].k:iso;
+    grid.appendChild(sp);
+  });
+  document.getElementById('rbql-rem-cnt').textContent=(RBQ.activeSet?RBQ.activeSet.size:0)-Object.keys(RBQ.status).length;
+  document.getElementById('rbq-list-panel').classList.add('on');
 }
 
 const MOBILE=false;
@@ -7081,6 +7286,7 @@ function initMap(){
     const cel=findCountryEl(e.target);if(!cel)return;
     const iso=iso4el(cel);if(!iso)return;
     if(mapMode==='border'){bqHandleClick(iso);return;}
+    if(mapMode==='rborder'){rbqHandleClick(iso);return;}
     if(!inActive(iso))return;
     if(S.status[iso]==='cr'){showAnswer(iso,e.clientX,e.clientY-10);return;}
     if(!done(iso)){openModal(iso);centerCountry(iso);}
@@ -7187,7 +7393,7 @@ function initMap(){
           let hit=false;
           if(el){
             const cel=findCountryEl(el);
-            if(cel){const iso=iso4el(cel);if(iso){hit=true;if(mapMode==='border'){bqHandleClick(iso);}else if(S.status[iso]==='cr')showAnswer(iso,touch.clientX,touch.clientY-10);else if(!done(iso)){openModal(iso);centerCountry(iso);}}}
+            if(cel){const iso=iso4el(cel);if(iso){hit=true;if(mapMode==='border'){bqHandleClick(iso);}else if(mapMode==='rborder'){rbqHandleClick(iso);}else if(S.status[iso]==='cr')showAnswer(iso,touch.clientX,touch.clientY-10);else if(!done(iso)){openModal(iso);centerCountry(iso);}}}
           }
           if(!hit){
             /* 빈 곳 더블탭 → 확대 */
@@ -7253,6 +7459,14 @@ function listSaves(){
       if(!total||!Object.keys(st).length)continue;
       const wrong=Object.keys(st).filter(x=>st[x]==='cr').length;
       out.push({type:'border',key:k,scope:fk,done:Object.keys(st).length,total,wrong});
+    }else if(k.startsWith('rbq_')&&!k.startsWith('rbq__')){
+      if(!d.status||typeof d.status!=='object')continue;
+      const fk=k.slice(4);const st=d.status;
+      const active=Array.isArray(d.active)&&d.active.length?d.active:[..._countSetForFilter(fk)].filter(x=>BORDERS[x]);
+      const total=active.length;
+      if(!total||!Object.keys(st).length)continue;
+      const wrong=Object.keys(st).filter(x=>st[x]==='cr').length;
+      out.push({type:'rborder',key:k,scope:fk,done:Object.keys(st).length,total,wrong});
     }else if(k.startsWith('wq_')&&k!=='wq_mode'&&k!=='wq_oops_note'&&!k.startsWith('wq__')){
       if(!d.status||typeof d.status!=='object'||!Object.keys(d.status).length)continue;
       const fk=k.slice(3);const st=d.status;const wr=d.wrong||{};
@@ -7280,6 +7494,7 @@ function _resumeStart(type,key){
   if(document.getElementById('landing-overlay'))document.getElementById('landing-overlay').style.display='none';
   if(type==='name')startSession('world',['name'],key.slice(3));
   else if(type==='border')startSession('world',['border'],key.slice(3));
+  else if(type==='rborder')startSession('world',['rborder'],key.slice(4));
   else if(type==='religion')startSession('world',['religion'],key.slice(5),key.slice(5));
   else if(type==='texp')startSession('world',['texp'],key.slice(5),key.slice(5));
   else if(type==='timp')startSession('world',['timp'],key.slice(5),key.slice(5));
@@ -8239,7 +8454,7 @@ function hasStoredSession() {
  * 게임 종료 시 window.SejiAccount.submitScore(...) 로 점수를 전송한다.
  */
 
-const CAT_NAME = { name: '나라이름', border: '접경국', religion: '종교', texp: '수출구조', timp: '수입구조', tenergy: '에너지', korea: '한국지리' };
+const CAT_NAME = { name: '나라이름', border: '접경국', rborder: '접경국쓰기', religion: '종교', texp: '수출구조', timp: '수입구조', tenergy: '에너지', korea: '한국지리' };
 const CONT_KO = { as: '아시아', eu: '유럽', af: '아프리카', na: '북아메리카', sa: '남아메리카', oc: '오세아니아' };
 function scopeContinents(scope) {
   if (scope === 'korea') return [];
@@ -8273,7 +8488,7 @@ let profile = null;
 /* ──────────────── 진행상황 동기화 (기기 간 이어하기) ────────────────
  * 게임이 쓰는 localStorage 진행 키(wq_*, bq_*, kq_*)를 계정에 미러링.
  * localStorage.setItem 을 가로채서 로그인 상태면 서버로 올린다. */
-const SYNC_RE = /^(wq_|bq_|kq_|tq_)/;
+const SYNC_RE = /^(wq_|bq_|rbq_|kq_|tq_)/;
 const SYNC_EXCLUDE = new Set(['wq_mode']);
 function shouldSync(k) { return SYNC_RE.test(k) && !SYNC_EXCLUDE.has(k) && !k.includes('__'); }
 // 로그인했거나(세션) 로그인 토큰이 남아있으면(세션 로딩 중) 계정 사용자로 취급
