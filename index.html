@@ -362,9 +362,9 @@ body.in-session #rq-screen,body.in-session #kr-screen,body.in-session #tq-screen
 .bq-skip{padding:.32rem .7rem;background:transparent;border:1px solid var(--bd);border-radius:4px;color:var(--tx2);font-family:'Pretendard','Noto Sans KR',sans-serif;font-size:.74rem;cursor:pointer}
 .bq-skip:hover{color:var(--tx);border-color:var(--tx2)}
 .bq-type{display:flex;gap:.5rem;margin-bottom:.5rem}
-.bq-type #bq-gi{flex:1;padding:.55rem .8rem;background:rgba(16,16,16,.9);border:1px solid var(--bd);border-radius:5px;color:var(--tx);font-size:.95rem;font-family:'Pretendard','Noto Sans KR',sans-serif;outline:none}
-.bq-type #bq-gi:focus{border-color:var(--ac)}
-.bq-type #bq-gi.shake{animation:shk .35s ease;border-color:var(--wr)}
+.bq-type #bq-gi,.bq-type #rbq-gi{flex:1;padding:.55rem .8rem;background:rgba(16,16,16,.9);border:1px solid var(--bd);border-radius:5px;color:var(--tx);font-size:.95rem;font-family:'Pretendard','Noto Sans KR',sans-serif;outline:none}
+.bq-type #bq-gi:focus,.bq-type #rbq-gi:focus{border-color:var(--ac)}
+.bq-type #bq-gi.shake,.bq-type #rbq-gi.shake{animation:shk .35s ease;border-color:var(--wr)}
 .bq-type .btn{flex:0 0 auto;padding:.55rem 1.1rem}
 body.bq-nomap #ui-map,body.bq-nomap #ui-mob-bar{display:none!important}
 body.bq-nomap #bq-box,body.bq-nomap #rbq-box{position:fixed;top:46%;left:50%;transform:translate(-50%,-50%);width:min(460px,92vw)}
@@ -372,7 +372,7 @@ body.bq-nomap #bq-box,body.bq-nomap #rbq-box{position:fixed;top:46%;left:50%;tra
 .rbq-meta{display:flex;align-items:center;justify-content:center;gap:.6rem;margin-bottom:.35rem}
 .rbq-progress{font-size:.67rem;color:var(--tx2)}
 .rbq-found-tag{background:rgba(74,144,96,.18);color:#7fd6a0;border:1px solid rgba(74,144,96,.4)}
-#bq-box.shake{animation:shk .35s ease}
+#bq-box.shake,#rbq-box.shake{animation:shk .35s ease}
 #bq-flash{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.75);background:rgba(6,6,6,.96);border-radius:10px;padding:.9rem 2.4rem;font-size:1.5rem;font-weight:700;pointer-events:none;z-index:200;opacity:0;transition:opacity .18s var(--ease),transform .22s var(--ease-spring);letter-spacing:.05em;white-space:nowrap}
 #bq-flash.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
 #bq-flash.bfok{color:#4a9060;border:1px solid rgba(74,144,96,.45)}
@@ -693,7 +693,7 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
       <div class="bq-dots"><div class="bq-dot" id="bq-d0"></div><div class="bq-dot" id="bq-d1"></div><div class="bq-dot" id="bq-d2"></div></div>
       <div class="bq-neighbors" id="bq-neighbors"></div>
       <div class="bq-type" id="bq-type" style="display:none">
-        <input type="text" id="bq-gi" placeholder="접한 나라 이름을 입력..." autocomplete="off"/>
+        <input type="text" id="bq-gi" placeholder="접한 나라 이름을 입력..." autocomplete="off" onkeydown="if(event.key==='Enter')bqTypeSubmit()"/>
         <button class="btn bp" id="bq-gsub" onclick="bqTypeSubmit()">확인</button>
       </div>
       <div class="bq-foot">
@@ -712,7 +712,7 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
       </div>
       <div class="bq-neighbors" id="rbq-found"></div>
       <div class="bq-type" id="rbq-type">
-        <input type="text" id="rbq-gi" placeholder="접한 나라 이름 입력..." autocomplete="off"/>
+        <input type="text" id="rbq-gi" placeholder="접한 나라 이름 입력..." autocomplete="off" onkeydown="if(event.key==='Enter')rbqTypeSubmit()"/>
         <button class="btn bp" onclick="rbqTypeSubmit()">확인</button>
       </div>
       <div class="bq-foot">
