@@ -5763,10 +5763,11 @@ function rbqSave(){
   if(RBQ.activeSet)localStorage.setItem(RBQ.saveKey,JSON.stringify({status:RBQ.status,scoreCounts:RBQ.scoreCounts,correct:RBQ.correct,wrong:RBQ.wrong,recorded:RBQ.recorded,active:[...RBQ.activeSet]}));
 }
 function rbqStats(){
-  const done=Object.keys(RBQ.status).length,total=RBQ.activeSet?RBQ.activeSet.size:0;
+  const statVals=Object.values(RBQ.status);
+  const done=statVals.length,total=RBQ.activeSet?RBQ.activeSet.size:0;
   document.getElementById('ui-rem').textContent=total-done;
-  document.getElementById('ui-cor').textContent=RBQ.correct;
-  document.getElementById('ui-rev').textContent=RBQ.wrong;
+  document.getElementById('ui-cor').textContent=statVals.filter(v=>v==='c2').length;
+  document.getElementById('ui-rev').textContent=statVals.filter(v=>v==='cr').length;
   document.getElementById('ui-pf').style.width=(total?done/total*100:0)+'%';
 }
 function rbqSetDots(n){for(let i=0;i<3;i++){const d=document.getElementById('rbq-d'+i);if(d)d.className='bq-dot'+(i<n?' ng':'');}}
