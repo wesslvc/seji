@@ -693,7 +693,7 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
       <div class="bq-dots"><div class="bq-dot" id="bq-d0"></div><div class="bq-dot" id="bq-d1"></div><div class="bq-dot" id="bq-d2"></div></div>
       <div class="bq-neighbors" id="bq-neighbors"></div>
       <div class="bq-type" id="bq-type" style="display:none">
-        <input type="text" id="bq-gi" placeholder="접한 나라 이름을 입력..." autocomplete="off" onkeydown="if(event.key==='Enter')bqTypeSubmit()"/>
+        <input type="text" id="bq-gi" placeholder="접한 나라 이름을 입력..." autocomplete="off"/>
       </div>
       <div class="bq-foot">
         <div class="bq-fb" id="bq-fb"></div>
@@ -711,7 +711,7 @@ sup.wcr{background:rgba(176,56,56,.2);color:var(--wr)}
       </div>
       <div class="bq-neighbors" id="rbq-found"></div>
       <div class="bq-type" id="rbq-type">
-        <input type="text" id="rbq-gi" placeholder="접한 나라 이름 입력..." autocomplete="off" onkeydown="if(event.key==='Enter')rbqTypeSubmit()"/>
+        <input type="text" id="rbq-gi" placeholder="접한 나라 이름 입력..." autocomplete="off"/>
       </div>
       <div class="bq-foot">
         <div class="bq-fb" id="rbq-fb"></div>
@@ -7342,7 +7342,15 @@ function initMap(){
   document.querySelector('.modal').addEventListener('click',e=>e.stopPropagation());
   document.getElementById('ui-ov').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
   const bqgi=document.getElementById('bq-gi');
-  if(bqgi)bqgi.addEventListener('keydown',function(e){e.stopPropagation();if(e.key==='Enter'){e.preventDefault();bqTypeSubmit();}});
+  if(bqgi){
+    bqgi.addEventListener('keydown',function(e){e.stopPropagation();if(e.isComposing)return;if(e.key==='Enter')e.preventDefault();});
+    bqgi.addEventListener('keyup',function(e){e.stopPropagation();if(e.key==='Enter'&&!e.isComposing){e.preventDefault();bqTypeSubmit();}});
+  }
+  const rbqgi=document.getElementById('rbq-gi');
+  if(rbqgi){
+    rbqgi.addEventListener('keydown',function(e){e.stopPropagation();if(e.isComposing)return;if(e.key==='Enter')e.preventDefault();});
+    rbqgi.addEventListener('keyup',function(e){e.stopPropagation();if(e.key==='Enter'&&!e.isComposing){e.preventDefault();rbqTypeSubmit();}});
+  }
   document.addEventListener('keydown',function(e){
     const rqOn=document.getElementById('rq-screen').classList.contains('on');
     const krOn=document.getElementById('kr-screen').classList.contains('on');
