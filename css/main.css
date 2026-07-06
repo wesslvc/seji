@@ -267,7 +267,7 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 .ld-cell.sel .ck{display:flex}
 /* 선택 모드 상세(설명+난이도) */
 #ld-detail{width:100%;overflow:hidden;max-height:0;opacity:0;transition:max-height .3s var(--ease),opacity .25s var(--ease)}
-#ld-detail.on{max-height:230px;opacity:1}
+#ld-detail.on{max-height:420px;opacity:1}
 .ld-dt{display:flex;flex-direction:column;gap:.5rem;align-items:center;background:var(--sf);border:1px solid var(--bd);border-radius:16px;padding:.85rem 1rem;margin-top:.1rem}
 .ld-dt-ds{font-size:.78rem;color:var(--tx2);line-height:1.55;text-align:center}
 .ld-dt-row{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap;justify-content:center}
