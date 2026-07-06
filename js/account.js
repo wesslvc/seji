@@ -177,7 +177,7 @@ function injectStyle() {
   .acct-menu-item:last-child{border-bottom:none}
   .acct-stat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin:.4rem 0 1rem}
   .acct-stat{background:#2a2b2f;border:1px solid #3c4043;border-radius:6px;padding:.5rem;text-align:center}
-  .acct-stat .v{font-size:1.2rem;font-weight:700;color:#e8eaed;font-family:'Barlow Condensed',sans-serif}
+  .acct-stat .v{font-size:1.2rem;font-weight:700;color:#e8eaed;font-family:'Space Grotesk','Pretendard',sans-serif}
   .acct-stat .l{font-size:.6rem;color:#9aa0a6;margin-top:2px}
   .rank-tabs{display:flex;gap:.3rem;margin-bottom:.6rem;flex-wrap:wrap}
   .rank-tab{flex:1 1 auto;min-width:0;padding:.4rem .35rem;border-radius:6px;border:1px solid #3c4043;background:transparent;color:#9aa0a6;
@@ -189,14 +189,14 @@ function injectStyle() {
   .rank-list{display:flex;flex-direction:column;gap:.3rem;max-height:50vh;overflow-y:auto;margin-top:.2rem}
   .rank-item{display:flex;align-items:center;gap:.6rem;padding:.45rem .55rem;border-radius:6px;background:#2a2b2f}
   .rank-item.me{background:#e8f0fe;border:1px solid #aecbfa}
-  .rank-no{width:26px;text-align:center;font-weight:700;color:#9aa0a6;font-family:'Barlow Condensed',sans-serif;font-size:1.05rem;
+  .rank-no{width:26px;text-align:center;font-weight:700;color:#9aa0a6;font-family:'Space Grotesk','Pretendard',sans-serif;font-size:1.05rem;
     font-variant-numeric:tabular-nums;flex-shrink:0}
   .rank-no.top{color:#d4a017}
   .rank-av{width:30px;height:30px;border-radius:50%;object-fit:cover;background:#3c4043;flex-shrink:0;display:flex;
     align-items:center;justify-content:center;color:#9aa0a6;font-size:.75rem;font-weight:700}
   .rank-nm{flex:1;min-width:0;font-size:.84rem;color:#e8eaed;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .rank-right{text-align:right;flex-shrink:0;line-height:1.2}
-  .rank-val{font-size:.95rem;font-weight:700;color:#e8eaed;font-family:'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums}
+  .rank-val{font-size:.95rem;font-weight:700;color:#e8eaed;font-family:'Space Grotesk','Pretendard',sans-serif;font-variant-numeric:tabular-nums}
   .rank-sub{font-size:.62rem;color:#9aa0a6}
   .acct-empty{text-align:center;color:#9aa0a6;font-size:.82rem;padding:1.4rem 0}
   .acct-toast{position:fixed;bottom:1.2rem;left:50%;transform:translateX(-50%);z-index:9999;background:#1a1a1a;
@@ -212,7 +212,7 @@ function injectStyle() {
   .sv-title{font-size:.84rem;color:#e8eaed;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .sv-scope{font-size:.68rem;color:#9aa0a6;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .sv-badge{flex-shrink:0;font-size:.72rem;font-weight:700;padding:.22rem .5rem;border-radius:999px;
-    font-family:'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums}
+    font-family:'Space Grotesk','Pretendard',sans-serif;font-variant-numeric:tabular-nums}
   .sv-badge.prog{background:rgba(138,180,248,.15);color:#8ab4f8}
   .sv-badge.done{background:rgba(129,201,149,.15);color:#81c995}
   .sv-acts{display:flex;gap:.35rem;margin-top:.5rem}

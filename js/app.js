@@ -59,108 +59,94 @@ const LD_SLIDES=[
   dd:{L:'하 · 특징 뚜렷한 국가만 (2점)',M:'중 · 모든 국가 · 힌트 있음 (4점)',H:'상 · 힌트 없음 (6점)'}, esub:true},
  {act:'korea',  ic:'pin',   mc:'#f28b82', tt:'한국지리 시·군', ds:'대한민국 시·군 위치를 지도에서 맞혀요.', pts:'시·군당 1점'}
 ];
-const LD={sel:new Set(),cur:0,bdiff:'M',rdiff:'M',ediff:'M',tdiff:'M',esub:'all'};
-const LD_ESUB_LABEL={all:'전체',ff:'화석연료만',re:'신재생만'};
-
-function setMode(mob){
-  isMobile=mob;localStorage.setItem(MODE_KEY,mob?'mobile':'pc');
-  document.querySelectorAll('#ld-mode .ld-seg-btn').forEach(b=>b.classList.toggle('active',(b.dataset.mode==='mob')===mob));
-  try{applyModeUI();}catch(e){}
-}
-function ldBuildSlides(){
-  const car=document.getElementById('ld-car');car.innerHTML='';
-  const dots=document.getElementById('ld-dots');dots.innerHTML='';
-  LD_SLIDES.forEach((sl,i)=>{
-    const s=document.createElement('div');s.className='ld-slide';s.dataset.act=sl.act;
-    let chips='';
-    if(sl.diff){
-      chips='<div class="ld-sl-chips" data-diff="'+sl.diff+'">'+['L','M','H'].map(d=>
-        '<button type="button" class="ld-chip'+(LD[sl.diff]===d?' on':'')+'" data-d="'+d+'">'+({L:'하',M:'중',H:'상'})[d]+'</button>').join('')+'</div>'
-        +'<div class="ld-chip-desc" data-dd>'+(sl.dd[LD[sl.diff]]||'')+'</div>';
-    }
-    if(sl.esub){
-      chips+='<div class="ld-sl-chips" data-esub>'+['all','ff','re'].map(v=>
-        '<button type="button" class="ld-chip'+(LD.esub===v?' on':'')+'" data-v="'+v+'">'+LD_ESUB_LABEL[v]+'</button>').join('')+'</div>';
-    }
-    s.innerHTML='<div class="ld-card2" data-act="'+sl.act+'" style="--mc:'+sl.mc+'">'
-      +'<div class="ld-sl-badge"><span data-ic="check"></span>선택됨</div>'
-      +'<div class="ld-sl-ic"><span data-ic="'+sl.ic+'"></span></div>'
-      +'<div class="ld-sl-tt">'+sl.tt+'</div>'
-      +'<div class="ld-sl-ds">'+sl.ds+'</div>'
-      +'<div class="ld-sl-pts">'+sl.pts+'</div>'
-      +chips+'</div>';
-    car.appendChild(s);
-    const dot=document.createElement('button');dot.className='ld-dot';dot.type='button';
-    dot.setAttribute('aria-label',sl.tt);
-    dot.addEventListener('click',()=>ldGoTo(i));
-    dots.appendChild(dot);
-  });
-  /* 카드 클릭 = 선택 토글 */
-  car.querySelectorAll('.ld-card2').forEach(card=>{
-    card.addEventListener('click',e=>{
-      if(e.target.closest('.ld-chip'))return;
-      ldToggle(card.dataset.act);
-    });
-  });
-  /* 난이도/유형 칩 */
-  car.querySelectorAll('[data-diff]').forEach(wrap=>{
-    const key=wrap.dataset.diff;
-    wrap.querySelectorAll('.ld-chip').forEach(ch=>ch.addEventListener('click',e=>{
-      e.stopPropagation();
-      LD[key]=ch.dataset.d;
-      wrap.querySelectorAll('.ld-chip').forEach(c=>c.classList.toggle('on',c===ch));
-      const card=wrap.closest('.ld-card2');
-      const sl=LD_SLIDES.find(x=>x.act===card.dataset.act);
-      const dd=card.querySelector('[data-dd]');if(dd&&sl)dd.textContent=sl.dd[LD[key]]||'';
-      if(!LD.sel.has(card.dataset.act))ldToggle(card.dataset.act,true);
+const LD={sel:new Set(),bdiff:'M',rdiff:'M',ediff:'M',tdiff:'M',esub:'all'};
+const LD_SAVE_KEY='g3_ld_v1';
+function ldSave(){
+  try{
+    localStorage.setItem(LD_SAVE_KEY,JSON.stringify({
+      sel:[...LD.sel],bdiff:LD.bdiff,rdiff:LD.rdiff,ediff:LD.ediff,tdiff:LD.tdiff,esub:LD.esub,
+      conts:[...document.querySelectorAll('.ld-cont-cb')].filter(c=>c.checked).map(c=>c.value),
+      big:!!(document.getElementById('ld-big')||{}).checked,
+      noisle:!!(document.getElementById('ld-noisle')||{}).checked,
+      terr:!!(document.getElementById('ld-terr')||{}).checked,
+      portion:+((document.getElementById('ld-portion')||{}).value||5)
     }));
+  }catch(e){}
+}
+function ldRestore(){
+  let d;try{d=JSON.parse(localStorage.getItem(LD_SAVE_KEY));}catch(e){}
+  if(!d)return null;
+  if(['L','M','H'].includes(d.bdiff))LD.bdiff=d.bdiff;
+  if(['L','M','H'].includes(d.rdiff))LD.rdiff=d.rdiff;
+  if(['L','M','H'].includes(d.ediff))LD.ediff=d.ediff;
+  if(['L','M','H'].includes(d.tdiff))LD.tdiff=d.tdiff;
+  if(['all','ff','re'].includes(d.esub))LD.esub=d.esub;
+  return d;
+}
+/* ── 모드 그리드 (한눈에 보이는 선택) ── */
+function ldBuildGrid(){
+  const grid=document.getElementById('ld-grid');grid.innerHTML='';
+  LD_SLIDES.forEach(sl=>{
+    const c=document.createElement('div');
+    c.className='ld-cell';c.dataset.act=sl.act;c.style.setProperty('--mc',sl.mc);
+    c.innerHTML='<span class="ck"><span data-ic="check"></span></span>'
+      +'<div class="ld-cell-ic"><span data-ic="'+sl.ic+'"></span></div>'
+      +'<div class="ld-cell-tt">'+sl.tt+'</div>'
+      +'<div class="ld-cell-pt">'+sl.pts+'</div>';
+    c.addEventListener('click',()=>ldToggle(sl.act));
+    grid.appendChild(c);
   });
-  car.querySelectorAll('[data-esub] .ld-chip').forEach(ch=>ch.addEventListener('click',e=>{
-    e.stopPropagation();
+  injectIcons(grid);
+}
+function ldRenderDetail(){
+  const box=document.getElementById('ld-detail');
+  const act=[...LD.sel][0];
+  const sl=LD_SLIDES.find(x=>x.act===act);
+  if(!sl){box.classList.remove('on');box.innerHTML='';return;}
+  let rows='';
+  if(sl.diff){
+    rows+='<div class="ld-dt-row" data-diff="'+sl.diff+'"><span class="ld-dt-lb">난이도</span>'
+      +['L','M','H'].map(d=>'<button type="button" class="ld-chip'+(LD[sl.diff]===d?' on':'')+'" data-d="'+d+'">'+({L:'하',M:'중',H:'상'})[d]+'</button>').join('')+'</div>'
+      +'<div class="ld-chip-desc" data-dd>'+(sl.dd[LD[sl.diff]]||'')+'</div>';
+  }
+  if(sl.esub){
+    rows+='<div class="ld-dt-row" data-esub><span class="ld-dt-lb">유형</span>'
+      +['all','ff','re'].map(v=>'<button type="button" class="ld-chip'+(LD.esub===v?' on':'')+'" data-v="'+v+'">'+LD_ESUB_LABEL[v]+'</button>').join('')+'</div>';
+  }
+  box.innerHTML='<div class="ld-dt"><div class="ld-dt-ds">'+sl.ds+'</div>'+rows+'</div>';
+  box.classList.add('on');
+  box.querySelectorAll('[data-diff] .ld-chip').forEach(ch=>ch.addEventListener('click',()=>{
+    LD[sl.diff]=ch.dataset.d;
+    ch.parentElement.querySelectorAll('.ld-chip').forEach(c=>c.classList.toggle('on',c===ch));
+    const dd=box.querySelector('[data-dd]');if(dd)dd.textContent=sl.dd[LD[sl.diff]]||'';
+    ldSave();
+  }));
+  box.querySelectorAll('[data-esub] .ld-chip').forEach(ch=>ch.addEventListener('click',()=>{
     LD.esub=ch.dataset.v;
     ch.parentElement.querySelectorAll('.ld-chip').forEach(c=>c.classList.toggle('on',c===ch));
-    if(!LD.sel.has('tenergy'))ldToggle('tenergy',true);
+    ldSave();
   }));
-  injectIcons(car);
-  car.addEventListener('scroll',()=>{clearTimeout(car._t);car._t=setTimeout(ldSyncCur,80);},{passive:true});
-  document.getElementById('ld-prev').addEventListener('click',()=>ldGoTo(LD.cur-1));
-  document.getElementById('ld-next').addEventListener('click',()=>ldGoTo(LD.cur+1));
-  ldSyncCur();
-}
-function ldGoTo(i){
-  const car=document.getElementById('ld-car');
-  const n=LD_SLIDES.length;i=Math.max(0,Math.min(n-1,i));
-  car.scrollTo({left:i*car.clientWidth,behavior:'smooth'});
-  LD.cur=i;ldPaintDots();
-}
-function ldSyncCur(){
-  const car=document.getElementById('ld-car');
-  LD.cur=Math.max(0,Math.min(LD_SLIDES.length-1,Math.round(car.scrollLeft/Math.max(1,car.clientWidth))));
-  ldPaintDots();
-}
-function ldPaintDots(){
-  document.querySelectorAll('#ld-dots .ld-dot').forEach((d,i)=>{
-    d.classList.toggle('on',i===LD.cur);
-    d.classList.toggle('picked',LD.sel.has(LD_SLIDES[i].act));
-  });
 }
 function ldToggle(act,forceOn){
+  /* 단일 선택 */
   if(forceOn&&LD.sel.has(act))return;
-  if(LD.sel.has(act)&&!forceOn){LD.sel.delete(act);}
-  else{
-    /* 한국지리는 단독 진행 */
-    if(act==='korea')LD.sel.clear();
-    else LD.sel.delete('korea');
-    LD.sel.add(act);
-  }
-  document.querySelectorAll('.ld-card2').forEach(c=>c.classList.toggle('sel',LD.sel.has(c.dataset.act)));
-  updateStartState();ldPaintDots();
+  if(LD.sel.has(act)&&!forceOn){LD.sel.clear();}
+  else{LD.sel.clear();LD.sel.add(act);}
+  document.querySelectorAll('.ld-cell').forEach(c=>c.classList.toggle('sel',LD.sel.has(c.dataset.act)));
+  ldRenderDetail();updateStartState();ldSave();
 }
 function setupLanding(){
   injectIcons();
-  ldBuildSlides();
+  const saved=ldRestore(); /* 그리드 렌더 전에 난이도/유형 복원 */
+  ldBuildGrid();
   document.querySelectorAll('#ld-mode .ld-seg-btn').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode==='mob')));
   setMode(isMobile);
+  /* Enter = 시작 (랜딩에서만) */
+  document.addEventListener('keydown',e=>{
+    if(document.body.classList.contains('in-session'))return;
+    if(document.getElementById('ld-opt-sheet').classList.contains('on'))return;
+    if(e.key==='Enter'&&!e.isComposing){e.preventDefault();startFromLanding();}
+  });
   /* 세부 옵션 시트 */
   const sheet=document.getElementById('ld-opt-sheet');
   const bd=document.getElementById('ld-opt-bd');
@@ -189,26 +175,38 @@ function setupLanding(){
     const cbs=[...document.querySelectorAll('.ld-cont-cb')];
     const allOn=cbs.every(c=>c.checked);
     cbs.forEach(c=>c.checked=!allOn);
-    syncContAll();
+    syncContAll();ldSave();
   });
   document.querySelectorAll('.ld-cont-cb').forEach(cb=>cb.addEventListener('change',syncContAll));
   syncContAll();
   document.getElementById('ld-start').addEventListener('click',startFromLanding);
+  /* 마지막 세팅 복원 */
+  if(saved){
+    (saved.conts||[]).forEach(v=>{const cb=document.querySelector('.ld-cont-cb[value="'+v+'"]');if(cb)cb.checked=true;});
+    if(saved.big)document.getElementById('ld-big').checked=true;
+    if(saved.noisle)document.getElementById('ld-noisle').checked=true;
+    if(saved.terr&&document.getElementById('ld-terr'))document.getElementById('ld-terr').checked=true;
+    if(typeof saved.portion==='number'&&psl){psl.value=saved.portion;psl.dispatchEvent(new Event('input'));}
+    syncContAll();
+    (saved.sel||[]).slice(0,1).forEach(a=>{if(LD_SLIDES.some(x=>x.act===a))ldToggle(a,true);});
+  }
+  document.querySelectorAll('.ld-cont-cb,#ld-big,#ld-noisle,#ld-terr,#ld-portion').forEach(el=>el.addEventListener('change',ldSave));
   updateStartState();
 }
+
 function updateStartState(){
   const warn=document.getElementById('ld-warn');if(warn)warn.textContent='';
   const lbl=document.getElementById('ld-start-label');
   if(!lbl)return;
   if(!LD.sel.size){lbl.textContent='시작하기';return;}
   const first=LD_SLIDES.find(s=>LD.sel.has(s.act));
-  lbl.textContent=LD.sel.size===1?first.tt+' 시작':first.tt+' 외 '+(LD.sel.size-1)+'개 시작';
+  lbl.textContent=first.tt+' 시작';
 }
 function startFromLanding(){
   let sel=[...LD.sel];
   /* 아무것도 고르지 않으면 현재 카드로 기본 시작 (모든 대륙 · 100% · 중) */
-  if(!sel.length)sel=[LD_SLIDES[LD.cur].act];
-  if(sel.includes('korea')){startSession('korea',['korea'],null);return;}
+  if(!sel.length)sel=['name']; /* 무선택 = 나라 이름 기본 */
+  if(sel.includes('korea')){ldSave();startSession('korea',['korea'],null);return;}
   const order=['name','border','rborder','religion','texp','timp','tenergy'];
   let rawActs=sel.slice();
   const borderDiff=LD.bdiff||'M';
@@ -230,6 +228,7 @@ function startFromLanding(){
   if(acts.includes('religion'))key+='_r'+(LD.rdiff||'M');
   if(acts.includes('tenergy')){key+='_e'+(LD.ediff||'M');if((LD.esub||'all')!=='all')key+='_esub'+(LD.esub||'all');}
   if((acts.includes('border')&&borderDiff==='M')||acts.includes('rborder'))key+='_nomap';
+  ldSave();
   startSession('world',acts,key,key);
 }
 
@@ -2132,6 +2131,7 @@ function initMap(){
     rbqgi.addEventListener('keyup',function(e){e.stopPropagation();if(e.key==='Enter'&&!e.isComposing){e.preventDefault();rbqTypeSubmit();}});
   }
   document.addEventListener('keydown',function(e){
+    if(!document.body.classList.contains('in-session'))return; /* 랜딩에선 캐러셀 키만 동작 */
     const rqOn=document.getElementById('rq-screen').classList.contains('on');
     const krOn=document.getElementById('kr-screen').classList.contains('on');
     if(e.key==='Enter'&&krOn&&!krModalOpen){krRandom();return;}
