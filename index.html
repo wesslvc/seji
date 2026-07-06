@@ -93,6 +93,7 @@
     <div class="stat"><div class="sv" style="color:var(--tx2)" id="ui-rem">0</div><div class="sl">남은</div></div>
     <div class="stat"><div class="sv" style="color:#81c995" id="ui-cor">0</div><div class="sl">정답</div></div>
     <div class="stat"><div class="sv" style="color:var(--wr)" id="ui-rev">0</div><div class="sl">오답</div></div>
+    <button class="hicon" id="ui-finish-btn" title="여기서 끝내기" onclick="mapFinishAction()"><span data-ic="trophy"></span></button>
     <button class="hicon" id="ui-list-btn" title="목록" onclick="mapListAction()"><span data-ic="list"></span></button>
     <button class="hicon danger" id="ui-reset-btn" title="초기화" onclick="mapResetAction()"><span data-ic="reset"></span></button>
   </div>
@@ -3255,11 +3256,7 @@
     <div class="li"><div class="ld" style="background:var(--c3)"></div>3번 정답</div>
     <div class="li"><div class="ld" style="background:#ea4335"></div>오답 (클릭→정답)</div>
   </div>
-  <div class="ctrls">
-    <button class="cb" id="ui-zi">+</button>
-    <button class="cb" id="ui-zo">−</button>
-    <button class="cb" id="ui-zr" style="font-size:.72rem">⟳</button>
-  </div>
+
   <div class="ui-ov" id="ui-ov">
     <div class="modal">
       <div class="mb">
@@ -3311,8 +3308,8 @@
     <button class="reb" id="end-retry-wrong" style="display:none" onclick="retryWrong()">틀린 것만 다시하기</button>
     <button class="reb secondary" id="end-add-wrong" style="display:none" onclick="addToOopsNote()">오답 노트에 추가</button>
     <button class="reb secondary" id="end-oops-quiz" style="display:none" onclick="startOopsQuiz()">오답 노트 퀴즈</button>
-    <button class="reb" onclick="location.reload()">다시 시작</button>
-    <button class="reb secondary" onclick="document.getElementById('ui-end').style.display='none'">닫기 (지도 보기)</button>
+    <button class="reb" onclick="shareLastResult()">결과 자랑하기</button>
+    <button class="reb secondary" onclick="document.getElementById('ui-end').style.display='none'">다시 시작 (지도 보기)</button>
   </div>
 </div>
 
@@ -3361,6 +3358,7 @@
       <div><div class="sv" style="color:var(--tx2)" id="kr-rem">0</div><div class="sl">남은</div></div>
     </div>
     <div class="kr-hbtns">
+      <button class="hicon" title="여기서 끝내기" onclick="krFinishNow()"><span data-ic="trophy"></span></button>
       <button class="hicon" title="목록" onclick="openKRList()"><span data-ic="list"></span></button>
       <button class="hicon danger" title="초기화" onclick="resetKR()"><span data-ic="reset"></span></button>
     </div>
@@ -3368,11 +3366,7 @@
   <div class="rq-progress"><div class="rq-pf" id="kr-pf"></div></div>
   <div id="kr-main">
     <div id="kr-map"></div>
-    <div class="ctrl" style="position:absolute;right:.8rem;bottom:.8rem;display:flex;flex-direction:column;gap:5px;z-index:10">
-      <button class="cb" id="kr-zi">+</button>
-      <button class="cb" id="kr-zo">−</button>
-      <button class="cb" id="kr-zr" style="font-size:.72rem">⟳</button>
-    </div>
+
   </div>
 </div>
 <div id="kr-ov">
@@ -3422,7 +3416,8 @@
       <h3>오답 지역</h3>
       <div class="wrong-tags" id="kr-wrong-tags"></div>
     </div>
-    <button class="reb" onclick="resetKR(true)">다시 시작</button>
+    <button class="reb" onclick="shareLastResult()">결과 자랑하기</button>
+    <button class="reb secondary" onclick="document.getElementById('kr-end').classList.remove('on')">다시 시작</button>
     <button class="reb secondary" onclick="document.getElementById('kr-end').classList.remove('on')">닫기</button>
   </div>
 </div>
@@ -4451,6 +4446,7 @@
   <div class="tq-top">
     <div class="tq-th">
       <span id="tq-title">수출구조 맞추기</span><span id="tq-sub">Export structure</span>
+      <button class="tq-hbtn" id="tq-finish" title="여기서 끝내기" onclick="tqFinishNow()"><span data-ic="trophy"></span></button>
       <button class="tq-hbtn" id="tq-shuffle" title="재배치 (연결 지우고 다시 배치)" onclick="tqRearrange()"><span data-ic="shuffle"></span></button>
       <button class="tq-hbtn danger" id="tq-reset" title="초기화 (처음부터 다시)" onclick="tqResetConfirm()"><span data-ic="reset"></span></button>
     </div>
@@ -4496,6 +4492,7 @@
         <div class="wrong-tags" id="tq-wrong-tags"></div>
       </div>
       <div>
+        <button class="reb" onclick="shareLastResult()">결과 자랑하기</button>
         <button class="reb" id="tq-retry-wrong" style="display:none" onclick="tqRetryWrong()">틀린 나라만 다시하기</button>
         <button class="reb secondary" onclick="tqRestart()">전체 다시 풀기</button>
         <button class="reb secondary" onclick="endSession()">처음으로</button>
@@ -4646,7 +4643,8 @@
       <div class="est"><div class="esv" style="color:#81c995" id="bq-e1">0</div><div class="esl">정답</div></div>
       <div class="est"><div class="esv" style="color:var(--wr)" id="bq-e2">0</div><div class="esl">오답</div></div>
     </div>
-    <button class="reb" onclick="resetBorderQuiz();document.getElementById('bq-end').classList.remove('on')">다시 시작</button>
+    <button class="reb" onclick="shareLastResult()">결과 자랑하기</button>
+    <button class="reb secondary" onclick="document.getElementById('bq-end').classList.remove('on')">다시 시작</button>
     <button class="reb secondary" onclick="document.getElementById('bq-end').classList.remove('on')">닫기</button>
   </div>
 </div>
@@ -4659,8 +4657,8 @@
       <div class="est"><div class="esv" style="color:#81c995" id="rbq-e1">0</div><div class="esl">정답(접경국)</div></div>
       <div class="est"><div class="esv" style="color:var(--wr)" id="rbq-e2">0</div><div class="esl">놓친 접경국</div></div>
     </div>
-    <button class="reb" onclick="resetRBQ();document.getElementById('rbq-end').classList.remove('on')">다시 시작</button>
-    <button class="reb secondary" onclick="document.getElementById('rbq-end').classList.remove('on')">닫기</button>
+    <button class="reb" onclick="shareLastResult()">결과 자랑하기</button>
+    <button class="reb secondary" onclick="document.getElementById('rbq-end').classList.remove('on')">다시 시작</button>
   </div>
 </div>
 <script src="js/data.js"></script>

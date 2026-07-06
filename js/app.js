@@ -62,6 +62,7 @@ const TRADE_DD={
 };
 
 const LD={sel:new Set(),bdiff:'M',rdiff:'M',ediff:'M',tdiff:'M',esub:'all',tkind:'x'};
+const LD_ESUB_LABEL={all:'전체',ff:'화석연료만',re:'신재생만'};
 const LD_SAVE_KEY='g3_ld_v1';
 function ldSave(){
   try{
@@ -331,6 +332,71 @@ function endSession(){
 }
 /* 지도 헤더 액션 — 현재 모드(나라이름/접경국)에 따라 분기 */
 function mapListAction(){if(mapMode==='border')openBQList();else if(mapMode==='rborder')openRBQList();else openCountryList();}
+/* 여기서 끝내기 — 현재 진행 상황으로 점수를 기록하고 결과 화면 표시 */
+const FINISH_MSG='여기서 끝낼까요?\n지금까지 진행한 내용으로 점수가 기록됩니다.';
+function mapFinishAction(){
+  if(!confirm(FINISH_MSG))return;
+  if(mapMode==='border')bqEnd();
+  else if(mapMode==='rborder')rbqEnd();
+  else endScreen();
+}
+/* ── 결과 자랑하기: 공유 카드 이미지 생성 → 공유/저장 ── */
+function shareLastResult(){
+  const r=window._lastResult;if(!r)return;
+  const W=1080,H=1080,cv=document.createElement('canvas');cv.width=W;cv.height=H;
+  const x=cv.getContext('2d');
+  x.fillStyle='#17181b';x.fillRect(0,0,W,H);
+  const glow=x.createRadialGradient(W/2,140,40,W/2,140,620);
+  glow.addColorStop(0,'rgba(94,234,212,.14)');glow.addColorStop(1,'rgba(94,234,212,0)');
+  x.fillStyle=glow;x.fillRect(0,0,W,H);
+  /* 글로브 마크 */
+  x.strokeStyle='#5eead4';x.lineWidth=7;x.lineCap='round';
+  const gx=W/2,gy=190,gr=64;
+  x.beginPath();x.arc(gx,gy,gr,0,Math.PI*2);x.stroke();
+  x.beginPath();x.ellipse(gx,gy,gr*.45,gr,0,0,Math.PI*2);x.stroke();
+  x.beginPath();x.moveTo(gx-gr*.92,gy-gr*.33);x.lineTo(gx+gr*.92,gy-gr*.33);
+  x.moveTo(gx-gr*.92,gy+gr*.33);x.lineTo(gx+gr*.92,gy+gr*.33);x.stroke();
+  /* 워드마크 */
+  const grad=x.createLinearGradient(W/2-220,0,W/2+220,0);
+  grad.addColorStop(0,'#7cc4ff');grad.addColorStop(.52,'#5eead4');grad.addColorStop(1,'#8b9dff');
+  x.fillStyle=grad;x.textAlign='center';
+  x.font="700 96px 'Space Grotesk','Pretendard',sans-serif";
+  x.fillText('Geogl3',W/2,360);
+  /* 모드명 */
+  x.fillStyle='#9aa0a6';x.font="600 46px 'Pretendard',sans-serif";
+  x.fillText(r.title,W/2,442);
+  /* 점수 */
+  x.fillStyle='#e8eaed';x.font="800 190px 'Space Grotesk','Pretendard',sans-serif";
+  x.fillText(r.score,W/2,660);
+  /* 통계 행 */
+  x.font="600 42px 'Pretendard',sans-serif";
+  const rows=r.rows||[];const rowY=770;
+  const widths=rows.map(([lb,v])=>x.measureText(lb+'  '+v).width+70);
+  let tx=W/2-widths.reduce((a,b)=>a+b,0)/2;
+  rows.forEach(([lb,v,col],i)=>{
+    const cx2=tx+widths[i]/2;
+    x.fillStyle='#9aa0a6';x.textAlign='right';x.fillText(lb,cx2-8,rowY);
+    x.fillStyle=col||'#e8eaed';x.textAlign='left';x.fillText(String(v),cx2+8,rowY);
+    tx+=widths[i];
+  });
+  x.textAlign='center';
+  /* 푸터 */
+  const d=new Date();
+  x.fillStyle='#5f6368';x.font="500 36px 'Pretendard',sans-serif";
+  x.fillText(d.getFullYear()+'. '+(d.getMonth()+1)+'. '+d.getDate()+'.  ·  Geogl3 지리 퀴즈',W/2,980);
+  cv.toBlob(async blob=>{
+    if(!blob)return;
+    const file=new File([blob],'geogl3-result.png',{type:'image/png'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      try{await navigator.share({files:[file],title:'Geogl3 결과'});return;}catch(e){}
+    }
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);a.download='geogl3-result.png';a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  },'image/png');
+}
+function tqFinishNow(){if(!confirm(FINISH_MSG))return;tqShowEnd();}
+function krFinishNow(){if(!confirm(FINISH_MSG))return;krEndScreen();}
 function mapResetAction(){if(mapMode==='border')resetBorderQuiz();else if(mapMode==='rborder')resetRBQ();else resetMapQuiz();}
 function openReligionTab(){if(!RQ.list||!RQ.list.length){if(!loadRQ())buildRQList();}showRQCard();}
 function openKoreaTab(){setTimeout(()=>{initKorea();applyModeUI();},30);}
@@ -497,8 +563,8 @@ function bqTypeSubmit(){
   else { bqFlash('그런 나라가 없어요','bfng'); inp.classList.add('shake'); setTimeout(()=>inp.classList.remove('shake'),360); }
   try{inp.focus();}catch(e){}
 }
-function resetBorderQuiz(){
-  if(!confirm('접경국 퀴즈 진행 상황을 초기화할까요?'))return;
+function resetBorderQuiz(skipConfirm){
+  if(skipConfirm!==true&&!confirm('접경국 퀴즈 진행 상황을 초기화할까요?'))return;
   localStorage.removeItem(BQ.saveKey);
   BQ.status={};BQ.correct=0;BQ.wrong=0;BQ.wrongCounts={};BQ.recorded=false;
   const allGroups=bqBuildGroupQueue(BQ.activeSet);
@@ -512,7 +578,10 @@ function bqEnd(){
   document.getElementById('bq-e1').textContent=BQ.correct;
   document.getElementById('bq-e2').textContent=BQ.wrong;
   el.classList.add('on');
+  window._lastResult={title:'접경국 퀴즈',score:Math.round(BQ.correct/(BQ.total||1)*100)+'%',
+    rows:[['정답',BQ.correct,'#81c995'],['오답',BQ.wrong,'#f28b82'],['전체',BQ.total,'#9aa0a6']]};
   if(!BQ.recorded){BQ.recorded=true;const bper=BQ.noMap?3:1;try{bqSave();}catch(e){}try{window.SejiAccount&&window.SejiAccount.submitScore({category:'border',correct:BQ.correct,total:BQ.total,accuracy:Math.round(BQ.correct/(BQ.total||1)*1000)/10,scope:SESSION.filterKey,points:BQ.correct*bper,maxPoints:BQ.total*bper,isRetry:BQ.isRetry,contStats:contStatsOf([...BQ.activeSet],iso=>BQ.status[iso]&&BQ.status[iso]!=='cr')});}catch(e){}}
+  setTimeout(()=>{try{resetBorderQuiz(true);}catch(e){}},80);
 }
 function openBQList(){
   const grid=document.getElementById('bql-grid');if(!grid)return;
@@ -646,8 +715,8 @@ function rbqTypeSubmit(){
   try{inp.focus();}catch(e){}
 }
 function rbqSkip(){if(RBQ.queue&&RBQ.queue.length>1){const g=RBQ.queue.shift();RBQ.queue.push(g);rbqShowCurrent();}}
-function resetRBQ(){
-  if(!confirm('역접경국 퀸즈 진행 상황을 초기화할까요?'))return;
+function resetRBQ(skipConfirm){
+  if(skipConfirm!==true&&!confirm('접경국 쓰기 진행 상황을 초기화할까요?'))return;
   localStorage.removeItem(RBQ.saveKey);
   RBQ.status={};RBQ.scoreCounts={};RBQ.correct=0;RBQ.wrong=0;RBQ.recorded=false;
   RBQ.queue=[...RBQ.activeSet].sort(()=>Math.random()-.5);
@@ -661,8 +730,11 @@ function rbqEnd(){
   document.getElementById('rbq-e1').textContent=RBQ.correct;
   document.getElementById('rbq-e2').textContent=RBQ.wrong;
   el.classList.add('on');
+  window._lastResult={title:'접경국 쓰기',score:points+'점',
+    rows:[['맞춘 접경국',RBQ.correct,'#81c995'],['놓친 접경국',RBQ.wrong,'#f28b82']]};
   if(!RBQ.recorded){RBQ.recorded=true;try{rbqSave();}catch(e){}
     try{window.SejiAccount&&window.SejiAccount.submitScore({category:'rborder',correct:RBQ.correct,total:RBQ.total,accuracy:Math.round(RBQ.correct/(RBQ.total||1)*1000)/10,scope:SESSION.filterKey,points,maxPoints:maxPts,isRetry:RBQ.isRetry});}catch(e){}}
+  setTimeout(()=>{try{resetRBQ(true);}catch(e){}},80);
 }
 function openRBQList(){
   const grid=document.getElementById('rbql-grid');if(!grid)return;
@@ -935,9 +1007,9 @@ function loadGame(){
     S.correct=cor;S.revealed=rev;S.recorded=!!d.recorded;return true;
   }catch(e){return false;}
 }
-function resetMapQuiz(){
+function resetMapQuiz(skipConfirm){
   const modeName=S.saveKey.replace('wq_','');
-  if(!confirm('현재 모드('+modeName+') 진행 상황을 초기화할까요?'))return;
+  if(skipConfirm!==true&&!confirm('현재 모드('+modeName+') 진행 상황을 초기화할까요?'))return;
   localStorage.removeItem(S.saveKey);
   S.correct=0;S.revealed=0;S.wrong={};S.status={};S.cur=null;S.recorded=false;
   Object.keys(colors).forEach(k=>delete colors[k]);
@@ -1259,6 +1331,9 @@ function endScreen(){
   oq.style.display=saved.length?'block':'none';
   if(saved.length)oq.textContent='오답 노트 퀴즈 ('+saved.length+'개)';
   document.getElementById('ui-end').style.display='flex';
+  window._lastResult={title:'나라 이름 맞추기',score:Math.round(S.correct/(S.total||1)*100)+'%',
+    rows:[['정답',S.correct,'#81c995'],['공개됨',S.revealed,'#f28b82'],['전체',S.total,'#9aa0a6']]};
+  setTimeout(()=>{try{resetMapQuiz(true);}catch(e){}},80); /* 자동 리셋 — 다음 판은 새로 시작 */
 }
 
 /* ── Country List Panel ── */
@@ -1911,6 +1986,14 @@ function krEndScreen(){
   }
   document.getElementById('kr-wrong-wrap').style.display=n?'block':'none';
   document.getElementById('kr-end').classList.add('on');
+  window._lastResult={title:'한국지리 시·군',score:Math.round(KR.correct/(KR.total||1)*100)+'%',
+    rows:[['정답',KR.correct,'#81c995'],['공개됨',KR.revealed,'#f28b82'],['전체',KR.total,'#9aa0a6']]};
+  setTimeout(()=>{try{
+    localStorage.removeItem(KQ_SAVE_KEY);
+    KR.correct=0;KR.revealed=0;KR.wrong={};KR.status={};KR.cur=null;KR.recorded=false;
+    Object.keys(kColors).forEach(k=>{stopKBlink(k);delete kColors[k];});
+    paintK();krStats();
+  }catch(e){}},80);
 }
 let klTab='done';
 function openKRList(){
@@ -1987,9 +2070,9 @@ function bindKoreaEvents(){
     const ns=Math.min(Math.max(k_s*(e.deltaY>0?0.85:1.18),0.5),25);
     k_x=mx-(mx-k_x)*ns/k_s;k_y=my-(my-k_y)*ns/k_s;k_s=ns;applyKT();
   },{passive:false});
-  document.getElementById('kr-zi').onclick=function(){const mx=mw.clientWidth/2,my=mw.clientHeight/2;const ns=k_s*1.4;k_x=mx-(mx-k_x)*ns/k_s;k_y=my-(my-k_y)*ns/k_s;k_s=ns;applyKT();};
-  document.getElementById('kr-zo').onclick=function(){const mx=mw.clientWidth/2,my=mw.clientHeight/2;const ns=k_s*0.71;k_x=mx-(mx-k_x)*ns/k_s;k_y=my-(my-k_y)*ns/k_s;k_s=ns;applyKT();};
-  document.getElementById('kr-zr').onclick=krFit;
+  var _kzi=document.getElementById('kr-zi');if(_kzi)_kzi.onclick=function(){const mx=mw.clientWidth/2,my=mw.clientHeight/2;const ns=k_s*1.4;k_x=mx-(mx-k_x)*ns/k_s;k_y=my-(my-k_y)*ns/k_s;k_s=ns;applyKT();};
+  var _kzo=document.getElementById('kr-zo');if(_kzo)_kzo.onclick=function(){const mx=mw.clientWidth/2,my=mw.clientHeight/2;const ns=k_s*0.71;k_x=mx-(mx-k_x)*ns/k_s;k_y=my-(my-k_y)*ns/k_s;k_s=ns;applyKT();};
+  var _kzr=document.getElementById('kr-zr');if(_kzr)_kzr.onclick=krFit;
   bindModalBtn(document.getElementById('kr-bsub'),krSubmit);
   bindModalBtn(document.getElementById('kr-bskip'),krCloseModal);
   document.getElementById('kr-gi').addEventListener('keydown',function(e){
@@ -2122,9 +2205,9 @@ function initMap(){
     const ns=Math.min(Math.max(_s*(e.deltaY>0?0.85:1.18),0.3),15);
     _x=mx-(mx-_x)*ns/_s;_y=my-(my-_y)*ns/_s;_s=ns;applyT();
   },{passive:false});
-  document.getElementById('ui-zi').onclick=function(){const mx=mw.clientWidth/2,my=mw.clientHeight/2;const ns=_s*1.4;_x=mx-(mx-_x)*ns/_s;_y=my-(my-_y)*ns/_s;_s=ns;applyT();};
-  document.getElementById('ui-zo').onclick=function(){const mx=mw.clientWidth/2,my=mw.clientHeight/2;const ns=_s*0.71;_x=mx-(mx-_x)*ns/_s;_y=my-(my-_y)*ns/_s;_s=ns;applyT();};
-  document.getElementById('ui-zr').onclick=function(){const ns=Math.min(mw.clientWidth/SW,mw.clientHeight/SH);animateTo((mw.clientWidth-SW*ns)/2,(mw.clientHeight-SH*ns)/2,ns,400);};
+  var _uzi=document.getElementById('ui-zi');if(_uzi)_uzi.onclick=function(){const mx=mw.clientWidth/2,my=mw.clientHeight/2;const ns=_s*1.4;_x=mx-(mx-_x)*ns/_s;_y=my-(my-_y)*ns/_s;_s=ns;applyT();};
+  var _uzo=document.getElementById('ui-zo');if(_uzo)_uzo.onclick=function(){const mx=mw.clientWidth/2,my=mw.clientHeight/2;const ns=_s*0.71;_x=mx-(mx-_x)*ns/_s;_y=my-(my-_y)*ns/_s;_s=ns;applyT();};
+  var _uzr=document.getElementById('ui-zr');if(_uzr)_uzr.onclick=function(){const ns=Math.min(mw.clientWidth/SW,mw.clientHeight/SH);animateTo((mw.clientWidth-SW*ns)/2,(mw.clientHeight-SH*ns)/2,ns,400);};
   /* 모바일: 가상 키보드가 떠 있을 때 버튼의 첫 탭이 input blur로 흡수돼 무시되는 문제 방지.
      mousedown에서 기본동작(포커스 이동)을 막아 click이 첫 탭에 바로 적중하게 함 */
   bindModalBtn(document.getElementById('ui-bsub'),submit);
@@ -3211,6 +3294,10 @@ function tqShowEnd(){
       isRetry:TQ.isRetry, contStats:contStatsOf([...TQ.doneSet],iso=>!TQ.wrongSet.has(iso))
     }); }catch(e){}
   }
+  const _ttl={x:'수출구조',m:'수입구조',r:'종교 구성',e:'에너지 구성'}[TQ.mode]||'무역 구조';
+  window._lastResult={title:_ttl,score:acc+'%',
+    rows:[['맞춤',cor,'#81c995'],['틀림',Math.max(0,tot-cor),'#f28b82'],['획득',cor*tqPoints(TQ.mode,TQ.filterKey)+'점','#fdd663']]};
+  if(!TQ.isRetry)try{localStorage.removeItem(TQ.saveKey);}catch(e){} /* 자동 리셋 — 다음 입장은 처음부터 */
 }
 function tqRetryWrong(){
   const wrong=[...TQ.wrongSet];

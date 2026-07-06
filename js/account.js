@@ -88,7 +88,8 @@ async function flushPush() {
   _pending.clear();
   const { error } = await supabase.from('user_data').upsert(rows);
   if (error) {
-    if (!_dataErrShown) { _dataErrShown = true; toast('계정 저장 실패: user_data 테이블 SQL 확인 필요'); }
+    console.error('[Geogl3] 진행상황 저장 실패:', error);
+    if (!_dataErrShown) { _dataErrShown = true; toast('⚠ 진행상황 저장 실패: ' + (error.message || error.code || 'user_data 테이블 확인')); }
   } else if (Date.now() - _lastCloudToast > 8000) {
     _lastCloudToast = Date.now();
     toast('☁ 계정에 저장됨');
@@ -344,6 +345,7 @@ function buildUI() {
         <button class="rank-tab on" data-cat="all">전체</button>
         <button class="rank-tab" data-cat="name">나라이름</button>
         <button class="rank-tab" data-cat="border">접경국</button>
+        <button class="rank-tab" data-cat="rborder">접경국 쓰기</button>
         <button class="rank-tab" data-cat="religion">종교</button>
         <button class="rank-tab" data-cat="tenergy">에너지</button>
         <button class="rank-tab" data-cat="texp">수출구조</button>
@@ -596,7 +598,7 @@ async function openMenuData() {
   // 유형별
   const catBox = document.getElementById('acct-cat-stats');
   catBox.innerHTML = '';
-  const cats = ['name', 'border', 'religion', 'korea'];
+  const cats = ['name', 'border', 'rborder', 'religion', 'texp', 'timp', 'tenergy', 'korea'];
   const has = cats.filter((c) => graded.some((r) => r.category === c));
   if (!has.length) catBox.innerHTML = `<div style="font-size:.78rem;color:#9aa0a6">아직 기록이 없습니다.</div>`;
   has.forEach((c) => {
@@ -884,6 +886,9 @@ async function submitScore({ category, correct, total, accuracy, scope, points, 
   if (!error) {
     const lbl = category === 'religion' ? `${points}/${maxPoints}pt` : `${acc}%`;
     toast(`${CAT_NAME[category] || ''} 기록 저장 · ${lbl}${isRetry ? ' (오답·랭킹 제외)' : ''}`);
+  } else {
+    console.error('[Geogl3] 점수 저장 실패:', error);
+    toast('⚠ 점수 저장 실패: ' + (error.message || error.code || '알 수 없는 오류'));
   }
 }
 
