@@ -24,7 +24,7 @@ function injectIcons(root){(root||document).querySelectorAll('[data-ic]').forEac
 
 /* ── Mode (PC / Mobile) ── */
 const MODE_KEY='wq_mode';
-let isMobile=localStorage.getItem(MODE_KEY)==='mobile'||(localStorage.getItem(MODE_KEY)===null&&('ontouchstart' in window||navigator.maxTouchPoints>0));
+let isMobile=localStorage.getItem(MODE_KEY)==='mobile'||(localStorage.getItem(MODE_KEY)===null&&(matchMedia('(pointer:coarse)').matches&&Math.min(innerWidth,innerHeight)<900));
 /* ══════════ 세션 컨트롤러 (체크리스트 랜딩 + 탭 전환) ══════════ */
 const SESSION={cat:null,acts:[],filterKey:'all',cur:null};
 let mapMode='name'; /* 'name' | 'border' */
@@ -46,25 +46,27 @@ function setMode(mob){
 }
 /* ══════════ Geogl3 랜딩 — 캐러셀 모드 선택 ══════════ */
 const LD_SLIDES=[
- {act:'name',   ic:'globe', mc:'#8ab4f8', tt:'나라 이름 맞추기', ds:'지도에서 나라를 클릭하고 이름을 맞혀요. 3번 안에 맞히면 색이 칠해져요.', pts:'국가당 1점'},
+ {act:'name',  big:true, ic:'globe', mc:'#7cc4ff', tt:'나라 이름 맞추기', ds:'지도에서 나라를 클릭하고 이름을 맞혀요. 3번 안에 맞히면 색이 칠해져요.', pts:'국가당 1점'},
+ {act:'korea', big:true, ic:'pin',   mc:'#5eead4', tt:'한국지리 시·군', ds:'대한민국 시·군 위치를 지도에서 맞혀요.', pts:'시·군당 1점'},
  {act:'border', ic:'border',mc:'#81c995', tt:'접경국 퀴즈', ds:'국경을 맞댄 이웃 나라로 추리하는 퀴즈. 난이도에 따라 방식이 달라져요.', pts:'1 · 3 · 9점', diff:'bdiff',
   dd:{L:'하 · 지도에서 클릭해 맞히기 (1점)',M:'중 · 지도 없이 이름 입력 (3점)',H:'상 · 접한 나라 모두 쓰기 (접경국당 9점)'}},
  {act:'religion',ic:'book', mc:'#fdd663', tt:'종교 구성', ds:'원그래프를 보고 나라별 종교 구성을 맞혀요.', pts:'1 · 2 · 3점', diff:'rdiff',
   dd:{L:'하 · 상위 종교 70%+ 국가만 (1점)',M:'중 · 모든 국가 · 힌트 있음 (2점)',H:'상 · 3번 틀려야 공개 (3점)'}},
- {act:'texp',   ic:'chart', mc:'#f28b82', tt:'수출구조', ds:'수출 품목 트리맵을 보고 어느 나라인지 맞혀요.', pts:'2 · 4 · 6점', diff:'tdiff',
-  dd:{L:'하 · 주요국만 · 힌트 있음 (2점)',M:'중 · 모든 국가 · 힌트 있음 (4점)',H:'상 · 힌트 없음 (6점)'}},
- {act:'timp',   ic:'chart', mc:'#8ab4f8', tt:'수입구조', ds:'수입 품목 구조로 나라를 맞히는 고난도 퀴즈예요.', pts:'3 · 6 · 9점', diff:'tdiff',
-  dd:{L:'하 · 주요국만 · 힌트 있음 (3점)',M:'중 · 모든 국가 · 힌트 있음 (6점)',H:'상 · 힌트 없음 (9점)'}},
- {act:'tenergy',ic:'chart', mc:'#81c995', tt:'에너지 구성', ds:'발전·에너지 믹스를 보고 나라를 맞혀요. 유형 필터도 고를 수 있어요.', pts:'2 · 4 · 6점', diff:'ediff',
-  dd:{L:'하 · 특징 뚜렷한 국가만 (2점)',M:'중 · 모든 국가 · 힌트 있음 (4점)',H:'상 · 힌트 없음 (6점)'}, esub:true},
- {act:'korea',  ic:'pin',   mc:'#f28b82', tt:'한국지리 시·군', ds:'대한민국 시·군 위치를 지도에서 맞혀요.', pts:'시·군당 1점'}
+ {act:'trade',  ic:'chart', mc:'#8b9dff', tt:'무역 구조', ds:'수출·수입 품목 트리맵을 보고 어느 나라인지 맞혀요.', pts:'2~9점', diff:'tdiff', tkind:true},
+ {act:'tenergy',ic:'chart', mc:'#ffb37a', tt:'에너지 구성', ds:'발전·에너지 믹스를 보고 나라를 맞혀요. 유형 필터도 고를 수 있어요.', pts:'2 · 4 · 6점', diff:'ediff',
+  dd:{L:'하 · 특징 뚜렷한 국가만 (2점)',M:'중 · 모든 국가 · 힌트 있음 (4점)',H:'상 · 힌트 없음 (6점)'}, esub:true}
 ];
-const LD={sel:new Set(),bdiff:'M',rdiff:'M',ediff:'M',tdiff:'M',esub:'all'};
+const TRADE_DD={
+ x:{L:'하 · 주요국만 · 힌트 있음 (2점)',M:'중 · 모든 국가 · 힌트 있음 (4점)',H:'상 · 힌트 없음 (6점)'},
+ m:{L:'하 · 주요국만 · 힌트 있음 (3점)',M:'중 · 모든 국가 · 힌트 있음 (6점)',H:'상 · 힌트 없음 (9점)'}
+};
+
+const LD={sel:new Set(),bdiff:'M',rdiff:'M',ediff:'M',tdiff:'M',esub:'all',tkind:'x'};
 const LD_SAVE_KEY='g3_ld_v1';
 function ldSave(){
   try{
     localStorage.setItem(LD_SAVE_KEY,JSON.stringify({
-      sel:[...LD.sel],bdiff:LD.bdiff,rdiff:LD.rdiff,ediff:LD.ediff,tdiff:LD.tdiff,esub:LD.esub,
+      sel:[...LD.sel],bdiff:LD.bdiff,rdiff:LD.rdiff,ediff:LD.ediff,tdiff:LD.tdiff,esub:LD.esub,tkind:LD.tkind,
       conts:[...document.querySelectorAll('.ld-cont-cb')].filter(c=>c.checked).map(c=>c.value),
       big:!!(document.getElementById('ld-big')||{}).checked,
       noisle:!!(document.getElementById('ld-noisle')||{}).checked,
@@ -81,6 +83,7 @@ function ldRestore(){
   if(['L','M','H'].includes(d.ediff))LD.ediff=d.ediff;
   if(['L','M','H'].includes(d.tdiff))LD.tdiff=d.tdiff;
   if(['all','ff','re'].includes(d.esub))LD.esub=d.esub;
+  if(['x','m'].includes(d.tkind))LD.tkind=d.tkind;
   return d;
 }
 /* ── 모드 그리드 (한눈에 보이는 선택) ── */
@@ -88,11 +91,11 @@ function ldBuildGrid(){
   const grid=document.getElementById('ld-grid');grid.innerHTML='';
   LD_SLIDES.forEach(sl=>{
     const c=document.createElement('div');
-    c.className='ld-cell';c.dataset.act=sl.act;c.style.setProperty('--mc',sl.mc);
+    c.className='ld-cell'+(sl.big?' big':'');c.dataset.act=sl.act;c.style.setProperty('--mc',sl.mc);
+    const txt='<div class="ld-cell-tt">'+sl.tt+'</div><div class="ld-cell-pt">'+sl.pts+'</div>';
     c.innerHTML='<span class="ck"><span data-ic="check"></span></span>'
       +'<div class="ld-cell-ic"><span data-ic="'+sl.ic+'"></span></div>'
-      +'<div class="ld-cell-tt">'+sl.tt+'</div>'
-      +'<div class="ld-cell-pt">'+sl.pts+'</div>';
+      +(sl.big?'<div class="ld-cell-tx">'+txt+'</div>':txt);
     c.addEventListener('click',()=>ldToggle(sl.act));
     grid.appendChild(c);
   });
@@ -103,11 +106,16 @@ function ldRenderDetail(){
   const act=[...LD.sel][0];
   const sl=LD_SLIDES.find(x=>x.act===act);
   if(!sl){box.classList.remove('on');box.innerHTML='';return;}
+  const ddOf=()=>sl.act==='trade'?(TRADE_DD[LD.tkind]||{})[LD.tdiff]||'':(sl.dd?sl.dd[LD[sl.diff]]||'':'');
   let rows='';
+  if(sl.tkind){
+    rows+='<div class="ld-dt-row" data-tkind><span class="ld-dt-lb">유형</span>'
+      +[['x','수출'],['m','수입']].map(([v,lb])=>'<button type="button" class="ld-chip'+(LD.tkind===v?' on':'')+'" data-v="'+v+'">'+lb+'</button>').join('')+'</div>';
+  }
   if(sl.diff){
     rows+='<div class="ld-dt-row" data-diff="'+sl.diff+'"><span class="ld-dt-lb">난이도</span>'
       +['L','M','H'].map(d=>'<button type="button" class="ld-chip'+(LD[sl.diff]===d?' on':'')+'" data-d="'+d+'">'+({L:'하',M:'중',H:'상'})[d]+'</button>').join('')+'</div>'
-      +'<div class="ld-chip-desc" data-dd>'+(sl.dd[LD[sl.diff]]||'')+'</div>';
+      +'<div class="ld-chip-desc" data-dd>'+ddOf()+'</div>';
   }
   if(sl.esub){
     rows+='<div class="ld-dt-row" data-esub><span class="ld-dt-lb">유형</span>'
@@ -118,8 +126,14 @@ function ldRenderDetail(){
   box.querySelectorAll('[data-diff] .ld-chip').forEach(ch=>ch.addEventListener('click',()=>{
     LD[sl.diff]=ch.dataset.d;
     ch.parentElement.querySelectorAll('.ld-chip').forEach(c=>c.classList.toggle('on',c===ch));
-    const dd=box.querySelector('[data-dd]');if(dd)dd.textContent=sl.dd[LD[sl.diff]]||'';
+    const dd=box.querySelector('[data-dd]');if(dd)dd.textContent=ddOf();
     ldSave();
+  }));
+  box.querySelectorAll('[data-tkind] .ld-chip').forEach(ch=>ch.addEventListener('click',()=>{
+    LD.tkind=ch.dataset.v;
+    ch.parentElement.querySelectorAll('.ld-chip').forEach(c=>c.classList.toggle('on',c===ch));
+    const dd=box.querySelector('[data-dd]');if(dd)dd.textContent=ddOf();
+    updateStartState();ldSave();
   }));
   box.querySelectorAll('[data-esub] .ld-chip').forEach(ch=>ch.addEventListener('click',()=>{
     LD.esub=ch.dataset.v;
@@ -200,13 +214,15 @@ function updateStartState(){
   if(!lbl)return;
   if(!LD.sel.size){lbl.textContent='시작하기';return;}
   const first=LD_SLIDES.find(s=>LD.sel.has(s.act));
-  lbl.textContent=first.tt+' 시작';
+  const nm=first.act==='trade'?(LD.tkind==='m'?'수입구조':'수출구조'):first.tt;
+  lbl.textContent=nm+' 시작';
 }
 function startFromLanding(){
   let sel=[...LD.sel];
-  /* 아무것도 고르지 않으면 현재 카드로 기본 시작 (모든 대륙 · 100% · 중) */
-  if(!sel.length)sel=['name']; /* 무선택 = 나라 이름 기본 */
+  /* 아무것도 고르지 않으면 기본 시작 (나라 이름 · 모든 대륙 · 100% · 중) */
+  if(!sel.length)sel=['name'];
   if(sel.includes('korea')){ldSave();startSession('korea',['korea'],null);return;}
+  sel=sel.map(a=>a==='trade'?(LD.tkind==='m'?'timp':'texp'):a);
   const order=['name','border','rborder','religion','texp','timp','tenergy'];
   let rawActs=sel.slice();
   const borderDiff=LD.bdiff||'M';

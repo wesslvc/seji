@@ -188,7 +188,7 @@ function injectStyle() {
   #acct-rank-conts .rank-tab{padding:.42rem .2rem}
   .rank-list{display:flex;flex-direction:column;gap:.3rem;max-height:50vh;overflow-y:auto;margin-top:.2rem}
   .rank-item{display:flex;align-items:center;gap:.6rem;padding:.45rem .55rem;border-radius:6px;background:#2a2b2f}
-  .rank-item.me{background:#e8f0fe;border:1px solid #aecbfa}
+  .rank-item.me{background:rgba(138,180,248,.16);border:1px solid rgba(138,180,248,.5)}
   .rank-no{width:26px;text-align:center;font-weight:700;color:#9aa0a6;font-family:'Space Grotesk','Pretendard',sans-serif;font-size:1.05rem;
     font-variant-numeric:tabular-nums;flex-shrink:0}
   .rank-no.top{color:#d4a017}
@@ -473,7 +473,7 @@ async function emailAuth(isSignup) {
     const { data, error } = await supabase.auth.signUp({ email, password: pw });
     if (error) { msg.style.color = '#b06060'; msg.textContent = '가입 실패: ' + error.message; return; }
     if (data.session) { closeAll(); toast('가입 완료, 로그인되었습니다'); await initAuth(); }
-    else { msg.style.color = '#188038'; msg.textContent = '확인 메일을 보냈어요. 메일의 링크를 누른 뒤 로그인하세요.'; }
+    else { msg.style.color = '#81c995'; msg.textContent = '확인 메일을 보냈어요. 메일의 링크를 누른 뒤 로그인하세요.'; }
   } else {
     const { error } = await supabase.auth.signInWithPassword({ email, password: pw });
     if (error) { msg.style.color = '#b06060'; msg.textContent = '로그인 실패: 이메일/비밀번호 확인 (가입 안 했으면 회원가입)'; return; }
@@ -653,7 +653,7 @@ function openRecordDetail(r) {
       ${r.category !== 'religion' ? `<div class="acct-lbl" style="margin-top:.8rem">맞춘 것 (${bd.right.length})</div><div class="rd-tags">${tags(bd.right)}</div>` : ''}
       <div class="acct-lbl" style="margin-top:.8rem">틀린 것 (${bd.wrong.length})</div><div class="rd-tags rd-wrong">${tags(bd.wrong)}</div>
     ` : `<div style="color:#9aa0a6;font-size:.78rem;margin-top:.8rem">상세 정/오답은 해당 범위를 다시 풀면 기록됩니다.</div>`}
-    ${bd.hasWrong ? `<button class="acct-btn" id="rd-retry" style="background:#fce8e6;color:#f28b82;border-color:#f0a9a2;margin-top:1rem">틀린 것만 다시 풀기</button>` : ''}
+    ${bd.hasWrong ? `<button class="acct-btn" id="rd-retry" style="background:rgba(242,139,130,.14);color:#f28b82;border-color:rgba(242,139,130,.4);margin-top:1rem">틀린 것만 다시 풀기</button>` : ''}
   `;
   card.querySelector('[data-close]').addEventListener('click', () => document.getElementById('acct-recdetail').classList.remove('on'));
   const rt = card.querySelector('#rd-retry');
