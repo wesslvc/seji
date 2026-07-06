@@ -565,7 +565,7 @@ function renderSaves() {
   box.innerHTML = '';
   if (!saves.length) { box.innerHTML = `<div style="font-size:.78rem;color:#9aa0a6">진행 중인 퀴즈가 없습니다.</div>`; return; }
   saves.forEach((s) => {
-    const scope = s.type === 'korea' ? '시·군 전체' : scopeLabel(s.scope);
+    const scope = s.type === 'korea' ? (s.scope==='korea_prov'?'시·도 단위':'시·군 전체') : scopeLabel(s.scope);
     const item = el(`<div class="sv-item">
       <div class="sv-top">
         <div class="sv-info"><div class="sv-title">${CAT_NAME[s.type]}</div><div class="sv-scope">${scope}</div></div>
@@ -622,7 +622,7 @@ async function openMenuData() {
   recent.forEach((r) => {
     const d = new Date(r.created_at);
     const ds = `${d.getMonth() + 1}/${d.getDate()}`;
-    const sc = r.category === 'korea' ? '' : scopeLabel(r.scope);
+    const sc = r.category === 'korea' ? (r.scope==='korea_prov'?'시·도':'') : scopeLabel(r.scope);
     const pts = r.points != null ? r.points : r.correct;
     const val = r.category === 'religion'
       ? `${Number(r.accuracy).toFixed(1)}% · <b style="color:#e8eaed">${pts}점</b>`
@@ -638,7 +638,7 @@ async function openMenuData() {
 function openRecordDetail(r) {
   const d = new Date(r.created_at);
   const dateStr = `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-  const scope = r.category === 'korea' ? '시·군 전체' : scopeLabel(r.scope);
+  const scope = r.category === 'korea' ? (r.scope==='korea_prov'?'시·도 단위':'시·군 전체') : scopeLabel(r.scope);
   const bd = (window.SejiGame && window.SejiGame.getBreakdown) ? window.SejiGame.getBreakdown(r.category, r.scope) : { right: [], wrong: [], hasState: false, hasWrong: false };
   const pts = r.points != null ? r.points : r.correct;
   const scoreLine = r.category === 'religion'

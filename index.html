@@ -93,7 +93,7 @@
     <div class="stat"><div class="sv" style="color:var(--tx2)" id="ui-rem">0</div><div class="sl">남은</div></div>
     <div class="stat"><div class="sv" style="color:#81c995" id="ui-cor">0</div><div class="sl">정답</div></div>
     <div class="stat"><div class="sv" style="color:var(--wr)" id="ui-rev">0</div><div class="sl">오답</div></div>
-    <button class="hicon" id="ui-finish-btn" title="여기서 끝내기" onclick="mapFinishAction()"><span data-ic="trophy"></span></button>
+    <button class="hicon" id="ui-finish-btn" title="여기서 끝내기" onclick="mapFinishAction()"><span data-ic="flag"></span></button>
     <button class="hicon" id="ui-list-btn" title="목록" onclick="mapListAction()"><span data-ic="list"></span></button>
     <button class="hicon danger" id="ui-reset-btn" title="초기화" onclick="mapResetAction()"><span data-ic="reset"></span></button>
   </div>
@@ -3351,14 +3351,14 @@
 <!-- ═══ Korea Quiz Screen ═══ -->
 <div id="kr-screen">
   <div class="kr-header">
-    <div class="kr-title">시·군 맞추기</div>
+    <div class="kr-title" id="kr-title">시·군 맞추기</div>
     <div class="kr-stats">
       <div><div class="sv" style="color:#81c995" id="kr-cor">0</div><div class="sl">정답</div></div>
       <div><div class="sv" style="color:var(--wr)" id="kr-rev">0</div><div class="sl">오답</div></div>
       <div><div class="sv" style="color:var(--tx2)" id="kr-rem">0</div><div class="sl">남은</div></div>
     </div>
     <div class="kr-hbtns">
-      <button class="hicon" title="여기서 끝내기" onclick="krFinishNow()"><span data-ic="trophy"></span></button>
+      <button class="hicon" title="여기서 끝내기" onclick="krFinishNow()"><span data-ic="flag"></span></button>
       <button class="hicon" title="목록" onclick="openKRList()"><span data-ic="list"></span></button>
       <button class="hicon danger" title="초기화" onclick="resetKR()"><span data-ic="reset"></span></button>
     </div>
@@ -4446,7 +4446,7 @@
   <div class="tq-top">
     <div class="tq-th">
       <span id="tq-title">수출구조 맞추기</span><span id="tq-sub">Export structure</span>
-      <button class="tq-hbtn" id="tq-finish" title="여기서 끝내기" onclick="tqFinishNow()"><span data-ic="trophy"></span></button>
+      <button class="tq-hbtn" id="tq-finish" title="여기서 끝내기" onclick="tqFinishNow()"><span data-ic="flag"></span></button>
       <button class="tq-hbtn" id="tq-shuffle" title="재배치 (연결 지우고 다시 배치)" onclick="tqRearrange()"><span data-ic="shuffle"></span></button>
       <button class="tq-hbtn danger" id="tq-reset" title="초기화 (처음부터 다시)" onclick="tqResetConfirm()"><span data-ic="reset"></span></button>
     </div>
