@@ -44,107 +44,148 @@ function setMode(mob){
   document.querySelectorAll('#ld-mode .ld-seg-btn').forEach(b=>b.classList.toggle('active',(b.dataset.mode==='mob')===mob));
   try{applyModeUI();}catch(e){}
 }
-function setupLanding(){
-  injectIcons();
-  /* 모드 세그먼트 */
-  document.querySelectorAll('#ld-mode .ld-seg-btn').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode==='mob')));
-  setMode(isMobile);
-  /* 기본값: 세계지리 + 나라이름 */
-  document.getElementById('cat-world').checked=true;
-  document.querySelector('.ld-group[data-cat="world"]').classList.add('open');
-  document.querySelector('.ld-act[value="name"]').checked=true;
-  /* 카테고리 상호배타 + 펼침 */
-  document.querySelectorAll('.ld-cat-cb').forEach(cb=>{
-    cb.addEventListener('change',function(){
-      if(this.checked){
-        document.querySelectorAll('.ld-cat-cb').forEach(o=>{if(o!==this){o.checked=false;o.closest('.ld-group').classList.remove('open');}});
-      }
-      this.closest('.ld-group').classList.toggle('open',this.checked);
-      updateStartState();
+/* ══════════ Geogl3 랜딩 — 캐러셀 모드 선택 ══════════ */
+const LD_SLIDES=[
+ {act:'name',   ic:'globe', mc:'#8ab4f8', tt:'나라 이름 맞추기', ds:'지도에서 나라를 클릭하고 이름을 맞혀요. 3번 안에 맞히면 색이 칠해져요.', pts:'국가당 1점'},
+ {act:'border', ic:'border',mc:'#81c995', tt:'접경국 퀴즈', ds:'국경을 맞댄 이웃 나라로 추리하는 퀴즈. 난이도에 따라 방식이 달라져요.', pts:'1 · 3 · 9점', diff:'bdiff',
+  dd:{L:'하 · 지도에서 클릭해 맞히기 (1점)',M:'중 · 지도 없이 이름 입력 (3점)',H:'상 · 접한 나라 모두 쓰기 (접경국당 9점)'}},
+ {act:'religion',ic:'book', mc:'#fdd663', tt:'종교 구성', ds:'원그래프를 보고 나라별 종교 구성을 맞혀요.', pts:'1 · 2 · 3점', diff:'rdiff',
+  dd:{L:'하 · 상위 종교 70%+ 국가만 (1점)',M:'중 · 모든 국가 · 힌트 있음 (2점)',H:'상 · 3번 틀려야 공개 (3점)'}},
+ {act:'texp',   ic:'chart', mc:'#f28b82', tt:'수출구조', ds:'수출 품목 트리맵을 보고 어느 나라인지 맞혀요.', pts:'2 · 4 · 6점', diff:'tdiff',
+  dd:{L:'하 · 주요국만 · 힌트 있음 (2점)',M:'중 · 모든 국가 · 힌트 있음 (4점)',H:'상 · 힌트 없음 (6점)'}},
+ {act:'timp',   ic:'chart', mc:'#8ab4f8', tt:'수입구조', ds:'수입 품목 구조로 나라를 맞히는 고난도 퀴즈예요.', pts:'3 · 6 · 9점', diff:'tdiff',
+  dd:{L:'하 · 주요국만 · 힌트 있음 (3점)',M:'중 · 모든 국가 · 힌트 있음 (6점)',H:'상 · 힌트 없음 (9점)'}},
+ {act:'tenergy',ic:'chart', mc:'#81c995', tt:'에너지 구성', ds:'발전·에너지 믹스를 보고 나라를 맞혀요. 유형 필터도 고를 수 있어요.', pts:'2 · 4 · 6점', diff:'ediff',
+  dd:{L:'하 · 특징 뚜렷한 국가만 (2점)',M:'중 · 모든 국가 · 힌트 있음 (4점)',H:'상 · 힌트 없음 (6점)'}, esub:true},
+ {act:'korea',  ic:'pin',   mc:'#f28b82', tt:'한국지리 시·군', ds:'대한민국 시·군 위치를 지도에서 맞혀요.', pts:'시·군당 1점'}
+];
+const LD={sel:new Set(),cur:0,bdiff:'M',rdiff:'M',ediff:'M',tdiff:'M',esub:'all'};
+const LD_ESUB_LABEL={all:'전체',ff:'화석연료만',re:'신재생만'};
+
+function setMode(mob){
+  isMobile=mob;localStorage.setItem(MODE_KEY,mob?'mobile':'pc');
+  document.querySelectorAll('#ld-mode .ld-seg-btn').forEach(b=>b.classList.toggle('active',(b.dataset.mode==='mob')===mob));
+  try{applyModeUI();}catch(e){}
+}
+function ldBuildSlides(){
+  const car=document.getElementById('ld-car');car.innerHTML='';
+  const dots=document.getElementById('ld-dots');dots.innerHTML='';
+  LD_SLIDES.forEach((sl,i)=>{
+    const s=document.createElement('div');s.className='ld-slide';s.dataset.act=sl.act;
+    let chips='';
+    if(sl.diff){
+      chips='<div class="ld-sl-chips" data-diff="'+sl.diff+'">'+['L','M','H'].map(d=>
+        '<button type="button" class="ld-chip'+(LD[sl.diff]===d?' on':'')+'" data-d="'+d+'">'+({L:'하',M:'중',H:'상'})[d]+'</button>').join('')+'</div>'
+        +'<div class="ld-chip-desc" data-dd>'+(sl.dd[LD[sl.diff]]||'')+'</div>';
+    }
+    if(sl.esub){
+      chips+='<div class="ld-sl-chips" data-esub>'+['all','ff','re'].map(v=>
+        '<button type="button" class="ld-chip'+(LD.esub===v?' on':'')+'" data-v="'+v+'">'+LD_ESUB_LABEL[v]+'</button>').join('')+'</div>';
+    }
+    s.innerHTML='<div class="ld-card2" data-act="'+sl.act+'" style="--mc:'+sl.mc+'">'
+      +'<div class="ld-sl-badge"><span data-ic="check"></span>선택됨</div>'
+      +'<div class="ld-sl-ic"><span data-ic="'+sl.ic+'"></span></div>'
+      +'<div class="ld-sl-tt">'+sl.tt+'</div>'
+      +'<div class="ld-sl-ds">'+sl.ds+'</div>'
+      +'<div class="ld-sl-pts">'+sl.pts+'</div>'
+      +chips+'</div>';
+    car.appendChild(s);
+    const dot=document.createElement('button');dot.className='ld-dot';dot.type='button';
+    dot.setAttribute('aria-label',sl.tt);
+    dot.addEventListener('click',()=>ldGoTo(i));
+    dots.appendChild(dot);
+  });
+  /* 카드 클릭 = 선택 토글 */
+  car.querySelectorAll('.ld-card2').forEach(card=>{
+    card.addEventListener('click',e=>{
+      if(e.target.closest('.ld-chip'))return;
+      ldToggle(card.dataset.act);
     });
   });
-  document.querySelectorAll('.ld-act').forEach(cb=>{
-    cb.addEventListener('change',()=>{updateStartState();if(window._syncTqDiff)window._syncTqDiff();if(window._syncBqMap)window._syncBqMap();if(window._syncReligDiff)window._syncReligDiff();if(window._syncEnergyDiff)window._syncEnergyDiff();});
+  /* 난이도/유형 칩 */
+  car.querySelectorAll('[data-diff]').forEach(wrap=>{
+    const key=wrap.dataset.diff;
+    wrap.querySelectorAll('.ld-chip').forEach(ch=>ch.addEventListener('click',e=>{
+      e.stopPropagation();
+      LD[key]=ch.dataset.d;
+      wrap.querySelectorAll('.ld-chip').forEach(c=>c.classList.toggle('on',c===ch));
+      const card=wrap.closest('.ld-card2');
+      const sl=LD_SLIDES.find(x=>x.act===card.dataset.act);
+      const dd=card.querySelector('[data-dd]');if(dd&&sl)dd.textContent=sl.dd[LD[key]]||'';
+      if(!LD.sel.has(card.dataset.act))ldToggle(card.dataset.act,true);
+    }));
   });
-  /* 출제 비율 슬라이더 */
+  car.querySelectorAll('[data-esub] .ld-chip').forEach(ch=>ch.addEventListener('click',e=>{
+    e.stopPropagation();
+    LD.esub=ch.dataset.v;
+    ch.parentElement.querySelectorAll('.ld-chip').forEach(c=>c.classList.toggle('on',c===ch));
+    if(!LD.sel.has('tenergy'))ldToggle('tenergy',true);
+  }));
+  injectIcons(car);
+  car.addEventListener('scroll',()=>{clearTimeout(car._t);car._t=setTimeout(ldSyncCur,80);},{passive:true});
+  document.getElementById('ld-prev').addEventListener('click',()=>ldGoTo(LD.cur-1));
+  document.getElementById('ld-next').addEventListener('click',()=>ldGoTo(LD.cur+1));
+  ldSyncCur();
+}
+function ldGoTo(i){
+  const car=document.getElementById('ld-car');
+  const n=LD_SLIDES.length;i=Math.max(0,Math.min(n-1,i));
+  car.scrollTo({left:i*car.clientWidth,behavior:'smooth'});
+  LD.cur=i;ldPaintDots();
+}
+function ldSyncCur(){
+  const car=document.getElementById('ld-car');
+  LD.cur=Math.max(0,Math.min(LD_SLIDES.length-1,Math.round(car.scrollLeft/Math.max(1,car.clientWidth))));
+  ldPaintDots();
+}
+function ldPaintDots(){
+  document.querySelectorAll('#ld-dots .ld-dot').forEach((d,i)=>{
+    d.classList.toggle('on',i===LD.cur);
+    d.classList.toggle('picked',LD.sel.has(LD_SLIDES[i].act));
+  });
+}
+function ldToggle(act,forceOn){
+  if(forceOn&&LD.sel.has(act))return;
+  if(LD.sel.has(act)&&!forceOn){LD.sel.delete(act);}
+  else{
+    /* 한국지리는 단독 진행 */
+    if(act==='korea')LD.sel.clear();
+    else LD.sel.delete('korea');
+    LD.sel.add(act);
+  }
+  document.querySelectorAll('.ld-card2').forEach(c=>c.classList.toggle('sel',LD.sel.has(c.dataset.act)));
+  updateStartState();ldPaintDots();
+}
+function setupLanding(){
+  injectIcons();
+  ldBuildSlides();
+  document.querySelectorAll('#ld-mode .ld-seg-btn').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode==='mob')));
+  setMode(isMobile);
+  /* 세부 옵션 시트 */
+  const sheet=document.getElementById('ld-opt-sheet');
+  const bd=document.getElementById('ld-opt-bd');
+  const openOpt=()=>{sheet.classList.add('on');bd.classList.add('on');};
+  const closeOpt=()=>{sheet.classList.remove('on');bd.classList.remove('on');};
+  document.getElementById('ld-open-opt').addEventListener('click',openOpt);
+  document.getElementById('ld-opt-close').addEventListener('click',closeOpt);
+  bd.addEventListener('click',closeOpt);
+  /* 출제 비율 */
   const psl=document.getElementById('ld-portion');
   if(psl){
     const pv=document.getElementById('ld-portion-val');
     const upd=()=>{const f=PORTION_VALUES[+psl.value]||1;pv.textContent=(f*100)+'%';};
     psl.addEventListener('input',upd);upd();
   }
-  /* 수출/수입 난이도(상중하) — 무역 활동 체크 시에만 노출 */
-  window._ldDiff=window._ldDiff||'M';
-  const DIFF_DESC={
-    L:'주요국만 출제 · 첫 오답에 힌트 · 둘째 오답에 맞은 것 표시 (수출 2점 / 수입 3점)',
-    M:'모든 국가 · 첫 오답에 힌트 · 둘째 오답에 맞은 것 표시 (수출 4점 / 수입 6점)',
-    H:'모든 국가 · 힌트 없음 · 3번 틀려야 정답 공개 (수출 6점 / 수입 9점)'};
-  const diffSeg=document.getElementById('ld-diff');
-  function setDiff(dv){
-    window._ldDiff=dv;
-    diffSeg.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.diff===dv));
-    document.getElementById('ld-diff-desc').textContent=DIFF_DESC[dv]||'';
-  }
-  if(diffSeg){ diffSeg.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>setDiff(b.dataset.diff))); setDiff(window._ldDiff); }
-  window._syncTqDiff=function(){
-    const on=[...document.querySelectorAll('.ld-act-tq')].some(c=>c.checked);
-    const el=document.getElementById('ld-tq-diff'); if(el)el.style.display=on?'block':'none';
-  };
-  window._syncTqDiff();
-  /* 접경국 난이도 (하=지도O, 중=지도X이름입력, 상=접경국모두쓰기) */
-  window._ldBorderMap=window._ldBorderMap||'L';
-  const BQMAP_DESC={
-    L:'지도에서 나라를 클릭해 맞추기 (국가당 1점)',
-    M:'지도 없이 나라 이름을 직접 입력 (국가당 3점)',
-    H:'지도 없이 접한 나라를 모두 입력 (접경국당 9점)'
-  };
-  const bqSeg=document.getElementById('ld-bqmap');
-  function setBqMap(v){
-    window._ldBorderMap=v;
-    if(bqSeg)bqSeg.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.bqmap===v));
-    const desc=document.getElementById('ld-bqmap-desc');if(desc)desc.textContent=BQMAP_DESC[v]||'';
-  }
-  if(bqSeg){ bqSeg.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>setBqMap(b.dataset.bqmap))); setBqMap(window._ldBorderMap); }
-  window._syncBqMap=function(){
-    const on=[...document.querySelectorAll('.ld-act-bq')].some(c=>c.checked);
-    const el=document.getElementById('ld-bq-map'); if(el)el.style.display=on?'block':'none';
-  };
-  window._syncBqMap();
-  /* 종교 구성 난이도(상중하) */
-  window._ldRDiff=window._ldRDiff||'M';
-  const RDIFF_DESC={
-    L:'상위 종교 70% 이상 국가만 출제 (국가당 1점)',
-    M:'모든 국가 · 2번째 오답에 정답 표시 (국가당 2점)',
-    H:'모든 국가 · 3번 틀려야 공개 (국가당 3점)'};
-  const rdiffSeg=document.getElementById('ld-rdiff');
-  function setRDiff(dv){window._ldRDiff=dv;rdiffSeg.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.rdiff===dv));document.getElementById('ld-rdiff-desc').textContent=RDIFF_DESC[dv]||'';}
-  if(rdiffSeg){rdiffSeg.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>setRDiff(b.dataset.rdiff)));setRDiff(window._ldRDiff);}
-  window._syncReligDiff=function(){const on=document.getElementById('ld-act-religion').checked;const el=document.getElementById('ld-relig-diff');if(el)el.style.display=on?'block':'none';};
-  window._syncReligDiff();
-  /* 에너지 구성 난이도(상중하) */
-  window._ldEDiff=window._ldEDiff||'M';
-  const EDIFF_DESC={
-    L:'주력 에너지원 60% 이상 국가만 출제 (국가당 2점)',
-    M:'모든 국가 · 2번째 오답에 정답 표시 (국가당 4점)',
-    H:'모든 국가 · 3번 틀려야 공개 (국가당 6점)'};
-  const ediffSeg=document.getElementById('ld-ediff');
-  function setEDiff(dv){window._ldEDiff=dv;ediffSeg.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.ediff===dv));document.getElementById('ld-ediff-desc').textContent=EDIFF_DESC[dv]||'';}
-  if(ediffSeg){ediffSeg.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>setEDiff(b.dataset.ediff)));setEDiff(window._ldEDiff);}
-  window._syncEnergyDiff=function(){const on=document.getElementById('ld-act-tenergy').checked;const el=document.getElementById('ld-energy-diff');if(el)el.style.display=on?'block':'none';};
-  window._syncEnergyDiff();
-  /* 에너지 유형(전체/화석연료만/신재생에너지만) */
-  window._ldESub=window._ldESub||'all';
-  const esubSeg=document.getElementById('ld-esub');
-  function setESub(v){window._ldESub=v;if(esubSeg)esubSeg.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.esub===v));}
-  if(esubSeg){esubSeg.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>setESub(b.dataset.esub)));setESub(window._ldESub);}
-  /* 대륙 전체 선택/해제 토글 */
-  const contAll=document.getElementById('ld-cont-all');
+  /* 대륙 전체선택 */
+  const allBtn=document.getElementById('ld-cont-all');
   function syncContAll(){
     const cbs=[...document.querySelectorAll('.ld-cont-cb')];
-    const allOn=cbs.every(c=>c.checked);
-    contAll.textContent=allOn?'전체 해제':'전체 선택';
+    const n=cbs.filter(c=>c.checked).length;
+    allBtn.textContent=n===cbs.length?'전체 해제':'전체 선택';
+    const hint=document.getElementById('ld-cont-hint');
+    if(hint)hint.textContent=n===0?'선택하지 않으면 모든 대륙에서 출제':n+'개 대륙 선택됨';
   }
-  contAll.addEventListener('click',()=>{
+  allBtn.addEventListener('click',()=>{
     const cbs=[...document.querySelectorAll('.ld-cont-cb')];
     const allOn=cbs.every(c=>c.checked);
     cbs.forEach(c=>c.checked=!allOn);
@@ -156,28 +197,24 @@ function setupLanding(){
   updateStartState();
 }
 function updateStartState(){
-  const warn=document.getElementById('ld-warn');warn.textContent='';
-  const w=document.getElementById('cat-world').checked;
-  const k=document.getElementById('cat-korea').checked;
-  let ok=false;
-  if(k)ok=true;
-  if(w){const any=[...document.querySelectorAll('.ld-act')].some(c=>c.checked);ok=any;if(!any)warn.textContent='세계지리 활동을 1개 이상 선택하세요';}
-  if(!w&&!k)warn.textContent='카테고리를 선택하세요';
-  document.getElementById('ld-start').disabled=!ok;
+  const warn=document.getElementById('ld-warn');if(warn)warn.textContent='';
+  const lbl=document.getElementById('ld-start-label');
+  if(!lbl)return;
+  if(!LD.sel.size){lbl.textContent='시작하기';return;}
+  const first=LD_SLIDES.find(s=>LD.sel.has(s.act));
+  lbl.textContent=LD.sel.size===1?first.tt+' 시작':first.tt+' 외 '+(LD.sel.size-1)+'개 시작';
 }
 function startFromLanding(){
-  const w=document.getElementById('cat-world').checked;
-  const k=document.getElementById('cat-korea').checked;
-  if(k){startSession('korea',['korea'],null);return;}
-  if(!w)return;
+  let sel=[...LD.sel];
+  /* 아무것도 고르지 않으면 현재 카드로 기본 시작 (모든 대륙 · 100% · 중) */
+  if(!sel.length)sel=[LD_SLIDES[LD.cur].act];
+  if(sel.includes('korea')){startSession('korea',['korea'],null);return;}
   const order=['name','border','rborder','religion','texp','timp','tenergy'];
-  let rawActs=[...document.querySelectorAll('.ld-act')].filter(c=>c.checked).map(c=>c.value);
-  /* border 체크박스를 난이도에 따라 실제 액티비티로 변환 */
-  const borderDiff=window._ldBorderMap||'L';
+  let rawActs=sel.slice();
+  const borderDiff=LD.bdiff||'M';
   if(rawActs.includes('border')){
     rawActs=rawActs.filter(a=>a!=='border');
-    if(borderDiff==='H')rawActs.push('rborder');
-    else rawActs.push('border');
+    rawActs.push(borderDiff==='H'?'rborder':'border');
   }
   const acts=rawActs.sort((a,b)=>order.indexOf(a)-order.indexOf(b));
   if(!acts.length)return;
@@ -189,12 +226,9 @@ function startFromLanding(){
   const psl=document.getElementById('ld-portion');
   const por=psl?(PORTION_VALUES[+psl.value]||1):1;
   if(por<1)key+='_p'+Math.round(por*1000);
-  /* 수출/수입 난이도(상중하) — 무역 활동 선택 시에만 키에 반영 */
-  if(acts.includes('texp')||acts.includes('timp'))key+='_d'+(window._ldDiff||'M');
-  /* 종교/에너지 난이도 */
-  if(acts.includes('religion'))key+='_r'+(window._ldRDiff||'M');
-  if(acts.includes('tenergy')){key+='_e'+(window._ldEDiff||'M');if((window._ldESub||'all')!=='all')key+='_esub'+(window._ldESub||'all');}
-  /* 접경국 난이도: 중=nomap, 상=rborder+nomap */
+  if(acts.includes('texp')||acts.includes('timp'))key+='_d'+(LD.tdiff||'M');
+  if(acts.includes('religion'))key+='_r'+(LD.rdiff||'M');
+  if(acts.includes('tenergy')){key+='_e'+(LD.ediff||'M');if((LD.esub||'all')!=='all')key+='_esub'+(LD.esub||'all');}
   if((acts.includes('border')&&borderDiff==='M')||acts.includes('rborder'))key+='_nomap';
   startSession('world',acts,key,key);
 }
@@ -215,6 +249,7 @@ function startSession(cat,acts,filterKey,rqContKey){
     if(acts.includes('texp')){tqInit('x',filterKey);}
     if(acts.includes('timp')){tqInit('m',filterKey);}
     if(acts.includes('tenergy')){tqInit('e',filterKey);}
+    document.body.classList.remove('bq-nomap');
     try{const mw=document.getElementById('ui-map');_s=Math.min(mw.clientWidth/SW,mw.clientHeight/SH);_x=(mw.clientWidth-SW*_s)/2;_y=(mw.clientHeight-SH*_s)/2;applyT();}catch(e){}
   }
   buildTabs();
@@ -268,6 +303,8 @@ function endSession(){
   try{if(TQ.saveKey&&!TQ.isRetry)tqSave();}catch(e){}
   if(modalOpen)closeModal();
   document.body.classList.remove('in-session');
+  document.body.classList.remove('bq-nomap');
+  document.body.classList.remove('border-mode');
   document.getElementById('rq-screen').classList.remove('on');
   document.getElementById('kr-screen').classList.remove('on');
   document.getElementById('tq-screen').classList.remove('on');
@@ -900,9 +937,9 @@ function paintMask(){
   if(!S.activeSet||S.activeSet.size>=Object.keys(COUNTRIES).length){dynMask.textContent='';return;}
   const actSels=[...S.activeSet].map(selCSS).join(',');
   const hov=[...S.activeSet].map(i=>selCSS(i)+':hover').join(',');
-  dynMask.textContent='#world-svg [data-iso]{fill:#f6f7f8!important;stroke:#e8eaed!important;cursor:default!important;pointer-events:none!important}'
-    +actSels+'{fill:#d5dbe2!important;stroke:#ffffff!important;cursor:pointer!important;pointer-events:all!important}'
-    +hov+'{fill:#d2e3fc!important}';
+  dynMask.textContent='#world-svg [data-iso]{fill:#1c2330!important;stroke:#141a24!important;cursor:default!important;pointer-events:none!important}'
+    +actSels+'{fill:#38455a!important;stroke:#161e2b!important;cursor:pointer!important;pointer-events:all!important}'
+    +hov+'{fill:#46587a!important}';
 }
 const colors={};
 function paint(){
@@ -916,7 +953,7 @@ function paint(){
   let css='';
   for(const[cls,isos]of Object.entries(groups)){
     const sels=isos.map(selCSS).join(',');
-    css+=sels+'{fill:'+COLOR_MAP[cls]+'!important;stroke:#ffffff;stroke-width:.5}';
+    css+=sels+'{fill:'+COLOR_MAP[cls]+'!important;stroke:#161e2b;stroke-width:.5}';
     css+=isos.map(i=>selCSS(i)+':hover').join(',')+'{fill:'+bright[cls]+'!important}';
   }
   dyn.textContent=css;
@@ -930,7 +967,7 @@ function startJsBlink(iso){
   if(!els.length)return;
   let phase=true;
   function tick(){
-    const c=phase?'#1a73e8':'#a8c7fa';
+    const c=phase?'#8ab4f8':'#1a73e8';
     els.forEach(el=>el.style.setProperty('fill',c,'important'));
     phase=!phase;
     _blinkTimers[iso]=setTimeout(tick,250);
@@ -1679,7 +1716,7 @@ function startKBlink(kid){
   const els=kEls(kid);if(!els.length)return;
   let ph=true;
   function tick(){
-    const c=ph?'#1a73e8':'#a8c7fa';
+    const c=ph?'#8ab4f8':'#1a73e8';
     els.forEach(el=>el.style.setProperty('fill',c,'important'));
     ph=!ph;_kBlinkTimers[kid]=setTimeout(tick,250);
   }

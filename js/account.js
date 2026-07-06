@@ -134,97 +134,97 @@ async function restoreUserData() {
 function injectStyle() {
   const css = `
   #acct-chip{position:fixed;top:.5rem;right:.6rem;z-index:9200;display:flex;align-items:center;gap:.4rem;
-    background:#ffffff;border:1px solid var(--bd,#dadce0);border-radius:999px;padding:.25rem .55rem .25rem .3rem;
+    background:rgba(32,33,36,.92);border:1px solid var(--bd,#3c4043);border-radius:999px;padding:.25rem .55rem .25rem .3rem;
     cursor:pointer;backdrop-filter:blur(8px);transition:border-color .2s,transform .2s;font-family:'Pretendard','Noto Sans KR',sans-serif}
-  #acct-chip:hover{border-color:#bdc1c6}
-  #acct-chip img,#acct-chip .acct-ph{width:26px;height:26px;border-radius:50%;object-fit:cover;background:#dadce0;flex-shrink:0;
-    display:flex;align-items:center;justify-content:center;font-size:.8rem;color:#5f6368;font-weight:600}
-  #acct-chip .acct-nm{font-size:.78rem;color:#202124;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #acct-chip:hover{border-color:#9aa0a6}
+  #acct-chip img,#acct-chip .acct-ph{width:26px;height:26px;border-radius:50%;object-fit:cover;background:#3c4043;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;font-size:.8rem;color:#9aa0a6;font-weight:600}
+  #acct-chip .acct-nm{font-size:.78rem;color:#e8eaed;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   /* 인세션 중엔 칩을 아바타만 — 상단 바(42px) 세로 중앙에 맞춰 '처음으로' 버튼과 정렬 */
   body.in-session #acct-chip{top:0;height:42px;right:.5rem;padding:0;gap:0;background:transparent;border:none;backdrop-filter:none}
   body.in-session #acct-chip:hover{border:none}
   body.in-session #acct-chip .acct-nm{display:none}
   body.in-session #acct-chip img,body.in-session #acct-chip .acct-ph{width:28px;height:28px}
   body.in-session #act-tabs{padding-right:46px}
-  #ld-guest-note{margin-top:.7rem;font-size:.72rem;color:#b06000;text-align:center;line-height:1.45;
-    background:rgba(168,112,32,.08);border:1px solid rgba(168,112,32,.25);border-radius:6px;padding:.5rem .6rem}
-  #ld-guest-note b{color:#b06000}
-  .acct-ov{position:fixed;inset:0;z-index:9300;display:none;align-items:center;justify-content:center;background:rgba(32,33,36,.5)}
+  #ld-guest-note{margin-top:.7rem;font-size:.72rem;color:#fdd663;text-align:center;line-height:1.45;
+    background:rgba(253,214,99,.08);border:1px solid rgba(253,214,99,.25);border-radius:6px;padding:.5rem .6rem}
+  #ld-guest-note b{color:#fdd663}
+  .acct-ov{position:fixed;inset:0;z-index:9300;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.65)}
   .acct-ov.on{display:flex}
-  .acct-card{background:#ffffff;box-shadow:0 1px 3px rgba(60,64,67,.3),0 4px 8px 3px rgba(60,64,67,.15);border:1px solid #dadce0;border-radius:10px;padding:1.4rem 1.3rem 1.2rem;width:min(380px,92vw);
+  .acct-card{background:#202124;box-shadow:0 8px 24px rgba(0,0,0,.5);border:1px solid #3c4043;border-radius:10px;padding:1.4rem 1.3rem 1.2rem;width:min(380px,92vw);
     max-height:88vh;overflow-y:auto;animation:acctPop .3s cubic-bezier(.34,1.3,.64,1)}
   @keyframes acctPop{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
-  .acct-card h2{font-size:1.05rem;font-weight:700;margin-bottom:.2rem;color:#202124}
-  .acct-card .sub{font-size:.78rem;color:#5f6368;margin-bottom:1rem}
+  .acct-card h2{font-size:1.05rem;font-weight:700;margin-bottom:.2rem;color:#e8eaed}
+  .acct-card .sub{font-size:.78rem;color:#9aa0a6;margin-bottom:1rem}
   .acct-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:.6rem;padding:.7rem;border-radius:8px;
-    border:1px solid #dadce0;background:#fff;color:#111;font-size:.9rem;font-weight:600;cursor:pointer;margin-bottom:.55rem;
+    border:1px solid #3c4043;background:#fff;color:#111;font-size:.9rem;font-weight:600;cursor:pointer;margin-bottom:.55rem;
     font-family:'Pretendard','Noto Sans KR',sans-serif;transition:transform .15s}
   .acct-btn:active{transform:scale(.98)}
   .acct-btn.apple{background:#000;color:#fff;border-color:#000}
-  .acct-btn.ghost{background:transparent;color:#5f6368;border-color:#dadce0}
+  .acct-btn.ghost{background:transparent;color:#9aa0a6;border-color:#bdc1c6}
   .acct-btn svg{width:18px;height:18px}
-  .acct-x{position:absolute;top:.6rem;right:.8rem;background:none;border:none;color:#5f6368;font-size:1.2rem;cursor:pointer}
+  .acct-x{position:absolute;top:.6rem;right:.8rem;background:none;border:none;color:#9aa0a6;font-size:1.2rem;cursor:pointer}
   .acct-row{display:flex;align-items:center;gap:.8rem;margin-bottom:1rem}
-  .acct-av{width:64px;height:64px;border-radius:50%;object-fit:cover;background:#e8eaed;cursor:pointer;flex-shrink:0;
-    display:flex;align-items:center;justify-content:center;color:#5f6368;font-size:1.4rem;font-weight:700;border:2px solid #dadce0}
-  .acct-in{width:100%;padding:.55rem .7rem;background:#ffffff;border:1px solid #dadce0;border-radius:6px;color:#202124;
+  .acct-av{width:64px;height:64px;border-radius:50%;object-fit:cover;background:#3c4043;cursor:pointer;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;color:#9aa0a6;font-size:1.4rem;font-weight:700;border:2px solid #3c4043}
+  .acct-in{width:100%;padding:.55rem .7rem;background:#17181b;border:1px solid #3c4043;border-radius:6px;color:#e8eaed;
     font-size:.9rem;font-family:'Pretendard','Noto Sans KR',sans-serif;outline:none;margin-bottom:.6rem}
-  .acct-in:focus{border-color:#1a73e8}
-  .acct-lbl{font-size:.7rem;color:#5f6368;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem}
-  .acct-menu-item{display:flex;align-items:center;gap:.6rem;padding:.65rem .2rem;font-size:.88rem;color:#202124;cursor:pointer;
-    border-bottom:1px solid #f1f3f4}
-  .acct-menu-item:hover{color:#1a73e8}
+  .acct-in:focus{border-color:#8ab4f8}
+  .acct-lbl{font-size:.7rem;color:#9aa0a6;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem}
+  .acct-menu-item{display:flex;align-items:center;gap:.6rem;padding:.65rem .2rem;font-size:.88rem;color:#e8eaed;cursor:pointer;
+    border-bottom:1px solid #2a2b2f}
+  .acct-menu-item:hover{color:#8ab4f8}
   .acct-menu-item:last-child{border-bottom:none}
   .acct-stat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin:.4rem 0 1rem}
-  .acct-stat{background:#f8f9fa;border:1px solid #dadce0;border-radius:6px;padding:.5rem;text-align:center}
-  .acct-stat .v{font-size:1.2rem;font-weight:700;color:#202124;font-family:'Barlow Condensed',sans-serif}
-  .acct-stat .l{font-size:.6rem;color:#5f6368;margin-top:2px}
+  .acct-stat{background:#2a2b2f;border:1px solid #3c4043;border-radius:6px;padding:.5rem;text-align:center}
+  .acct-stat .v{font-size:1.2rem;font-weight:700;color:#e8eaed;font-family:'Barlow Condensed',sans-serif}
+  .acct-stat .l{font-size:.6rem;color:#9aa0a6;margin-top:2px}
   .rank-tabs{display:flex;gap:.3rem;margin-bottom:.6rem;flex-wrap:wrap}
-  .rank-tab{flex:1 1 auto;min-width:0;padding:.4rem .35rem;border-radius:6px;border:1px solid #dadce0;background:transparent;color:#5f6368;
+  .rank-tab{flex:1 1 auto;min-width:0;padding:.4rem .35rem;border-radius:6px;border:1px solid #3c4043;background:transparent;color:#9aa0a6;
     font-size:.74rem;line-height:1;text-align:center;cursor:pointer;font-family:'Pretendard','Noto Sans KR',sans-serif;white-space:nowrap}
   .rank-tab.on{background:var(--ac2);color:var(--ac);border-color:var(--ac2)}
   /* 대륙 탭은 7개라 3열 그리드로 줄바꿈 (글씨 안 짤리게) */
   #acct-rank-conts{display:grid;grid-template-columns:repeat(3,1fr);gap:.3rem}
   #acct-rank-conts .rank-tab{padding:.42rem .2rem}
   .rank-list{display:flex;flex-direction:column;gap:.3rem;max-height:50vh;overflow-y:auto;margin-top:.2rem}
-  .rank-item{display:flex;align-items:center;gap:.6rem;padding:.45rem .55rem;border-radius:6px;background:#f8f9fa}
+  .rank-item{display:flex;align-items:center;gap:.6rem;padding:.45rem .55rem;border-radius:6px;background:#2a2b2f}
   .rank-item.me{background:#e8f0fe;border:1px solid #aecbfa}
-  .rank-no{width:26px;text-align:center;font-weight:700;color:#5f6368;font-family:'Barlow Condensed',sans-serif;font-size:1.05rem;
+  .rank-no{width:26px;text-align:center;font-weight:700;color:#9aa0a6;font-family:'Barlow Condensed',sans-serif;font-size:1.05rem;
     font-variant-numeric:tabular-nums;flex-shrink:0}
   .rank-no.top{color:#d4a017}
-  .rank-av{width:30px;height:30px;border-radius:50%;object-fit:cover;background:#e8eaed;flex-shrink:0;display:flex;
-    align-items:center;justify-content:center;color:#5f6368;font-size:.75rem;font-weight:700}
-  .rank-nm{flex:1;min-width:0;font-size:.84rem;color:#202124;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rank-av{width:30px;height:30px;border-radius:50%;object-fit:cover;background:#3c4043;flex-shrink:0;display:flex;
+    align-items:center;justify-content:center;color:#9aa0a6;font-size:.75rem;font-weight:700}
+  .rank-nm{flex:1;min-width:0;font-size:.84rem;color:#e8eaed;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .rank-right{text-align:right;flex-shrink:0;line-height:1.2}
-  .rank-val{font-size:.95rem;font-weight:700;color:#202124;font-family:'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums}
-  .rank-sub{font-size:.62rem;color:#5f6368}
-  .acct-empty{text-align:center;color:#5f6368;font-size:.82rem;padding:1.4rem 0}
+  .rank-val{font-size:.95rem;font-weight:700;color:#e8eaed;font-family:'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums}
+  .rank-sub{font-size:.62rem;color:#9aa0a6}
+  .acct-empty{text-align:center;color:#9aa0a6;font-size:.82rem;padding:1.4rem 0}
   .acct-toast{position:fixed;bottom:1.2rem;left:50%;transform:translateX(-50%);z-index:9999;background:#1a1a1a;
-    border:1px solid #333;color:#202124;padding:.6rem 1.1rem;border-radius:8px;font-size:.82rem;opacity:0;transition:opacity .25s;
+    border:1px solid #333;color:#e8eaed;padding:.6rem 1.1rem;border-radius:8px;font-size:.82rem;opacity:0;transition:opacity .25s;
     font-family:'Pretendard','Noto Sans KR',sans-serif;pointer-events:none}
   .acct-toast.on{opacity:1}
-  #acct-inapp{font-size:.76rem;color:#b06000;line-height:1.5;background:rgba(168,112,32,.1);
-    border:1px solid rgba(168,112,32,.3);border-radius:8px;padding:.6rem .7rem;margin-bottom:.7rem}
-  #acct-inapp b{color:#b06000}
-  .sv-item{background:#f8f9fa;border:1px solid #dadce0;border-radius:8px;padding:.5rem .6rem;margin-bottom:.4rem}
+  #acct-inapp{font-size:.76rem;color:#fdd663;line-height:1.5;background:rgba(253,214,99,.1);
+    border:1px solid rgba(253,214,99,.3);border-radius:8px;padding:.6rem .7rem;margin-bottom:.7rem}
+  #acct-inapp b{color:#fdd663}
+  .sv-item{background:#2a2b2f;border:1px solid #3c4043;border-radius:8px;padding:.5rem .6rem;margin-bottom:.4rem}
   .sv-top{display:flex;align-items:center;justify-content:space-between;gap:.5rem;cursor:pointer}
   .sv-info{min-width:0}
-  .sv-title{font-size:.84rem;color:#202124;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .sv-scope{font-size:.68rem;color:#5f6368;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .sv-title{font-size:.84rem;color:#e8eaed;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .sv-scope{font-size:.68rem;color:#9aa0a6;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .sv-badge{flex-shrink:0;font-size:.72rem;font-weight:700;padding:.22rem .5rem;border-radius:999px;
     font-family:'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums}
-  .sv-badge.prog{background:#e8f0fe;color:#1a73e8}
-  .sv-badge.done{background:#e6f4ea;color:#188038}
+  .sv-badge.prog{background:rgba(138,180,248,.15);color:#8ab4f8}
+  .sv-badge.done{background:rgba(129,201,149,.15);color:#81c995}
   .sv-acts{display:flex;gap:.35rem;margin-top:.5rem}
-  .sv-btn{flex:1;padding:.4rem;border-radius:6px;border:1px solid #dadce0;background:transparent;color:#5f6368;
+  .sv-btn{flex:1;padding:.4rem;border-radius:6px;border:1px solid #3c4043;background:transparent;color:#9aa0a6;
     font-size:.74rem;cursor:pointer;font-family:'Pretendard','Noto Sans KR',sans-serif}
   .sv-btn.go{background:var(--ac);color:#fff;border-color:var(--ac);font-weight:600}
-  .sv-btn.wr{color:#d93025;border-color:rgba(217,48,37,.4)}
-  .rd-score{font-size:.95rem;color:#202124;margin-top:.6rem;background:#f8f9fa;border:1px solid #dadce0;border-radius:6px;padding:.6rem .7rem}
+  .sv-btn.wr{color:#f28b82;border-color:rgba(242,139,130,.4)}
+  .rd-score{font-size:.95rem;color:#e8eaed;margin-top:.6rem;background:#2a2b2f;border:1px solid #3c4043;border-radius:6px;padding:.6rem .7rem}
   .rd-tags{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.35rem;max-height:30vh;overflow-y:auto}
-  .rd-tag{font-size:.74rem;color:#3c4043;background:#f1f3f4;border:1px solid #dadce0;border-radius:4px;padding:.18rem .45rem}
-  .rd-wrong .rd-tag{color:#d93025;border-color:rgba(217,48,37,.35);background:#fce8e6}
-  .rec-row:hover{background:#f8f9fa}
+  .rd-tag{font-size:.74rem;color:#bdc1c6;background:#2a2b2f;border:1px solid #3c4043;border-radius:4px;padding:.18rem .45rem}
+  .rd-wrong .rd-tag{color:#f28b82;border-color:rgba(242,139,130,.35);background:rgba(242,139,130,.12)}
+  .rec-row:hover{background:#2a2b2f}
   `;
   const s = document.createElement('style');
   s.textContent = css;
@@ -280,8 +280,8 @@ function buildUI() {
     <button class="acct-x" data-close>✕</button>
     <div class="acct-row">
       <div class="acct-av" id="acct-menu-av"></div>
-      <div><div id="acct-menu-nm" style="font-weight:700;color:#202124"></div>
-      <div id="acct-menu-em" style="font-size:.72rem;color:#5f6368"></div></div>
+      <div><div id="acct-menu-nm" style="font-weight:700;color:#e8eaed"></div>
+      <div id="acct-menu-em" style="font-size:.72rem;color:#9aa0a6"></div></div>
     </div>
     <div class="acct-stat-grid">
       <div class="acct-stat"><div class="v" id="acct-st-games">0</div><div class="l">플레이</div></div>
@@ -315,7 +315,7 @@ function buildUI() {
     <div class="sub">닉네임과 프로필 사진을 설정하세요.</div>
     <div class="acct-row">
       <div class="acct-av" id="acct-pf-av" title="사진 변경"></div>
-      <div style="font-size:.74rem;color:#5f6368">사진을 눌러<br>이미지를 변경</div>
+      <div style="font-size:.74rem;color:#9aa0a6">사진을 눌러<br>이미지를 변경</div>
       <input type="file" id="acct-pf-file" accept="image/*" style="display:none">
     </div>
     <div class="acct-lbl">닉네임</div>
@@ -561,7 +561,7 @@ function renderSaves() {
   const all = (window.SejiGame && window.SejiGame.listSaves) ? window.SejiGame.listSaves() : [];
   const saves = all.filter((s) => s.inProgress); // 진행 중만 (완료는 최근 기록에)
   box.innerHTML = '';
-  if (!saves.length) { box.innerHTML = `<div style="font-size:.78rem;color:#5f6368">진행 중인 퀴즈가 없습니다.</div>`; return; }
+  if (!saves.length) { box.innerHTML = `<div style="font-size:.78rem;color:#9aa0a6">진행 중인 퀴즈가 없습니다.</div>`; return; }
   saves.forEach((s) => {
     const scope = s.type === 'korea' ? '시·군 전체' : scopeLabel(s.scope);
     const item = el(`<div class="sv-item">
@@ -598,36 +598,36 @@ async function openMenuData() {
   catBox.innerHTML = '';
   const cats = ['name', 'border', 'religion', 'korea'];
   const has = cats.filter((c) => graded.some((r) => r.category === c));
-  if (!has.length) catBox.innerHTML = `<div style="font-size:.78rem;color:#5f6368">아직 기록이 없습니다.</div>`;
+  if (!has.length) catBox.innerHTML = `<div style="font-size:.78rem;color:#9aa0a6">아직 기록이 없습니다.</div>`;
   has.forEach((c) => {
     const cr = graded.filter((r) => r.category === c);
     const a = aggregate(cr);
     let val;
     if (c === 'religion') {
       const bestPts = Math.max(...cr.map((r) => Number(r.points || 0)));
-      val = `${a.games}판 · 최고 <b style="color:#202124">${bestPts}pt</b> (${a.best}%)`;
+      val = `${a.games}판 · 최고 <b style="color:#e8eaed">${bestPts}pt</b> (${a.best}%)`;
     } else {
-      val = `${a.games}판 · 평균 <b style="color:#202124">${a.avg}%</b> · 최고 <b style="color:#202124">${a.best}%</b>`;
+      val = `${a.games}판 · 평균 <b style="color:#e8eaed">${a.avg}%</b> · 최고 <b style="color:#e8eaed">${a.best}%</b>`;
     }
-    catBox.appendChild(el(`<div style="display:flex;justify-content:space-between;gap:.5rem;font-size:.8rem;color:#3c4043;padding:.25rem 0;border-bottom:1px solid #f1f3f4">
-      <span style="flex-shrink:0">${CAT_NAME[c]}</span><span style="color:#5f6368;text-align:right">${val}</span></div>`));
+    catBox.appendChild(el(`<div style="display:flex;justify-content:space-between;gap:.5rem;font-size:.8rem;color:#bdc1c6;padding:.25rem 0;border-bottom:1px solid #2a2b2f">
+      <span style="flex-shrink:0">${CAT_NAME[c]}</span><span style="color:#9aa0a6;text-align:right">${val}</span></div>`));
   });
   // 최근 기록 8개 (클릭 → 상세) — 오답 다시풀기도 표시
   const recBox = document.getElementById('acct-recent');
   recBox.innerHTML = '';
   const recent = rows.slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 8);
-  if (!recent.length) recBox.innerHTML = `<div style="font-size:.78rem;color:#5f6368">아직 기록이 없습니다.</div>`;
+  if (!recent.length) recBox.innerHTML = `<div style="font-size:.78rem;color:#9aa0a6">아직 기록이 없습니다.</div>`;
   recent.forEach((r) => {
     const d = new Date(r.created_at);
     const ds = `${d.getMonth() + 1}/${d.getDate()}`;
     const sc = r.category === 'korea' ? '' : scopeLabel(r.scope);
     const pts = r.points != null ? r.points : r.correct;
     const val = r.category === 'religion'
-      ? `${Number(r.accuracy).toFixed(1)}% · <b style="color:#202124">${pts}점</b>`
-      : `${Number(r.accuracy).toFixed(1)}% · <b style="color:#202124">${pts}점</b>`;
-    const row = el(`<div class="rec-row" style="display:flex;justify-content:space-between;gap:.5rem;font-size:.78rem;color:#3c4043;padding:.34rem .2rem;border-bottom:1px solid #f1f3f4;cursor:pointer">
-      <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ds} · ${CAT_NAME[r.category] || r.category}${sc ? ` <span style="color:#5f6368">${sc}</span>` : ''}${r.is_retry ? ' <span style="color:#d93025">·오답</span>' : ''}</span>
-      <span style="color:#5f6368;flex-shrink:0">${val} ›</span></div>`);
+      ? `${Number(r.accuracy).toFixed(1)}% · <b style="color:#e8eaed">${pts}점</b>`
+      : `${Number(r.accuracy).toFixed(1)}% · <b style="color:#e8eaed">${pts}점</b>`;
+    const row = el(`<div class="rec-row" style="display:flex;justify-content:space-between;gap:.5rem;font-size:.78rem;color:#bdc1c6;padding:.34rem .2rem;border-bottom:1px solid #2a2b2f;cursor:pointer">
+      <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ds} · ${CAT_NAME[r.category] || r.category}${sc ? ` <span style="color:#9aa0a6">${sc}</span>` : ''}${r.is_retry ? ' <span style="color:#f28b82">·오답</span>' : ''}</span>
+      <span style="color:#9aa0a6;flex-shrink:0">${val} ›</span></div>`);
     row.addEventListener('click', () => openRecordDetail(r));
     recBox.appendChild(row);
   });
@@ -642,7 +642,7 @@ function openRecordDetail(r) {
   const scoreLine = r.category === 'religion'
     ? `정답 ${r.correct}/${r.total} · 정답률 ${Number(r.accuracy).toFixed(1)}% · <b>환산 ${pts}/${r.max_points}점</b>`
     : `<b>${r.correct}/${r.total}</b> · 정답률 ${Number(r.accuracy).toFixed(1)}% · 환산 <b>${pts}점</b>`;
-  const tags = (arr) => arr.length ? arr.map((n) => `<span class="rd-tag">${escapeHtml(n)}</span>`).join('') : `<span style="color:#5f6368;font-size:.76rem">목록 없음</span>`;
+  const tags = (arr) => arr.length ? arr.map((n) => `<span class="rd-tag">${escapeHtml(n)}</span>`).join('') : `<span style="color:#9aa0a6;font-size:.76rem">목록 없음</span>`;
   const card = document.getElementById('acct-rec-card');
   card.innerHTML = `
     <button class="acct-x" data-close>✕</button>
@@ -652,8 +652,8 @@ function openRecordDetail(r) {
     ${bd.hasState ? `
       ${r.category !== 'religion' ? `<div class="acct-lbl" style="margin-top:.8rem">맞춘 것 (${bd.right.length})</div><div class="rd-tags">${tags(bd.right)}</div>` : ''}
       <div class="acct-lbl" style="margin-top:.8rem">틀린 것 (${bd.wrong.length})</div><div class="rd-tags rd-wrong">${tags(bd.wrong)}</div>
-    ` : `<div style="color:#5f6368;font-size:.78rem;margin-top:.8rem">상세 정/오답은 해당 범위를 다시 풀면 기록됩니다.</div>`}
-    ${bd.hasWrong ? `<button class="acct-btn" id="rd-retry" style="background:#fce8e6;color:#d93025;border-color:#f0a9a2;margin-top:1rem">틀린 것만 다시 풀기</button>` : ''}
+    ` : `<div style="color:#9aa0a6;font-size:.78rem;margin-top:.8rem">상세 정/오답은 해당 범위를 다시 풀면 기록됩니다.</div>`}
+    ${bd.hasWrong ? `<button class="acct-btn" id="rd-retry" style="background:#fce8e6;color:#f28b82;border-color:#f0a9a2;margin-top:1rem">틀린 것만 다시 풀기</button>` : ''}
   `;
   card.querySelector('[data-close]').addEventListener('click', () => document.getElementById('acct-recdetail').classList.remove('on'));
   const rt = card.querySelector('#rd-retry');

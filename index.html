@@ -17,127 +17,73 @@
 </head>
 <body>
 <div id="landing-overlay">
-  <div class="ld-card">
+  <div class="ld-stage">
     <div class="g3-logo" aria-label="Geogl3"><span class="gb">G</span><span class="gr">e</span><span class="gy">o</span><span class="gb">g</span><span class="gg">l</span><span class="gr">3</span></div>
-    <p class="ld-sub-txt">지리 퀴즈 · 모드를 고르면 바로 시작할 수 있어요</p>
-    <div class="ld-group" data-cat="world">
-      <label class="ld-cat">
-        <input type="checkbox" class="ld-cat-cb" id="cat-world" data-cat="world">
-        <span class="ld-cat-ic" data-ic="globe"></span>
-        <span class="ld-cat-tt">세계지리</span>
-        <span class="ld-cat-en">World</span>
-      </label>
-      <div class="ld-subs">
-        <label class="ld-sub-item"><input type="checkbox" class="ld-act" value="name"><span data-ic="globe"></span>나라 이름 맞추기</label>
-        <label class="ld-sub-item"><input type="checkbox" class="ld-act ld-act-bq" value="border"><span data-ic="border"></span>접경국 퀴즈</label>
-        <div class="ld-tq-diff" id="ld-bq-map" style="display:none">
-          <div class="ld-tq-diff-h">난이도 <span class="ld-tq-diff-sub">접경국</span></div>
-          <div class="ld-diff-seg" id="ld-bqmap">
-            <button type="button" data-bqmap="L">하</button>
-            <button type="button" data-bqmap="M">중</button>
-            <button type="button" data-bqmap="H">상</button>
-          </div>
-          <div class="ld-tq-diff-desc" id="ld-bqmap-desc"></div>
-        </div>
-        <label class="ld-sub-item"><input type="checkbox" class="ld-act" value="religion" id="ld-act-religion"><span data-ic="book"></span>국가별 종교 맞추기</label>
-        <div class="ld-tq-diff" id="ld-relig-diff" style="display:none">
-          <div class="ld-tq-diff-h">난이도 <span class="ld-tq-diff-sub">종교 구성</span></div>
-          <div class="ld-diff-seg" id="ld-rdiff">
-            <button type="button" data-rdiff="L">하</button>
-            <button type="button" data-rdiff="M">중</button>
-            <button type="button" data-rdiff="H">상</button>
-          </div>
-          <div class="ld-tq-diff-desc" id="ld-rdiff-desc"></div>
-        </div>
-        <label class="ld-sub-item"><input type="checkbox" class="ld-act ld-act-tq" value="texp"><span data-ic="chart"></span>수출구조 맞추기</label>
-        <label class="ld-sub-item"><input type="checkbox" class="ld-act ld-act-tq" value="timp"><span data-ic="chart"></span>수입구조 맞추기</label>
-        <label class="ld-sub-item"><input type="checkbox" class="ld-act" value="tenergy" id="ld-act-tenergy"><span data-ic="chart"></span>에너지 구성 맞추기</label>
-        <div class="ld-tq-diff" id="ld-energy-diff" style="display:none">
-          <div class="ld-tq-diff-h">난이도 <span class="ld-tq-diff-sub">에너지 구성</span></div>
-          <div class="ld-diff-seg" id="ld-ediff">
-            <button type="button" data-ediff="L">하</button>
-            <button type="button" data-ediff="M">중</button>
-            <button type="button" data-ediff="H">상</button>
-          </div>
-          <div class="ld-tq-diff-desc" id="ld-ediff-desc"></div>
-          <div class="ld-tq-diff-h" style="margin-top:.5rem">에너지 유형</div>
-          <div class="ld-diff-seg" id="ld-esub">
-            <button type="button" data-esub="all">전체</button>
-            <button type="button" data-esub="ff">화석연료만</button>
-            <button type="button" data-esub="re">신재생에너지만</button>
-          </div>
-        </div>
-        <div class="ld-tq-diff" id="ld-tq-diff" style="display:none">
-          <div class="ld-tq-diff-h">난이도 <span class="ld-tq-diff-sub">수출/수입 구조</span></div>
-          <div class="ld-diff-seg" id="ld-diff">
-            <button type="button" data-diff="L">하</button>
-            <button type="button" data-diff="M">중</button>
-            <button type="button" data-diff="H">상</button>
-          </div>
-          <div class="ld-tq-diff-desc" id="ld-diff-desc"></div>
-        </div>
-        <details class="ld-adv">
-        <summary>세부 옵션 <span style="font-weight:400;font-size:.72rem">대륙 범위 · 출제 비율</span></summary>
-        <div class="ld-adv-bd">
-        <div class="ld-range">
-          <div class="ld-range-h"><span data-ic="range"></span>출제 범위 <span class="ld-range-note">· 중복 선택 가능</span><button type="button" class="ld-cont-all" id="ld-cont-all">전체 선택</button></div>
-          <div class="ld-cont-grid" id="ld-cont-grid">
-            <label class="ld-cont-chk"><input type="checkbox" class="ld-cont-cb" value="as">아시아</label>
-            <label class="ld-cont-chk"><input type="checkbox" class="ld-cont-cb" value="eu">유럽</label>
-            <label class="ld-cont-chk"><input type="checkbox" class="ld-cont-cb" value="af">아프리카</label>
-            <label class="ld-cont-chk"><input type="checkbox" class="ld-cont-cb" value="na">북아메리카</label>
-            <label class="ld-cont-chk"><input type="checkbox" class="ld-cont-cb" value="sa">남아메리카</label>
-            <label class="ld-cont-chk"><input type="checkbox" class="ld-cont-cb" value="oc">오세아니아</label>
-          </div>
-          <div class="ld-cont-hint" id="ld-cont-hint">선택 안 하면 전체 대륙</div>
-          <label class="ld-chk"><input type="checkbox" id="ld-big">인구 40만+ 국가만 (소국 제외)</label>
-          <label class="ld-chk"><input type="checkbox" id="ld-noisle">섬나라 제외</label>
-          <label class="ld-chk"><input type="checkbox" id="ld-terr">자치령 분리 (퀴라소·프랑스령 기아나 등 포함)</label>
-        </div>
-        <div class="ld-portion">
-          <div class="ld-portion-h"><span data-ic="range"></span>출제 비율 <b id="ld-portion-val">100%</b><span class="ld-portion-note">전체 문항 중 일부만 출제</span></div>
-          <input type="range" id="ld-portion" class="ld-portion-sl" min="0" max="5" step="1" value="5">
-          <div class="ld-portion-ticks"><span>5</span><span>10</span><span>12.5</span><span>25</span><span>50</span><span>100</span></div>
-        </div>
-        </div>
-        </details>
-      </div>
+    <p class="ld-tag">지도로 배우는 지리 퀴즈</p>
+    <div class="ld-car-zone">
+      <button type="button" class="ld-arr" id="ld-prev" aria-label="이전 모드">&#8249;</button>
+      <div class="ld-car" id="ld-car"></div>
+      <button type="button" class="ld-arr" id="ld-next" aria-label="다음 모드">&#8250;</button>
     </div>
-    <div class="ld-group" data-cat="korea">
-      <label class="ld-cat">
-        <input type="checkbox" class="ld-cat-cb" id="cat-korea" data-cat="korea">
-        <span class="ld-cat-ic" data-ic="pin"></span>
-        <span class="ld-cat-tt">한국지리</span>
-        <span class="ld-cat-en">Korea</span>
-      </label>
-      <div class="ld-subs">
-        <label class="ld-sub-item"><input type="checkbox" class="ld-act-kr" value="korea" checked disabled><span data-ic="pin"></span>시·군 맞추기</label>
-      </div>
-    </div>
-    <button id="ld-start" class="ld-start"><span>시작하기</span><span data-ic="arrow"></span></button>
+    <div class="ld-dots" id="ld-dots"></div>
+    <button id="ld-start" class="ld-start"><span id="ld-start-label">시작하기</span><span data-ic="arrow"></span></button>
+    <div class="ld-defaults">따로 고르지 않으면 <b>모든 대륙 · 100% 출제 · 난이도 중</b>으로 시작돼요
+      <button type="button" id="ld-open-opt">세부 옵션</button></div>
     <div class="ld-warn" id="ld-warn"></div>
-    <details class="ld-score">
-      <summary>설정 · 배점표</summary>
-      <div style="padding:.6rem .75rem 0">
+    <div id="ld-guest-note">⚠ 로그인하지 않으면 기록·오답·랭킹이 저장되지 않아요. <b>우측 상단에서 로그인하세요</b></div>
+  </div>
+
+  <!-- 세부 옵션 시트 -->
+  <div id="ld-opt-bd"></div>
+  <div id="ld-opt-sheet">
+    <div class="ld-opt-h"><span>세부 옵션</span><button type="button" id="ld-opt-close" aria-label="닫기">&#10005;</button></div>
+    <div class="ld-opt-body">
+      <div class="ld-opt-sec">
+        <div class="ld-opt-t">출제 대륙 <button type="button" class="ld-cont-all" id="ld-cont-all">전체 선택</button></div>
+        <div class="ld-cont-grid" id="ld-cont-grid">
+          <label class="ld-cont-chk"><input type="checkbox" class="ld-cont-cb" value="as">아시아</label>
+          <label class="ld-cont-chk"><input type="checkbox" class="ld-cont-cb" value="eu">유럽</label>
+          <label class="ld-cont-chk"><input type="checkbox" class="ld-cont-cb" value="af">아프리카</label>
+          <label class="ld-cont-chk"><input type="checkbox" class="ld-cont-cb" value="na">북아메리카</label>
+          <label class="ld-cont-chk"><input type="checkbox" class="ld-cont-cb" value="sa">남아메리카</label>
+          <label class="ld-cont-chk"><input type="checkbox" class="ld-cont-cb" value="oc">오세아니아</label>
+        </div>
+        <div class="ld-cont-hint" id="ld-cont-hint">선택하지 않으면 모든 대륙에서 출제</div>
+      </div>
+      <div class="ld-opt-sec">
+        <div class="ld-opt-t">국가 필터</div>
+        <label class="ld-chk"><input type="checkbox" id="ld-big">인구 40만+ 국가만 (소국 제외)</label>
+        <label class="ld-chk"><input type="checkbox" id="ld-noisle">섬나라 제외</label>
+        <label class="ld-chk"><input type="checkbox" id="ld-terr">자치령 분리 (퀴라소·프랑스령 기아나 등)</label>
+      </div>
+      <div class="ld-opt-sec">
+        <div class="ld-opt-t">출제 비율 <b id="ld-portion-val">100%</b></div>
+        <input type="range" id="ld-portion" class="ld-portion-sl" min="0" max="5" step="1" value="5">
+        <div class="ld-portion-ticks"><span>5</span><span>10</span><span>12.5</span><span>25</span><span>50</span><span>100</span></div>
+      </div>
+      <div class="ld-opt-sec">
+        <div class="ld-opt-t">화면 모드</div>
         <div class="ld-seg" id="ld-mode">
           <button class="ld-seg-btn" data-mode="pc"><span data-ic="monitor"></span>PC</button>
           <button class="ld-seg-btn" data-mode="mob"><span data-ic="phone"></span>모바일</button>
         </div>
       </div>
-      <table class="ld-score-tb">
-        <tr><th>모드</th><th>국가당 점수</th></tr>
-        <tr><td>나라 이름</td><td>1점</td></tr>
-        <tr><td>접경국 (지도 O)</td><td>1점</td></tr>
-        <tr><td>접경국 (지도 X)</td><td>3점</td></tr>
-        <tr><td>접경국 쓰기</td><td>접경국당 9점</td></tr>
-        <tr><td>종교 구성 (상·중·하)</td><td>3 · 2 · 1점</td></tr>
-        <tr><td>에너지 구성 (상·중·하)</td><td>6 · 4 · 2점</td></tr>
-        <tr><td>수출구조 (상·중·하)</td><td>6 · 4 · 2점</td></tr>
-        <tr><td>수입구조 (상·중·하)</td><td>9 · 6 · 3점</td></tr>
-        <tr><td>한국지리</td><td>1점</td></tr>
-      </table>
-    </details>
-    <div id="ld-guest-note">⚠ 로그인하지 않으면 기록·오답·랭킹이 저장되지 않아요.<br><b>우측 상단에서 로그인하세요</b></div>
+      <div class="ld-opt-sec">
+        <div class="ld-opt-t">배점표</div>
+        <table class="ld-score-tb">
+          <tr><th>모드</th><th>점수</th></tr>
+          <tr><td>나라 이름</td><td>국가당 1점</td></tr>
+          <tr><td>접경국 (하 · 지도)</td><td>국가당 1점</td></tr>
+          <tr><td>접경국 (중 · 입력)</td><td>국가당 3점</td></tr>
+          <tr><td>접경국 (상 · 모두 쓰기)</td><td>접경국당 9점</td></tr>
+          <tr><td>종교 구성 (하·중·상)</td><td>1 · 2 · 3점</td></tr>
+          <tr><td>에너지 구성 (하·중·상)</td><td>2 · 4 · 6점</td></tr>
+          <tr><td>수출구조 (하·중·상)</td><td>2 · 4 · 6점</td></tr>
+          <tr><td>수입구조 (하·중·상)</td><td>3 · 6 · 9점</td></tr>
+          <tr><td>한국지리 시·군</td><td>1점</td></tr>
+        </table>
+      </div>
+    </div>
   </div>
 </div>
 <div id="act-tabs">
