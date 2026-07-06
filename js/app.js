@@ -268,7 +268,7 @@ function startSession(cat,acts,filterKey,rqContKey){
   document.getElementById('landing-overlay').style.display='none';
   document.body.classList.add('in-session');
   if(cat==='world'){
-    if(acts.includes('name')||acts.includes('border')){initActiveSet(filterKey);}
+    if(acts.includes('name')||acts.includes('border')||acts.includes('rborder')){initActiveSet(filterKey);}
     if(acts.includes('name')){
       S.correct=0;S.revealed=0;S.status={};S.wrong={};S.recorded=false;S.isRetry=false;
       loadGame();
@@ -517,7 +517,7 @@ function bqInit(filterKey){
   bqLoad();
   const done=new Set(Object.keys(BQ.status));
   const allGroups=bqBuildGroupQueue(BQ.activeSet);
-  BQ.queue=allGroups.map(g=>g.filter(iso=>!done.has(iso))).filter(g=>g.length>0).sort(()=>Math.random()-.5);
+  BQ.queue=shuffle(allGroups.map(g=>g.filter(iso=>!done.has(iso))).filter(g=>g.length>0));
 }
 function bqLoad(){
   try{const raw=localStorage.getItem(BQ.saveKey);if(!raw)return false;
@@ -627,8 +627,10 @@ function resetBorderQuiz(skipConfirm){
   if(skipConfirm!==true&&!confirm('접경국 퀴즈 진행 상황을 초기화할까요?'))return;
   localStorage.removeItem(BQ.saveKey);
   BQ.status={};BQ.correct=0;BQ.wrong=0;BQ.wrongCounts={};BQ.recorded=false;
+  try{if(SESSION.cat==='world'&&SESSION.filterKey)initActiveSet(SESSION.filterKey);}catch(e){} /* 표본 재추첨 */
+  BQ.activeSet=new Set(bqPool());BQ.total=BQ.activeSet.size;
   const allGroups=bqBuildGroupQueue(BQ.activeSet);
-  BQ.queue=allGroups.sort(()=>Math.random()-.5);
+  BQ.queue=shuffle(allGroups);
   clearMapColors();paint();bqStats();bqShowCurrent();
 }
 function bqEnd(){
@@ -672,7 +674,7 @@ function rbqInit(filterKey){
   RBQ.status={};RBQ.scoreCounts={};RBQ.correct=0;RBQ.wrong=0;RBQ.curWrong=0;RBQ.target=null;RBQ.remaining=null;RBQ.recorded=false;RBQ.isRetry=false;
   rbqLoad();
   const done=new Set(Object.keys(RBQ.status));
-  RBQ.queue=[...RBQ.activeSet].filter(iso=>!done.has(iso)).sort(()=>Math.random()-.5);
+  RBQ.queue=shuffle([...RBQ.activeSet].filter(iso=>!done.has(iso)));
 }
 function rbqLoad(){
   try{
@@ -779,7 +781,9 @@ function resetRBQ(skipConfirm){
   if(skipConfirm!==true&&!confirm('접경국 쓰기 진행 상황을 초기화할까요?'))return;
   localStorage.removeItem(RBQ.saveKey);
   RBQ.status={};RBQ.scoreCounts={};RBQ.correct=0;RBQ.wrong=0;RBQ.recorded=false;
-  RBQ.queue=[...RBQ.activeSet].sort(()=>Math.random()-.5);
+  try{if(SESSION.cat==='world'&&SESSION.filterKey)initActiveSet(SESSION.filterKey);}catch(e){} /* 표본 재추첨 */
+  RBQ.activeSet=new Set(rbqPool());RBQ.total=0;RBQ.activeSet.forEach(iso=>{RBQ.total+=(BORDERS[iso]||[]).length;});
+  RBQ.queue=shuffle([...RBQ.activeSet]);
   try{clearMapColors();paint();}catch(e){}rbqStats();rbqShowCurrent();
 }
 function rbqEnd(){
@@ -1072,6 +1076,7 @@ function resetMapQuiz(skipConfirm){
   if(skipConfirm!==true&&!confirm('현재 모드('+modeName+') 진행 상황을 초기화할까요?'))return;
   localStorage.removeItem(S.saveKey);
   S.correct=0;S.revealed=0;S.wrong={};S.status={};S.cur=null;S.recorded=false;
+  try{if(SESSION.cat==='world'&&SESSION.filterKey)initActiveSet(SESSION.filterKey);}catch(e){} /* 표본 재추첨 */
   Object.keys(colors).forEach(k=>delete colors[k]);
   paint();
   closeModal();
@@ -2514,7 +2519,7 @@ function bqRetryWrong(){
   BQ.activeSet=new Set(wrongISOs);BQ.total=wrongISOs.length;
   BQ.saveKey='bq__retry';
   BQ.status={};BQ.correct=0;BQ.wrong=0;BQ.wrongCounts={};BQ.recorded=false;BQ.isRetry=true;
-  BQ.queue=bqBuildGroupQueue(BQ.activeSet).sort(()=>Math.random()-.5);
+  BQ.queue=shuffle(bqBuildGroupQueue(BQ.activeSet));
   clearMapColors();paint();bqStats();bqShowCurrent();
 }
 function _keyFor(category,scope){
@@ -3066,6 +3071,7 @@ function tqLoad(key){
     TQ.leftOrder=shuffle(TQ.round);
     TQ.rightOrder=shuffle(TQ.round);
     TQ.rbuilt=d.rbuilt?shuffle(d.rbuilt):null;
+    if(Array.isArray(TQ.queue)&&TQ.queue.length)TQ.queue=shuffle(TQ.queue); /* 남은 문제 순서도 매번 랜덤 */
     TQ.totalCountries=d.totalCountries||0; TQ.correctCountries=d.correctCountries||0;
     TQ.wrongSet=new Set(d.wrong||[]); TQ.doneSet=new Set(d.done||[]);
     TQ.recorded=!!d.recorded; TQ.isRetry=!!d.isRetry;
