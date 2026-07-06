@@ -330,7 +330,7 @@ function endSession(){
   try{saveRQ();}catch(e){}
   try{saveKR();}catch(e){}
   try{bqSave();}catch(e){}
-  try{if(TQ.saveKey&&!TQ.isRetry)tqSave();}catch(e){}
+  try{if(TQ.saveKey&&!TQ.isRetry&&!TQ._done)tqSave();}catch(e){}
   if(modalOpen)closeModal();
   document.body.classList.remove('in-session');
   document.body.classList.remove('bq-nomap');
@@ -1299,13 +1299,16 @@ function updateWfDesc(sliderId,descId){
 }
 function retryWrong(minOverride){
   const minWrong=minOverride||parseInt((document.getElementById('map-wf-sl')||{value:'3'}).value)||3;
+  /* 자동 리셋 이후에도 결과창 스냅샷으로 동작 */
+  const st=Object.keys(S.status).length?S.status:(S._endStatus||{});
+  const wrObj=Object.keys(S.wrong).length?S.wrong:(S._endWrong||{});
   let wrongISOs;
   if(minWrong>=3){
-    wrongISOs=Object.entries(S.status).filter(([,v])=>v==='cr').map(([k])=>k);
+    wrongISOs=Object.entries(st).filter(([,v])=>v==='cr').map(([k])=>k);
   }else if(minWrong===2){
-    wrongISOs=Object.keys(S.wrong).filter(iso=>(S.wrong[iso]||0)>=2);
+    wrongISOs=Object.keys(wrObj).filter(iso=>(wrObj[iso]||0)>=2);
   }else{
-    wrongISOs=Object.keys(S.wrong).filter(iso=>(S.wrong[iso]||0)>=1);
+    wrongISOs=Object.keys(wrObj).filter(iso=>(wrObj[iso]||0)>=1);
   }
   if(!wrongISOs.length)return;
   document.getElementById('ui-end').style.display='none';
@@ -1318,7 +1321,8 @@ function retryWrong(minOverride){
 }
 const OOPS_KEY='wq_oops_note';
 function addToOopsNote(){
-  const wrongISOs=Object.entries(S.status).filter(([,v])=>v==='cr').map(([k])=>k);
+  const st=Object.keys(S.status).length?S.status:(S._endStatus||{});
+  const wrongISOs=Object.entries(st).filter(([,v])=>v==='cr').map(([k])=>k);
   if(!wrongISOs.length)return;
   const existing=JSON.parse(localStorage.getItem(OOPS_KEY)||'[]');
   const merged=[...new Set([...existing,...wrongISOs])];
@@ -1385,6 +1389,8 @@ function endScreen(){
   document.getElementById('ui-end').style.display='flex';
   window._lastResult={title:'나라 이름 맞추기',score:Math.round(S.correct/(done||1)*100)+'%',
     rows:[['정답',S.correct,'#81c995'],['공개됨',S.revealed,'#f28b82'],['진행',done,'#9aa0a6']]};
+  /* 자동 리셋 전에 오답 스냅샷 보존 → 결과창의 '틀린 것만 다시하기'/'오답 노트' 정상 동작 */
+  S._endStatus=Object.assign({},S.status);S._endWrong=Object.assign({},S.wrong);
   setTimeout(()=>{try{resetMapQuiz(true);}catch(e){}},80); /* 자동 리셋 — 다음 판은 새로 시작 */
 }
 
@@ -2966,6 +2972,7 @@ function tqEligible(iso){
 function tqSaveKeyFor(mode,fk){return 'tq_'+mode+'_'+(fk||'all');}
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 function tqInit(mode,filterKey){
+  TQ._done=false;
   TQ.mode=mode; TQ.filterKey=filterKey||'all'; TQ.isRetry=false;
   if(mode==='e'){const em=(TQ.filterKey||'').match(/_esub(ff|re)/);TQ.eSub=em?em[1]:'all';}
   TQ.saveKey=tqSaveKeyFor(mode,TQ.filterKey);
@@ -2998,13 +3005,17 @@ function tqRestoreFrom(o){
 function tqEnter(mode){
   const fk=(typeof SESSION!=='undefined'&&SESSION.filterKey)?SESSION.filterKey:'all';
   const targetKey=tqSaveKeyFor(mode,fk);
-  if(TQ.saveKey===targetKey){ openTradeTab(); return; }
+  if(TQ.saveKey===targetKey){
+    if(TQ._done){TQ._done=false;document.getElementById('tq-end').classList.remove('on');tqInit(mode,fk);}
+    openTradeTab(); return;
+  }
   if(TQ.saveKey)TQ_CACHE[TQ.saveKey]=tqSnapshot();
   if(TQ_CACHE[targetKey]){ tqRestoreFrom(TQ_CACHE[targetKey]); }
   else { tqInit(mode,fk); }
   openTradeTab();
 }
 function tqStartRetry(isos){
+  TQ._done=false;
   TQ.isRetry=true; TQ.saveKey='tq_'+TQ.mode+'__retry';
   TQ.pool=isos.filter(tqEligible);
   TQ.correctCountries=0; TQ.wrongSet=new Set(); TQ.doneSet=new Set(); TQ.recorded=false;
@@ -3351,7 +3362,11 @@ function tqShowEnd(){
   const _ttl={x:'수출구조',m:'수입구조',r:'종교 구성',e:'에너지 구성'}[TQ.mode]||'무역 구조';
   window._lastResult={title:_ttl,score:acc+'%',
     rows:[['맞춤',cor,'#81c995'],['틀림',Math.max(0,tot-cor),'#f28b82'],['획득',cor*tqPoints(TQ.mode,TQ.filterKey)+'점','#fdd663']]};
-  if(!TQ.isRetry)try{localStorage.removeItem(TQ.saveKey);}catch(e){} /* 자동 리셋 — 다음 입장은 처음부터 */
+  if(!TQ.isRetry){
+    try{localStorage.removeItem(TQ.saveKey);}catch(e){} /* 자동 리셋 — 다음 입장은 처음부터 */
+    TQ._done=true; /* endSession의 재저장·캐시 복원으로 옛 진행이 살아나는 것 방지 */
+    try{delete TQ_CACHE[TQ.saveKey];}catch(e){}
+  }
 }
 function tqRetryWrong(){
   const wrong=[...TQ.wrongSet];
@@ -3360,6 +3375,7 @@ function tqRetryWrong(){
 }
 function tqRestart(){
   const fk=(typeof SESSION!=='undefined'&&SESSION.filterKey)?SESSION.filterKey:(TQ.filterKey||'all');
+  TQ._done=false;
   TQ.isRetry=false; TQ.saveKey=tqSaveKeyFor(TQ.mode,fk); TQ.filterKey=fk;
   TQ.pool=tqPoolFor(fk);
   document.getElementById('tq-end').classList.remove('on');
