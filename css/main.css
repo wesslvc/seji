@@ -385,6 +385,7 @@ body.border-mode .leg,body.border-mode .info{display:none}
 #bq-list-panel.on{display:flex!important}
 #bq-end{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:800;display:none;align-items:center;justify-content:center}
 #bq-end.on{display:flex}
+#rbq-end{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:800;display:none;align-items:center;justify-content:center}
 #rbq-end.on{display:flex}
 #rbq-list-panel.on{display:flex!important}
 
