@@ -956,7 +956,30 @@ async function boot() {
   window.addEventListener('pagehide', () => flushPush());
 }
 
-window.SejiAccount = { submitScore, isLoggedIn: () => !!session };
+/* 자랑하기 카드용: 닉네임·프사·총점·랭킹 */
+async function getShareInfo() {
+  if (!session) return null;
+  await ensureSB();
+  if (!supabase) return null;
+  try {
+    const { data, error } = await supabase.from('scores').select('user_id,points,correct,is_retry');
+    if (error) return { nickname: (profile && profile.nickname) || '플레이어', avatarUrl: (profile && profile.avatar_url) || null };
+    const totals = {};
+    (data || []).forEach((r) => {
+      if (r.is_retry) return;
+      const pts = r.points != null ? r.points : (r.correct | 0);
+      totals[r.user_id] = (totals[r.user_id] || 0) + pts;
+    });
+    const mine = totals[session.user.id] || 0;
+    const rank = Object.values(totals).filter((v) => v > mine).length + 1;
+    return {
+      nickname: (profile && profile.nickname) || '플레이어',
+      avatarUrl: (profile && profile.avatar_url) || null,
+      totalPoints: mine, rank, users: Object.keys(totals).length,
+    };
+  } catch (e) { return null; }
+}
+window.SejiAccount = { submitScore, isLoggedIn: () => !!session, getShareInfo };
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
 else boot();

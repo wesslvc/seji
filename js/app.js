@@ -355,8 +355,19 @@ function mapFinishAction(){
   else endScreen();
 }
 /* ── 결과 자랑하기: 공유 카드 이미지 생성 → 공유/저장 ── */
-function shareLastResult(){
+function _loadImg(url){
+  return new Promise(res=>{
+    if(!url)return res(null);
+    const im=new Image();im.crossOrigin='anonymous';
+    im.onload=()=>res(im);im.onerror=()=>res(null);
+    im.src=url;
+  });
+}
+async function shareLastResult(){
   const r=window._lastResult;if(!r)return;
+  let info=null;
+  try{if(window.SejiAccount&&window.SejiAccount.getShareInfo)info=await window.SejiAccount.getShareInfo();}catch(e){}
+  const av=info?await _loadImg(info.avatarUrl):null;
   const W=1080,H=1080,cv=document.createElement('canvas');cv.width=W;cv.height=H;
   const x=cv.getContext('2d');
   x.fillStyle='#17181b';x.fillRect(0,0,W,H);
@@ -365,7 +376,7 @@ function shareLastResult(){
   x.fillStyle=glow;x.fillRect(0,0,W,H);
   /* 글로브 마크 */
   x.strokeStyle='#5eead4';x.lineWidth=7;x.lineCap='round';
-  const gx=W/2,gy=190,gr=64;
+  const gx=W/2,gy=170,gr=56;
   x.beginPath();x.arc(gx,gy,gr,0,Math.PI*2);x.stroke();
   x.beginPath();x.ellipse(gx,gy,gr*.45,gr,0,0,Math.PI*2);x.stroke();
   x.beginPath();x.moveTo(gx-gr*.92,gy-gr*.33);x.lineTo(gx+gr*.92,gy-gr*.33);
@@ -374,18 +385,18 @@ function shareLastResult(){
   const grad=x.createLinearGradient(W/2-220,0,W/2+220,0);
   grad.addColorStop(0,'#7cc4ff');grad.addColorStop(.52,'#5eead4');grad.addColorStop(1,'#8b9dff');
   x.fillStyle=grad;x.textAlign='center';
-  x.font="700 96px 'Space Grotesk','Pretendard',sans-serif";
-  x.fillText('Geogl3',W/2,360);
+  x.font="700 88px 'Space Grotesk','Pretendard',sans-serif";
+  x.fillText('Geogl3',W/2,322);
   /* 모드명 */
-  x.fillStyle='#9aa0a6';x.font="600 46px 'Pretendard',sans-serif";
-  x.fillText(r.title,W/2,442);
+  x.fillStyle='#9aa0a6';x.font="600 44px 'Pretendard',sans-serif";
+  x.fillText(r.title,W/2,398);
   /* 점수 */
-  x.fillStyle='#e8eaed';x.font="800 190px 'Space Grotesk','Pretendard',sans-serif";
-  x.fillText(r.score,W/2,660);
+  x.fillStyle='#e8eaed';x.font="800 175px 'Space Grotesk','Pretendard',sans-serif";
+  x.fillText(r.score,W/2,590);
   /* 통계 행 */
-  x.font="600 42px 'Pretendard',sans-serif";
-  const rows=r.rows||[];const rowY=770;
-  const widths=rows.map(([lb,v])=>x.measureText(lb+'  '+v).width+70);
+  x.font="600 40px 'Pretendard',sans-serif";
+  const rows=r.rows||[];const rowY=690;
+  const widths=rows.map(([lb,v])=>x.measureText(lb+'  '+v).width+66);
   let tx=W/2-widths.reduce((a,b)=>a+b,0)/2;
   rows.forEach(([lb,v,col],i)=>{
     const cx2=tx+widths[i]/2;
@@ -394,20 +405,47 @@ function shareLastResult(){
     tx+=widths[i];
   });
   x.textAlign='center';
+  /* 프로필 + 총점·랭킹 (로그인 시) */
+  if(info){
+    const py=810;
+    x.strokeStyle='#2a2b2f';x.lineWidth=2;
+    x.beginPath();x.moveTo(W/2-320,750);x.lineTo(W/2+320,750);x.stroke();
+    x.font="700 46px 'Pretendard',sans-serif";
+    const nm=info.nickname||'플레이어';
+    const nmW=x.measureText(nm).width;
+    const avR=40,gap=22;
+    const startX=W/2-((av?avR*2+gap:0)+nmW)/2;
+    if(av){
+      x.save();x.beginPath();x.arc(startX+avR,py,avR,0,Math.PI*2);x.clip();
+      x.drawImage(av,startX,py-avR,avR*2,avR*2);x.restore();
+      x.strokeStyle='#3c4043';x.lineWidth=3;
+      x.beginPath();x.arc(startX+avR,py,avR,0,Math.PI*2);x.stroke();
+    }
+    x.fillStyle='#e8eaed';x.textAlign='left';
+    x.fillText(nm,startX+(av?avR*2+gap:0),py+16);
+    x.textAlign='center';
+    if(info.totalPoints!=null){
+      x.font="600 40px 'Pretendard',sans-serif";
+      x.fillStyle='#fdd663';
+      const rkTxt='총점 '+info.totalPoints.toLocaleString()+'점'+(info.rank?'  ·  랭킹 '+info.rank+'위'+(info.users?' / '+info.users+'명':''):'');
+      x.fillText(rkTxt,W/2,900);
+    }
+  }
   /* 푸터 */
   const d=new Date();
-  x.fillStyle='#5f6368';x.font="500 36px 'Pretendard',sans-serif";
-  x.fillText(d.getFullYear()+'. '+(d.getMonth()+1)+'. '+d.getDate()+'.  ·  Geogl3 지리 퀴즈',W/2,980);
-  cv.toBlob(async blob=>{
+  x.fillStyle='#5f6368';x.font="500 34px 'Pretendard',sans-serif";
+  x.fillText(d.getFullYear()+'. '+(d.getMonth()+1)+'. '+d.getDate()+'.  ·  Geogl3 지리 퀴즈',W/2,1005);
+  const finish=blob=>{
     if(!blob)return;
     const file=new File([blob],'geogl3-result.png',{type:'image/png'});
     if(navigator.canShare&&navigator.canShare({files:[file]})){
-      try{await navigator.share({files:[file],title:'Geogl3 결과'});return;}catch(e){}
+      navigator.share({files:[file],title:'Geogl3 결과'}).catch(()=>{});return;
     }
     const a=document.createElement('a');
     a.href=URL.createObjectURL(blob);a.download='geogl3-result.png';a.click();
     setTimeout(()=>URL.revokeObjectURL(a.href),4000);
-  },'image/png');
+  };
+  cv.toBlob(finish,'image/png'); /* 프사는 crossOrigin 로드 성공 시에만 그려져 캔버스 오염 없음 */
 }
 function tqFinishNow(){if(!confirm(FINISH_MSG))return;tqShowEnd();}
 function krFinishNow(){if(!confirm(FINISH_MSG))return;krEndScreen();}
