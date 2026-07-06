@@ -14,7 +14,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
 </noscript>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%235eead4%27 stroke-width=%272%27 stroke-linecap=%27round%27%3E%3Ccircle cx=%2712%27 cy=%2712%27 r=%279%27/%3E%3Cellipse cx=%2712%27 cy=%2712%27 rx=%274%27 ry=%279%27/%3E%3Cpath d=%27M3.5 9h17M3.5 15h17%27/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/main.css?v=20260706b">
+<link rel="stylesheet" href="css/main.css?v=20260706c">
 </head>
 <body>
 <div id="landing-overlay">
@@ -3309,7 +3309,7 @@
     <button class="reb secondary" id="end-add-wrong" style="display:none" onclick="addToOopsNote()">오답 노트에 추가</button>
     <button class="reb secondary" id="end-oops-quiz" style="display:none" onclick="startOopsQuiz()">오답 노트 퀴즈</button>
     <button class="reb" onclick="shareLastResult()">결과 자랑하기</button>
-    <button class="reb secondary" onclick="document.getElementById('ui-end').style.display='none'">다시 시작 (지도 보기)</button>
+    <button class="reb secondary" onclick="runPendingReset();document.getElementById('ui-end').style.display='none'">다시 시작 (지도 보기)</button>
   </div>
 </div>
 
@@ -3417,8 +3417,8 @@
       <div class="wrong-tags" id="kr-wrong-tags"></div>
     </div>
     <button class="reb" onclick="shareLastResult()">결과 자랑하기</button>
-    <button class="reb secondary" onclick="document.getElementById('kr-end').classList.remove('on')">다시 시작</button>
-    <button class="reb secondary" onclick="document.getElementById('kr-end').classList.remove('on')">닫기</button>
+    <button class="reb secondary" onclick="runPendingReset();document.getElementById('kr-end').classList.remove('on')">다시 시작</button>
+    <button class="reb secondary" onclick="runPendingReset();document.getElementById('kr-end').classList.remove('on')">닫기</button>
   </div>
 </div>
 <template id="korea-svg-tpl"><svg xmlns="http://www.w3.org/2000/svg" id="korea-svg" viewBox="0 0 509 716.105">
@@ -4644,8 +4644,8 @@
       <div class="est"><div class="esv" style="color:var(--wr)" id="bq-e2">0</div><div class="esl">오답</div></div>
     </div>
     <button class="reb" onclick="shareLastResult()">결과 자랑하기</button>
-    <button class="reb secondary" onclick="document.getElementById('bq-end').classList.remove('on')">다시 시작</button>
-    <button class="reb secondary" onclick="document.getElementById('bq-end').classList.remove('on')">닫기</button>
+    <button class="reb secondary" onclick="runPendingReset();document.getElementById('bq-end').classList.remove('on')">다시 시작</button>
+    <button class="reb secondary" onclick="runPendingReset();document.getElementById('bq-end').classList.remove('on')">닫기</button>
   </div>
 </div>
 <div id="rbq-end" style="position:fixed;inset:0;background:rgba(32,33,36,.5);z-index:800;display:none;align-items:center;justify-content:center">
@@ -4658,15 +4658,15 @@
       <div class="est"><div class="esv" style="color:var(--wr)" id="rbq-e2">0</div><div class="esl">놓친 접경국</div></div>
     </div>
     <button class="reb" onclick="shareLastResult()">결과 자랑하기</button>
-    <button class="reb secondary" onclick="document.getElementById('rbq-end').classList.remove('on')">다시 시작</button>
+    <button class="reb secondary" onclick="runPendingReset();document.getElementById('rbq-end').classList.remove('on')">다시 시작</button>
   </div>
 </div>
-<script src="js/data.js?v=20260706b"></script>
-<script src="js/app.js?v=20260706b"></script>
+<script src="js/data.js?v=20260706c"></script>
+<script src="js/app.js?v=20260706c"></script>
 <!-- ════════════════════════════════════════════════════════════
      계정 · 소셜로그인 · 랭킹 (Supabase) — 빌드/명령어 불필요, 이 파일만으로 동작
      ▼▼▼ 여기 두 줄만 본인 Supabase 값으로 바꾸면 끝 ▼▼▼ -->
-<script type="module" src="js/account.js?v=20260706b"></script>
+<script type="module" src="js/account.js?v=20260706c"></script>
 
 </body>
 </html>

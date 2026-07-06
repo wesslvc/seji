@@ -326,6 +326,7 @@ function switchTab(key){
   try{applyModeUI();}catch(e){}
 }
 function endSession(){
+  runPendingReset();
   try{saveGame();}catch(e){}
   try{saveRQ();}catch(e){}
   try{saveKR();}catch(e){}
@@ -348,8 +349,14 @@ function endSession(){
 function mapListAction(){if(mapMode==='border')openBQList();else if(mapMode==='rborder')openRBQList();else openCountryList();}
 /* 여기서 끝내기 — 현재 진행 상황으로 점수를 기록하고 결과 화면 표시 */
 const FINISH_MSG='여기서 끝낼까요?\n지금까지 진행한 내용으로 점수가 기록됩니다.';
+/* 결과창이 닫힐 때 실행되는 이연 리셋 — 모달이 떠 있는 동안 보드가 바뀌거나
+   입력 포커스(모바일 키보드)가 되살아나 완료창을 가리는 것을 방지 */
+function runPendingReset(){const f=window._pendingReset;window._pendingReset=null;if(f)try{f();}catch(e){}}
+/* confirm() 닫힌 뒤 브라우저가 입력 포커스를 복원해 모바일 키보드가 완료창을 가리는 것 방지 */
+function _blurActive(){const b=()=>{try{if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();}catch(e){}};b();setTimeout(b,60);setTimeout(b,250);}
 function mapFinishAction(){
   if(!confirm(FINISH_MSG))return;
+  _blurActive();
   if(mapMode==='border')bqEnd();
   else if(mapMode==='rborder')rbqEnd();
   else endScreen();
@@ -447,8 +454,8 @@ async function shareLastResult(){
   };
   cv.toBlob(finish,'image/png'); /* 프사는 crossOrigin 로드 성공 시에만 그려져 캔버스 오염 없음 */
 }
-function tqFinishNow(){if(!confirm(FINISH_MSG))return;tqShowEnd();}
-function krFinishNow(){if(!confirm(FINISH_MSG))return;krEndScreen();}
+function tqFinishNow(){if(!confirm(FINISH_MSG))return;_blurActive();try{tqHideExplain();}catch(e){}tqShowEnd();}
+function krFinishNow(){if(!confirm(FINISH_MSG))return;_blurActive();krEndScreen();}
 function mapResetAction(){if(mapMode==='border')resetBorderQuiz();else if(mapMode==='rborder')resetRBQ();else resetMapQuiz();}
 function openReligionTab(){if(!RQ.list||!RQ.list.length){if(!loadRQ())buildRQList();}showRQCard();}
 function openKoreaTab(){setTimeout(()=>{initKorea();applyModeUI();},30);}
@@ -534,6 +541,7 @@ function bqSetDots(n){
   for(let i=0;i<3;i++)document.getElementById('bq-d'+i).className='bq-dot'+(i<n?' ng':'');
 }
 function bqShowCurrent(){
+  if(document.getElementById('bq-end').classList.contains('on'))return; /* 완료창 표시 중엔 진행 갱신 중단 */
   const box=document.getElementById('bq-box');
   const grp=bqCurrentGroup();
   if(!grp){box.classList.remove('on');bqEnd();return;}
@@ -547,7 +555,7 @@ function bqShowCurrent(){
   else{qEl.innerHTML='아래 나라들과 <b>모두 접한</b> 나라의 '+how;}
   const tp=document.getElementById('bq-type'); if(tp)tp.style.display=BQ.noMap?'flex':'none';
   document.body.classList.toggle('bq-nomap',!!BQ.noMap);
-  if(BQ.noMap){const gi=document.getElementById('bq-gi');if(gi){gi.value='';setTimeout(()=>{try{gi.focus();}catch(e){}},50);}}
+  if(BQ.noMap){const gi=document.getElementById('bq-gi');if(gi){gi.value='';setTimeout(()=>{try{if(!document.getElementById('bq-end').classList.contains('on'))gi.focus();}catch(e){}},50);}}
   const fb=document.getElementById('bq-fb');fb.textContent='';fb.className='bq-fb';
   if(SESSION.cur==='border')box.classList.add('on');
 }
@@ -633,7 +641,7 @@ function bqEnd(){
   window._lastResult={title:'접경국 퀴즈',score:Math.round(BQ.correct/(done||1)*100)+'%',
     rows:[['정답',BQ.correct,'#81c995'],['오답',BQ.wrong,'#f28b82'],['진행',done,'#9aa0a6']]};
   if(!BQ.recorded){BQ.recorded=true;const bper=BQ.noMap?3:1;try{bqSave();}catch(e){}try{window.SejiAccount&&window.SejiAccount.submitScore({category:'border',correct:BQ.correct,total:done,accuracy:Math.round(BQ.correct/(done||1)*1000)/10,scope:SESSION.filterKey,points:BQ.correct*bper,maxPoints:done*bper,isRetry:BQ.isRetry,contStats:contStatsOf([...BQ.activeSet],iso=>BQ.status[iso]&&BQ.status[iso]!=='cr')});}catch(e){}}
-  setTimeout(()=>{try{resetBorderQuiz(true);}catch(e){}},80);
+  window._pendingReset=()=>resetBorderQuiz(true);
 }
 function openBQList(){
   const grid=document.getElementById('bql-grid');if(!grid)return;
@@ -688,6 +696,7 @@ function rbqStats(){
 }
 function rbqSetDots(n){for(let i=0;i<3;i++){const d=document.getElementById('rbq-d'+i);if(d)d.className='bq-dot'+(i<n?' ng':'');}}
 function rbqShowCurrent(){
+  if(document.getElementById('rbq-end').classList.contains('on'))return; /* 완료창 표시 중엔 진행 갱신 중단 */
   const box=document.getElementById('rbq-box');
   if(!RBQ.queue||!RBQ.queue.length){if(box)box.classList.remove('on');rbqEnd();return;}
   const iso=RBQ.queue[0];
@@ -700,7 +709,7 @@ function rbqShowCurrent(){
   if(qEl)qEl.innerHTML='이 나라와 접한 나라를 <b>모두</b> 입력하세요 <span style="font-size:.6rem;color:var(--tx2)">(한 나라씩)</span>';
   const tp=document.getElementById('rbq-type');if(tp)tp.style.display='flex';
   document.body.classList.add('bq-nomap');
-  const gi=document.getElementById('rbq-gi');if(gi){gi.value='';setTimeout(()=>{try{gi.focus();}catch(e){}},50);}
+  const gi=document.getElementById('rbq-gi');if(gi){gi.value='';setTimeout(()=>{try{if(!document.getElementById('rbq-end').classList.contains('on'))gi.focus();}catch(e){}},50);}
   const fb=document.getElementById('rbq-fb');if(fb){fb.textContent='';fb.className='bq-fb';}
   if(SESSION.cur==='rborder'&&box)box.classList.add('on');
   if(!RBQ.noMap){try{clearMapColors();for(const[k,v]of Object.entries(RBQ.status)){if(v&&v!=='blink')colors[k]=v;}paint();setColor(iso,'c1');centerCountry(iso);}catch(e){}}
@@ -785,7 +794,7 @@ function rbqEnd(){
     rows:[['맞춘 접경국',RBQ.correct,'#81c995'],['놓친 접경국',RBQ.wrong,'#f28b82']]};
   if(!RBQ.recorded){RBQ.recorded=true;try{rbqSave();}catch(e){}
     try{window.SejiAccount&&window.SejiAccount.submitScore({category:'rborder',correct:RBQ.correct,total:(RBQ.correct+RBQ.wrong)||0,accuracy:Math.round(RBQ.correct/((RBQ.correct+RBQ.wrong)||1)*1000)/10,scope:SESSION.filterKey,points,maxPoints:maxPts,isRetry:RBQ.isRetry});}catch(e){}}
-  setTimeout(()=>{try{resetRBQ(true);}catch(e){}},80);
+  window._pendingReset=()=>resetRBQ(true);
 }
 function openRBQList(){
   const grid=document.getElementById('rbql-grid');if(!grid)return;
@@ -1311,6 +1320,7 @@ function retryWrong(minOverride){
     wrongISOs=Object.keys(wrObj).filter(iso=>(wrObj[iso]||0)>=1);
   }
   if(!wrongISOs.length)return;
+  window._pendingReset=null; /* 오답 재도전이 리셋을 대체 */
   document.getElementById('ui-end').style.display='none';
   S.activeSet=new Set(wrongISOs);S.total=wrongISOs.length;
   S.saveKey='wq__retry';
@@ -1391,7 +1401,7 @@ function endScreen(){
     rows:[['정답',S.correct,'#81c995'],['공개됨',S.revealed,'#f28b82'],['진행',done,'#9aa0a6']]};
   /* 자동 리셋 전에 오답 스냅샷 보존 → 결과창의 '틀린 것만 다시하기'/'오답 노트' 정상 동작 */
   S._endStatus=Object.assign({},S.status);S._endWrong=Object.assign({},S.wrong);
-  setTimeout(()=>{try{resetMapQuiz(true);}catch(e){}},80); /* 자동 리셋 — 다음 판은 새로 시작 */
+  window._pendingReset=()=>resetMapQuiz(true); /* 결과창 닫을 때 자동 리셋 */
 }
 
 /* ── Country List Panel ── */
@@ -2048,12 +2058,12 @@ function krEndScreen(){
   document.getElementById('kr-end').classList.add('on');
   window._lastResult={title:KR.mode==='L'?'한국지리 시·도':'한국지리 시·군',score:Math.round(KR.correct/(done||1)*100)+'%',
     rows:[['정답',KR.correct,'#81c995'],['공개됨',KR.revealed,'#f28b82'],['진행',done,'#9aa0a6']]};
-  setTimeout(()=>{try{
+  window._pendingReset=()=>{
     localStorage.removeItem(KQ_SAVE_KEY);
     KR.correct=0;KR.revealed=0;KR.wrong={};KR.status={};KR.cur=null;KR.recorded=false;
     Object.keys(kColors).forEach(k=>{stopKBlink(k);delete kColors[k];});
     paintK();krStats();
-  }catch(e){}},80);
+  };
 }
 let klTab='done';
 function openKRList(){
@@ -3336,6 +3346,9 @@ function tqNext(){
   tqSave(); tqRender();
 }
 function tqShowEnd(){
+  try{tqHideExplain();}catch(e){}
+  clearTimeout(TQ._advT);
+  const hp=document.getElementById('tq-hint-pop');if(hp)hp.style.display='none';
   const end=document.getElementById('tq-end'); end.classList.add('on');
   document.getElementById('tq-card').style.display='none';
   const tot=(TQ.doneSet?TQ.doneSet.size:0)||0, cor=TQ.correctCountries; /* 중도완료: 진행한 나라 기준 */
