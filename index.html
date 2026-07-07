@@ -14,7 +14,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
 </noscript>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%235eead4%27 stroke-width=%272%27 stroke-linecap=%27round%27%3E%3Ccircle cx=%2712%27 cy=%2712%27 r=%279%27/%3E%3Cellipse cx=%2712%27 cy=%2712%27 rx=%274%27 ry=%279%27/%3E%3Cpath d=%27M3.5 9h17M3.5 15h17%27/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/main.css?v=20260707a">
+<link rel="stylesheet" href="css/main.css?v=20260707c">
 </head>
 <body>
 <div id="landing-overlay">
@@ -99,6 +99,10 @@
   <div class="rq-progress"><div class="rq-pf" id="rv-pf"></div></div>
   <div id="rv-main">
     <div id="rv-map"></div>
+    <div id="rv-tools">
+      <button class="rv-tool on" id="rv-tool-pen" type="button" title="그리기" onclick="rvSetTool('pen')">&#9998;</button>
+      <button class="rv-tool" id="rv-tool-hand" type="button" title="이동/확대" onclick="rvSetTool('hand')">&#9995;</button>
+    </div>
     <div id="rv-q">
       <div class="bq-q" id="rv-q-text">하천 이름을 맞혀보세요</div>
       <div class="bq-neighbors" id="rv-target-wrap" style="margin-bottom:.3rem"><span class="bq-nb rbq-target-tag" id="rv-target">—</span></div>
@@ -4732,13 +4736,13 @@
     <button class="reb secondary" onclick="runPendingReset();document.getElementById('rbq-end').classList.remove('on')">다시 시작</button>
   </div>
 </div>
-<script src="js/data.js?v=20260707a"></script>
-<script src="js/rivers-data.js?v=20260707a"></script>
-<script src="js/app.js?v=20260707a"></script>
+<script src="js/data.js?v=20260707c"></script>
+<script src="js/rivers-data.js?v=20260707c"></script>
+<script src="js/app.js?v=20260707c"></script>
 <!-- ════════════════════════════════════════════════════════════
      계정 · 소셜로그인 · 랭킹 (Supabase) — 빌드/명령어 불필요, 이 파일만으로 동작
      ▼▼▼ 여기 두 줄만 본인 Supabase 값으로 바꾸면 끝 ▼▼▼ -->
-<script type="module" src="js/account.js?v=20260707a"></script>
+<script type="module" src="js/account.js?v=20260707c"></script>
 
 </body>
 </html>

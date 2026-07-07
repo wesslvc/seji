@@ -897,6 +897,8 @@ const RV={diff:'M',list:[],queue:[],status:{},pts:0,cor:0,wr:0,saveKey:'rv_M_all
   dpts:[],drawing:false,inited:false,view:null,
   c_remaining:null,c_found:0,c_wrong:0};
 function rvById(id){return RIVERS.find(r=>r.id===id);}
+function rvFlat(r){return r.g.flat();}                      /* 세그먼트 → 점 목록(회랑 순) */
+function rvPathD(r){return r.g.map(sg=>'M'+sg.map(q=>q.join(' ')).join('L')).join('');}
 function rvPer(){return RV.diff==='H'?10:RV.diff==='M'?5:3;}
 function rvInit(filterKey){
   const dm=(filterKey||'').match(/_v([LMH])/);RV.diff=dm?dm[1]:'M';
@@ -934,6 +936,34 @@ function rvStats(){
   if(t)t.textContent=RV.diff==='H'?'하천 그리기':RV.diff==='M'?'하천 통과국':'하천 이름 맞추기';
 }
 /* ── 하천 캔버스 (하/상 — rv-screen) ── */
+function rvSetTool(t){
+  RV.tool=t;
+  const pen=document.getElementById('rv-tool-pen'),hand=document.getElementById('rv-tool-hand');
+  if(pen)pen.classList.toggle('on',t==='pen');
+  if(hand)hand.classList.toggle('on',t==='hand');
+  const mp=document.getElementById('rv-map');
+  if(mp){mp.classList.toggle('pen',t==='pen');mp.classList.toggle('hand',t==='hand');}
+}
+function rvApplyVB(){
+  const svg=document.getElementById('rv-svg');if(!svg||!RV.vb)return;
+  const v=RV.vb;
+  svg.setAttribute('viewBox',v.x+' '+v.y+' '+v.w+' '+v.h);
+  const k=Math.max(.2,v.w/RV_W);
+  const q=document.getElementById('rv-river-q'),a=document.getElementById('rv-river-ans'),u=document.getElementById('rv-user'),n=document.getElementById('rv-net');
+  if(q)q.style.strokeWidth=(3.2*k*3).toFixed(2);
+  if(a)a.style.strokeWidth=(3.2*k*3).toFixed(2);
+  if(u)u.style.strokeWidth=(2.6*k*3).toFixed(2);
+  if(n)n.style.strokeWidth=Math.min(1.2,(0.5*k*3)).toFixed(2);
+}
+function rvZoomAt(px,py,f){
+  const v=RV.vb;if(!v)return;
+  const nw=Math.max(40,Math.min(RV_W,v.w*f)),nh=nw*(v.h/v.w);
+  v.x=px-(px-v.x)*(nw/v.w);v.y=py-(py-v.y)*(nh/v.h);
+  v.w=nw;v.h=nh;
+  v.x=Math.max(-nw*.2,Math.min(RV_W-nw*.8,v.x));v.y=Math.max(-nh*.2,Math.min(RV_H-nh*.8,v.y));
+  rvApplyVB();
+}
+function _rvPt(svg,e){const ctm=svg.getScreenCTM();return new DOMPoint(e.clientX,e.clientY).matrixTransform(ctm.inverse());}
 function rvSvg(){
   let svg=document.getElementById('rv-svg');
   if(svg)return svg;
@@ -941,20 +971,58 @@ function rvSvg(){
   mp.innerHTML='<svg id="rv-svg" viewBox="0 0 '+RV_W+' '+RV_H+'" preserveAspectRatio="xMidYMid meet">'
     +'<rect id="rv-water" x="0" y="0" width="'+RV_W+'" height="'+RV_H+'"/>'
     +'<path id="rv-land" d="'+RV_LAND+'"/>'
-    +'<polyline id="rv-river-q" points=""/>'
-    +'<polyline id="rv-river-ans" points=""/>'
+    +'<path id="rv-net" d="'+RV_NET+'"/>'
+    +'<path id="rv-river-q" d=""/>'
+    +'<path id="rv-river-ans" d=""/>'
     +'<polyline id="rv-user" points=""/>'
     +'</svg>';
   svg=document.getElementById('rv-svg');
-  /* 상 모드 자유 그리기 */
+  /* 포인터: 펜(그리기) / 손(이동) / 두 손가락 핀치 줌 / 휠 줌 */
+  const ptrs=new Map();let panStart=null,pinch=null;
   svg.addEventListener('pointerdown',e=>{
-    if(RV.diff!=='H'||RV._reveal)return;
-    RV.drawing=true;RV.dpts=[];svg.setPointerCapture(e.pointerId);
-    rvAddPt(e);e.preventDefault();
+    svg.setPointerCapture(e.pointerId);
+    ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(ptrs.size===2){
+      RV.drawing=false;
+      const a=[...ptrs.values()];
+      pinch={d:Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y),vb:{...RV.vb}};
+      panStart=null;
+    }else if(RV.diff==='H'&&RV.tool==='pen'&&!RV._reveal){
+      RV.drawing=true;RV.dpts=[];rvAddPt(e);
+    }else{
+      panStart={cx:e.clientX,cy:e.clientY,vb:{...RV.vb}};
+    }
+    e.preventDefault();
   });
-  svg.addEventListener('pointermove',e=>{if(RV.drawing)rvAddPt(e);});
-  const up=e=>{RV.drawing=false;};
+  svg.addEventListener('pointermove',e=>{
+    if(!ptrs.has(e.pointerId))return;
+    ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(pinch&&ptrs.size===2){
+      const a=[...ptrs.values()];
+      const d=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);
+      const f=Math.max(.2,Math.min(5,pinch.d/Math.max(1,d)));
+      const mx=pinch.vb.x+pinch.vb.w/2,my=pinch.vb.y+pinch.vb.h/2;
+      RV.vb={...pinch.vb};rvZoomAt(mx,my,f);
+    }else if(RV.drawing){rvAddPt(e);}
+    else if(panStart){
+      const r=svg.getBoundingClientRect();
+      const kx=RV.vb.w/r.width,ky=RV.vb.h/r.height;
+      RV.vb.x=panStart.vb.x-(e.clientX-panStart.cx)*kx;
+      RV.vb.y=panStart.vb.y-(e.clientY-panStart.cy)*ky;
+      rvApplyVB();
+    }
+  });
+  const up=e=>{
+    ptrs.delete(e.pointerId);
+    if(ptrs.size<2)pinch=null;
+    if(!ptrs.size){RV.drawing=false;panStart=null;}
+  };
   svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+  svg.addEventListener('wheel',e=>{
+    e.preventDefault();
+    const pt=_rvPt(svg,e);
+    rvZoomAt(pt.x,pt.y,e.deltaY>0?1.18:0.85);
+  },{passive:false});
   return svg;
 }
 function rvAddPt(e){
@@ -967,23 +1035,18 @@ function rvAddPt(e){
   document.getElementById('rv-user').setAttribute('points',RV.dpts.map(p=>p.join(',')).join(' '));
 }
 function rvFit(bbox,pad){
-  const svg=rvSvg();
+  rvSvg();
   const cx=(bbox.x0+bbox.x1)/2,cy=(bbox.y0+bbox.y1)/2;
   let w=(bbox.x1-bbox.x0)*pad,h=(bbox.y1-bbox.y0)*pad;
   w=Math.max(w,60);h=Math.max(h,40);
-  /* 화면비 유지 */
   const mp=document.getElementById('rv-map');
   const ar=mp.clientWidth/Math.max(1,mp.clientHeight);
   if(w/h<ar)w=h*ar;else h=w/ar;
   let x=cx-w/2,y=cy-h/2;
   x=Math.max(0,Math.min(RV_W-w,x));y=Math.max(0,Math.min(RV_H-h,y));
   if(w>RV_W){w=RV_W;x=0;}if(h>RV_H){h=RV_H;y=0;}
-  svg.setAttribute('viewBox',x+' '+y+' '+w+' '+h);
-  /* 선 굵기를 화면 스케일에 맞게 */
-  const k=w/RV_W;
-  document.getElementById('rv-river-q').style.strokeWidth=(3.2*Math.max(.25,k)*3).toFixed(2);
-  document.getElementById('rv-river-ans').style.strokeWidth=(3.2*Math.max(.25,k)*3).toFixed(2);
-  document.getElementById('rv-user').style.strokeWidth=(2.6*Math.max(.25,k)*3).toFixed(2);
+  RV.vb={x,y,w,h};
+  rvApplyVB();
 }
 function rvBbox(pts){let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;for(const[a,b]of pts){x0=Math.min(x0,a);x1=Math.max(x1,a);y0=Math.min(y0,b);y1=Math.max(y1,b);}return{x0,y0,x1,y1};}
 function rvSetDots(n){for(let i=0;i<3;i++){const d=document.getElementById('rv-d'+i);if(d)d.className='bq-dot'+(i<n?' ng':'');}}
@@ -1004,27 +1067,34 @@ function rvShow(){
   const da=document.getElementById('rv-draw-actions');
   const dots=document.getElementById('rv-dots');
   document.getElementById('rv-q').style.display='block';
+  const tools=document.getElementById('rv-tools');
   if(RV.diff==='L'){
-    /* 하: 모양만 보여주고 이름 입력 */
-    document.getElementById('rv-land').style.display='none';
-    document.getElementById('rv-river-ans').setAttribute('points','');
+    /* 하: 원본 하천 지도 그대로 — 지형 위 파란 물줄기를 보고 이름 맞히기 */
+    document.getElementById('rv-land').style.display='';
+    document.getElementById('rv-net').style.display='';
+    document.getElementById('rv-river-ans').setAttribute('d','');
     const q=document.getElementById('rv-river-q');
-    q.setAttribute('points',r.p.map(p=>p.join(',')).join(' '));q.style.display='';
-    rvFit(rvBbox(r.p),1.7);
-    qEl.innerHTML='이 <b>물줄기 모양</b>의 하천 이름은? <span style="font-size:.62rem;color:var(--tx2)">(방향·축척 동일)</span>';
+    q.setAttribute('d',rvPathD(r));q.style.display='';
+    rvFit(rvBbox(rvFlat(r)),2.1);
+    qEl.innerHTML='지도에 <b>빨갛게 강조된 물줄기</b>는 어떤 하천일까요?';
     document.getElementById('rv-target-wrap').style.display='none';
     tp.style.display='flex';da.style.display='none';dots.style.display='flex';
+    if(tools)tools.classList.remove('on');
+    rvSetTool('hand');
     const gi=document.getElementById('rv-gi');gi.value='';setTimeout(()=>{try{gi.focus();}catch(e){}},60);
   }else{
-    /* 상: 이름 주고 경로 그리기 */
+    /* 상: 이름 주고 경로 그리기 — 펜/이동 도구 전환 가능 */
     document.getElementById('rv-land').style.display='';
-    document.getElementById('rv-river-q').setAttribute('points','');
-    document.getElementById('rv-river-ans').setAttribute('points','');
-    rvFit(rvBbox(r.p),3.2);
-    qEl.innerHTML='이 하천의 <b>경로를 지도에 직접 그려보세요</b> <span style="font-size:.62rem;color:var(--tx2)">(발원지→하구 한 붓)</span>';
+    document.getElementById('rv-net').style.display='none';
+    document.getElementById('rv-river-q').setAttribute('d','');
+    document.getElementById('rv-river-ans').setAttribute('d','');
+    rvFit(rvBbox(rvFlat(r)),3.2);
+    qEl.innerHTML='이 하천의 <b>경로를 지도에 직접 그려보세요</b> <span style="font-size:.62rem;color:var(--tx2)">(펜/이동 전환은 우측 버튼)</span>';
     document.getElementById('rv-target-wrap').style.display='flex';
     tgt.textContent=r.ko;
     tp.style.display='none';da.style.display='flex';dots.style.display='none';
+    if(tools)tools.classList.add('on');
+    rvSetTool('pen');
   }
 }
 /* ── 하: 이름 판정 ── */
@@ -1078,7 +1148,7 @@ function rvJudge(){
   if(RV._reveal||RV.diff!=='H'||!RV.cur)return;
   const fb=document.getElementById('rv-fb');
   if(RV.dpts.length<3){if(fb){fb.textContent='경로를 먼저 그려주세요';fb.className='bq-fb ng';}return;}
-  const sim=rvSimilarity(RV.dpts,RV.cur.p);
+  const sim=rvSimilarity(RV.dpts,rvFlat(RV.cur));
   const band=Math.round(sim*10)*10;         /* 10% 구간 판정 */
   const pts=band/10;                        /* 만점 10점 × 일치도 */
   rvResolve(band>=70,pts,band);
@@ -1092,10 +1162,12 @@ function rvResolve(ok,pts,band){
   RV.queue.shift();rvSave();rvStats();
   /* 지도에 실제 경로 공개 */
   document.getElementById('rv-land').style.display='';
-  document.getElementById('rv-river-q').setAttribute('points','');
+  document.getElementById('rv-net').style.display='';
+  document.getElementById('rv-river-q').setAttribute('d','');
   const ans=document.getElementById('rv-river-ans');
-  ans.setAttribute('points',r.p.map(p=>p.join(',')).join(' '));
-  rvFit(rvBbox(r.p),2.4);
+  ans.setAttribute('d',rvPathD(r));
+  rvFit(rvBbox(rvFlat(r)),2.4);
+  rvSetTool('hand');
   document.getElementById('rv-q').style.display='none';
   const cn=r.c.map(i=>COUNTRIES[i]?COUNTRIES[i].k:i).join(' · ');
   const bandTxt=band!=null?('일치도 <b>'+band+'%</b> → '):'';
@@ -2537,7 +2609,6 @@ function bindKoreaEvents(){
   /* touch pan/zoom (mobile) */
   let ktc=null,kSwX=0,kSwY=0,kSwMoved=false;
   mw.addEventListener('touchstart',function(e){
-    if(!isMobile)return;
     if(e.touches.length===1){
       ktc={x:e.touches[0].clientX-k_x,y:e.touches[0].clientY-k_y,pinch:false};
       kSwX=e.touches[0].clientX;kSwY=e.touches[0].clientY;kSwMoved=false;
@@ -2551,7 +2622,7 @@ function bindKoreaEvents(){
     e.preventDefault();
   },{passive:false});
   mw.addEventListener('touchmove',function(e){
-    if(!isMobile||!ktc)return;
+    if(!ktc)return;
     if(!ktc.pinch&&e.touches.length===1){
       const dx=e.touches[0].clientX-kSwX,dy=e.touches[0].clientY-kSwY;
       if(Math.abs(dx)>6||Math.abs(dy)>6)kSwMoved=true;
@@ -2570,7 +2641,6 @@ function bindKoreaEvents(){
   },{passive:false});
   let kLastTap=0,kLastTapX=0,kLastTapY=0;
   mw.addEventListener('touchend',function(e){
-    if(!isMobile)return;
     if(e.touches.length===1&&ktc&&ktc.pinch){
       /* 핀치 중 한 손가락만 떼면 남은 손가락으로 바로 이동 가능 */
       ktc={x:e.touches[0].clientX-k_x,y:e.touches[0].clientY-k_y,pinch:false};
@@ -2701,7 +2771,6 @@ function initMap(){
   let _tc=null;
   let _swipeStartX=0,_swipeStartY=0,_swipeMoved=false;
   mw.addEventListener('touchstart',function(e){
-    if(!isMobile)return;
     if(e.touches.length===1){
       _tc={x:e.touches[0].clientX-_x,y:e.touches[0].clientY-_y,pinch:false};
       _swipeStartX=e.touches[0].clientX;_swipeStartY=e.touches[0].clientY;_swipeMoved=false;
@@ -2715,7 +2784,7 @@ function initMap(){
     e.preventDefault();
   },{passive:false});
   mw.addEventListener('touchmove',function(e){
-    if(!isMobile||!_tc)return;
+    if(!_tc)return;
     if(!_tc.pinch&&e.touches.length===1){
       const dx=e.touches[0].clientX-_swipeStartX,dy=e.touches[0].clientY-_swipeStartY;
       if(Math.abs(dx)>6||Math.abs(dy)>6)_swipeMoved=true;
@@ -2734,7 +2803,6 @@ function initMap(){
   },{passive:false});
   let _lastTap=0,_lastTapX=0,_lastTapY=0;
   mw.addEventListener('touchend',function(e){
-    if(!isMobile)return;
     if(e.touches.length===1&&_tc&&_tc.pinch){
       /* 핀치 중 한 손가락만 떼면 남은 손가락으로 바로 이동 가능 */
       _tc={x:e.touches[0].clientX-_x,y:e.touches[0].clientY-_y,pinch:false};
