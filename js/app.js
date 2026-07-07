@@ -953,15 +953,37 @@ function rvOriginalEls(r){
 }
 function rvClearOriginalMarks(){
   const root=document.getElementById('rv-original-wrap');if(!root)return;
+  root.classList.remove('rv-hide-all-rivers','rv-focus-one-river','rv-source-missing');
   root.querySelectorAll('.rv-target-hidden,.rv-target-reveal,.rv-target-focus').forEach(el=>el.classList.remove('rv-target-hidden','rv-target-reveal','rv-target-focus'));
 }
+function rvAllRiverEls(){
+  const root=document.getElementById('rv-original-wrap');if(!root)return[];
+  const sels=['[data-river]','[data-river-id]','[id^="river-"]','[id^="rv-river-"]','.river','.rivers path'];
+  const out=[];sels.forEach(sel=>{try{root.querySelectorAll(sel).forEach(el=>{if(!out.includes(el))out.push(el);});}catch(e){}});
+  return out;
+}
+function rvHasEditableRiverSvg(){return rvAllRiverEls().length>0;}
+function rvSetSourceNotice(txt){const fb=document.getElementById('rv-fb');if(fb){fb.textContent=txt||'';fb.className=txt?'bq-fb ng':'bq-fb';}}
 function rvMarkOriginal(r,mode){
   rvClearOriginalMarks();
-  rvOriginalEls(r).forEach(el=>{
-    if(mode==='hide')el.classList.add('rv-target-hidden');
-    else if(mode==='reveal')el.classList.add('rv-target-reveal');
-    else if(mode==='focus')el.classList.add('rv-target-focus');
-  });
+  const root=document.getElementById('rv-original-wrap');if(!root)return;
+  const target=rvOriginalEls(r);
+  if(mode==='blank'){
+    root.classList.add('rv-hide-all-rivers');
+  }else if(mode==='focus'){
+    root.classList.add('rv-focus-one-river');
+    target.forEach(el=>el.classList.add('rv-target-focus'));
+  }else if(mode==='hide'){
+    root.classList.add('rv-hide-all-rivers');
+    target.forEach(el=>el.classList.add('rv-target-hidden'));
+  }else if(mode==='reveal'){
+    root.classList.add('rv-focus-one-river');
+    target.forEach(el=>el.classList.add('rv-target-reveal'));
+  }
+  if((mode==='blank'||mode==='focus'||mode==='hide'||mode==='reveal')&&!rvHasEditableRiverSvg()){
+    root.classList.add('rv-source-missing');
+    rvSetSourceNotice('원본 SVG의 강 path에 data-river/id가 아직 없어 강 숨김·단독 표시를 적용할 수 없어요. js/river-map.js에 SVG를 붙여넣고 해당 강에 data-river="'+(r?r.id:'nile')+'"를 붙여주세요.');
+  }else rvSetSourceNotice('');
 }
 function rvSvg(){
   let svg=document.getElementById('rv-svg');
@@ -1071,7 +1093,7 @@ function rvShow(){
     const gi=document.getElementById('rv-gi');gi.value='';setTimeout(()=>{try{gi.focus();}catch(e){}},60);
   }else{
     /* 상: 이름 주고 경로 그리기 */
-    rvMarkOriginal(r,'hide');
+    rvMarkOriginal(r,'blank');
     rvFit(rvBbox(r.p),3.2);
     qEl.innerHTML='이 하천의 <b>경로를 지도에 직접 그려보세요</b> <span style="font-size:.62rem;color:var(--tx2)">(발원지→하구 한 붓)</span>';
     document.getElementById('rv-target-wrap').style.display='flex';
