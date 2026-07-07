@@ -14,7 +14,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
 </noscript>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%235eead4%27 stroke-width=%272%27 stroke-linecap=%27round%27%3E%3Ccircle cx=%2712%27 cy=%2712%27 r=%279%27/%3E%3Cellipse cx=%2712%27 cy=%2712%27 rx=%274%27 ry=%279%27/%3E%3Cpath d=%27M3.5 9h17M3.5 15h17%27/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/main.css?v=20260706e">
+<link rel="stylesheet" href="css/main.css?v=20260707a">
 </head>
 <body>
 <div id="landing-overlay">
@@ -82,6 +82,77 @@
       </div>
     </div>
   </div>
+</div>
+<!-- ══════════ 하천 맞추기 ══════════ -->
+<div id="rv-screen">
+  <div class="kr-header">
+    <div class="kr-title" id="rv-title">하천 맞추기</div>
+    <div class="stats">
+      <div class="stat"><div class="sv" style="color:#81c995" id="rv-cor">0</div><div class="sl">정답</div></div>
+      <div class="stat"><div class="sv" style="color:var(--wr)" id="rv-wr">0</div><div class="sl">오답</div></div>
+      <div class="stat"><div class="sv" style="color:var(--gd)" id="rv-pts">0</div><div class="sl">점수</div></div>
+      <div class="stat"><div class="sv" style="color:var(--tx2)" id="rv-rem">0</div><div class="sl">남은</div></div>
+      <button class="hicon" title="여기서 끝내기" onclick="rvFinishNow()"><span data-ic="flag"></span></button>
+      <button class="hicon danger" title="초기화" onclick="rvReset()"><span data-ic="reset"></span></button>
+    </div>
+  </div>
+  <div class="rq-progress"><div class="rq-pf" id="rv-pf"></div></div>
+  <div id="rv-main">
+    <div id="rv-map"></div>
+    <div id="rv-q">
+      <div class="bq-q" id="rv-q-text">하천 이름을 맞혀보세요</div>
+      <div class="bq-neighbors" id="rv-target-wrap" style="margin-bottom:.3rem"><span class="bq-nb rbq-target-tag" id="rv-target">—</span></div>
+      <div class="bq-dots" id="rv-dots"><div class="bq-dot" id="rv-d0"></div><div class="bq-dot" id="rv-d1"></div><div class="bq-dot" id="rv-d2"></div></div>
+      <div class="bq-type" id="rv-type" style="display:none">
+        <input type="text" id="rv-gi" placeholder="하천 이름 입력... (예: 나일강)" autocomplete="off"/>
+      </div>
+      <div class="rv-actions" id="rv-draw-actions" style="display:none">
+        <button class="btn bs" type="button" onclick="rvClearDraw()">다시 그리기</button>
+        <button class="btn bp" type="button" onclick="rvJudge()">판정하기</button>
+      </div>
+      <div class="bq-foot">
+        <div class="bq-fb" id="rv-fb"></div>
+        <button class="bq-skip" onclick="rvSkip()">건너뛰기</button>
+      </div>
+    </div>
+    <div id="rv-next-bar">
+      <div id="rv-next-txt"></div>
+      <button class="btn bp" type="button" onclick="rvNext()">다음 →</button>
+    </div>
+  </div>
+</div>
+<!-- 하천 통과국(중) 질문 박스 — 세계지도 위 -->
+<div id="rvc-box">
+  <div class="bq-q">이 하천이 <b>지나는 나라</b>를 지도에서 모두 클릭하세요</div>
+  <div class="bq-neighbors" style="margin-bottom:.3rem"><span class="bq-nb rbq-target-tag" id="rvc-target">—</span></div>
+  <div class="rbq-meta">
+    <div class="bq-dots"><div class="bq-dot" id="rvc-d0"></div><div class="bq-dot" id="rvc-d1"></div><div class="bq-dot" id="rvc-d2"></div></div>
+    <span class="rbq-progress" id="rvc-progress">0 / 0개</span>
+  </div>
+  <div class="bq-neighbors" id="rvc-found"></div>
+  <div class="bq-foot">
+    <div class="bq-fb" id="rvc-fb"></div>
+    <button class="bq-skip" id="rvc-skip" onclick="rvSkip()">건너뛰기</button>
+    <button class="btn bp" id="rvc-next" type="button" style="display:none" onclick="rvNext()">다음 →</button>
+  </div>
+</div>
+<!-- 하천 완료 -->
+<div id="rv-end">
+  <div class="rq-end-card">
+    <h1>하천 맞추기 완료!</h1>
+    <div class="esc" id="rv-escore">0점</div>
+    <div class="eg" style="grid-template-columns:1fr 1fr">
+      <div class="est"><div class="esv" style="color:#81c995" id="rv-e1">0</div><div class="esl">정답</div></div>
+      <div class="est"><div class="esv" style="color:var(--wr)" id="rv-e2">0</div><div class="esl">오답</div></div>
+    </div>
+    <button class="reb" onclick="shareLastResult()">결과 자랑하기</button>
+    <button class="reb secondary" onclick="runPendingReset();document.getElementById('rv-end').classList.remove('on')">다시 시작</button>
+  </div>
+</div>
+<!-- 접경국/하천 정답 확인 바 (지도 리뷰) -->
+<div id="br-bar">
+  <div id="br-title">정답 확인</div>
+  <button class="btn bp" type="button" onclick="borderReviewDone()">다음 →</button>
 </div>
 <div id="act-tabs">
   <div class="act-tabs-scroll" id="act-tabs-list"></div>
@@ -4661,12 +4732,13 @@
     <button class="reb secondary" onclick="runPendingReset();document.getElementById('rbq-end').classList.remove('on')">다시 시작</button>
   </div>
 </div>
-<script src="js/data.js?v=20260706e"></script>
-<script src="js/app.js?v=20260706e"></script>
+<script src="js/data.js?v=20260707a"></script>
+<script src="js/rivers-data.js?v=20260707a"></script>
+<script src="js/app.js?v=20260707a"></script>
 <!-- ════════════════════════════════════════════════════════════
      계정 · 소셜로그인 · 랭킹 (Supabase) — 빌드/명령어 불필요, 이 파일만으로 동작
      ▼▼▼ 여기 두 줄만 본인 Supabase 값으로 바꾸면 끝 ▼▼▼ -->
-<script type="module" src="js/account.js?v=20260706e"></script>
+<script type="module" src="js/account.js?v=20260707a"></script>
 
 </body>
 </html>

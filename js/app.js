@@ -1,5 +1,6 @@
 /* ── SVG 라인 아이콘 세트 ── */
 const ICON={
+  wave:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 8c2-1.6 4-1.6 6 0s4 1.6 6 0 4-1.6 6 0"/><path d="M3 13c2-1.6 4-1.6 6 0s4 1.6 6 0 4-1.6 6 0"/><path d="M3 18c2-1.6 4-1.6 6 0s4 1.6 6 0 4-1.6 6 0"/></svg>',
   flag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4c1.5-1 3.5-1 5 0s3.5 1 5 0v8c-1.5 1-3.5 1-5 0s-3.5-1-5 0"/></svg>',
   menu:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
   close:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
@@ -37,7 +38,8 @@ const TAB_META={
   texp:{label:'수출구조',ic:'chart'},
   timp:{label:'수입구조',ic:'chart'},
   tenergy:{label:'에너지',ic:'chart'},
-  korea:{label:'시·군',ic:'pin'}
+  korea:{label:'시·군',ic:'pin'},
+  river:{label:'하천',ic:'wave'}
 };
 
 function setMode(mob){
@@ -50,6 +52,8 @@ const LD_SLIDES=[
  {act:'name',  big:true, ic:'globe', mc:'#7cc4ff', tt:'나라 이름 맞추기', ds:'지도에서 나라를 클릭하고 이름을 맞혀요. 3번 안에 맞히면 색이 칠해져요.', pts:'국가당 1점'},
  {act:'korea', big:true, ic:'pin',   mc:'#5eead4', tt:'한국지리', ds:'대한민국 행정구역 위치를 지도에서 맞혀요.', pts:'1점', diff:'kdiff', levels:['L','M'],
   dd:{L:'하 · 도·특별시·광역시 단위 (시·도 17개)',M:'중 · 전국 시·군 단위 전체'}},
+ {act:'river', big:true, ic:'wave',  mc:'#8ab4f8', tt:'하천 맞추기', ds:'세계 주요 하천을 모양·경로·통과국으로 맞혀요.', pts:'3~10점', diff:'vdiff',
+  dd:{L:'하 · 물줄기 모양 보고 이름 맞히기 (3점)',M:'중 · 지나는 나라 모두 클릭 (5점 만점)',H:'상 · 지도에 경로 직접 그리기 (일치도×10점)'}},
  {act:'border', ic:'border',mc:'#81c995', tt:'접경국 퀴즈', ds:'국경을 맞댄 이웃 나라로 추리하는 퀴즈. 난이도에 따라 방식이 달라져요.', pts:'1 · 3 · 9점', diff:'bdiff',
   dd:{L:'하 · 지도에서 클릭해 맞히기 (1점)',M:'중 · 지도 없이 이름 입력 (3점)',H:'상 · 접한 나라 모두 쓰기 (비율별 2·5·9점)'}},
  {act:'religion',ic:'book', mc:'#fdd663', tt:'종교 구성', ds:'원그래프를 보고 나라별 종교 구성을 맞혀요.', pts:'1 · 2 · 3점', diff:'rdiff',
@@ -63,13 +67,13 @@ const TRADE_DD={
  m:{L:'하 · 주요국만 · 힌트 있음 (3점)',M:'중 · 모든 국가 · 힌트 있음 (6점)',H:'상 · 힌트 없음 (9점)'}
 };
 
-const LD={sel:new Set(),bdiff:'M',rdiff:'M',ediff:'M',tdiff:'M',kdiff:'M',esub:'all',tkind:'x'};
+const LD={sel:new Set(),bdiff:'M',rdiff:'M',ediff:'M',tdiff:'M',kdiff:'M',vdiff:'M',esub:'all',tkind:'x'};
 const LD_ESUB_LABEL={all:'전체',ff:'화석연료만',re:'신재생만'};
 const LD_SAVE_KEY='g3_ld_v1';
 function ldSave(){
   try{
     localStorage.setItem(LD_SAVE_KEY,JSON.stringify({
-      sel:[...LD.sel],bdiff:LD.bdiff,rdiff:LD.rdiff,ediff:LD.ediff,tdiff:LD.tdiff,kdiff:LD.kdiff,esub:LD.esub,tkind:LD.tkind,
+      sel:[...LD.sel],bdiff:LD.bdiff,rdiff:LD.rdiff,ediff:LD.ediff,tdiff:LD.tdiff,kdiff:LD.kdiff,vdiff:LD.vdiff,esub:LD.esub,tkind:LD.tkind,
       conts:[...document.querySelectorAll('.ld-cont-cb')].filter(c=>c.checked).map(c=>c.value),
       big:!!(document.getElementById('ld-big')||{}).checked,
       noisle:!!(document.getElementById('ld-noisle')||{}).checked,
@@ -88,6 +92,7 @@ function ldRestore(){
   if(['all','ff','re'].includes(d.esub))LD.esub=d.esub;
   if(['x','m'].includes(d.tkind))LD.tkind=d.tkind;
   if(['L','M'].includes(d.kdiff))LD.kdiff=d.kdiff;
+  if(['L','M','H'].includes(d.vdiff))LD.vdiff=d.vdiff;
   return d;
 }
 /* ── 모드 그리드 (한눈에 보이는 선택) ── */
@@ -227,7 +232,7 @@ function startFromLanding(){
   if(!sel.length)sel=['name'];
   if(sel.includes('korea')){ldSave();startSession('korea',['korea'],LD.kdiff==='L'?'L':null);return;}
   sel=sel.map(a=>a==='trade'?(LD.tkind==='m'?'timp':'texp'):a);
-  const order=['name','border','rborder','religion','texp','timp','tenergy'];
+  const order=['name','border','rborder','religion','texp','timp','tenergy','river'];
   let rawActs=sel.slice();
   const borderDiff=LD.bdiff||'M';
   if(rawActs.includes('border')){
@@ -245,6 +250,7 @@ function startFromLanding(){
   const por=psl?(PORTION_VALUES[+psl.value]||1):1;
   if(por<1)key+='_p'+Math.round(por*1000);
   if(acts.includes('texp')||acts.includes('timp'))key+='_d'+(LD.tdiff||'M');
+  if(acts.includes('river'))key+='_v'+(LD.vdiff||'M');
   if(acts.includes('religion'))key+='_r'+(LD.rdiff||'M');
   if(acts.includes('tenergy')){key+='_e'+(LD.ediff||'M');if((LD.esub||'all')!=='all')key+='_esub'+(LD.esub||'all');}
   if((acts.includes('border')&&borderDiff==='M')||acts.includes('rborder'))key+='_nomap';
@@ -275,6 +281,7 @@ function startSession(cat,acts,filterKey,rqContKey){
     }
     if(acts.includes('border')){bqInit(filterKey);}
     if(acts.includes('rborder')){rbqInit(filterKey);}
+    if(acts.includes('river')){rvInit(filterKey);}
     if(acts.includes('religion')){tqInit('r',filterKey);}
     if(acts.includes('texp')){tqInit('x',filterKey);}
     if(acts.includes('timp')){tqInit('m',filterKey);}
@@ -302,21 +309,25 @@ function switchTab(key){
   if(modalOpen)closeModal();
   SESSION.cur=key;
   document.querySelectorAll('#act-tabs-list .act-tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===key));
-  const showMap=(key==='name'||(key==='border'&&!BQ.noMap)||(key==='rborder'&&!RBQ.noMap));
+  const rvMap=(key==='river'&&RV.diff==='M');
+  const showMap=(key==='name'||(key==='border'&&!BQ.noMap)||(key==='rborder'&&!RBQ.noMap)||rvMap);
   document.getElementById('rq-screen').classList.remove('on');
   document.getElementById('kr-screen').classList.toggle('on',key==='korea');
+  document.getElementById('rv-screen').classList.toggle('on',key==='river'&&RV.diff!=='M');
   document.getElementById('tq-screen').classList.toggle('on',key==='texp'||key==='timp'||key==='religion'||key==='tenergy');
   document.getElementById('bq-box').classList.toggle('on',key==='border');
   document.getElementById('rbq-box').classList.toggle('on',key==='rborder');
-  document.body.classList.toggle('border-mode',key==='border'||key==='rborder');
+  document.getElementById('rvc-box').classList.toggle('on',rvMap);
+  document.body.classList.toggle('border-mode',key==='border'||key==='rborder'||rvMap);
   if(showMap){
-    mapMode=key;
+    mapMode=rvMap?'rvc':key;
     const logo=document.getElementById('ui-logo');
-    logo.innerHTML=(key==='name')?'나라 이름 <span>/ Countries</span>':'접경국 <span>/ Borders</span>';
+    logo.innerHTML=(key==='name')?'나라 이름 <span>/ Countries</span>':rvMap?'하천 <span>/ Rivers</span>':'접경국 <span>/ Borders</span>';
     repaintMap();
-    if(key==='name'){stats();}else if(key==='border'){bqStats();bqShowCurrent();}else{rbqStats();rbqShowCurrent();}
+    if(key==='name'){stats();}else if(key==='border'){bqStats();bqShowCurrent();}else if(rvMap){rvStats();rvShow();}else{rbqStats();rbqShowCurrent();}
   }else if(key==='border'){ /* 지도 없는 접경국 */ mapMode='border';document.getElementById('ui-logo').innerHTML='접경국 <span>/ Borders</span>';bqStats();bqShowCurrent(); }
   else if(key==='rborder'){ /* 지도 없는 역접경국 */ mapMode='rborder';document.getElementById('ui-logo').innerHTML='접경국 쓰기 <span>/ Borders</span>';rbqStats();rbqShowCurrent(); }
+  else if(key==='river'){ rvEnter(); }
   else if(key==='religion'){tqEnter('r');}
   else if(key==='texp'){tqEnter('x');}
   else if(key==='timp'){tqEnter('m');}
@@ -339,9 +350,12 @@ function endSession(){
   document.getElementById('rq-screen').classList.remove('on');
   document.getElementById('kr-screen').classList.remove('on');
   document.getElementById('tq-screen').classList.remove('on');
+  const rvs=document.getElementById('rv-screen');if(rvs)rvs.classList.remove('on');
+  const rvc=document.getElementById('rvc-box');if(rvc)rvc.classList.remove('on');
+  try{rvSave();}catch(e){}
   document.getElementById('bq-box').classList.remove('on');
   document.getElementById('ui-end').style.display='none';
-  ['rq-end','kr-end','bq-end','rbq-end','tq-end','tq-explain'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.remove('on');});
+  ['rq-end','kr-end','bq-end','rbq-end','tq-end','tq-explain','rv-end'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.remove('on');});
   document.getElementById('landing-overlay').style.display='flex';
   updateStartState();
 }
@@ -455,6 +469,52 @@ async function shareLastResult(){
   cv.toBlob(finish,'image/png'); /* 프사는 crossOrigin 로드 성공 시에만 그려져 캔버스 오염 없음 */
 }
 function tqFinishNow(){if(!confirm(FINISH_MSG))return;_blurActive();try{tqHideExplain();}catch(e){}tqShowEnd();}
+/* ── 접경국 정답 확인: 문제 하나 끝나면 색칠된 지도를 보여주고 넘어감 ── */
+let _brPrev=null;
+function borderReview(o,cb){
+  _brPrev={nomap:document.body.classList.contains('bq-nomap')};
+  document.body.classList.remove('bq-nomap');
+  document.body.classList.add('br-review');
+  clearMapColors();
+  (o.blue||[]).forEach(i=>{colors[i]='c1';});
+  (o.green||[]).forEach(i=>{if(!colors[i])colors[i]='c2';});
+  (o.red||[]).forEach(i=>{colors[i]='cr';});
+  paint();
+  try{
+    /* 파랑+초록+빨강 전체가 보이도록 화면 맞춤 */
+    const all=[...(o.blue||[]),...(o.green||[]),...(o.red||[])];
+    let minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9;
+    all.forEach(iso=>{
+      if(CIRCLE_ISOS.has(iso)){const p2=CIRCLE_POS[iso];minX=Math.min(minX,p2.cx-8);maxX=Math.max(maxX,p2.cx+8);minY=Math.min(minY,p2.cy-8);maxY=Math.max(maxY,p2.cy+8);return;}
+      els4iso(iso).forEach(el=>{
+        if(iso==='dk'&&(el.classList.contains('gl')||el.closest('#gl')))return;
+        if(iso==='fr'&&el.closest('#gf'))return;
+        if(iso==='us'&&(el.closest('#ak')||el.closest('#hi')))return;
+        if(iso==='ru'){const b0=el.getBBox();if(b0.x>2400)return;}
+        try{const b=el.getBBox();minX=Math.min(minX,b.x);minY=Math.min(minY,b.y);maxX=Math.max(maxX,b.x+b.width);maxY=Math.max(maxY,b.y+b.height);}catch(e){}
+      });
+    });
+    const mw=document.getElementById('ui-map');
+    if(minX<1e8){
+      const bw=(maxX-minX)*1.35,bh=(maxY-minY)*1.35;
+      let ns=Math.min(mw.clientWidth/Math.max(bw,120),mw.clientHeight/Math.max(bh,90));
+      ns=Math.min(Math.max(ns,Math.min(mw.clientWidth/SW,mw.clientHeight/SH)),9);
+      _s=ns;_x=mw.clientWidth/2-((minX+maxX)/2)*ns;_y=mw.clientHeight/2-((minY+maxY)/2)*ns;applyT();
+    }else{const ns=Math.min(mw.clientWidth/SW,mw.clientHeight/SH);_s=ns;_x=(mw.clientWidth-SW*ns)/2;_y=(mw.clientHeight-SH*ns)/2;applyT();}
+  }catch(e){try{if((o.blue||[]).length)centerCountry(o.blue[0]);}catch(e2){}}
+  document.getElementById('br-title').innerHTML=o.title||'정답 확인';
+  document.getElementById('br-bar').style.display='flex';
+  window._brCb=cb;
+}
+function borderReviewDone(){
+  document.getElementById('br-bar').style.display='none';
+  document.body.classList.remove('br-review');
+  if(_brPrev&&_brPrev.nomap)document.body.classList.add('bq-nomap');
+  _brPrev=null;
+  clearMapColors();
+  try{repaintMap();}catch(e){paint();}
+  const cb=window._brCb;window._brCb=null;if(cb)cb();
+}
 function krFinishNow(){if(!confirm(FINISH_MSG))return;_blurActive();krEndScreen();}
 function mapResetAction(){if(mapMode==='border')resetBorderQuiz();else if(mapMode==='rborder')resetRBQ();else resetMapQuiz();}
 function openReligionTab(){if(!RQ.list||!RQ.list.length){if(!loadRQ())buildRQList();}showRQCard();}
@@ -463,7 +523,7 @@ function openKoreaTab(){setTimeout(()=>{initKorea();applyModeUI();},30);}
 function clearMapColors(){Object.keys(colors).forEach(k=>stopJsBlink(k));for(const k in colors)delete colors[k];}
 function repaintMap(){
   clearMapColors();
-  const src=(mapMode==='border')?BQ.status:(mapMode==='rborder')?RBQ.status:S.status;
+  const src=(mapMode==='border')?BQ.status:(mapMode==='rborder')?RBQ.status:(mapMode==='rvc')?{}:S.status;
   for(const[iso,cls]of Object.entries(src)){if(cls&&cls!=='blink')colors[iso]=cls;}
   paint();
 }
@@ -578,11 +638,16 @@ function bqHandleClick(iso){
     BQ.status[iso]=cls;BQ.correct++;setColor(iso,cls);
     if(BQ.remaining.size===0){
       /* 그룹 모두 정답 */
+      const grp=(BQ.currentGroup||[iso]).slice();
       BQ.queue.shift();bqSave();bqStats();
       bqFlash('정답!','bfok');
       fb.textContent='정답!';fb.className='bq-fb ok';
       if(!BQ.noMap)centerCountry(iso);
-      setTimeout(bqShowCurrent,900);
+      if(BQ.noMap){ /* 지도 없는 모드: 색칠된 지도로 접경 관계 확인 */
+        const nbs=[...new Set(grp.flatMap(g=>BORDERS[g]||[]))];
+        const nm=grp.map(g=>COUNTRIES[g]?COUNTRIES[g].k:g).join(', ');
+        setTimeout(()=>borderReview({blue:grp,green:nbs,title:'정답! <b>'+nm+'</b> — 초록이 접경국이에요'},bqShowCurrent),700);
+      }else setTimeout(bqShowCurrent,900);
     }else{
       /* 그룹 내 일부 남음 */
       const nm=COUNTRIES[iso]?COUNTRIES[iso].k:'?';
@@ -596,13 +661,17 @@ function bqHandleClick(iso){
     const box=document.getElementById('bq-box');box.classList.add('shake');setTimeout(()=>box.classList.remove('shake'),360);
     if(BQ.curWrong>=3){
       /* 오답으로 공개 */
-      const revNames=[...BQ.remaining].map(i=>COUNTRIES[i]?COUNTRIES[i].k:i);
+      const revISOs=[...BQ.remaining];
+      const revNames=revISOs.map(i=>COUNTRIES[i]?COUNTRIES[i].k:i);
       for(const tgt of BQ.remaining){BQ.status[tgt]='cr';BQ.wrong++;setColor(tgt,'cr');if(!BQ.noMap)centerCountry(tgt);}
       BQ.remaining=new Set();
       fb.textContent='정답: '+revNames.join(', ');fb.className='bq-fb ng';
       bqFlash('오답  →  '+revNames.join(', '),'bfng');
       BQ.queue.shift();bqSave();bqStats();
-      setTimeout(bqShowCurrent,1900);
+      if(BQ.noMap){
+        const nbs=[...new Set(revISOs.flatMap(g=>BORDERS[g]||[]))];
+        setTimeout(()=>borderReview({blue:revISOs,green:nbs,title:'정답은 <b>'+revNames.join(', ')+'</b> — 초록이 접경국이에요'},bqShowCurrent),1000);
+      }else setTimeout(bqShowCurrent,1900);
     }else{
       const nm=COUNTRIES[iso]?COUNTRIES[iso].k:'?';
       fb.textContent=nm+' — 다시 (기회 '+(3-BQ.curWrong)+')';fb.className='bq-fb ng';
@@ -738,8 +807,9 @@ function rbqHandleClick(iso){
     if(RBQ.remaining.size===0){
       RBQ.status[RBQ.target]='c2';RBQ.scoreCounts[RBQ.target]={c:total,w:0};
       if(fb){fb.textContent='모두 정답! +9점';fb.className='bq-fb ok';}
+      const tgt2=RBQ.target,nbs2=(BORDERS[tgt2]||[]).slice();
       RBQ.queue.shift();rbqSave();rbqStats();
-      setTimeout(rbqShowCurrent,900);
+      setTimeout(()=>borderReview({blue:[tgt2],green:nbs2,title:'완벽! <b>'+(COUNTRIES[tgt2]?COUNTRIES[tgt2].k:tgt2)+'</b>의 접경국 — 초록으로 확인하세요'},rbqShowCurrent),700);
     }
   }else if(iso===RBQ.target){
     if(fb){fb.textContent='이 나라가 출제 중인 나라예요!';fb.className='bq-fb ng';}
@@ -757,8 +827,11 @@ function rbqHandleClick(iso){
       const ptsStr=pts>0?' (+'+pts+'점)':'';
       if(fb){fb.textContent='정답: '+revNames.join(', ')+ptsStr;fb.className='bq-fb ng';}
       bqFlash('오답  →  '+revNames.join(', '),'bfng');
+      const tgt3=RBQ.target;
+      const missed3=(BORDERS[tgt3]||[]).filter(i=>revNames.includes(COUNTRIES[i]?COUNTRIES[i].k:i));
+      const found3=(BORDERS[tgt3]||[]).filter(i=>!missed3.includes(i));
       RBQ.queue.shift();rbqSave();rbqStats();
-      setTimeout(rbqShowCurrent,1900);
+      setTimeout(()=>borderReview({blue:[tgt3],green:found3,red:missed3,title:'<b>'+(COUNTRIES[tgt3]?COUNTRIES[tgt3].k:tgt3)+'</b>의 접경국 — 빨강이 놓친 나라예요'},rbqShowCurrent),1000);
     }else{
       if(fb){fb.textContent=nm+' — 다시 (기회 '+(3-RBQ.curWrong)+')';fb.className='bq-fb ng';}
       bqFlash(nm+' — 아님','bfng');
@@ -814,6 +887,310 @@ function openRBQList(){
   document.getElementById('rbql-rem-cnt').textContent=(RBQ.activeSet?RBQ.activeSet.size:0)-Object.keys(RBQ.status).length;
   document.getElementById('rbq-list-panel').classList.add('on');
 }
+
+
+/* ══════════ 하천 맞추기 (RV) ══════════
+   하 L: 물줄기 모양 → 이름 입력 (3점)
+   중 M: 하천 이름 → 지나는 나라 클릭 (5점 만점, 비례)
+   상 H: 하천 이름 → 경로 그리기 (일치도 10% 단위 × 10점) */
+const RV={diff:'M',list:[],queue:[],status:{},pts:0,cor:0,wr:0,saveKey:'rv_M_all',cur:null,tries:0,recorded:false,_done:false,
+  dpts:[],drawing:false,inited:false,view:null,
+  c_remaining:null,c_found:0,c_wrong:0};
+function rvById(id){return RIVERS.find(r=>r.id===id);}
+function rvPer(){return RV.diff==='H'?10:RV.diff==='M'?5:3;}
+function rvInit(filterKey){
+  const dm=(filterKey||'').match(/_v([LMH])/);RV.diff=dm?dm[1]:'M';
+  const base=(filterKey||'all').replace(/_v[LMH]/,'');
+  RV.saveKey='rv_'+RV.diff+'_'+base;
+  let pool=RIVERS.slice();
+  const por=_portion(filterKey);
+  if(por<1)pool=_rnSample(pool,Math.max(3,Math.round(pool.length*por)));
+  RV.list=pool;
+  RV.status={};RV.pts=0;RV.cor=0;RV.wr=0;RV.recorded=false;RV._done=false;RV.cur=null;
+  rvLoad();
+  const done=new Set(Object.keys(RV.status));
+  RV.queue=shuffle(RV.list.map(r=>r.id).filter(id=>!done.has(id)));
+}
+function rvLoad(){
+  try{
+    const raw=localStorage.getItem(RV.saveKey);if(!raw)return false;
+    const d=JSON.parse(raw);RV.status=d.status||{};
+    if(Array.isArray(d.ids)&&d.ids.length){RV.list=d.ids.map(rvById).filter(Boolean);}
+    let p=0,c=0,w=0;for(const st of Object.values(RV.status)){p+=st.p||0;if(st.ok)c++;else w++;}
+    RV.pts=p;RV.cor=c;RV.wr=w;RV.recorded=!!d.recorded;return true;
+  }catch(e){return false;}
+}
+function rvSave(){
+  if(!RV.list||!RV.list.length)return;
+  localStorage.setItem(RV.saveKey,JSON.stringify({status:RV.status,recorded:RV.recorded,ids:RV.list.map(r=>r.id)}));
+}
+function rvStats(){
+  const done=Object.keys(RV.status).length,total=RV.list.length;
+  const ids=['rv-cor','rv-wr','rv-pts','rv-rem'];
+  const vals=[RV.cor,RV.wr,RV.pts,total-done];
+  ids.forEach((id,i)=>{const e=document.getElementById(id);if(e)e.textContent=vals[i];});
+  const pf=document.getElementById('rv-pf');if(pf)pf.style.width=(total?done/total*100:0)+'%';
+  const t=document.getElementById('rv-title');
+  if(t)t.textContent=RV.diff==='H'?'하천 그리기':RV.diff==='M'?'하천 통과국':'하천 이름 맞추기';
+}
+/* ── 하천 캔버스 (하/상 — rv-screen) ── */
+function rvSvg(){
+  let svg=document.getElementById('rv-svg');
+  if(svg)return svg;
+  const mp=document.getElementById('rv-map');
+  mp.innerHTML='<svg id="rv-svg" viewBox="0 0 '+RV_W+' '+RV_H+'" preserveAspectRatio="xMidYMid meet">'
+    +'<rect id="rv-water" x="0" y="0" width="'+RV_W+'" height="'+RV_H+'"/>'
+    +'<path id="rv-land" d="'+RV_LAND+'"/>'
+    +'<polyline id="rv-river-q" points=""/>'
+    +'<polyline id="rv-river-ans" points=""/>'
+    +'<polyline id="rv-user" points=""/>'
+    +'</svg>';
+  svg=document.getElementById('rv-svg');
+  /* 상 모드 자유 그리기 */
+  svg.addEventListener('pointerdown',e=>{
+    if(RV.diff!=='H'||RV._reveal)return;
+    RV.drawing=true;RV.dpts=[];svg.setPointerCapture(e.pointerId);
+    rvAddPt(e);e.preventDefault();
+  });
+  svg.addEventListener('pointermove',e=>{if(RV.drawing)rvAddPt(e);});
+  const up=e=>{RV.drawing=false;};
+  svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+  return svg;
+}
+function rvAddPt(e){
+  const svg=document.getElementById('rv-svg');
+  const ctm=svg.getScreenCTM();if(!ctm)return;
+  const pt=new DOMPoint(e.clientX,e.clientY).matrixTransform(ctm.inverse());
+  const last=RV.dpts[RV.dpts.length-1];
+  if(last&&Math.hypot(pt.x-last[0],pt.y-last[1])<2)return;
+  RV.dpts.push([+pt.x.toFixed(1),+pt.y.toFixed(1)]);
+  document.getElementById('rv-user').setAttribute('points',RV.dpts.map(p=>p.join(',')).join(' '));
+}
+function rvFit(bbox,pad){
+  const svg=rvSvg();
+  const cx=(bbox.x0+bbox.x1)/2,cy=(bbox.y0+bbox.y1)/2;
+  let w=(bbox.x1-bbox.x0)*pad,h=(bbox.y1-bbox.y0)*pad;
+  w=Math.max(w,60);h=Math.max(h,40);
+  /* 화면비 유지 */
+  const mp=document.getElementById('rv-map');
+  const ar=mp.clientWidth/Math.max(1,mp.clientHeight);
+  if(w/h<ar)w=h*ar;else h=w/ar;
+  let x=cx-w/2,y=cy-h/2;
+  x=Math.max(0,Math.min(RV_W-w,x));y=Math.max(0,Math.min(RV_H-h,y));
+  if(w>RV_W){w=RV_W;x=0;}if(h>RV_H){h=RV_H;y=0;}
+  svg.setAttribute('viewBox',x+' '+y+' '+w+' '+h);
+  /* 선 굵기를 화면 스케일에 맞게 */
+  const k=w/RV_W;
+  document.getElementById('rv-river-q').style.strokeWidth=(3.2*Math.max(.25,k)*3).toFixed(2);
+  document.getElementById('rv-river-ans').style.strokeWidth=(3.2*Math.max(.25,k)*3).toFixed(2);
+  document.getElementById('rv-user').style.strokeWidth=(2.6*Math.max(.25,k)*3).toFixed(2);
+}
+function rvBbox(pts){let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;for(const[a,b]of pts){x0=Math.min(x0,a);x1=Math.max(x1,a);y0=Math.min(y0,b);y1=Math.max(y1,b);}return{x0,y0,x1,y1};}
+function rvSetDots(n){for(let i=0;i<3;i++){const d=document.getElementById('rv-d'+i);if(d)d.className='bq-dot'+(i<n?' ng':'');}}
+/* ── 출제 ── */
+function rvEnter(){rvStats();rvShow();}
+function rvShow(){
+  if(!RV.queue.length){rvEnd();return;}
+  const r=rvById(RV.queue[0]);RV.cur=r;RV.tries=0;RV._reveal=false;RV.dpts=[];
+  if(RV.diff==='M'){rvcShow(r);return;}
+  const svg=rvSvg();
+  document.getElementById('rv-user').setAttribute('points','');
+  document.getElementById('rv-next-bar').classList.remove('on');
+  const fb=document.getElementById('rv-fb');if(fb){fb.textContent='';fb.className='bq-fb';}
+  rvSetDots(0);
+  const qEl=document.getElementById('rv-q-text');
+  const tgt=document.getElementById('rv-target');
+  const tp=document.getElementById('rv-type');
+  const da=document.getElementById('rv-draw-actions');
+  const dots=document.getElementById('rv-dots');
+  document.getElementById('rv-q').style.display='block';
+  if(RV.diff==='L'){
+    /* 하: 모양만 보여주고 이름 입력 */
+    document.getElementById('rv-land').style.display='none';
+    document.getElementById('rv-river-ans').setAttribute('points','');
+    const q=document.getElementById('rv-river-q');
+    q.setAttribute('points',r.p.map(p=>p.join(',')).join(' '));q.style.display='';
+    rvFit(rvBbox(r.p),1.7);
+    qEl.innerHTML='이 <b>물줄기 모양</b>의 하천 이름은? <span style="font-size:.62rem;color:var(--tx2)">(방향·축척 동일)</span>';
+    document.getElementById('rv-target-wrap').style.display='none';
+    tp.style.display='flex';da.style.display='none';dots.style.display='flex';
+    const gi=document.getElementById('rv-gi');gi.value='';setTimeout(()=>{try{gi.focus();}catch(e){}},60);
+  }else{
+    /* 상: 이름 주고 경로 그리기 */
+    document.getElementById('rv-land').style.display='';
+    document.getElementById('rv-river-q').setAttribute('points','');
+    document.getElementById('rv-river-ans').setAttribute('points','');
+    rvFit(rvBbox(r.p),3.2);
+    qEl.innerHTML='이 하천의 <b>경로를 지도에 직접 그려보세요</b> <span style="font-size:.62rem;color:var(--tx2)">(발원지→하구 한 붓)</span>';
+    document.getElementById('rv-target-wrap').style.display='flex';
+    tgt.textContent=r.ko;
+    tp.style.display='none';da.style.display='flex';dots.style.display='none';
+  }
+}
+/* ── 하: 이름 판정 ── */
+function rvNorm(s){return (s||'').toLowerCase().replace(/\s+/g,'').replace(/강$/,'');}
+function rvNameOk(input,r){
+  const n=rvNorm(input);if(!n)return false;
+  if(n===rvNorm(r.ko)||n===rvNorm(r.en))return true;
+  return (r.x||[]).some(a=>rvNorm(a)===n);
+}
+function rvTypeSubmit(){
+  if(RV._reveal||RV.diff!=='L'||!RV.cur)return;
+  const gi=document.getElementById('rv-gi');const t=gi.value.trim();if(!t)return;gi.value='';
+  const fb=document.getElementById('rv-fb');
+  if(rvNameOk(t,RV.cur)){rvResolve(true,rvPer());}
+  else{
+    RV.tries++;rvSetDots(RV.tries);
+    if(RV.tries>=3){rvResolve(false,0);}
+    else if(fb){fb.textContent='아니에요 — 다시 (기회 '+(3-RV.tries)+')';fb.className='bq-fb ng';}
+  }
+}
+/* ── 상: 그리기 판정 ── */
+function rvClearDraw(){RV.dpts=[];document.getElementById('rv-user').setAttribute('points','');}
+function _rvLen(p){let L=0;for(let i=1;i<p.length;i++)L+=Math.hypot(p[i][0]-p[i-1][0],p[i][1]-p[i-1][1]);return L;}
+function _rvResample(p,n){
+  const L=_rvLen(p);if(!L)return p.slice(0,1);
+  const out=[p[0]];const step=L/(n-1);let acc=0,i=1,prev=p[0];
+  while(i<p.length&&out.length<n){
+    const d=Math.hypot(p[i][0]-prev[0],p[i][1]-prev[1]);
+    if(acc+d>=step){const t=(step-acc)/d;prev=[prev[0]+(p[i][0]-prev[0])*t,prev[1]+(p[i][1]-prev[1])*t];out.push(prev);acc=0;}
+    else{acc+=d;prev=p[i];i++;}
+  }
+  while(out.length<n)out.push(p[p.length-1]);
+  return out;
+}
+function _rvAvgMin(a,b){
+  let s=0;
+  for(const q of a){let m=1e9;for(const r of b){const d=Math.hypot(q[0]-r[0],q[1]-r[1]);if(d<m)m=d;}s+=m;}
+  return s/a.length;
+}
+function rvSimilarity(user,ref){
+  if(!user||user.length<3)return 0;
+  const R=_rvResample(ref,64),U=_rvResample(user,64);
+  const bb=rvBbox(ref);const diag=Math.hypot(bb.x1-bb.x0,bb.y1-bb.y0)||1;
+  const d=(_rvAvgMin(U,R)+_rvAvgMin(R,U))/2;      /* 평균 거리(양방향) */
+  let sim=1-d/(diag*0.22);
+  const lr=Math.min(_rvLen(user),_rvLen(ref))/Math.max(_rvLen(user),_rvLen(ref)); /* 선형(길이) 비율 */
+  sim*=Math.min(1,Math.pow(lr,0.55)+0.12);
+  return Math.max(0,Math.min(1,sim));
+}
+function rvJudge(){
+  if(RV._reveal||RV.diff!=='H'||!RV.cur)return;
+  const fb=document.getElementById('rv-fb');
+  if(RV.dpts.length<3){if(fb){fb.textContent='경로를 먼저 그려주세요';fb.className='bq-fb ng';}return;}
+  const sim=rvSimilarity(RV.dpts,RV.cur.p);
+  const band=Math.round(sim*10)*10;         /* 10% 구간 판정 */
+  const pts=band/10;                        /* 만점 10점 × 일치도 */
+  rvResolve(band>=70,pts,band);
+}
+/* ── 공통: 정답 공개(사용자 학습) → 다음 ── */
+function rvResolve(ok,pts,band){
+  RV._reveal=true;
+  const r=RV.cur;
+  RV.status[r.id]={p:pts,ok:!!ok};
+  RV.pts+=pts;if(ok)RV.cor++;else RV.wr++;
+  RV.queue.shift();rvSave();rvStats();
+  /* 지도에 실제 경로 공개 */
+  document.getElementById('rv-land').style.display='';
+  document.getElementById('rv-river-q').setAttribute('points','');
+  const ans=document.getElementById('rv-river-ans');
+  ans.setAttribute('points',r.p.map(p=>p.join(',')).join(' '));
+  rvFit(rvBbox(r.p),2.4);
+  document.getElementById('rv-q').style.display='none';
+  const cn=r.c.map(i=>COUNTRIES[i]?COUNTRIES[i].k:i).join(' · ');
+  const bandTxt=band!=null?('일치도 <b>'+band+'%</b> → '):'';
+  document.getElementById('rv-next-txt').innerHTML=
+    '<b>'+r.ko+'</b> ('+r.en+')<br><span style="font-size:.74rem;color:var(--tx2)">'+cn+'</span><br>'
+    +bandTxt+(ok?'<span style="color:#81c995">+'+pts+'점</span>':pts>0?'<span style="color:var(--gd)">+'+pts+'점</span>':'<span style="color:var(--wr)">0점</span>');
+  document.getElementById('rv-next-bar').classList.add('on');
+}
+function rvNext(){
+  document.getElementById('rv-next-bar').classList.remove('on');
+  const nb=document.getElementById('rvc-next');if(nb)nb.style.display='none';
+  const sk=document.getElementById('rvc-skip');if(sk)sk.style.display='';
+  if(mapMode==='rvc'){clearMapColors();paint();}
+  rvShow();
+}
+function rvSkip(){
+  if(RV._reveal)return;
+  if(RV.queue.length>1){const g=RV.queue.shift();RV.queue.push(g);rvShow();}
+}
+/* ── 중: 통과국 클릭 (세계지도) ── */
+function rvcShow(r){
+  RV.c_remaining=new Set(r.c);RV.c_found=0;RV.c_wrong=0;
+  const t=document.getElementById('rvc-target');if(t)t.textContent=r.ko;
+  const pr=document.getElementById('rvc-progress');if(pr)pr.textContent='0 / '+r.c.length+'개';
+  const fd=document.getElementById('rvc-found');if(fd)fd.innerHTML='';
+  const fb=document.getElementById('rvc-fb');if(fb){fb.textContent='';fb.className='bq-fb';}
+  for(let i=0;i<3;i++){const d=document.getElementById('rvc-d'+i);if(d)d.className='bq-dot';}
+  clearMapColors();paint();
+}
+function rvcHandleClick(iso){
+  if(RV._reveal||!RV.c_remaining)return;
+  const r=RV.cur;const fb=document.getElementById('rvc-fb');
+  if(RV.c_remaining.has(iso)){
+    RV.c_remaining.delete(iso);RV.c_found++;
+    colors[iso]='c2';paint();
+    const fd=document.getElementById('rvc-found');
+    if(fd){const sp=document.createElement('span');sp.className='bq-nb rbq-found-tag';sp.textContent=COUNTRIES[iso]?COUNTRIES[iso].k:iso;fd.appendChild(sp);}
+    const pr=document.getElementById('rvc-progress');if(pr)pr.textContent=RV.c_found+' / '+r.c.length+'개';
+    if(fb){fb.textContent=(COUNTRIES[iso]?COUNTRIES[iso].k:iso)+' ✓'+(RV.c_remaining.size?' | '+RV.c_remaining.size+'개 남음':'');fb.className='bq-fb ok';}
+    if(!RV.c_remaining.size)rvcResolve();
+  }else if(r.c.includes(iso)){
+    /* 이미 찾음 — 무시 */
+  }else{
+    RV.c_wrong++;
+    for(let i=0;i<3;i++){const d=document.getElementById('rvc-d'+i);if(d)d.className='bq-dot'+(i<RV.c_wrong?' ng':'');}
+    const nm=COUNTRIES[iso]?COUNTRIES[iso].k:iso;
+    if(RV.c_wrong>=3){rvcResolve();}
+    else if(fb){fb.textContent=nm+' — 아니에요 (기회 '+(3-RV.c_wrong)+')';fb.className='bq-fb ng';}
+  }
+}
+function rvcResolve(){
+  RV._reveal=true;
+  const r=RV.cur;
+  const total=r.c.length,found=RV.c_found;
+  const pts=Math.round(5*found/total);
+  const ok=found===total;
+  RV.status[r.id]={p:pts,ok};
+  RV.pts+=pts;if(ok)RV.cor++;else RV.wr++;
+  RV.queue.shift();rvSave();rvStats();
+  /* 놓친 나라 빨강으로 공개 — 지도로 학습 */
+  [...RV.c_remaining].forEach(i=>{colors[i]='cr';});
+  RV.c_remaining=new Set();paint();
+  try{centerCountry(r.c[0]);}catch(e){}
+  const fb=document.getElementById('rvc-fb');
+  if(fb){fb.innerHTML='<b>'+r.ko+'</b> — 초록 = 통과국'+(ok?'':' · 빨강 = 놓친 나라')+' | +'+pts+'점';fb.className='bq-fb '+(ok?'ok':'ng');}
+  const sk=document.getElementById('rvc-skip');if(sk)sk.style.display='none';
+  const nb=document.getElementById('rvc-next');if(nb)nb.style.display='inline-flex';
+}
+/* ── 종료/리셋 ── */
+function rvEnd(){
+  const el=document.getElementById('rv-end');if(!el)return;
+  const answered=Object.keys(RV.status).length;
+  document.getElementById('rv-escore').textContent=RV.pts+'점';
+  document.getElementById('rv-e1').textContent=RV.cor;
+  document.getElementById('rv-e2').textContent=RV.wr;
+  el.classList.add('on');
+  const ttl=RV.diff==='H'?'하천 그리기':RV.diff==='M'?'하천 통과국':'하천 이름 맞추기';
+  window._lastResult={title:ttl,score:RV.pts+'점',
+    rows:[['정답',RV.cor,'#81c995'],['오답',RV.wr,'#f28b82'],['진행',answered,'#9aa0a6']]};
+  if(!RV.recorded&&answered){RV.recorded=true;try{rvSave();}catch(e){}
+    try{window.SejiAccount&&window.SejiAccount.submitScore({category:'river',correct:RV.cor,total:answered,
+      accuracy:Math.round(RV.cor/(answered||1)*1000)/10,scope:'river_'+RV.diff,points:RV.pts,maxPoints:answered*rvPer(),isRetry:false});}catch(e){}}
+  window._pendingReset=()=>rvReset(true);
+}
+function rvReset(skipConfirm){
+  if(skipConfirm!==true&&!confirm('하천 맞추기 진행 상황을 초기화할까요?'))return;
+  localStorage.removeItem(RV.saveKey);
+  RV.status={};RV.pts=0;RV.cor=0;RV.wr=0;RV.recorded=false;RV._reveal=false;
+  const por=1; /* 표본 재추첨 */
+  try{if(SESSION.filterKey){const fk=SESSION.filterKey;const p=_portion(fk);let pool=RIVERS.slice();if(p<1)pool=_rnSample(pool,Math.max(3,Math.round(pool.length*p)));RV.list=pool;}}catch(e){}
+  RV.queue=shuffle(RV.list.map(r=>r.id));
+  rvStats();
+  if(SESSION.cur==='river'){if(mapMode==='rvc'){clearMapColors();paint();}rvShow();}
+}
+function rvFinishNow(){if(!confirm(FINISH_MSG))return;_blurActive();rvEnd();}
 
 const MOBILE=false;
 const CIRCLE_POS={"ad":{"cx":1317.9,"cy":330.8},"ag":{"cx":840.7,"cy":543.9},"bb":{"cx":851.8,"cy":585.0},"bh":{"cx":1675.6,"cy":470.5},"bn":{"cx":2175.7,"cy":660.0},"bs":{"cx":732.9,"cy":495.2},"cv":{"cx":1118.7,"cy":559.5},"dm":{"cx":842.7,"cy":564.2},"fj":{"cx":2640.1,"cy":840.0},"fm":{"cx":2508.0,"cy":635.0},"gd":{"cx":830.5,"cy":594.9},"gm":{"cx":1184.4,"cy":582.5},"jm":{"cx":720.4,"cy":541.5},"ki":{"cx":2627.5,"cy":682.2},"km":{"cx":1633.8,"cy":801.8},"kn":{"cx":820.2,"cy":555.7},"kw":{"cx":1653.3,"cy":444.1},"lb":{"cx":1563.8,"cy":405.0},"lc":{"cx":834.1,"cy":576.6},"li":{"cx":1373.2,"cy":291.9},"mc":{"cx":1357.2,"cy":320.3},"me":{"cx":1440.7,"cy":329.2},"mh":{"cx":2604.1,"cy":639.7},"mu":{"cx":1730.8,"cy":872.4},"mv":{"cx":1844.2,"cy":669.4},"nr":{"cx":2562.7,"cy":680.5},"ps":{"cx":1564.3,"cy":422.4},"pw":{"cx":2322.4,"cy":630.1},"qa":{"cx":1682.5,"cy":481.0},"sc":{"cx":1725.2,"cy":734.0},"sg":{"cx":2095.1,"cy":687.1},"sm":{"cx":1394.4,"cy":319.7},"st":{"cx":1353.0,"cy":690.6},"sz":{"cx":1536.8,"cy":928.4},"tl":{"cx":2260.8,"cy":775.7},"to":{"cx":2687.3,"cy":881.4},"tt":{"cx":834.5,"cy":607.2},"tv":{"cx":2658.6,"cy":769.5},"va":{"cx":1394.5,"cy":337.1},"vc":{"cx":840.2,"cy":587.7},"vu":{"cx":2568.4,"cy":840.7},"ws":{"cx":2724.5,"cy":816.0}};
@@ -2252,6 +2629,7 @@ function initMap(){
     const iso=iso4el(cel);if(!iso)return;
     if(mapMode==='border'){bqHandleClick(iso);return;}
     if(mapMode==='rborder'){rbqHandleClick(iso);return;}
+  if(mapMode==='rvc'){rvcHandleClick(iso);return;}
     if(!inActive(iso))return;
     if(S.status[iso]==='cr'){showAnswer(iso,e.clientX,e.clientY-10);return;}
     if(!done(iso)){openModal(iso);centerCountry(iso);}
@@ -2303,6 +2681,11 @@ function initMap(){
   if(rbqgi){
     rbqgi.addEventListener('keydown',function(e){e.stopPropagation();if(e.isComposing)return;if(e.key==='Enter')e.preventDefault();});
     rbqgi.addEventListener('keyup',function(e){e.stopPropagation();if(e.key==='Enter'&&!e.isComposing){e.preventDefault();rbqTypeSubmit();}});
+  }
+  const rvgi=document.getElementById('rv-gi');
+  if(rvgi){
+    rvgi.addEventListener('keydown',function(e){e.stopPropagation();if(e.isComposing)return;if(e.key==='Enter')e.preventDefault();});
+    rvgi.addEventListener('keyup',function(e){e.stopPropagation();if(e.key==='Enter'&&!e.isComposing){e.preventDefault();rvTypeSubmit();}});
   }
   document.addEventListener('keydown',function(e){
     if(!document.body.classList.contains('in-session'))return; /* 랜딩에선 캐러셀 키만 동작 */
@@ -2447,6 +2830,12 @@ function listSaves(){
       const total=Array.isArray(d.active)&&d.active.length?d.active.length:_countSetForFilter(fk).size;if(!total)continue;
       const wset=new Set(Object.keys(st).filter(x=>st[x]==='cr'));Object.keys(wr).forEach(x=>{if(wr[x]>0)wset.add(x);});
       out.push({type:'name',key:k,scope:fk,done:Object.keys(st).length,total,wrong:wset.size});
+    }else if(k.startsWith('rv_')&&!k.includes('__')){
+      if(!d.status||typeof d.status!=='object')continue;
+      const done=Object.keys(d.status).length;if(!done)continue;
+      const total=Array.isArray(d.ids)?d.ids.length:0;if(!total)continue;
+      const wrong=Object.values(d.status).filter(x=>!x.ok).length;
+      out.push({type:'river',key:k,scope:k.slice(3),done,total,wrong});
     }else if(k==='kq_state_v1'||k==='kq_prov_v1'){
       if(!d.status||!Object.keys(d.status).length)continue;
       const st=d.status||{};const wr=d.wrong||{};
@@ -2474,6 +2863,7 @@ function _resumeStart(type,key){
   else if(type==='timp')startSession('world',['timp'],key.slice(5),key.slice(5));
   else if(type==='tenergy')startSession('world',['tenergy'],key.slice(5),key.slice(5));
   else if(type==='korea')startSession('korea',['korea'],key==='kq_prov_v1'?'L':null);
+  else if(type==='river'){const m=key.match(/^rv_([LMH])_(.*)$/);if(m)startSession('world',['river'],m[2]+'_v'+m[1]);}
 }
 function resumeSave(type,key){_resumeStart(type,key);}
 /* 저장본에서 종교 오답 ISO 목록을 미리 읽음 (startSession이 새로 만들며 비우기 전에) */
