@@ -52,7 +52,7 @@ const LD_SLIDES=[
  {act:'name',  big:true, ic:'globe', mc:'#7cc4ff', tt:'나라 이름 맞추기', ds:'지도에서 나라를 클릭하고 이름을 맞혀요. 3번 안에 맞히면 색이 칠해져요.', pts:'국가당 1점'},
  {act:'korea', big:true, ic:'pin',   mc:'#5eead4', tt:'한국지리', ds:'대한민국 행정구역 위치를 지도에서 맞혀요.', pts:'1점', diff:'kdiff', levels:['L','M'],
   dd:{L:'하 · 도·특별시·광역시 단위 (시·도 17개)',M:'중 · 전국 시·군 단위 전체'}},
- {act:'river', big:true, ic:'wave',  mc:'#8ab4f8', tt:'하천 맞추기', ds:'세계 주요 하천 52개를 경로·통과국으로 맞혀요.', pts:'3~10점', diff:'vdiff',
+ {act:'river', big:true, ic:'wave',  mc:'#8ab4f8', tt:'하천 맞추기', ds:'세계 주요 하천 60개를 경로·통과국으로 맞혀요.', pts:'3~10점', diff:'vdiff',
   dd:{L:'하 · 물줄기 모양 보고 이름 맞히기 (3점)',M:'중 · 지나는 나라 모두 클릭 (5점 만점)',H:'상 · 세계지도에 경로 그리기 (일치도×10점)'}},
  {act:'border', ic:'border',mc:'#81c995', tt:'접경국 퀴즈', ds:'국경을 맞댄 이웃 나라로 추리하는 퀴즈. 난이도에 따라 방식이 달라져요.', pts:'1 · 3 · 9점', diff:'bdiff',
   dd:{L:'하 · 지도에서 클릭해 맞히기 (1점)',M:'중 · 지도 없이 이름 입력 (3점)',H:'상 · 접한 나라 모두 쓰기 (비율별 2·5·9점)'}},
@@ -1112,6 +1112,7 @@ function rvdShow(r){
   rvClearDraw();
   rvSetTool('pen');
   rvdStart();
+  rvFitWorldView();
   clearMapColors();paint();
 }
 function rvdStart(){
@@ -1246,6 +1247,12 @@ function rvSkip(){
   if(RV._reveal)return;
   if(RV.queue.length>1){const g=RV.queue.shift();RV.queue.push(g);rvShow();}
 }
+/* 지도를 전세계 뷰로 리셋(이전 문제의 확대/이동 상태가 다음 문제로 넘어오지 않게) */
+function rvFitWorldView(){
+  const mw=document.getElementById('ui-map');if(!mw)return;
+  const ns=Math.min(mw.clientWidth/SW,mw.clientHeight/SH);
+  _s=ns;_x=(mw.clientWidth-SW*ns)/2;_y=(mw.clientHeight-SH*ns)/2;applyT();
+}
 /* ── 중: 통과국 클릭 (세계지도) ── */
 function rvcShow(r){
   RV.c_remaining=new Set(r.c);RV.c_found=0;RV.c_wrong=0;
@@ -1254,6 +1261,7 @@ function rvcShow(r){
   const fd=document.getElementById('rvc-found');if(fd)fd.innerHTML='';
   const fb=document.getElementById('rvc-fb');if(fb){fb.textContent='';fb.className='bq-fb';}
   for(let i=0;i<3;i++){const d=document.getElementById('rvc-d'+i);if(d)d.className='bq-dot';}
+  rvFitWorldView();
   clearMapColors();paint();
 }
 function rvcHandleClick(iso){
