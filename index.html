@@ -14,7 +14,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
 </noscript>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%235eead4%27 stroke-width=%272%27 stroke-linecap=%27round%27%3E%3Ccircle cx=%2712%27 cy=%2712%27 r=%279%27/%3E%3Cellipse cx=%2712%27 cy=%2712%27 rx=%274%27 ry=%279%27/%3E%3Cpath d=%27M3.5 9h17M3.5 15h17%27/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/main.css?v=20260707c">
+<link rel="stylesheet" href="css/main.css?v=20260707d">
 </head>
 <body>
 <div id="landing-overlay">
@@ -99,10 +99,7 @@
   <div class="rq-progress"><div class="rq-pf" id="rv-pf"></div></div>
   <div id="rv-main">
     <div id="rv-map"></div>
-    <div id="rv-tools">
-      <button class="rv-tool on" id="rv-tool-pen" type="button" title="그리기" onclick="rvSetTool('pen')">&#9998;</button>
-      <button class="rv-tool" id="rv-tool-hand" type="button" title="이동/확대" onclick="rvSetTool('hand')">&#9995;</button>
-    </div>
+
     <div id="rv-q">
       <div class="bq-q" id="rv-q-text">하천 이름을 맞혀보세요</div>
       <div class="bq-neighbors" id="rv-target-wrap" style="margin-bottom:.3rem"><span class="bq-nb rbq-target-tag" id="rv-target">—</span></div>
@@ -138,6 +135,23 @@
     <div class="bq-fb" id="rvc-fb"></div>
     <button class="bq-skip" id="rvc-skip" onclick="rvSkip()">건너뛰기</button>
     <button class="btn bp" id="rvc-next" type="button" style="display:none" onclick="rvNext()">다음 →</button>
+  </div>
+</div>
+<!-- 하천 그리기(상) 질문 박스 — 세계지도 위 -->
+<div id="rvd-box">
+  <div class="bq-q">이 하천의 <b>경로를 세계지도에 직접 그려보세요</b></div>
+  <div class="bq-neighbors" style="margin-bottom:.15rem"><span class="bq-nb rbq-target-tag" id="rvd-target">—</span></div>
+  <div class="rvd-tools">
+    <button type="button" class="ld-chip on" id="rvd-pen" onclick="rvSetTool('pen')">&#9998; 그리기</button>
+    <button type="button" class="ld-chip" id="rvd-hand" onclick="rvSetTool('hand')">&#9995; 이동</button>
+  </div>
+  <div class="rv-actions" style="margin:.1rem 0 .35rem">
+    <button class="btn bs" type="button" onclick="rvClearDraw()">다시 그리기</button>
+    <button class="btn bp" type="button" onclick="rvJudge()">판정하기</button>
+  </div>
+  <div class="bq-foot">
+    <div class="bq-fb" id="rvd-fb"></div>
+    <button class="bq-skip" onclick="rvSkip()">건너뛰기</button>
   </div>
 </div>
 <!-- 하천 완료 -->
@@ -205,6 +219,7 @@
         <button class="bq-skip" onclick="rbqSkip()">건너뛰기</button>
       </div>
     </div>
+    <svg id="draw-ov"><polyline id="rvd-line" points=""/></svg>
     <div id="bq-flash"></div>
     <div id="ui-map"><svg xmlns="http://www.w3.org/2000/svg" id="world-svg" viewBox="0 0 2754 1398">
 	
@@ -4736,13 +4751,13 @@
     <button class="reb secondary" onclick="runPendingReset();document.getElementById('rbq-end').classList.remove('on')">다시 시작</button>
   </div>
 </div>
-<script src="js/data.js?v=20260707c"></script>
-<script src="js/rivers-data.js?v=20260707c"></script>
-<script src="js/app.js?v=20260707c"></script>
+<script src="js/data.js?v=20260707d"></script>
+<script src="js/rivers-data.js?v=20260707d"></script>
+<script src="js/app.js?v=20260707d"></script>
 <!-- ════════════════════════════════════════════════════════════
      계정 · 소셜로그인 · 랭킹 (Supabase) — 빌드/명령어 불필요, 이 파일만으로 동작
      ▼▼▼ 여기 두 줄만 본인 Supabase 값으로 바꾸면 끝 ▼▼▼ -->
-<script type="module" src="js/account.js?v=20260707c"></script>
+<script type="module" src="js/account.js?v=20260707d"></script>
 
 </body>
 </html>

@@ -52,8 +52,8 @@ const LD_SLIDES=[
  {act:'name',  big:true, ic:'globe', mc:'#7cc4ff', tt:'나라 이름 맞추기', ds:'지도에서 나라를 클릭하고 이름을 맞혀요. 3번 안에 맞히면 색이 칠해져요.', pts:'국가당 1점'},
  {act:'korea', big:true, ic:'pin',   mc:'#5eead4', tt:'한국지리', ds:'대한민국 행정구역 위치를 지도에서 맞혀요.', pts:'1점', diff:'kdiff', levels:['L','M'],
   dd:{L:'하 · 도·특별시·광역시 단위 (시·도 17개)',M:'중 · 전국 시·군 단위 전체'}},
- {act:'river', big:true, ic:'wave',  mc:'#8ab4f8', tt:'하천 맞추기', ds:'세계 주요 하천을 모양·경로·통과국으로 맞혀요.', pts:'3~10점', diff:'vdiff',
-  dd:{L:'하 · 물줄기 모양 보고 이름 맞히기 (3점)',M:'중 · 지나는 나라 모두 클릭 (5점 만점)',H:'상 · 지도에 경로 직접 그리기 (일치도×10점)'}},
+ {act:'river', big:true, ic:'wave',  mc:'#8ab4f8', tt:'하천 맞추기', ds:'세계 주요 하천 50개를 경로·통과국으로 맞혀요.', pts:'3~10점', diff:'vdiff',
+  dd:{L:'하 · 물줄기 모양 보고 이름 맞히기 (3점)',M:'중 · 지나는 나라 모두 클릭 (5점 만점)',H:'상 · 세계지도에 경로 그리기 (일치도×10점)'}},
  {act:'border', ic:'border',mc:'#81c995', tt:'접경국 퀴즈', ds:'국경을 맞댄 이웃 나라로 추리하는 퀴즈. 난이도에 따라 방식이 달라져요.', pts:'1 · 3 · 9점', diff:'bdiff',
   dd:{L:'하 · 지도에서 클릭해 맞히기 (1점)',M:'중 · 지도 없이 이름 입력 (3점)',H:'상 · 접한 나라 모두 쓰기 (비율별 2·5·9점)'}},
  {act:'religion',ic:'book', mc:'#fdd663', tt:'종교 구성', ds:'원그래프를 보고 나라별 종교 구성을 맞혀요.', pts:'1 · 2 · 3점', diff:'rdiff',
@@ -310,21 +310,26 @@ function switchTab(key){
   SESSION.cur=key;
   document.querySelectorAll('#act-tabs-list .act-tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===key));
   const rvMap=(key==='river'&&RV.diff==='M');
-  const showMap=(key==='name'||(key==='border'&&!BQ.noMap)||(key==='rborder'&&!RBQ.noMap)||rvMap);
+  const rvDraw=(key==='river'&&RV.diff==='H');
+  const showMap=(key==='name'||(key==='border'&&!BQ.noMap)||(key==='rborder'&&!RBQ.noMap)||rvMap||rvDraw);
   document.getElementById('rq-screen').classList.remove('on');
   document.getElementById('kr-screen').classList.toggle('on',key==='korea');
-  document.getElementById('rv-screen').classList.toggle('on',key==='river'&&RV.diff!=='M');
+  document.getElementById('rv-screen').classList.toggle('on',key==='river'&&RV.diff==='L');
   document.getElementById('tq-screen').classList.toggle('on',key==='texp'||key==='timp'||key==='religion'||key==='tenergy');
   document.getElementById('bq-box').classList.toggle('on',key==='border');
   document.getElementById('rbq-box').classList.toggle('on',key==='rborder');
   document.getElementById('rvc-box').classList.toggle('on',rvMap);
-  document.body.classList.toggle('border-mode',key==='border'||key==='rborder'||rvMap);
+  document.getElementById('rvd-box').classList.toggle('on',rvDraw);
+  if(!rvDraw)rvdStop();
+  document.body.classList.toggle('border-mode',key==='border'||key==='rborder'||rvMap||rvDraw);
+  const listBtn=document.getElementById('ui-list-btn');
+  if(listBtn)listBtn.style.display=(rvMap||rvDraw)?'none':'';
   if(showMap){
-    mapMode=rvMap?'rvc':key;
+    mapMode=rvDraw?'rvd':(rvMap?'rvc':key);
     const logo=document.getElementById('ui-logo');
-    logo.innerHTML=(key==='name')?'나라 이름 <span>/ Countries</span>':rvMap?'하천 <span>/ Rivers</span>':'접경국 <span>/ Borders</span>';
+    logo.innerHTML=(key==='name')?'나라 이름 <span>/ Countries</span>':(rvMap||rvDraw)?'하천 <span>/ Rivers</span>':'접경국 <span>/ Borders</span>';
     repaintMap();
-    if(key==='name'){stats();}else if(key==='border'){bqStats();bqShowCurrent();}else if(rvMap){rvStats();rvShow();}else{rbqStats();rbqShowCurrent();}
+    if(key==='name'){stats();}else if(key==='border'){bqStats();bqShowCurrent();}else if(rvMap||rvDraw){rvStats2();rvShow();}else{rbqStats();rbqShowCurrent();}
   }else if(key==='border'){ /* 지도 없는 접경국 */ mapMode='border';document.getElementById('ui-logo').innerHTML='접경국 <span>/ Borders</span>';bqStats();bqShowCurrent(); }
   else if(key==='rborder'){ /* 지도 없는 역접경국 */ mapMode='rborder';document.getElementById('ui-logo').innerHTML='접경국 쓰기 <span>/ Borders</span>';rbqStats();rbqShowCurrent(); }
   else if(key==='river'){ rvEnter(); }
@@ -352,6 +357,8 @@ function endSession(){
   document.getElementById('tq-screen').classList.remove('on');
   const rvs=document.getElementById('rv-screen');if(rvs)rvs.classList.remove('on');
   const rvc=document.getElementById('rvc-box');if(rvc)rvc.classList.remove('on');
+  const rvd=document.getElementById('rvd-box');if(rvd)rvd.classList.remove('on');
+  try{rvdStop();}catch(e){}
   try{rvSave();}catch(e){}
   document.getElementById('bq-box').classList.remove('on');
   document.getElementById('ui-end').style.display='none';
@@ -373,6 +380,7 @@ function mapFinishAction(){
   _blurActive();
   if(mapMode==='border')bqEnd();
   else if(mapMode==='rborder')rbqEnd();
+  else if(mapMode==='rvc'||mapMode==='rvd')rvEnd();
   else endScreen();
 }
 /* ── 결과 자랑하기: 공유 카드 이미지 생성 → 공유/저장 ── */
@@ -516,14 +524,14 @@ function borderReviewDone(){
   const cb=window._brCb;window._brCb=null;if(cb)cb();
 }
 function krFinishNow(){if(!confirm(FINISH_MSG))return;_blurActive();krEndScreen();}
-function mapResetAction(){if(mapMode==='border')resetBorderQuiz();else if(mapMode==='rborder')resetRBQ();else resetMapQuiz();}
+function mapResetAction(){if(mapMode==='border')resetBorderQuiz();else if(mapMode==='rborder')resetRBQ();else if(mapMode==='rvc'||mapMode==='rvd')rvReset();else resetMapQuiz();}
 function openReligionTab(){if(!RQ.list||!RQ.list.length){if(!loadRQ())buildRQList();}showRQCard();}
 function openKoreaTab(){setTimeout(()=>{initKorea();applyModeUI();},30);}
 
 function clearMapColors(){Object.keys(colors).forEach(k=>stopJsBlink(k));for(const k in colors)delete colors[k];}
 function repaintMap(){
   clearMapColors();
-  const src=(mapMode==='border')?BQ.status:(mapMode==='rborder')?RBQ.status:(mapMode==='rvc')?{}:S.status;
+  const src=(mapMode==='border')?BQ.status:(mapMode==='rborder')?RBQ.status:(mapMode==='rvc'||mapMode==='rvd')?{}:S.status;
   for(const[iso,cls]of Object.entries(src)){if(cls&&cls!=='blink')colors[iso]=cls;}
   paint();
 }
@@ -897,7 +905,13 @@ const RV={diff:'M',list:[],queue:[],status:{},pts:0,cor:0,wr:0,saveKey:'rv_M_all
   dpts:[],drawing:false,inited:false,view:null,
   c_remaining:null,c_found:0,c_wrong:0};
 function rvById(id){return RIVERS.find(r=>r.id===id);}
-function rvFlat(r){return r.g.flat();}                      /* 세그먼트 → 점 목록(회랑 순) */
+function rvFlat(r){return r.g.flat();}
+/* 세계지도(나라 SVG) 좌표 → 위경도 → 하천SVG 좌표 */
+function mainToRv(pt){
+  const lon=(pt[0]-RV_MAIN.b)/RV_MAIN.a;
+  const lat=RV_MAIN.C[0]+RV_MAIN.C[1]*pt[1]+RV_MAIN.C[2]*Math.pow(pt[1],3);
+  return [RV_PROJ.a*lon+RV_PROJ.b, RV_PROJ.C[0]+RV_PROJ.C[1]*lat+RV_PROJ.C[2]*Math.pow(lat,3)];
+}                      /* 세그먼트 → 점 목록(회랑 순) */
 function rvPathD(r){return r.g.map(sg=>'M'+sg.map(q=>q.join(' ')).join('L')).join('');}
 function rvPer(){return RV.diff==='H'?10:RV.diff==='M'?5:3;}
 function rvInit(filterKey){
@@ -926,6 +940,14 @@ function rvSave(){
   if(!RV.list||!RV.list.length)return;
   localStorage.setItem(RV.saveKey,JSON.stringify({status:RV.status,recorded:RV.recorded,ids:RV.list.map(r=>r.id)}));
 }
+function rvStats2(){
+  const done=Object.keys(RV.status).length,total=RV.list.length;
+  const rem=document.getElementById('ui-rem'),cor=document.getElementById('ui-cor'),rev=document.getElementById('ui-rev');
+  if(rem)rem.textContent=total-done;
+  if(cor)cor.textContent=RV.cor;
+  if(rev)rev.textContent=RV.wr;
+  const pf=document.getElementById('ui-pf');if(pf)pf.style.width=(total?done/total*100:0)+'%';
+}
 function rvStats(){
   const done=Object.keys(RV.status).length,total=RV.list.length;
   const ids=['rv-cor','rv-wr','rv-pts','rv-rem'];
@@ -938,11 +960,11 @@ function rvStats(){
 /* ── 하천 캔버스 (하/상 — rv-screen) ── */
 function rvSetTool(t){
   RV.tool=t;
-  const pen=document.getElementById('rv-tool-pen'),hand=document.getElementById('rv-tool-hand');
+  const pen=document.getElementById('rvd-pen'),hand=document.getElementById('rvd-hand');
   if(pen)pen.classList.toggle('on',t==='pen');
   if(hand)hand.classList.toggle('on',t==='hand');
-  const mp=document.getElementById('rv-map');
-  if(mp){mp.classList.toggle('pen',t==='pen');mp.classList.toggle('hand',t==='hand');}
+  const ov=document.getElementById('draw-ov');
+  if(ov)ov.classList.toggle('pen',t==='pen'); /* 이동 모드면 포인터가 지도로 통과 */
 }
 function rvApplyVB(){
   const svg=document.getElementById('rv-svg');if(!svg||!RV.vb)return;
@@ -1056,6 +1078,7 @@ function rvShow(){
   if(!RV.queue.length){rvEnd();return;}
   const r=rvById(RV.queue[0]);RV.cur=r;RV.tries=0;RV._reveal=false;RV.dpts=[];
   if(RV.diff==='M'){rvcShow(r);return;}
+  if(RV.diff==='H'){rvdShow(r);return;}
   const svg=rvSvg();
   document.getElementById('rv-user').setAttribute('points','');
   document.getElementById('rv-next-bar').classList.remove('on');
@@ -1067,35 +1090,57 @@ function rvShow(){
   const da=document.getElementById('rv-draw-actions');
   const dots=document.getElementById('rv-dots');
   document.getElementById('rv-q').style.display='block';
-  const tools=document.getElementById('rv-tools');
-  if(RV.diff==='L'){
-    /* 하: 원본 하천 지도 그대로 — 지형 위 파란 물줄기를 보고 이름 맞히기 */
-    document.getElementById('rv-land').style.display='';
-    document.getElementById('rv-net').style.display='';
-    document.getElementById('rv-river-ans').setAttribute('d','');
-    const q=document.getElementById('rv-river-q');
-    q.setAttribute('d',rvPathD(r));q.style.display='';
-    rvFit(rvBbox(rvFlat(r)),2.1);
-    qEl.innerHTML='지도에 <b>빨갛게 강조된 물줄기</b>는 어떤 하천일까요?';
-    document.getElementById('rv-target-wrap').style.display='none';
-    tp.style.display='flex';da.style.display='none';dots.style.display='flex';
-    if(tools)tools.classList.remove('on');
-    rvSetTool('hand');
-    const gi=document.getElementById('rv-gi');gi.value='';setTimeout(()=>{try{gi.focus();}catch(e){}},60);
-  }else{
-    /* 상: 이름 주고 경로 그리기 — 펜/이동 도구 전환 가능 */
-    document.getElementById('rv-land').style.display='';
-    document.getElementById('rv-net').style.display='none';
-    document.getElementById('rv-river-q').setAttribute('d','');
-    document.getElementById('rv-river-ans').setAttribute('d','');
-    rvFit(rvBbox(rvFlat(r)),3.2);
-    qEl.innerHTML='이 하천의 <b>경로를 지도에 직접 그려보세요</b> <span style="font-size:.62rem;color:var(--tx2)">(펜/이동 전환은 우측 버튼)</span>';
-    document.getElementById('rv-target-wrap').style.display='flex';
-    tgt.textContent=r.ko;
-    tp.style.display='none';da.style.display='flex';dots.style.display='none';
-    if(tools)tools.classList.add('on');
-    rvSetTool('pen');
+  /* 하: 다른 하천은 모두 가리고 타깃만 — 전세계 뷰에서 시작(사전 확대 없음), 직접 찾아 확대 */
+  document.getElementById('rv-land').style.display='';
+  document.getElementById('rv-net').style.display='none';
+  document.getElementById('rv-river-ans').setAttribute('d','');
+  const q=document.getElementById('rv-river-q');
+  q.setAttribute('d',rvPathD(r));q.style.display='';
+  RV.vb={x:0,y:0,w:RV_W,h:RV_H};rvApplyVB();
+  qEl.innerHTML='지도에 <b>빨갛게 표시된 물줄기</b>는 어떤 하천일까요? <span style="font-size:.62rem;color:var(--tx2)">(드래그·휠로 탐색)</span>';
+  document.getElementById('rv-target-wrap').style.display='none';
+  tp.style.display='flex';da.style.display='none';dots.style.display='flex';
+  rvSetTool('hand');
+  const gi=document.getElementById('rv-gi');gi.value='';setTimeout(()=>{try{gi.focus();}catch(e){}},60);
+}
+/* ── 상: 세계지도(나라 경계)에 그리기 ── */
+let _rvdRAF=null;
+function rvdShow(r){
+  const t=document.getElementById('rvd-target');if(t)t.textContent=r.ko;
+  const fb=document.getElementById('rvd-fb');if(fb){fb.textContent='';fb.className='bq-fb';}
+  rvClearDraw();
+  rvSetTool('pen');
+  rvdStart();
+  clearMapColors();paint();
+}
+function rvdStart(){
+  if(_rvdRAF)return;
+  const ov=document.getElementById('draw-ov');
+  if(ov&&!ov._bound){
+    ov._bound=true;
+    ov.addEventListener('pointerdown',e=>{
+      if(mapMode!=='rvd'||RV.tool!=='pen'||RV._reveal)return;
+      RV.drawing=true;RV.dpts=[];ov.setPointerCapture(e.pointerId);
+      rvdAddPt(e);e.preventDefault();
+    });
+    ov.addEventListener('pointermove',e=>{if(RV.drawing&&mapMode==='rvd')rvdAddPt(e);});
+    const up=()=>{RV.drawing=false;};
+    ov.addEventListener('pointerup',up);ov.addEventListener('pointercancel',up);
   }
+  const loop=()=>{ if(mapMode!=='rvd'){_rvdRAF=null;return;} rvdRender(); _rvdRAF=requestAnimationFrame(loop); };
+  _rvdRAF=requestAnimationFrame(loop);
+}
+function rvdStop(){if(_rvdRAF){cancelAnimationFrame(_rvdRAF);_rvdRAF=null;}const ln=document.getElementById('rvd-line');if(ln)ln.setAttribute('points','');}
+function rvdAddPt(e){
+  const mw=document.getElementById('ui-map');const rc=mw.getBoundingClientRect();
+  const mx=(e.clientX-rc.left-_x)/_s, my=(e.clientY-rc.top-_y)/_s; /* 지도 좌표 */
+  const last=RV.dpts[RV.dpts.length-1];
+  if(last&&Math.hypot(mx-last[0],my-last[1])*_s<3)return;
+  RV.dpts.push([mx,my]);
+}
+function rvdRender(){
+  const ln=document.getElementById('rvd-line');if(!ln)return;
+  ln.setAttribute('points',RV.dpts.map(p=>(p[0]*_s+_x).toFixed(1)+','+(p[1]*_s+_y).toFixed(1)).join(' '));
 }
 /* ── 하: 이름 판정 ── */
 function rvNorm(s){return (s||'').toLowerCase().replace(/\s+/g,'').replace(/강$/,'');}
@@ -1108,15 +1153,20 @@ function rvTypeSubmit(){
   if(RV._reveal||RV.diff!=='L'||!RV.cur)return;
   const gi=document.getElementById('rv-gi');const t=gi.value.trim();if(!t)return;gi.value='';
   const fb=document.getElementById('rv-fb');
-  if(rvNameOk(t,RV.cur)){rvResolve(true,rvPer());}
-  else{
-    RV.tries++;rvSetDots(RV.tries);
-    if(RV.tries>=3){rvResolve(false,0);}
-    else if(fb){fb.textContent='아니에요 — 다시 (기회 '+(3-RV.tries)+')';fb.className='bq-fb ng';}
+  if(rvNameOk(t,RV.cur)){if(fb){fb.textContent='정답! '+RV.cur.ko;fb.className='bq-fb ok';}rvResolve(true,rvPer());return;}
+  /* 다른 하천 이름인지 / 존재하지 않는 이름인지 구분 피드백 */
+  const other=RIVERS.find(rr=>rvNameOk(t,rr));
+  if(!other){
+    if(fb){fb.textContent='그런 하천은 없어요';fb.className='bq-fb ng';}
+    gi.classList.add('shake');setTimeout(()=>gi.classList.remove('shake'),360);
+    return; /* 기회 소모 없음 */
   }
+  RV.tries++;rvSetDots(RV.tries);
+  if(RV.tries>=3){rvResolve(false,0);}
+  else if(fb){fb.textContent=other.ko+' — 아니에요 (기회 '+(3-RV.tries)+')';fb.className='bq-fb ng';}
 }
 /* ── 상: 그리기 판정 ── */
-function rvClearDraw(){RV.dpts=[];document.getElementById('rv-user').setAttribute('points','');}
+function rvClearDraw(){RV.dpts=[];document.getElementById('rv-user').setAttribute('points','');const ln=document.getElementById('rvd-line');if(ln)ln.setAttribute('points','');}
 function _rvLen(p){let L=0;for(let i=1;i<p.length;i++)L+=Math.hypot(p[i][0]-p[i-1][0],p[i][1]-p[i-1][1]);return L;}
 function _rvResample(p,n){
   const L=_rvLen(p);if(!L)return p.slice(0,1);
@@ -1146,9 +1196,11 @@ function rvSimilarity(user,ref){
 }
 function rvJudge(){
   if(RV._reveal||RV.diff!=='H'||!RV.cur)return;
-  const fb=document.getElementById('rv-fb');
+  const fb=document.getElementById('rvd-fb');
   if(RV.dpts.length<3){if(fb){fb.textContent='경로를 먼저 그려주세요';fb.className='bq-fb ng';}return;}
-  const sim=rvSimilarity(RV.dpts,rvFlat(RV.cur));
+  const user=RV.dpts.map(mainToRv); /* 세계지도→하천SVG 좌표 */
+  RV._userRv=user;
+  const sim=rvSimilarity(user,rvFlat(RV.cur));
   const band=Math.round(sim*10)*10;         /* 10% 구간 판정 */
   const pts=band/10;                        /* 만점 10점 × 일치도 */
   rvResolve(band>=70,pts,band);
@@ -1160,14 +1212,18 @@ function rvResolve(ok,pts,band){
   RV.status[r.id]={p:pts,ok:!!ok};
   RV.pts+=pts;if(ok)RV.cor++;else RV.wr++;
   RV.queue.shift();rvSave();rvStats();
-  /* 지도에 실제 경로 공개 */
+  /* 정답 공개: 하천 SVG에 실제 경로 (+상: 사용자가 그린 궤적) */
+  rvSvg();
   document.getElementById('rv-land').style.display='';
   document.getElementById('rv-net').style.display='';
   document.getElementById('rv-river-q').setAttribute('d','');
   const ans=document.getElementById('rv-river-ans');
   ans.setAttribute('d',rvPathD(r));
+  const uEl=document.getElementById('rv-user');
+  if(RV.diff==='H'&&RV._userRv&&RV._userRv.length>1){uEl.setAttribute('points',RV._userRv.map(q2=>q2.join(',')).join(' '));}
+  else uEl.setAttribute('points','');
   rvFit(rvBbox(rvFlat(r)),2.4);
-  rvSetTool('hand');
+  if(RV.diff==='H'){document.getElementById('rv-screen').classList.add('on');rvStats();}
   document.getElementById('rv-q').style.display='none';
   const cn=r.c.map(i=>COUNTRIES[i]?COUNTRIES[i].k:i).join(' · ');
   const bandTxt=band!=null?('일치도 <b>'+band+'%</b> → '):'';
@@ -1180,7 +1236,9 @@ function rvNext(){
   document.getElementById('rv-next-bar').classList.remove('on');
   const nb=document.getElementById('rvc-next');if(nb)nb.style.display='none';
   const sk=document.getElementById('rvc-skip');if(sk)sk.style.display='';
-  if(mapMode==='rvc'){clearMapColors();paint();}
+  if(RV.diff==='H'){document.getElementById('rv-screen').classList.remove('on');rvClearDraw();}
+  if(mapMode==='rvc'||mapMode==='rvd'){clearMapColors();paint();}
+  rvStats2();
   rvShow();
 }
 function rvSkip(){
