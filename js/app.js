@@ -655,7 +655,7 @@ function bqHandleClick(iso){
         const nbs=[...new Set(grp.flatMap(g=>BORDERS[g]||[]))];
         const nm=grp.map(g=>COUNTRIES[g]?COUNTRIES[g].k:g).join(', ');
         setTimeout(()=>borderReview({blue:grp,green:nbs,title:'정답! <b>'+nm+'</b> — 초록이 접경국이에요'},bqShowCurrent),700);
-      }else setTimeout(bqShowCurrent,900);
+      }else setTimeout(bqShowCurrent,1500); /* 지도로 패닝(500ms)한 뒤 정답을 볼 시간을 충분히 줌 */
     }else{
       /* 그룹 내 일부 남음 */
       const nm=COUNTRIES[iso]?COUNTRIES[iso].k:'?';
