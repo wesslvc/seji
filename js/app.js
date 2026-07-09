@@ -632,7 +632,7 @@ function bqFlash(text,cls){
   const f=document.getElementById('bq-flash');if(!f)return;
   f.textContent=text;f.className=cls+' show';
   clearTimeout(_bqFlashT);
-  _bqFlashT=setTimeout(()=>{f.className=cls;},900);
+  _bqFlashT=setTimeout(()=>{f.className=cls;},1300);
 }
 function bqHandleClick(iso){
   if(!BQ.remaining||!BQ.remaining.size)return;
