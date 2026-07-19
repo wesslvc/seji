@@ -18,18 +18,26 @@ function cqLonLatToMain(lon,lat){
 /* ── 기후 그래프 SVG 렌더 (퀴즈 카드용 축약형) ──
    모든 카드가 같은 축 범위를 써야 그래프만 보고 "여긴 덥다/춥다/비가 많다/적다"를
    카드끼리 비교해 직관적으로 알 수 있다. 그래서 지점별로 축을 자동 확대하지 않고
-   전체 데이터 분포(약 1~99백분위)를 덮는 고정 범위를 쓰고, 그 범위를 벗어나는
-   극值(폭염·혹한·폭우 지점)는 막대를 축 끝에서 잘라 보여준다. */
-const CQ_T_LO=-40, CQ_T_HI=40, CQ_T_STEP=20;
-const CQ_P_HI=400, CQ_P_STEP=100;
+   전형적인 값 범위(온대·건조가 뚜렷이 구분되도록 좁게 잡음)를 고정으로 쓰고,
+   그 범위를 벗어나는 극値(폭염·혹한·폭우 지점)는 막대가 카드 틀 밖으로 삐져나오게
+   그려서(clamp하지 않고) "이 지점은 정상 범위를 벗어난다"는 걸 시각적으로 드러낸다. */
+const CQ_T_LO=-10, CQ_T_HI=30, CQ_T_STEP=10;
+const CQ_P_HI=150, CQ_P_STEP=50;
+const CQ_BLEED=8; /* 축 범위를 벗어난 막대가 카드 틀 밖으로 삐져나오는 최대 픽셀 */
 function cqChartSVG(loc){
-  const W=150, tH=76, pH=50, padL=17, padR=8, gap=5;
+  const W=150, tH=76, pH=50, padL=17, padR=8, gap=16, mTop=10;
   const plotW=W-padL-padR;
   const gapW=plotW/12, barW=gapW*0.6;
   const tLo=CQ_T_LO, tHi=CQ_T_HI, pHi=CQ_P_HI;
   const tPlotH=tH-8;
-  function tY(t){return 4+tPlotH*(1-(Math.min(Math.max(t,tLo),tHi)-tLo)/(tHi-tLo));}
-  function pY(p){return 2+(pH-6)*(1-Math.min(Math.max(p,0),pHi)/pHi);}
+  function tY(t){
+    const raw=4+tPlotH*(1-(t-tLo)/(tHi-tLo));
+    return Math.min(Math.max(raw,-CQ_BLEED),tPlotH+8+CQ_BLEED);
+  }
+  function pY(p){
+    const raw=2+(pH-6)*(1-p/pHi);
+    return Math.max(raw,-CQ_BLEED);
+  }
 
   let tgrid='',ttick='';
   for(let t=tLo;t<=tHi+CQ_T_STEP*0.01;t+=CQ_T_STEP){
@@ -51,11 +59,15 @@ function cqChartSVG(loc){
     const py=pY(loc.prec[m]);
     pbars+='<rect class="cq-pbar" x="'+x.toFixed(1)+'" y="'+py.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+Math.max(0,(pH-4-py)).toFixed(1)+'" rx="'+(barW*0.28).toFixed(1)+'"/>';
   }
-  const totalH=tH+gap+pH;
+  const totalH=mTop+tH+gap+pH;
+  /* y 범위를 이미 ±CQ_BLEED로 픽셀 단위로 제한해뒀으므로(위 tY/pY), mTop·gap 여백 안에서만
+     삐져나오고 SVG 밖으로는 못 나간다 — 별도 clip 없이 그대로 그려서 틀을 뚫는 효과를 낸다. */
   let s='<svg viewBox="0 0 '+W+' '+totalH+'" class="cq-chart-svg" preserveAspectRatio="xMidYMid meet">';
+  s+='<g transform="translate(0,'+mTop+')">';
   s+='<rect class="cq-panel-bg" x="0" y="0" width="'+W+'" height="'+tH+'" rx="6"/>';
   s+=tgrid+tbars+ttick;
-  s+='<g transform="translate(0,'+(tH+gap)+')">';
+  s+='</g>';
+  s+='<g transform="translate(0,'+(mTop+tH+gap)+')">';
   s+='<rect class="cq-panel-bg" x="0" y="0" width="'+W+'" height="'+pH+'" rx="6"/>';
   s+=pgrid+pbars+ptick;
   s+='</g></svg>';
@@ -213,6 +225,12 @@ function cqUpdateProgress(){
   const cor=document.getElementById('cq-cor');if(cor)cor.textContent=CQ.cor;
   const wr=document.getElementById('cq-wr');if(wr)wr.textContent=CQ.wr;
   const pts=document.getElementById('cq-pts');if(pts)pts.textContent=CQ.pts;
+  /* 상단 헤더의 남은/정답/오답 표시(다른 모드와 공통 UI)도 함께 갱신 */
+  const total=CQ.plan.length*10;
+  const urem=document.getElementById('ui-rem');if(urem)urem.textContent=Math.max(0,total-CQ.attempted);
+  const ucor=document.getElementById('ui-cor');if(ucor)ucor.textContent=CQ.cor;
+  const urev=document.getElementById('ui-rev');if(urev)urev.textContent=CQ.wr;
+  const upf=document.getElementById('ui-pf');if(upf)upf.style.width=(total?CQ.attempted/total*100:0)+'%';
 }
 function cqRenderCards(){
   const wrap=document.getElementById('cq-cards');if(!wrap)return;
