@@ -1,8 +1,9 @@
 /* ══════════ 기후 맞추기 (Climate Quiz) ══════════
-   데이터: CLIMATE (climate-data.js) — [id,city,ko,cc,cont,lat,lon,grp,ex,tmin[12],tmax[12],prec[12]]
-   grp: A=열대 B=건조 C=온대 D=냉대 E=한대(쾨펜 기후 대분류, 자동 판정) / ex: 1=17년 평가원 출제지(중 난이도 풀)
+   데이터: CLIMATE (climate-data.js) — [id,city,ko,cc,cont,lat,lon,grp,ex,tmin[12],tmax[12],prec[12],kop]
+   grp: A=열대 B=건조 C=온대 D=냉대 E=한대(쾨펜 기후 대분류) / kop: 쾨펜 세부 기호("Dfa","BWh" 등, Köppen-Geiger
+   Map v2 World 1991–2020 래스터에서 위경도로 직접 조회한 실측값) / ex: 1=17년 평가원 출제지(중·하 난이도 풀)
    ko: 한글 지명(120개 출제지만 보유, 나머지는 null → 영문 지명 표시) */
-const CLIMATE_LOC = CLIMATE.map(r=>({id:r[0],city:r[1],ko:r[2],cc:r[3],cont:r[4],lat:r[5],lon:r[6],grp:r[7],ex:r[8]===1,tmin:r[9],tmax:r[10],prec:r[11]}));
+const CLIMATE_LOC = CLIMATE.map(r=>({id:r[0],city:r[1],ko:r[2],cc:r[3],cont:r[4],lat:r[5],lon:r[6],grp:r[7],ex:r[8]===1,tmin:r[9],tmax:r[10],prec:r[11],kop:r[12]}));
 function cqCountryName(cc){return (COUNTRIES[cc]&&COUNTRIES[cc].k)||cc.toUpperCase();}
 function cqCityName(loc){return loc.ko||loc.city;}
 function cqLocLabel(loc){return cqCityName(loc)+' · '+cqCountryName(loc.cc);}
@@ -14,38 +15,30 @@ function cqLonLatToMain(lon,lat){
   return [(lon+180)/360*SW, (90-lat)/180*SH];
 }
 
-/* ── 기후 그래프 SVG 렌더 (퀴즈 카드용 축약형) ── */
-/* 눈금 간격을 대략 targetCount개로 맞추는 "보기 좋은" 값(1/2/5×10ⁿ) 계산 */
-function cqNiceStep(range,targetCount){
-  const raw=range/Math.max(1,targetCount);
-  const mag=Math.pow(10,Math.floor(Math.log10(raw||1)));
-  const norm=raw/mag;
-  const step=norm<1.5?1:norm<3?2:norm<7?5:10;
-  return step*mag;
-}
+/* ── 기후 그래프 SVG 렌더 (퀴즈 카드용 축약형) ──
+   모든 카드가 같은 축 범위를 써야 그래프만 보고 "여긴 덥다/춥다/비가 많다/적다"를
+   카드끼리 비교해 직관적으로 알 수 있다. 그래서 지점별로 축을 자동 확대하지 않고
+   전체 데이터 분포(약 1~99백분위)를 덮는 고정 범위를 쓰고, 그 범위를 벗어나는
+   극值(폭염·혹한·폭우 지점)는 막대를 축 끝에서 잘라 보여준다. */
+const CQ_T_LO=-40, CQ_T_HI=40, CQ_T_STEP=20;
+const CQ_P_HI=400, CQ_P_STEP=100;
 function cqChartSVG(loc){
   const W=150, tH=76, pH=50, padL=17, padR=8, gap=5;
   const plotW=W-padL-padR;
   const gapW=plotW/12, barW=gapW*0.6;
-  const allT=loc.tmin.concat(loc.tmax);
-  const tStep=cqNiceStep(Math.max(...allT)-Math.min(...allT),4);
-  let tLo=Math.floor(Math.min(...allT)/tStep)*tStep, tHi=Math.ceil(Math.max(...allT)/tStep)*tStep;
-  if(tHi-tLo<tStep*4){const mid=(tHi+tLo)/2;tLo=Math.floor((mid-tStep*2)/tStep)*tStep;tHi=tLo+tStep*4;}
-  const pMax=Math.max(...loc.prec);
-  const pStep=cqNiceStep(pMax*1.15,4);
-  let pHi=Math.ceil((pMax*1.15)/pStep)*pStep; if(pHi<pStep)pHi=pStep;
+  const tLo=CQ_T_LO, tHi=CQ_T_HI, pHi=CQ_P_HI;
   const tPlotH=tH-8;
-  function tY(t){return 4+tPlotH*(1-(t-tLo)/(tHi-tLo));}
-  function pY(p){return 2+(pH-6)*(1-p/pHi);}
+  function tY(t){return 4+tPlotH*(1-(Math.min(Math.max(t,tLo),tHi)-tLo)/(tHi-tLo));}
+  function pY(p){return 2+(pH-6)*(1-Math.min(Math.max(p,0),pHi)/pHi);}
 
   let tgrid='',ttick='';
-  for(let t=tLo;t<=tHi+tStep*0.01;t+=tStep){
+  for(let t=tLo;t<=tHi+CQ_T_STEP*0.01;t+=CQ_T_STEP){
     const y=tY(t);
     tgrid+='<line class="cq-grid" x1="'+padL+'" x2="'+(W-padR)+'" y1="'+y.toFixed(1)+'" y2="'+y.toFixed(1)+'"/>';
     ttick+='<text class="cq-tick" x="'+(padL-3)+'" y="'+y.toFixed(1)+'">'+Math.round(t)+'</text>';
   }
   let pgrid='',ptick='';
-  for(let p=0;p<=pHi+pStep*0.01;p+=pStep){
+  for(let p=0;p<=pHi+CQ_P_STEP*0.01;p+=CQ_P_STEP){
     const y=pY(p);
     pgrid+='<line class="cq-grid" x1="'+padL+'" x2="'+(W-padR)+'" y1="'+y.toFixed(1)+'" y2="'+y.toFixed(1)+'"/>';
     ptick+='<text class="cq-tick" x="'+(padL-3)+'" y="'+y.toFixed(1)+'">'+Math.round(p)+'</text>';
@@ -71,12 +64,13 @@ function cqChartSVG(loc){
 
 /* ══════════ 게임 상태 ══════════ */
 const CQ={diff:'M',pool:[],plan:[],roundIdx:0,cur:null,saveKey:'cq_M_all',pts:0,cor:0,wr:0,attempted:0,recorded:false,isRetry:false};
-function cqPer(){return CQ.diff==='H'?8:4;}
+function cqPer(){return CQ.diff==='H'?8:CQ.diff==='L'?2:4;}
 const CQ_TRIES=5;
 
 function cqDiffOf(filterKey){
   const dPart=(filterKey||'').split('_').find(p=>p.startsWith('cl'));
-  return (dPart?dPart.slice(2):'M')==='H'?'H':'M';
+  const raw=dPart?dPart.slice(2):'M';
+  return raw==='H'?'H':raw==='L'?'L':'M';
 }
 function cqPoolFor(filterKey,diffOverride){
   const parts=(filterKey||'').split('_');
@@ -87,7 +81,7 @@ function cqPoolFor(filterKey,diffOverride){
   return CLIMATE_LOC.filter(l=>{
     if(l.cont==='AN')return false;
     if(conts&&!conts.has(l.cont))return false;
-    if(diff==='M'&&!l.ex)return false;
+    if((diff==='M'||diff==='L')&&!l.ex)return false; /* 하·중: 17년 출제지 120개 풀 공유 */
     return true;
   });
 }
@@ -98,7 +92,7 @@ function cqEstimateRounds(filterKey){
 }
 /* 4(온대)+2(온+냉+한)+2(열대)+2(전기후랜덤) = 10판 비율, 포션에 맞춰 축소 */
 function cqBuildPlan(pool,portion,diff){
-  const cap=diff==='M'?12:10; /* 중: 17년 출제지 120개 전체를 12판으로 기본 소화 */
+  const cap=(diff==='M'||diff==='L')?12:10; /* 하·중: 17년 출제지 120개 전체를 12판으로 기본 소화 */
   const baseRounds=Math.min(cap,Math.floor(pool.length/10));
   if(baseRounds<1)return [];
   let totalRounds=Math.max(1,Math.round(baseRounds*(portion||1)));
@@ -147,9 +141,7 @@ function cqBuildPlan(pool,portion,diff){
 }
 
 function cqInit(filterKey){
-  const parts=(filterKey||'').split('_');
-  const dPart=parts.find(p=>p.startsWith('cl'));
-  CQ.diff=(dPart?dPart.slice(2):'M')==='H'?'H':'M';
+  CQ.diff=cqDiffOf(filterKey);
   CQ.saveKey='cq_'+CQ.diff+'_'+(filterKey||'all');
   const pool=cqPoolFor(filterKey);
   const por=_portion(filterKey);
@@ -183,13 +175,23 @@ function cqReset(skipConfirm){
 /* ══════════ 라운드 진행 ══════════ */
 function cqEnter(){
   cqInitMapPath();
+  cqUpdateModeUI();
   /* 탭을 벗어났다 돌아와도 진행 중이던 라운드 상태를 유지 (다시 섞지 않음) */
-  if(CQ.cur){cqRenderCards();cqRenderPins();cqFitToPins();cqUpdateProgress();}
+  if(CQ.cur){
+    if(CQ.diff==='L'){cqLRenderPins();cqFitToPins();cqUpdateProgress();cqLShowActive();}
+    else{cqRenderCards();cqRenderPins();cqFitToPins();cqUpdateProgress();}
+  }
   else cqShowRound();
+}
+function cqUpdateModeUI(){
+  const isL=CQ.diff==='L';
+  const cards=document.getElementById('cq-cards');if(cards)cards.style.display=isL?'none':'';
+  const lp=document.getElementById('cq-l-panel');if(lp)lp.style.display=isL?'':'none';
 }
 function cqShowRound(){
   const end=document.getElementById('cq-end');if(end&&end.classList.contains('on'))return;
   if(CQ.roundIdx>=CQ.plan.length){cqEnd();return;}
+  if(CQ.diff==='L'){cqLShowRound();return;}
   const round=CQ.plan[CQ.roundIdx];
   const order=shuffle(round.locs.map((l,i)=>i));
   CQ.cur={
@@ -313,6 +315,93 @@ function cqSkipRound(){
   cqRoundComplete();
 }
 
+/* ══════════ 하(下): 지점 → 쾨펜 기호 입력 ══════════
+   그래프-핀 매칭이 아니라, 지도 위 지점 하나씩을 순서대로 짚어주고
+   그 지점의 쾨펜 기후 기호(Dfa, BWh, Cs 등)를 직접 입력하게 한다. */
+function cqLShowRound(){
+  const round=CQ.plan[CQ.roundIdx];
+  CQ.cur={locs:round.locs, cat:round.cat, matched:{}, resolvedSet:new Set(), activeGi:0};
+  cqLRenderPins();
+  cqFitToPins();
+  cqUpdateProgress();
+  cqLShowActive();
+  const rb=document.getElementById('cq-round-bar');if(rb)rb.classList.remove('on');
+}
+function cqLRenderPins(){
+  const svg=document.getElementById('cq-pins-ov');if(!svg)return;
+  svg.innerHTML='';
+  CQ.cur.locs.forEach((loc,gi)=>{
+    const [mx,my]=cqLonLatToMain(loc.lon,loc.lat);
+    const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.setAttribute('class','cq-pin');g.dataset.li=gi;g.dataset.mx=mx;g.dataset.my=my;
+    const m=CQ.cur.matched[gi];
+    const label=m?loc.kop:(gi+1);
+    if(m)g.classList.add(m.ok?'ok':'ng');
+    g.innerHTML='<circle class="cq-pin-c" r="9"/><text class="cq-pin-t">'+label+'</text>';
+    g.addEventListener('click',()=>cqLSelect(gi));
+    svg.appendChild(g);
+  });
+  cqPinsRender();
+  cqLRefreshPinStates();
+}
+function cqLRefreshPinStates(){
+  document.querySelectorAll('#cq-pins-ov .cq-pin').forEach(el=>{
+    const gi=+el.dataset.li;
+    el.classList.toggle('active',gi===CQ.cur.activeGi&&!CQ.cur.resolvedSet.has(gi));
+  });
+}
+function cqLSelect(gi){
+  if(!CQ.cur||CQ.cur.resolvedSet.has(gi))return;
+  CQ.cur.activeGi=gi;
+  cqLRefreshPinStates();
+  cqLShowActive();
+}
+function cqLShowActive(){
+  if(!CQ.cur)return;
+  const gi=CQ.cur.activeGi;
+  const t=document.getElementById('cq-l-target');
+  if(t)t.textContent=(gi+1)+'번 지점';
+  const inp=document.getElementById('cq-l-input');
+  if(inp){inp.value='';setTimeout(()=>{try{inp.focus();}catch(e){}},30);}
+  const fb=document.getElementById('cq-l-fb');if(fb){fb.textContent='';fb.className='bq-fb';}
+}
+function cqLSubmit(){
+  if(!CQ.cur)return;
+  const gi=CQ.cur.activeGi;
+  if(CQ.cur.resolvedSet.has(gi))return;
+  const inp=document.getElementById('cq-l-input');if(!inp)return;
+  const val=inp.value.trim();
+  if(!val)return;
+  const loc=CQ.cur.locs[gi];
+  cqLResolve(gi,val.toLowerCase()===loc.kop.toLowerCase());
+}
+function cqLSkip(){
+  if(!CQ.cur)return;
+  const gi=CQ.cur.activeGi;
+  if(CQ.cur.resolvedSet.has(gi))return;
+  cqLResolve(gi,false);
+}
+function cqLResolve(gi,ok){
+  const loc=CQ.cur.locs[gi];
+  CQ.cur.matched[gi]={ok};
+  CQ.cur.resolvedSet.add(gi);
+  CQ.attempted++;
+  const pts=ok?cqPer():0;
+  CQ.pts+=pts;if(ok)CQ.cor++;else CQ.wr++;
+  const pinEl=document.querySelector('#cq-pins-ov .cq-pin[data-li="'+gi+'"]');
+  if(pinEl){pinEl.classList.remove('active');pinEl.classList.add(ok?'ok':'ng');const t=pinEl.querySelector('text');if(t)t.textContent=loc.kop;}
+  const fb=document.getElementById('cq-l-fb');
+  if(fb){fb.textContent=ok?'정답! '+loc.kop:'정답은 '+loc.kop+' · '+cqLocLabel(loc);fb.className='bq-fb '+(ok?'ok':'ng');}
+  cqUpdateProgress();cqSaveState();
+  if(CQ.cur.resolvedSet.size>=CQ.cur.locs.length){
+    setTimeout(cqRoundComplete,900);
+  }else{
+    const next=CQ.cur.locs.findIndex((l,i)=>!CQ.cur.resolvedSet.has(i));
+    CQ.cur.activeGi=next;
+    setTimeout(()=>{cqLRefreshPinStates();cqLShowActive();},900);
+  }
+}
+
 /* ══════════ 배경 지도 (실제 위경도 기반, 등장방형 투영 — climate-map-data.js) ══════════
    기존 world-svg는 하천 데이터로 근사한 손그림 지도라 정확한 위경도 좌표가 없어
    핀 위치가 실제 지리와 어긋난다. 기후 퀴즈 전용으로 Natural Earth 데이터를 직접
@@ -392,7 +481,7 @@ function cqEnd(){
   document.getElementById('cq-e1').textContent=CQ.cor;
   document.getElementById('cq-e2').textContent=CQ.wr;
   el.classList.add('on');
-  const ttl=CQ.diff==='H'?'기후 맞추기 · 상':'기후 맞추기 · 중';
+  const ttl='기후 맞추기 · '+({L:'하',M:'중',H:'상'}[CQ.diff]||'중');
   window._lastResult={title:ttl,score:CQ.pts+'점',
     rows:[['정답',CQ.cor,'#81c995'],['오답',CQ.wr,'#f28b82'],['진행',done,'#9aa0a6']]};
   if(!CQ.recorded&&done){CQ.recorded=true;cqSaveState();
@@ -403,3 +492,8 @@ function cqEnd(){
 function cqFinishNow(){
   cqEnd(); /* 진행 중인 라운드의 미해결 그래프는 강제 채점하지 않고 지금까지 맞춘 것만 집계 */
 }
+
+(function(){
+  const inp=document.getElementById('cq-l-input');
+  if(inp)inp.addEventListener('keyup',function(e){e.stopPropagation();if(e.key==='Enter'&&!e.isComposing){e.preventDefault();cqLSubmit();}});
+})();

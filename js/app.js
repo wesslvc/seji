@@ -55,8 +55,8 @@ const LD_SLIDES=[
   dd:{L:'하 · 도·특별시·광역시 단위 (시·도 17개)',M:'중 · 전국 시·군 단위 전체'}},
  {act:'river', big:true, ic:'wave',  mc:'#8ab4f8', tt:'하천 맞추기', ds:'세계 주요 하천 60개를 경로·통과국으로 맞혀요.', pts:'3~10점', diff:'vdiff',
   dd:{L:'하 · 물줄기 모양 보고 이름 맞히기 (3점)',M:'중 · 지나는 나라 모두 클릭 (5점 만점)',H:'상 · 세계지도에 경로 그리기 (일치도×10점)'}},
- {act:'climate', big:true, ic:'chart', mc:'#c58af9', tt:'기후 맞추기', ds:'기후 그래프 10개와 지도 위 지점 10개를 연결해요. 온대·냉한대·열대·전기후 라운드로 구성돼요.', pts:'4~8점', diff:'cldiff', levels:['M','H'],
-  dd:{M:'중 · 17년간 평가원 출제 지역 (4점)',H:'상 · 전 세계 1000+ 지점 (8점)'}},
+ {act:'climate', big:true, ic:'chart', mc:'#c58af9', tt:'기후 맞추기', ds:'기후 그래프 10개와 지도 위 지점 10개를 연결해요. 온대·냉한대·열대·전기후 라운드로 구성돼요.', pts:'2~8점', diff:'cldiff', levels:['L','M','H'],
+  dd:{L:'하 · 지도 위 지점의 쾨펜 기후 기호 맞히기 (2점)',M:'중 · 17년간 평가원 출제 지역 (4점)',H:'상 · 전 세계 1000+ 지점 (8점)'}},
  {act:'border', ic:'border',mc:'#81c995', tt:'접경국 퀴즈', ds:'국경을 맞댄 이웃 나라로 추리하는 퀴즈. 난이도에 따라 방식이 달라져요.', pts:'1 · 3 · 9점', diff:'bdiff',
   dd:{L:'하 · 지도에서 클릭해 맞히기 (1점)',M:'중 · 지도 없이 이름 입력 (3점)',H:'상 · 접한 나라 모두 쓰기 (비율별 2·5·9점)'}},
  {act:'religion',ic:'book', mc:'#fdd663', tt:'종교 구성', ds:'원그래프를 보고 나라별 종교 구성을 맞혀요.', pts:'1 · 2 · 3점', diff:'rdiff',
@@ -96,7 +96,7 @@ function ldRestore(){
   if(['x','m'].includes(d.tkind))LD.tkind=d.tkind;
   if(['L','M'].includes(d.kdiff))LD.kdiff=d.kdiff;
   if(['L','M','H'].includes(d.vdiff))LD.vdiff=d.vdiff;
-  if(['M','H'].includes(d.cldiff))LD.cldiff=d.cldiff;
+  if(['L','M','H'].includes(d.cldiff))LD.cldiff=d.cldiff;
   return d;
 }
 /* ── 모드 그리드 (한눈에 보이는 선택) ── */
