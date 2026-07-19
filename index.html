@@ -14,7 +14,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
 </noscript>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%235eead4%27 stroke-width=%272%27 stroke-linecap=%27round%27%3E%3Ccircle cx=%2712%27 cy=%2712%27 r=%279%27/%3E%3Cellipse cx=%2712%27 cy=%2712%27 rx=%274%27 ry=%279%27/%3E%3Cpath d=%27M3.5 9h17M3.5 15h17%27/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/main.css?v=20260707l">
+<link rel="stylesheet" href="css/main.css?v=20260707q">
 </head>
 <body>
 <div id="landing-overlay">
@@ -152,6 +152,34 @@
   <div class="bq-foot">
     <div class="bq-fb" id="rvd-fb"></div>
     <button class="bq-skip" onclick="rvSkip()">건너뛰기</button>
+  </div>
+</div>
+<!-- 기후 맞추기: 지도 위 핀 오버레이 + 하단 그래프 카드 독 -->
+<svg id="cq-pins-ov"></svg>
+<div id="cq-box">
+  <div class="cq-head">
+    <div id="cq-round-title">1 / 10판</div>
+    <div class="cq-stats"><span>정답 <b id="cq-cor">0</b></span><span>오답 <b id="cq-wr">0</b></span><span>점수 <b id="cq-pts">0</b></span></div>
+  </div>
+  <div class="cq-progress"><div class="cq-pf" id="cq-pf"></div></div>
+  <div class="bq-fb" id="cq-fb"></div>
+  <div id="cq-cards"></div>
+</div>
+<div id="cq-round-bar">
+  <div id="cq-round-txt"></div>
+  <button class="btn bp" type="button" onclick="cqNextRound()">다음 판 →</button>
+</div>
+<!-- 기후 맞추기 완료 -->
+<div id="cq-end">
+  <div class="rq-end-card">
+    <h1>기후 맞추기 완료!</h1>
+    <div class="esc" id="cq-escore">0점</div>
+    <div class="eg" style="grid-template-columns:1fr 1fr">
+      <div class="est"><div class="esv" style="color:#81c995" id="cq-e1">0</div><div class="esl">정답</div></div>
+      <div class="est"><div class="esv" style="color:var(--wr)" id="cq-e2">0</div><div class="esl">오답</div></div>
+    </div>
+    <button class="reb" onclick="shareLastResult()">결과 자랑하기</button>
+    <button class="reb secondary" onclick="runPendingReset();document.getElementById('cq-end').classList.remove('on')">다시 시작</button>
   </div>
 </div>
 <!-- 하천 완료 -->
@@ -4751,13 +4779,15 @@
     <button class="reb secondary" onclick="runPendingReset();document.getElementById('rbq-end').classList.remove('on')">다시 시작</button>
   </div>
 </div>
-<script src="js/data.js?v=20260707l"></script>
-<script src="js/rivers-data.js?v=20260707l"></script>
-<script src="js/app.js?v=20260707l"></script>
+<script src="js/data.js?v=20260707q"></script>
+<script src="js/rivers-data.js?v=20260707q"></script>
+<script src="js/climate-data.js?v=20260707q"></script>
+<script src="js/climate.js?v=20260707q"></script>
+<script src="js/app.js?v=20260707q"></script>
 <!-- ════════════════════════════════════════════════════════════
      계정 · 소셜로그인 · 랭킹 (Supabase) — 빌드/명령어 불필요, 이 파일만으로 동작
      ▼▼▼ 여기 두 줄만 본인 Supabase 값으로 바꾸면 끝 ▼▼▼ -->
-<script type="module" src="js/account.js?v=20260707l"></script>
+<script type="module" src="js/account.js?v=20260707q"></script>
 
 </body>
 </html>

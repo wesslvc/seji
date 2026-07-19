@@ -32,7 +32,7 @@ function hasStoredSession() {
  * 게임 종료 시 window.SejiAccount.submitScore(...) 로 점수를 전송한다.
  */
 
-const CAT_NAME = { name: '나라이름', border: '접경국', rborder: '접경국쓰기', religion: '종교', texp: '수출구조', timp: '수입구조', tenergy: '에너지', korea: '한국지리', river: '하천' };
+const CAT_NAME = { name: '나라이름', border: '접경국', rborder: '접경국쓰기', religion: '종교', texp: '수출구조', timp: '수입구조', tenergy: '에너지', korea: '한국지리', river: '하천', climate: '기후' };
 const CONT_KO = { as: '아시아', eu: '유럽', af: '아프리카', na: '북아메리카', sa: '남아메리카', oc: '오세아니아' };
 function scopeContinents(scope) {
   if (scope === 'korea') return [];
@@ -43,6 +43,7 @@ function scopeContinents(scope) {
 }
 function scopeLabel(scope) {
   if(/^river_[LMH]$/.test(scope||''))return {L:'모양 맞추기',M:'통과국 클릭',H:'경로 그리기'}[scope.slice(-1)];
+  if(/^climate_[MH]$/.test(scope||''))return {M:'중 · 출제지',H:'상 · 전 지점'}[scope.slice(-1)];
   if (!scope) return '전체';
   if (scope === 'korea') return '한국';
   const parts = scope.split('_');
@@ -67,7 +68,7 @@ let profile = null;
 /* ──────────────── 진행상황 동기화 (기기 간 이어하기) ────────────────
  * 게임이 쓰는 localStorage 진행 키(wq_*, bq_*, kq_*)를 계정에 미러링.
  * localStorage.setItem 을 가로채서 로그인 상태면 서버로 올린다. */
-const SYNC_RE = /^(wq_|bq_|rbq_|kq_|tq_)/;
+const SYNC_RE = /^(wq_|bq_|rbq_|kq_|tq_|cq_)/;
 const SYNC_EXCLUDE = new Set(['wq_mode']);
 function shouldSync(k) { return SYNC_RE.test(k) && !SYNC_EXCLUDE.has(k) && !k.includes('__'); }
 // 로그인했거나(세션) 로그인 토큰이 남아있으면(세션 로딩 중) 계정 사용자로 취급
@@ -352,6 +353,7 @@ function buildUI() {
         <button class="rank-tab" data-cat="texp">수출구조</button>
         <button class="rank-tab" data-cat="timp">수입구조</button>
         <button class="rank-tab" data-cat="river">하천</button>
+        <button class="rank-tab" data-cat="climate">기후</button>
         <button class="rank-tab" data-cat="korea">한국</button>
       </div>
       <div class="acct-lbl">대륙</div>
@@ -600,7 +602,7 @@ async function openMenuData() {
   // 유형별
   const catBox = document.getElementById('acct-cat-stats');
   catBox.innerHTML = '';
-  const cats = ['name', 'border', 'rborder', 'religion', 'texp', 'timp', 'tenergy', 'river', 'korea'];
+  const cats = ['name', 'border', 'rborder', 'religion', 'texp', 'timp', 'tenergy', 'river', 'climate', 'korea'];
   const has = cats.filter((c) => graded.some((r) => r.category === c));
   if (!has.length) catBox.innerHTML = `<div style="font-size:.78rem;color:#9aa0a6">아직 기록이 없습니다.</div>`;
   has.forEach((c) => {
