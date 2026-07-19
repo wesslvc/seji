@@ -23,7 +23,8 @@ const ICON={
   climate:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="7" r="2.8"/><path d="M8 2.3v1.3M8 11.4v0M3.3 7H4.6M11.4 7h1.3M4.8 3.8l.95.95M11.2 3.8l-.95.95" stroke-width="1.3"/><path d="M7.2 20h9.3a3.6 3.6 0 0 0 .5-7.16 5.3 5.3 0 0 0-10-2.1A4 4 0 0 0 7.2 20z"/></svg>',
   export:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="13" width="16" height="7" rx="1.2"/><path d="M12 13V3M8.5 6.5 12 3l3.5 3.5"/></svg>',
   import:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="13" width="16" height="7" rx="1.2"/><path d="M12 13V3M8.5 9.5 12 13l3.5-3.5"/></svg>',
-  trade:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h13M13 4l3.5 4L13 12"/><path d="M21 16H8M11 20l-3.5-4L11 12"/></svg>'
+  trade:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h13M13 4l3.5 4L13 12"/><path d="M21 16H8M11 20l-3.5-4L11 12"/></svg>',
+  dict:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5c-2-1.3-4.5-1.6-7-1v14c2.5-.6 5-.3 7 1 2-1.3 4.5-1.6 7-1V4c-2.5-.6-5-.3-7 1z"/><path d="M12 5v14"/></svg>'
 };
 function ic(name){return ICON[name]||'';}
 function injectIcons(root){(root||document).querySelectorAll('[data-ic]').forEach(e=>{if(!e.dataset.icDone){e.innerHTML=ICON[e.dataset.ic]||'';e.dataset.icDone='1';}});}
@@ -53,21 +54,23 @@ function setMode(mob){
   try{applyModeUI();}catch(e){}
 }
 /* ══════════ Geogl3 랜딩 — 캐러셀 모드 선택 ══════════ */
+/* 3×3 그리드: 한국지리(korea)를 정중앙(5번째 항목)에 놓고 세계지리 항목들이 둘러싼다 */
 const LD_SLIDES=[
- {act:'name',  big:true, ic:'globe', mc:'#7cc4ff', tt:'나라 이름 맞추기', ds:'지도에서 나라를 클릭하고 이름을 맞혀요. 3번 안에 맞히면 색이 칠해져요.', pts:'국가당 1점'},
- {act:'korea', big:true, ic:'pin',   mc:'#5eead4', tt:'한국지리', ds:'대한민국 행정구역 위치를 지도에서 맞혀요.', pts:'1점', diff:'kdiff', levels:['L','M'],
-  dd:{L:'하 · 도·특별시·광역시 단위 (시·도 17개)',M:'중 · 전국 시·군 단위 전체'}},
- {act:'river', big:true, ic:'wave',  mc:'#8ab4f8', tt:'하천 맞추기', ds:'세계 주요 하천 60개를 경로·통과국으로 맞혀요.', pts:'3~10점', diff:'vdiff',
-  dd:{L:'하 · 물줄기 모양 보고 이름 맞히기 (3점)',M:'중 · 지나는 나라 모두 클릭 (5점 만점)',H:'상 · 세계지도에 경로 그리기 (일치도×10점)'}},
- {act:'climate', big:true, ic:'climate', mc:'#c58af9', tt:'기후 맞추기', ds:'기후 그래프 10개와 지도 위 지점 10개를 연결해요. 온대·냉한대·열대·전기후 라운드로 구성돼요.', pts:'2~8점', diff:'cldiff', levels:['L','M','H'],
-  dd:{L:'하 · 지도 위 지점의 쾨펜 기후 기호 맞히기 (2점)',M:'중 · 17년간 평가원 출제 지역 (4점)',H:'상 · 전 세계 1000+ 지점 (8점)'}},
+ {act:'name',  ic:'globe', mc:'#7cc4ff', tt:'나라 이름 맞추기', ds:'지도에서 나라를 클릭하고 이름을 맞혀요. 3번 안에 맞히면 색이 칠해져요.', pts:'국가당 1점'},
  {act:'border', ic:'border',mc:'#81c995', tt:'접경국 퀴즈', ds:'국경을 맞댄 이웃 나라로 추리하는 퀴즈. 난이도에 따라 방식이 달라져요.', pts:'1 · 3 · 9점', diff:'bdiff',
   dd:{L:'하 · 지도에서 클릭해 맞히기 (1점)',M:'중 · 지도 없이 이름 입력 (3점)',H:'상 · 접한 나라 모두 쓰기 (비율별 2·5·9점)'}},
  {act:'religion',ic:'book', mc:'#fdd663', tt:'종교 구성', ds:'원그래프를 보고 나라별 종교 구성을 맞혀요.', pts:'1 · 2 · 3점', diff:'rdiff',
   dd:{L:'하 · 상위 종교 70%+ 국가만 (1점)',M:'중 · 모든 국가 · 힌트 있음 (2점)',H:'상 · 3번 틀려야 공개 (3점)'}},
+ {act:'river', ic:'wave',  mc:'#8ab4f8', tt:'하천 맞추기', ds:'세계 주요 하천 60개를 경로·통과국으로 맞혀요.', pts:'3~10점', diff:'vdiff',
+  dd:{L:'하 · 물줄기 모양 보고 이름 맞히기 (3점)',M:'중 · 지나는 나라 모두 클릭 (5점 만점)',H:'상 · 세계지도에 경로 그리기 (일치도×10점)'}},
+ {act:'korea', ic:'pin',   mc:'#5eead4', tt:'한국지리', ds:'대한민국 행정구역 위치를 지도에서 맞혀요.', pts:'1점', diff:'kdiff', levels:['L','M'],
+  dd:{L:'하 · 도·특별시·광역시 단위 (시·도 17개)',M:'중 · 전국 시·군 단위 전체'}},
+ {act:'climate', ic:'climate', mc:'#c58af9', tt:'기후 맞추기', ds:'기후 그래프 10개와 지도 위 지점 10개를 연결해요. 온대·냉한대·열대·전기후 라운드로 구성돼요.', pts:'2~8점', diff:'cldiff', levels:['L','M','H'],
+  dd:{L:'하 · 지도 위 지점의 쾨펜 기후 기호 맞히기 (2점)',M:'중 · 17년간 평가원 출제 지역 (4점)',H:'상 · 전 세계 1000+ 지점 (8점)'}},
  {act:'trade',  ic:'trade', mc:'#8b9dff', tt:'무역 구조', ds:'수출·수입 품목 트리맵을 보고 어느 나라인지 맞혀요.', pts:'2~9점', diff:'tdiff', tkind:true},
  {act:'tenergy',ic:'power', mc:'#ffb37a', tt:'에너지 구성', ds:'발전·에너지 믹스를 보고 나라를 맞혀요. 유형 필터도 고를 수 있어요.', pts:'2 · 4 · 6점', diff:'ediff',
-  dd:{L:'하 · 특징 뚜렷한 국가만 (2점)',M:'중 · 모든 국가 · 힌트 있음 (4점)',H:'상 · 힌트 없음 (6점)'}, esub:true}
+  dd:{L:'하 · 특징 뚜렷한 국가만 (2점)',M:'중 · 모든 국가 · 힌트 있음 (4점)',H:'상 · 힌트 없음 (6점)'}, esub:true},
+ {act:'worlddict', ic:'dict', mc:'#9aa0a6', tt:'세계지리 사전', ds:'세계 지리 용어와 개념을 찾아볼 수 있는 사전이 준비 중이에요.', pts:'준비중', disabled:true}
 ];
 const TRADE_DD={
  x:{L:'하 · 주요국만 · 힌트 있음 (2점)',M:'중 · 모든 국가 · 힌트 있음 (4점)',H:'상 · 힌트 없음 (6점)'},
@@ -108,12 +111,12 @@ function ldBuildGrid(){
   const grid=document.getElementById('ld-grid');grid.innerHTML='';
   LD_SLIDES.forEach(sl=>{
     const c=document.createElement('div');
-    c.className='ld-cell'+(sl.big?' big':'');c.dataset.act=sl.act;c.style.setProperty('--mc',sl.mc);
-    const txt='<div class="ld-cell-tt">'+sl.tt+'</div><div class="ld-cell-pt">'+sl.pts+'</div>';
+    c.className='ld-cell'+(sl.disabled?' disabled':'');c.dataset.act=sl.act;c.style.setProperty('--mc',sl.mc);
+    const pt=sl.disabled?'<span class="ld-soon">준비중</span>':sl.pts;
+    const txt='<div class="ld-cell-tt">'+sl.tt+'</div><div class="ld-cell-pt">'+pt+'</div>';
     c.innerHTML='<span class="ck"><span data-ic="check"></span></span>'
-      +'<div class="ld-cell-ic"><span data-ic="'+sl.ic+'"></span></div>'
-      +(sl.big?'<div class="ld-cell-tx">'+txt+'</div>':txt);
-    c.addEventListener('click',()=>ldToggle(sl.act));
+      +'<div class="ld-cell-ic"><span data-ic="'+sl.ic+'"></span></div>'+txt;
+    if(!sl.disabled)c.addEventListener('click',()=>ldToggle(sl.act));
     grid.appendChild(c);
   });
   injectIcons(grid);
