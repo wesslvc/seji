@@ -20,23 +20,32 @@ function cqLonLatToMain(lon,lat){
    카드끼리 비교해 직관적으로 알 수 있다. 그래서 지점별로 축을 자동 확대하지 않고
    전형적인 값 범위(온대·건조가 뚜렷이 구분되도록 좁게 잡음)를 고정으로 쓰고,
    그 범위를 벗어나는 극値(폭염·혹한·폭우 지점)는 막대가 카드 틀 밖으로 삐져나오게
-   그려서(clamp하지 않고) "이 지점은 정상 범위를 벗어난다"는 걸 시각적으로 드러낸다. */
+   그린다. 삐져나오는 정도는 초과량에 비례(포화 곡선)해서, 살짝 넘긴 지점은 살짝만,
+   체라푼지 같은 극단적인 지점은 카드 천장 가까이까지 뚫고 올라가게 한다. */
 const CQ_T_LO=-10, CQ_T_HI=30, CQ_T_STEP=10;
 const CQ_P_HI=150, CQ_P_STEP=50;
-const CQ_BLEED=8; /* 축 범위를 벗어난 막대가 카드 틀 밖으로 삐져나오는 최대 픽셀 */
+const CQ_BLEED_MAX=26; /* 극단값이 삐져나올 수 있는 최대 픽셀(카드 천장 근처) */
+/* 초과량(excess)이 클수록 0→CQ_BLEED_MAX로 포화되는 곡선 (scale은 "이 정도면 절반쯤 찼다" 기준) */
+function cqBleed(excess,scale){
+  if(excess<=0)return 0;
+  return CQ_BLEED_MAX*(1-Math.exp(-excess/scale));
+}
 function cqChartSVG(loc){
-  const W=150, tH=76, pH=50, padL=17, padR=8, gap=16, mTop=10;
+  const W=150, tH=76, pH=50, padL=17, padR=8, gap=CQ_BLEED_MAX+10, mTop=CQ_BLEED_MAX+6;
   const plotW=W-padL-padR;
   const gapW=plotW/12, barW=gapW*0.6;
   const tLo=CQ_T_LO, tHi=CQ_T_HI, pHi=CQ_P_HI;
   const tPlotH=tH-8;
   function tY(t){
     const raw=4+tPlotH*(1-(t-tLo)/(tHi-tLo));
-    return Math.min(Math.max(raw,-CQ_BLEED),tPlotH+8+CQ_BLEED);
+    if(t>tHi)return raw-cqBleed(t-tHi,20);
+    if(t<tLo)return raw+cqBleed(tLo-t,20);
+    return raw;
   }
   function pY(p){
     const raw=2+(pH-6)*(1-p/pHi);
-    return Math.max(raw,-CQ_BLEED);
+    if(p>pHi)return raw-cqBleed(p-pHi,150);
+    return raw;
   }
 
   let tgrid='',ttick='';
@@ -368,7 +377,7 @@ function cqLFitToCurrent(){
   const availH=Math.max(mw.clientHeight-botPad,80);
   const loc=CQ.cur.locs[CQ.cur.activeGi];
   const [mx,my]=cqLonLatToMain(loc.lon,loc.lat);
-  const ns=Math.min(Math.max(Math.min(mw.clientWidth,availH)/480,Math.min(mw.clientWidth/SW,availH/SH)),9);
+  const ns=Math.min(Math.max(Math.min(mw.clientWidth,availH)/220,Math.min(mw.clientWidth/SW,availH/SH)),9);
   _s=ns;_x=mw.clientWidth/2-mx*ns;_y=availH/2-my*ns;
   applyT();
 }
