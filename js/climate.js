@@ -1,9 +1,11 @@
 /* ══════════ 기후 맞추기 (Climate Quiz) ══════════
-   데이터: CLIMATE (climate-data.js) — [id,city,cc,cont,lat,lon,grp,ex,tmin[12],tmax[12],prec[12]]
-   grp: A=열대 B=건조 C=온대 D=냉대 E=한대(쾨펜 기후 대분류, 자동 판정) / ex: 1=17년 평가원 출제지(중 난이도 풀) */
-const CLIMATE_LOC = CLIMATE.map(r=>({id:r[0],city:r[1],cc:r[2],cont:r[3],lat:r[4],lon:r[5],grp:r[6],ex:r[7]===1,tmin:r[8],tmax:r[9],prec:r[10]}));
+   데이터: CLIMATE (climate-data.js) — [id,city,ko,cc,cont,lat,lon,grp,ex,tmin[12],tmax[12],prec[12]]
+   grp: A=열대 B=건조 C=온대 D=냉대 E=한대(쾨펜 기후 대분류, 자동 판정) / ex: 1=17년 평가원 출제지(중 난이도 풀)
+   ko: 한글 지명(120개 출제지만 보유, 나머지는 null → 영문 지명 표시) */
+const CLIMATE_LOC = CLIMATE.map(r=>({id:r[0],city:r[1],ko:r[2],cc:r[3],cont:r[4],lat:r[5],lon:r[6],grp:r[7],ex:r[8]===1,tmin:r[9],tmax:r[10],prec:r[11]}));
 function cqCountryName(cc){return (COUNTRIES[cc]&&COUNTRIES[cc].k)||cc.toUpperCase();}
-function cqLocLabel(loc){return loc.city+' · '+cqCountryName(loc.cc);}
+function cqCityName(loc){return loc.ko||loc.city;}
+function cqLocLabel(loc){return cqCityName(loc)+' · '+cqCountryName(loc.cc);}
 
 /* ── lon/lat → 메인 세계지도 캔버스 좌표 (RV_MAIN 투영의 역함수) ── */
 function cqLonLatToMain(lon,lat){
@@ -64,7 +66,8 @@ function cqChartSVG(loc){
 
 /* ══════════ 게임 상태 ══════════ */
 const CQ={diff:'M',pool:[],plan:[],roundIdx:0,cur:null,saveKey:'cq_M_all',pts:0,cor:0,wr:0,attempted:0,recorded:false,isRetry:false};
-function cqPer(){return CQ.diff==='H'?3:2;}
+function cqPer(){return CQ.diff==='H'?8:4;}
+const CQ_TRIES=5;
 
 function cqDiffOf(filterKey){
   const dPart=(filterKey||'').split('_').find(p=>p.startsWith('cl'));
@@ -192,7 +195,7 @@ function cqShowRound(){
   cqUpdateProgress();
   const rb=document.getElementById('cq-round-bar');if(rb)rb.classList.remove('on');
 }
-function cqCatLabel(cat){return {temperate:'온대 집중',mix:'온·냉·한대 혼합',tropical:'열대 집중',random:'전 기후 랜덤'}[cat]||'';}
+function cqCatLabel(cat){return {temperate:'온대',mix:'온·냉·한대 혼합',tropical:'열대',random:'전 기후 랜덤'}[cat]||'';}
 function cqUpdateProgress(){
   const t=document.getElementById('cq-round-title');
   if(t)t.textContent=(CQ.roundIdx+1)+' / '+CQ.plan.length+'판 · '+cqCatLabel(CQ.cur?CQ.cur.cat:'');
@@ -252,10 +255,10 @@ function cqTryPin(li){
     const pinEl=document.querySelector('#cq-pins-ov .cq-pin[data-li="'+li+'"]');
     if(pinEl){pinEl.classList.add('shake-ng');setTimeout(()=>pinEl.classList.remove('shake-ng'),380);}
     const fb=document.getElementById('cq-fb');
-    if(CQ.cur.wrongCounts[gi]>=3){
+    if(CQ.cur.wrongCounts[gi]>=CQ_TRIES){
       cqResolveGraph(gi,false,targetLi);
     }else if(fb){
-      fb.textContent='아니에요 (기회 '+(3-CQ.cur.wrongCounts[gi])+')';fb.className='bq-fb ng';
+      fb.textContent='아니에요 (기회 '+(CQ_TRIES-CQ.cur.wrongCounts[gi])+')';fb.className='bq-fb ng';
     }
   }
 }
@@ -270,7 +273,7 @@ function cqResolveGraph(gi,ok,li){
   const card=document.querySelector('#cq-cards .cq-card[data-gi="'+gi+'"]');
   if(card){const lbl=card.querySelector('.cq-card-lbl');if(lbl)lbl.innerHTML=cqLocLabel(loc)+(ok?' <b>+'+pts+'점</b>':' <span class="wr">0점</span>');}
   const pinEl=document.querySelector('#cq-pins-ov .cq-pin[data-li="'+li+'"]');
-  if(pinEl){pinEl.classList.add(ok?'ok':'ng');pinEl.querySelector('text').textContent=loc.city;}
+  if(pinEl){pinEl.classList.add(ok?'ok':'ng');pinEl.querySelector('text').textContent=cqCityName(loc);}
   const fb=document.getElementById('cq-fb');
   if(fb){fb.textContent=ok?'정답! '+cqLocLabel(loc):'정답은 '+cqLocLabel(loc);fb.className='bq-fb '+(ok?'ok':'ng');}
   cqRefreshCardStates();cqRefreshPinStates();cqUpdateProgress();cqSaveState();
@@ -303,17 +306,18 @@ function cqSkipRound(){
   cqRoundComplete();
 }
 
-/* ══════════ 핀(지도 오버레이) ══════════ */
-let _cqRAF=null;
-function cqPinsStart(){
-  const ov=document.getElementById('cq-pins-ov');
-  if(!ov)return;
-  if(!_cqRAF){
-    const loop=()=>{ if(mapMode!=='climate'){_cqRAF=null;return;} cqPinsRender(); _cqRAF=requestAnimationFrame(loop); };
-    _cqRAF=requestAnimationFrame(loop);
-  }
-}
-function cqPinsStop(){if(_cqRAF){cancelAnimationFrame(_cqRAF);_cqRAF=null;}}
+/* ══════════ 핀(지도 오버레이) ══════════
+   지도 확대/축소·이동 중 핀이 살짝 지연되어 흔들려 보이지 않도록, 별도의
+   requestAnimationFrame 루프 대신 지도 변환을 실제로 적용하는 _flushT() 안에서
+   같은 프레임에 바로 핀 좌표를 갱신한다(한 프레임도 어긋나지 않게). */
+(function(){
+  const _origFlushT=_flushT;
+  _flushT=function(){
+    _origFlushT();
+    if(mapMode==='climate')cqPinsRender();
+  };
+})();
+function cqPinsStop(){} /* 하위 호환용 no-op — 더 이상 별도 루프를 쓰지 않음 */
 function cqRenderPins(){
   const svg=document.getElementById('cq-pins-ov');if(!svg)return;
   svg.innerHTML='';
@@ -325,7 +329,7 @@ function cqRenderPins(){
     const g=document.createElementNS('http://www.w3.org/2000/svg','g');
     g.setAttribute('class','cq-pin');g.dataset.li=li;g.dataset.mx=mx;g.dataset.my=my;
     const r=resolvedByLi[li];
-    const label=r?r.loc.city:(li+1);
+    const label=r?cqCityName(r.loc):(li+1);
     if(r)g.classList.add(r.ok?'ok':'ng');
     g.innerHTML='<circle class="cq-pin-c" r="9"/><text class="cq-pin-t">'+label+'</text>';
     g.addEventListener('click',()=>cqTryPin(li));
@@ -333,7 +337,6 @@ function cqRenderPins(){
   });
   cqPinsRender();
   cqRefreshPinStates();
-  cqPinsStart();
 }
 function cqPinsRender(){
   const svg=document.getElementById('cq-pins-ov');if(!svg)return;
