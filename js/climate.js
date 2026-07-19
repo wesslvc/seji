@@ -15,29 +15,40 @@ function cqLonLatToMain(lon,lat){
 }
 
 /* ── 기후 그래프 SVG 렌더 (퀴즈 카드용 축약형) ── */
+/* 눈금 간격을 대략 targetCount개로 맞추는 "보기 좋은" 값(1/2/5×10ⁿ) 계산 */
+function cqNiceStep(range,targetCount){
+  const raw=range/Math.max(1,targetCount);
+  const mag=Math.pow(10,Math.floor(Math.log10(raw||1)));
+  const norm=raw/mag;
+  const step=norm<1.5?1:norm<3?2:norm<7?5:10;
+  return step*mag;
+}
 function cqChartSVG(loc){
-  const W=150, tH=76, pH=50, padL=12, padR=8, gap=5;
+  const W=150, tH=76, pH=50, padL=17, padR=8, gap=5;
   const plotW=W-padL-padR;
   const gapW=plotW/12, barW=gapW*0.6;
   const allT=loc.tmin.concat(loc.tmax);
-  let tLo=Math.floor(Math.min(...allT)/10)*10, tHi=Math.ceil(Math.max(...allT)/10)*10;
-  if(tHi-tLo<40){const mid=(tHi+tLo)/2;tLo=Math.floor((mid-20)/10)*10;tHi=tLo+40;}
+  const tStep=cqNiceStep(Math.max(...allT)-Math.min(...allT),4);
+  let tLo=Math.floor(Math.min(...allT)/tStep)*tStep, tHi=Math.ceil(Math.max(...allT)/tStep)*tStep;
+  if(tHi-tLo<tStep*4){const mid=(tHi+tLo)/2;tLo=Math.floor((mid-tStep*2)/tStep)*tStep;tHi=tLo+tStep*4;}
   const pMax=Math.max(...loc.prec);
-  let pHi=Math.ceil((pMax*1.15)/50)*50; if(pHi<50)pHi=50;
+  const pStep=cqNiceStep(pMax*1.15,4);
+  let pHi=Math.ceil((pMax*1.15)/pStep)*pStep; if(pHi<pStep)pHi=pStep;
   const tPlotH=tH-8;
   function tY(t){return 4+tPlotH*(1-(t-tLo)/(tHi-tLo));}
   function pY(p){return 2+(pH-6)*(1-p/pHi);}
 
-  let tgrid='';
-  for(let t=tLo;t<=tHi;t+=10){
+  let tgrid='',ttick='';
+  for(let t=tLo;t<=tHi+tStep*0.01;t+=tStep){
     const y=tY(t);
     tgrid+='<line class="cq-grid" x1="'+padL+'" x2="'+(W-padR)+'" y1="'+y.toFixed(1)+'" y2="'+y.toFixed(1)+'"/>';
+    ttick+='<text class="cq-tick" x="'+(padL-3)+'" y="'+y.toFixed(1)+'">'+Math.round(t)+'</text>';
   }
-  let pgrid='';
-  const pStep=pHi<=150?25:pHi<=400?50:pHi<=800?100:250;
-  for(let p=0;p<=pHi;p+=pStep){
+  let pgrid='',ptick='';
+  for(let p=0;p<=pHi+pStep*0.01;p+=pStep){
     const y=pY(p);
     pgrid+='<line class="cq-grid" x1="'+padL+'" x2="'+(W-padR)+'" y1="'+y.toFixed(1)+'" y2="'+y.toFixed(1)+'"/>';
+    ptick+='<text class="cq-tick" x="'+(padL-3)+'" y="'+y.toFixed(1)+'">'+Math.round(p)+'</text>';
   }
   let tbars='',pbars='';
   for(let m=0;m<12;m++){
@@ -50,10 +61,10 @@ function cqChartSVG(loc){
   const totalH=tH+gap+pH;
   let s='<svg viewBox="0 0 '+W+' '+totalH+'" class="cq-chart-svg" preserveAspectRatio="xMidYMid meet">';
   s+='<rect class="cq-panel-bg" x="0" y="0" width="'+W+'" height="'+tH+'" rx="6"/>';
-  s+=tgrid+tbars;
+  s+=tgrid+tbars+ttick;
   s+='<g transform="translate(0,'+(tH+gap)+')">';
   s+='<rect class="cq-panel-bg" x="0" y="0" width="'+W+'" height="'+pH+'" rx="6"/>';
-  s+=pgrid+pbars;
+  s+=pgrid+pbars+ptick;
   s+='</g></svg>';
   return s;
 }
