@@ -97,8 +97,9 @@ function cqEstimateRounds(filterKey){
   return Math.floor(pool.length/10);
 }
 /* 4(온대)+2(온+냉+한)+2(열대)+2(전기후랜덤) = 10판 비율, 포션에 맞춰 축소 */
-function cqBuildPlan(pool,portion){
-  const baseRounds=Math.min(10,Math.floor(pool.length/10));
+function cqBuildPlan(pool,portion,diff){
+  const cap=diff==='M'?12:10; /* 중: 17년 출제지 120개 전체를 12판으로 기본 소화 */
+  const baseRounds=Math.min(cap,Math.floor(pool.length/10));
   if(baseRounds<1)return [];
   let totalRounds=Math.max(1,Math.round(baseRounds*(portion||1)));
   totalRounds=Math.min(totalRounds,baseRounds);
@@ -153,7 +154,7 @@ function cqInit(filterKey){
   const pool=cqPoolFor(filterKey);
   const por=_portion(filterKey);
   CQ.pool=pool;
-  CQ.plan=cqBuildPlan(pool,por);
+  CQ.plan=cqBuildPlan(pool,por,CQ.diff);
   CQ.roundIdx=0;CQ.pts=0;CQ.cor=0;CQ.wr=0;CQ.attempted=0;CQ.recorded=false;CQ.isRetry=false;CQ.cur=null;
   cqLoad();
 }
@@ -174,7 +175,7 @@ function cqReset(skipConfirm){
   localStorage.removeItem(CQ.saveKey);
   const por=_portion(SESSION.filterKey);
   CQ.pool=cqPoolFor(SESSION.filterKey);
-  CQ.plan=cqBuildPlan(CQ.pool,por);
+  CQ.plan=cqBuildPlan(CQ.pool,por,CQ.diff);
   CQ.roundIdx=0;CQ.pts=0;CQ.cor=0;CQ.wr=0;CQ.attempted=0;CQ.recorded=false;CQ.cur=null;
   if(SESSION.cur==='climate')cqShowRound();
 }
