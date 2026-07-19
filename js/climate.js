@@ -178,7 +178,7 @@ function cqEnter(){
   cqUpdateModeUI();
   /* 탭을 벗어났다 돌아와도 진행 중이던 라운드 상태를 유지 (다시 섞지 않음) */
   if(CQ.cur){
-    if(CQ.diff==='L'){cqLRenderPins();cqFitToPins();cqUpdateProgress();cqLShowActive();}
+    if(CQ.diff==='L'){cqLRenderCurrentPin();cqUpdateProgress();cqLShowActive();}
     else{cqRenderCards();cqRenderPins();cqFitToPins();cqUpdateProgress();}
   }
   else cqShowRound();
@@ -316,45 +316,43 @@ function cqSkipRound(){
 }
 
 /* ══════════ 하(下): 지점 → 쾨펜 기호 입력 ══════════
-   그래프-핀 매칭이 아니라, 지도 위 지점 하나씩을 순서대로 짚어주고
-   그 지점의 쾨펜 기후 기호(Dfa, BWh, Cs 등)를 직접 입력하게 한다. */
+   그래프-핀 매칭이 아니라, 지도 위에 지점을 하나씩만 보여주고
+   그 지점의 쾨펜 기후 기호(Dfa, BWh, Cs 등)를 직접 입력하게 한다.
+   (10개를 한꺼번에 지도에 뿌리지 않고, 한 문제 = 핀 하나) */
 function cqLShowRound(){
   const round=CQ.plan[CQ.roundIdx];
   CQ.cur={locs:round.locs, cat:round.cat, matched:{}, resolvedSet:new Set(), activeGi:0};
-  cqLRenderPins();
-  cqFitToPins();
+  cqLRenderCurrentPin();
   cqUpdateProgress();
   cqLShowActive();
   const rb=document.getElementById('cq-round-bar');if(rb)rb.classList.remove('on');
 }
-function cqLRenderPins(){
-  const svg=document.getElementById('cq-pins-ov');if(!svg)return;
+/* 현재 문제의 핀 하나만 지도에 표시 (이전 지점은 지움) */
+function cqLRenderCurrentPin(){
+  const svg=document.getElementById('cq-pins-ov');if(!svg||!CQ.cur)return;
   svg.innerHTML='';
-  CQ.cur.locs.forEach((loc,gi)=>{
-    const [mx,my]=cqLonLatToMain(loc.lon,loc.lat);
-    const g=document.createElementNS('http://www.w3.org/2000/svg','g');
-    g.setAttribute('class','cq-pin');g.dataset.li=gi;g.dataset.mx=mx;g.dataset.my=my;
-    const m=CQ.cur.matched[gi];
-    const label=m?loc.kop:(gi+1);
-    if(m)g.classList.add(m.ok?'ok':'ng');
-    g.innerHTML='<circle class="cq-pin-c" r="9"/><text class="cq-pin-t">'+label+'</text>';
-    g.addEventListener('click',()=>cqLSelect(gi));
-    svg.appendChild(g);
-  });
+  const gi=CQ.cur.activeGi;
+  const loc=CQ.cur.locs[gi];
+  const [mx,my]=cqLonLatToMain(loc.lon,loc.lat);
+  const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+  g.setAttribute('class','cq-pin active');g.dataset.li=gi;g.dataset.mx=mx;g.dataset.my=my;
+  g.innerHTML='<circle class="cq-pin-c" r="9"/><text class="cq-pin-t">?</text>';
+  svg.appendChild(g);
   cqPinsRender();
-  cqLRefreshPinStates();
+  cqLFitToCurrent();
 }
-function cqLRefreshPinStates(){
-  document.querySelectorAll('#cq-pins-ov .cq-pin').forEach(el=>{
-    const gi=+el.dataset.li;
-    el.classList.toggle('active',gi===CQ.cur.activeGi&&!CQ.cur.resolvedSet.has(gi));
-  });
-}
-function cqLSelect(gi){
-  if(!CQ.cur||CQ.cur.resolvedSet.has(gi))return;
-  CQ.cur.activeGi=gi;
-  cqLRefreshPinStates();
-  cqLShowActive();
+/* 지점 하나를 지역 규모로 확대 — 주변 지형(위도·해안·대륙 위치)이 보이는 정도로 고정 배율 */
+function cqLFitToCurrent(){
+  if(!CQ.cur)return;
+  const mw=document.getElementById('ui-map');if(!mw)return;
+  const dock=document.getElementById('cq-box');
+  const botPad=dock?dock.clientHeight:0;
+  const availH=Math.max(mw.clientHeight-botPad,80);
+  const loc=CQ.cur.locs[CQ.cur.activeGi];
+  const [mx,my]=cqLonLatToMain(loc.lon,loc.lat);
+  const ns=Math.min(Math.max(Math.min(mw.clientWidth,availH)/480,Math.min(mw.clientWidth/SW,availH/SH)),9);
+  _s=ns;_x=mw.clientWidth/2-mx*ns;_y=availH/2-my*ns;
+  applyT();
 }
 function cqLShowActive(){
   if(!CQ.cur)return;
@@ -398,7 +396,7 @@ function cqLResolve(gi,ok){
   }else{
     const next=CQ.cur.locs.findIndex((l,i)=>!CQ.cur.resolvedSet.has(i));
     CQ.cur.activeGi=next;
-    setTimeout(()=>{cqLRefreshPinStates();cqLShowActive();},900);
+    setTimeout(()=>{cqLRenderCurrentPin();cqLShowActive();},900);
   }
 }
 
