@@ -333,9 +333,11 @@ function switchTab(key){
   document.getElementById('rvc-box').classList.toggle('on',rvMap);
   document.getElementById('rvd-box').classList.toggle('on',rvDraw);
   document.getElementById('cq-box').classList.toggle('on',climateOn);
+  const cqw=document.getElementById('cq-world-svg');if(cqw)cqw.classList.toggle('on',climateOn);
   if(!rvDraw)rvdStop();
   if(!climateOn)cqPinsStop();
   document.body.classList.toggle('border-mode',key==='border'||key==='rborder'||rvMap||rvDraw||climateOn);
+  document.body.classList.toggle('cq-mode',climateOn);
   const listBtn=document.getElementById('ui-list-btn');
   if(listBtn)listBtn.style.display=(rvMap||rvDraw||climateOn)?'none':'';
   if(showMap){
@@ -366,6 +368,7 @@ function endSession(){
   document.body.classList.remove('in-session');
   document.body.classList.remove('bq-nomap');
   document.body.classList.remove('border-mode');
+  document.body.classList.remove('cq-mode');
   document.getElementById('rq-screen').classList.remove('on');
   document.getElementById('kr-screen').classList.remove('on');
   document.getElementById('tq-screen').classList.remove('on');
@@ -375,6 +378,7 @@ function endSession(){
   try{rvdStop();}catch(e){}
   try{rvSave();}catch(e){}
   const cqb=document.getElementById('cq-box');if(cqb)cqb.classList.remove('on');
+  const cqw=document.getElementById('cq-world-svg');if(cqw)cqw.classList.remove('on');
   try{cqPinsStop();}catch(e){}
   try{cqSaveState();}catch(e){}
   document.getElementById('bq-box').classList.remove('on');

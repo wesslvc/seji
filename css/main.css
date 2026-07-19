@@ -619,6 +619,11 @@ body.br-review #ui-map{display:block!important}
 body.br-review #bq-box,body.br-review #rbq-box,body.br-review #bq-flash{display:none!important}
 
 /* ── 기후 맞추기 ── */
+/* 실제 위경도로 정확히 투영한 전용 배경 지도 (world-svg는 근사 지도라 핀과 어긋남) */
+#cq-world-svg{display:none;position:absolute;top:0;left:0;width:2754px;height:1398px;z-index:2;pointer-events:none;transform-origin:0 0}
+#cq-world-svg.on{display:block}
+#cq-world-path{fill:var(--land);stroke:#161e2b;stroke-width:.5}
+body.cq-mode #world-svg{visibility:hidden}
 #cq-pins-ov{position:absolute;inset:0;width:100%;height:100%;z-index:10;pointer-events:none}
 .cq-pin{pointer-events:auto;cursor:pointer}
 .cq-pin-c{fill:#9aa0a6;stroke:#161e2b;stroke-width:1.5;transition:fill .15s var(--ease),r .15s var(--ease)}

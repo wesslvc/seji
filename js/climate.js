@@ -7,17 +7,11 @@ function cqCountryName(cc){return (COUNTRIES[cc]&&COUNTRIES[cc].k)||cc.toUpperCa
 function cqCityName(loc){return loc.ko||loc.city;}
 function cqLocLabel(loc){return cqCityName(loc)+' · '+cqCountryName(loc.cc);}
 
-/* ── lon/lat → 메인 세계지도 캔버스 좌표 (RV_MAIN 투영의 역함수) ── */
+/* ── lon/lat → 기후 지도 캔버스 좌표 (등장방형/Equirectangular 투영, 왜곡 없는 정확한 공식)
+   climate-map-data.js(CQ_MAP_D)를 만들 때 쓴 것과 동일한 공식 — 실제 위경도로 정확히 계산되므로
+   기존 세계지도(world-svg, 근사 추정)와 달리 핀이 실제 위치에 정확히 찍힌다 */
 function cqLonLatToMain(lon,lat){
-  const x=RV_MAIN.a*lon+RV_MAIN.b;
-  let y=(lat-RV_MAIN.C[0])/RV_MAIN.C[1];
-  for(let i=0;i<4;i++){
-    const f=RV_MAIN.C[0]+RV_MAIN.C[1]*y+RV_MAIN.C[2]*y*y*y-lat;
-    const fp=RV_MAIN.C[1]+3*RV_MAIN.C[2]*y*y;
-    if(!fp)break;
-    y-=f/fp;
-  }
-  return [x,y];
+  return [(lon+180)/360*SW, (90-lat)/180*SH];
 }
 
 /* ── 기후 그래프 SVG 렌더 (퀴즈 카드용 축약형) ── */
@@ -176,6 +170,7 @@ function cqReset(skipConfirm){
 
 /* ══════════ 라운드 진행 ══════════ */
 function cqEnter(){
+  cqInitMapPath();
   /* 탭을 벗어났다 돌아와도 진행 중이던 라운드 상태를 유지 (다시 섞지 않음) */
   if(CQ.cur){cqRenderCards();cqRenderPins();cqFitToPins();cqUpdateProgress();}
   else cqShowRound();
@@ -306,15 +301,30 @@ function cqSkipRound(){
   cqRoundComplete();
 }
 
+/* ══════════ 배경 지도 (실제 위경도 기반, 등장방형 투영 — climate-map-data.js) ══════════
+   기존 world-svg는 하천 데이터로 근사한 손그림 지도라 정확한 위경도 좌표가 없어
+   핀 위치가 실제 지리와 어긋난다. 기후 퀴즈 전용으로 Natural Earth 데이터를 직접
+   투영한 정확한 배경 지도(#cq-world-svg)를 따로 그려서 사용한다. */
+let _cqMapInited=false;
+function cqInitMapPath(){
+  if(_cqMapInited)return;
+  const p=document.getElementById('cq-world-path');
+  if(p){p.setAttribute('d',CQ_MAP_D);_cqMapInited=true;}
+}
+
 /* ══════════ 핀(지도 오버레이) ══════════
    지도 확대/축소·이동 중 핀이 살짝 지연되어 흔들려 보이지 않도록, 별도의
    requestAnimationFrame 루프 대신 지도 변환을 실제로 적용하는 _flushT() 안에서
-   같은 프레임에 바로 핀 좌표를 갱신한다(한 프레임도 어긋나지 않게). */
+   같은 프레임에 바로 핀 및 배경 지도 좌표를 갱신한다(한 프레임도 어긋나지 않게). */
 (function(){
   const _origFlushT=_flushT;
   _flushT=function(){
     _origFlushT();
-    if(mapMode==='climate')cqPinsRender();
+    if(mapMode==='climate'){
+      cqPinsRender();
+      const cw=document.getElementById('cq-world-svg');
+      if(cw)cw.style.transform='translate3d('+_x+'px,'+_y+'px,0) scale('+_s+')';
+    }
   };
 })();
 function cqPinsStop(){} /* 하위 호환용 no-op — 더 이상 별도 루프를 쓰지 않음 */
