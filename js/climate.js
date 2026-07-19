@@ -137,7 +137,10 @@ function cqEstimateRounds(filterKey){
 }
 /* 4(온대)+2(온+냉+한)+2(열대)+2(전기후랜덤) = 10판 비율, 포션에 맞춰 축소 */
 function cqBuildPlan(pool,portion,diff){
-  const cap=(diff==='M'||diff==='L')?12:10; /* 하·중: 17년 출제지 120개 전체를 12판으로 기본 소화 */
+  /* 하·중: 17년 출제지 120개 전체를 12판(=120지점)으로 소화.
+     상: 전 세계 1000+ 지점 풀 전체가 누적되도록 상한을 두지 않는다(10지점 묶음은
+     카테고리 배분용 내부 단위일 뿐, 화면엔 100개 단위로 끊김 없이 이어진다). */
+  const cap=(diff==='M'||diff==='L')?12:Infinity;
   const baseRounds=Math.min(cap,Math.floor(pool.length/10));
   if(baseRounds<1)return [];
   let totalRounds=Math.max(1,Math.round(baseRounds*(portion||1)));
@@ -599,3 +602,12 @@ function cqFinishNow(){
   const inp=document.getElementById('cq-l-input');
   if(inp)inp.addEventListener('keyup',function(e){e.stopPropagation();if(e.key==='Enter'&&!e.isComposing){e.preventDefault();cqLSubmit();}});
 })();
+/* 모바일 가상 키보드가 열리면 지도 가용 높이(availH)가 줄어드는데, 핀 확대/중앙 정렬은
+   그 순간의 높이로 한 번만 계산돼 있어 키보드가 화면을 가리는 것처럼 보인다.
+   뷰포트가 바뀔 때마다(키보드 열림/닫힘 포함) 다시 맞춰서 핀이 항상 보이게 한다. */
+function cqRefit(){
+  if(mapMode!=='climate'||!CQ.cur)return;
+  if(CQ.diff==='L')cqLFitToCurrent();else cqFitToPins();
+}
+window.addEventListener('resize',cqRefit);
+if(window.visualViewport)window.visualViewport.addEventListener('resize',cqRefit);

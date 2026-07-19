@@ -19,7 +19,11 @@ const ICON={
   power:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 4v8"/><path d="M7.5 7a7 7 0 1 0 9 0"/></svg>',
   trophy:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M7 4h10v4a5 5 0 0 1-10 0z"/><path d="M7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3M9 19h6M12 13v6"/></svg>',
   chart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="1.5"/><path d="M3 13h11M14 3v18M14 9h7"/></svg>',
-  shuffle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h4l9 10h5M3 17h4l3-3.5M16 5l4 2-4 2M14 11.5 17 7M16 19l4-2-4-2"/></svg>'
+  shuffle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h4l9 10h5M3 17h4l3-3.5M16 5l4 2-4 2M14 11.5 17 7M16 19l4-2-4-2"/></svg>',
+  climate:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="7" r="2.8"/><path d="M8 2.3v1.3M8 11.4v0M3.3 7H4.6M11.4 7h1.3M4.8 3.8l.95.95M11.2 3.8l-.95.95" stroke-width="1.3"/><path d="M7.2 20h9.3a3.6 3.6 0 0 0 .5-7.16 5.3 5.3 0 0 0-10-2.1A4 4 0 0 0 7.2 20z"/></svg>',
+  export:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="13" width="16" height="7" rx="1.2"/><path d="M12 13V3M8.5 6.5 12 3l3.5 3.5"/></svg>',
+  import:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="13" width="16" height="7" rx="1.2"/><path d="M12 13V3M8.5 9.5 12 13l3.5-3.5"/></svg>',
+  trade:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h13M13 4l3.5 4L13 12"/><path d="M21 16H8M11 20l-3.5-4L11 12"/></svg>'
 };
 function ic(name){return ICON[name]||'';}
 function injectIcons(root){(root||document).querySelectorAll('[data-ic]').forEach(e=>{if(!e.dataset.icDone){e.innerHTML=ICON[e.dataset.ic]||'';e.dataset.icDone='1';}});}
@@ -35,12 +39,12 @@ const TAB_META={
   border:{label:'접경국',ic:'border'},
   rborder:{label:'접경국 쓰기',ic:'border'},
   religion:{label:'종교',ic:'book'},
-  texp:{label:'수출구조',ic:'chart'},
-  timp:{label:'수입구조',ic:'chart'},
-  tenergy:{label:'에너지',ic:'chart'},
+  texp:{label:'수출구조',ic:'export'},
+  timp:{label:'수입구조',ic:'import'},
+  tenergy:{label:'에너지',ic:'power'},
   korea:{label:'시·군',ic:'pin'},
   river:{label:'하천',ic:'wave'},
-  climate:{label:'기후',ic:'chart'}
+  climate:{label:'기후',ic:'climate'}
 };
 
 function setMode(mob){
@@ -55,14 +59,14 @@ const LD_SLIDES=[
   dd:{L:'하 · 도·특별시·광역시 단위 (시·도 17개)',M:'중 · 전국 시·군 단위 전체'}},
  {act:'river', big:true, ic:'wave',  mc:'#8ab4f8', tt:'하천 맞추기', ds:'세계 주요 하천 60개를 경로·통과국으로 맞혀요.', pts:'3~10점', diff:'vdiff',
   dd:{L:'하 · 물줄기 모양 보고 이름 맞히기 (3점)',M:'중 · 지나는 나라 모두 클릭 (5점 만점)',H:'상 · 세계지도에 경로 그리기 (일치도×10점)'}},
- {act:'climate', big:true, ic:'chart', mc:'#c58af9', tt:'기후 맞추기', ds:'기후 그래프 10개와 지도 위 지점 10개를 연결해요. 온대·냉한대·열대·전기후 라운드로 구성돼요.', pts:'2~8점', diff:'cldiff', levels:['L','M','H'],
+ {act:'climate', big:true, ic:'climate', mc:'#c58af9', tt:'기후 맞추기', ds:'기후 그래프 10개와 지도 위 지점 10개를 연결해요. 온대·냉한대·열대·전기후 라운드로 구성돼요.', pts:'2~8점', diff:'cldiff', levels:['L','M','H'],
   dd:{L:'하 · 지도 위 지점의 쾨펜 기후 기호 맞히기 (2점)',M:'중 · 17년간 평가원 출제 지역 (4점)',H:'상 · 전 세계 1000+ 지점 (8점)'}},
  {act:'border', ic:'border',mc:'#81c995', tt:'접경국 퀴즈', ds:'국경을 맞댄 이웃 나라로 추리하는 퀴즈. 난이도에 따라 방식이 달라져요.', pts:'1 · 3 · 9점', diff:'bdiff',
   dd:{L:'하 · 지도에서 클릭해 맞히기 (1점)',M:'중 · 지도 없이 이름 입력 (3점)',H:'상 · 접한 나라 모두 쓰기 (비율별 2·5·9점)'}},
  {act:'religion',ic:'book', mc:'#fdd663', tt:'종교 구성', ds:'원그래프를 보고 나라별 종교 구성을 맞혀요.', pts:'1 · 2 · 3점', diff:'rdiff',
   dd:{L:'하 · 상위 종교 70%+ 국가만 (1점)',M:'중 · 모든 국가 · 힌트 있음 (2점)',H:'상 · 3번 틀려야 공개 (3점)'}},
- {act:'trade',  ic:'chart', mc:'#8b9dff', tt:'무역 구조', ds:'수출·수입 품목 트리맵을 보고 어느 나라인지 맞혀요.', pts:'2~9점', diff:'tdiff', tkind:true},
- {act:'tenergy',ic:'chart', mc:'#ffb37a', tt:'에너지 구성', ds:'발전·에너지 믹스를 보고 나라를 맞혀요. 유형 필터도 고를 수 있어요.', pts:'2 · 4 · 6점', diff:'ediff',
+ {act:'trade',  ic:'trade', mc:'#8b9dff', tt:'무역 구조', ds:'수출·수입 품목 트리맵을 보고 어느 나라인지 맞혀요.', pts:'2~9점', diff:'tdiff', tkind:true},
+ {act:'tenergy',ic:'power', mc:'#ffb37a', tt:'에너지 구성', ds:'발전·에너지 믹스를 보고 나라를 맞혀요. 유형 필터도 고를 수 있어요.', pts:'2 · 4 · 6점', diff:'ediff',
   dd:{L:'하 · 특징 뚜렷한 국가만 (2점)',M:'중 · 모든 국가 · 힌트 있음 (4점)',H:'상 · 힌트 없음 (6점)'}, esub:true}
 ];
 const TRADE_DD={
