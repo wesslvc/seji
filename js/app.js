@@ -2926,6 +2926,11 @@ function initMap(){
           const el=document.elementFromPoint(touch.clientX,touch.clientY);
           let hit=false;
           if(el){
+            /* 기후 핀: preventDefault로 click이 합성되지 않으므로 탭을 직접 매칭으로 연결
+               (핀 오버레이가 ui-map 안에 있어 지도 터치 핸들러를 그대로 통과해 들어온다) */
+            const pinG=el.closest?el.closest('.cq-pin'):null;
+            if(pinG&&mapMode==='climate'){hit=true;try{cqTryPin(+pinG.dataset.li);}catch(err){}}
+            else{
             const cel=findCountryEl(el);
             if(cel){const iso=iso4el(cel);if(iso){hit=true;
               if(mapMode==='border'){bqHandleClick(iso);}
@@ -2934,6 +2939,7 @@ function initMap(){
               else if(mapMode==='rvd'){/* 그리기는 draw-ov 포인터 이벤트로 처리, 지도 탭은 무시 */}
               else if(mapMode!=='name'){/* 알 수 없는 모드 — 이름맞추기로 새지 않게 무시 */}
               else if(S.status[iso]==='cr')showAnswer(iso,touch.clientX,touch.clientY-10);else if(!done(iso)){openModal(iso);centerCountry(iso);}}}
+            }
           }
           if(!hit){
             /* 빈 곳 더블탭 → 확대 */
