@@ -381,6 +381,37 @@ function cqLShowActive(){
   if(inp){inp.value='';setTimeout(()=>{try{inp.focus();}catch(e){}},30);}
   const fb=document.getElementById('cq-l-fb');if(fb){fb.textContent='';fb.className='bq-fb';}
 }
+/* 쾨펜 세부기호 뒷자리(강수·기온 세분류)까지 정확히 맞히긴 어려우므로,
+   앞 2글자(대분류+강수 패턴)만 맞아도 정답 처리 — "Cwa"의 정답에 "Cw"만 써도 인정 */
+function cqKopPrefixOk(val,kop){
+  const v=val.toLowerCase().replace(/\s+/g,'');
+  return v.length>=2&&kop.toLowerCase().startsWith(v);
+}
+/* 기후 이름으로도 답할 수 있게 — 교과서에서 흔히 쓰는 명칭 ↔ 쾨펜 기호 대응 */
+const CQ_KOP_NAMES=[
+  {n:['열대우림','열대우림기후'],m:k=>k==='Af'},
+  {n:['열대몬순','열대몬순기후','몬순기후'],m:k=>k==='Am'},
+  {n:['사바나','사바나기후','열대초원기후','열대사바나기후'],m:k=>k==='Aw'||k==='As'},
+  {n:['사막기후','사막'],m:k=>k.startsWith('BW')},
+  {n:['스텝기후','스텝'],m:k=>k.startsWith('BS')},
+  {n:['지중해성기후','지중해기후'],m:k=>/^[CD]s/.test(k)},
+  {n:['서안해양성기후','해양성기후'],m:k=>k==='Cfb'||k==='Cfc'},
+  {n:['온난습윤기후','온대습윤기후','습윤아열대기후','아열대기후','아열대습윤기후'],m:k=>k==='Cfa'},
+  {n:['온대겨울건조기후','온대동계건조기후','온대계절풍기후','온대하계다우기후'],m:k=>/^Cw/.test(k)},
+  {n:['냉대습윤기후','냉대다습기후','냉대기후'],m:k=>/^Df/.test(k)},
+  {n:['냉대겨울건조기후','냉대동계건조기후'],m:k=>/^Dw/.test(k)},
+  {n:['툰드라기후','툰드라'],m:k=>k==='ET'},
+  {n:['빙설기후','만년설기후','한대기후'],m:k=>k==='EF'},
+  {n:['고산기후','열대고산기후'],m:k=>k==='Cfb'||k==='Cwb'},
+];
+function cqKopNameOk(val,kop){
+  const v=val.trim().replace(/\s+/g,'');
+  const entry=CQ_KOP_NAMES.find(e=>e.n.includes(v));
+  return entry?entry.m(kop):false;
+}
+function cqLCheckAnswer(val,kop){
+  return cqKopPrefixOk(val,kop)||cqKopNameOk(val,kop);
+}
 function cqLSubmit(){
   if(!CQ.cur)return;
   const gi=CQ.cur.activeGi;
@@ -389,7 +420,7 @@ function cqLSubmit(){
   const val=inp.value.trim();
   if(!val)return;
   const loc=CQ.cur.locs[gi];
-  cqLResolve(gi,val.toLowerCase()===loc.kop.toLowerCase());
+  cqLResolve(gi,cqLCheckAnswer(val,loc.kop));
 }
 function cqLSkip(){
   if(!CQ.cur)return;
