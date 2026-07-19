@@ -46,33 +46,28 @@ function cqSpatialSample(arr,n,minDist){
    카드끼리 비교해 직관적으로 알 수 있다. 그래서 지점별로 축을 자동 확대하지 않고
    전형적인 값 범위(온대·건조가 뚜렷이 구분되도록 좁게 잡음)를 고정으로 쓰고,
    그 범위를 벗어나는 극値(폭염·혹한·폭우 지점)는 막대가 카드 틀 밖으로 삐져나오게
-   그린다. 삐져나오는 정도는 초과량에 비례(포화 곡선)해서, 살짝 넘긴 지점은 살짝만,
-   체라푼지 같은 극단적인 지점은 카드 천장 가까이까지 뚫고 올라가게 한다. */
+   그린다. 삐져나오는 길이는 초과량에 정비례(상한 없음) — 살짝 넘긴 지점은 살짝만,
+   체라푼지처럼 압도적인 지점은 실제 초과분만큼 카드 밖으로 계속 뚫고 올라간다.
+   초과된 막대는 반투명하게 그려 뒤(지도)가 비쳐 보이게 한다. */
 const CQ_T_LO=-10, CQ_T_HI=30, CQ_T_STEP=10;
 const CQ_P_HI=150, CQ_P_STEP=50;
-const CQ_BLEED_MAX=26; /* 극단값이 삐져나올 수 있는 최대 픽셀(카드 천장 근처) */
-/* 초과량(excess)이 클수록 0→CQ_BLEED_MAX로 포화되는 곡선 (scale은 "이 정도면 절반쯤 찼다" 기준) */
-function cqBleed(excess,scale){
-  if(excess<=0)return 0;
-  return CQ_BLEED_MAX*(1-Math.exp(-excess/scale));
-}
 function cqChartSVG(loc){
-  const W=150, tH=76, pH=50, padL=17, padR=8, gap=CQ_BLEED_MAX+10, mTop=CQ_BLEED_MAX+6;
+  const W=150, tH=76, pH=50, padL=17, padR=8;
   const plotW=W-padL-padR;
   const gapW=plotW/12, barW=gapW*0.6;
   const tLo=CQ_T_LO, tHi=CQ_T_HI, pHi=CQ_P_HI;
   const tPlotH=tH-8;
-  function tY(t){
-    const raw=4+tPlotH*(1-(t-tLo)/(tHi-tLo));
-    if(t>tHi)return raw-cqBleed(t-tHi,20);
-    if(t<tLo)return raw+cqBleed(tLo-t,20);
-    return raw;
-  }
-  function pY(p){
-    const raw=2+(pH-6)*(1-p/pHi);
-    if(p>pHi)return raw-cqBleed(p-pHi,150);
-    return raw;
-  }
+  const tPxPerDeg=tPlotH/(tHi-tLo), pPxPerMm=(pH-6)/pHi;
+
+  /* 이 지점이 실제로 축 범위를 얼마나 초과하는지 계산해, 그만큼만 카드를 늘린다 */
+  const tExcessHi=Math.max(0,...loc.tmax.map(t=>t-tHi));
+  const tExcessLo=Math.max(0,...loc.tmin.map(t=>tLo-t));
+  const pExcessHi=Math.max(0,...loc.prec.map(p=>p-pHi));
+  const mTop=6+Math.round(tExcessHi*tPxPerDeg);
+  const gap=10+Math.round(Math.max(tExcessLo*tPxPerDeg,pExcessHi*pPxPerMm));
+
+  function tY(t){return 4+tPlotH*(1-(t-tLo)/(tHi-tLo));}
+  function pY(p){return 2+(pH-6)*(1-p/pHi);}
 
   let tgrid='',ttick='';
   for(let t=tLo;t<=tHi+CQ_T_STEP*0.01;t+=CQ_T_STEP){
@@ -90,13 +85,13 @@ function cqChartSVG(loc){
   for(let m=0;m<12;m++){
     const x=padL+gapW*m+(gapW-barW)/2;
     const y1=tY(loc.tmax[m]),y2=tY(loc.tmin[m]);
-    tbars+='<rect class="cq-tbar" x="'+x.toFixed(1)+'" y="'+Math.min(y1,y2).toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+Math.max(1.4,Math.abs(y2-y1)).toFixed(1)+'" rx="'+(barW/2).toFixed(1)+'"/>';
+    const tOver=loc.tmax[m]>tHi||loc.tmin[m]<tLo;
+    tbars+='<rect class="cq-tbar'+(tOver?' of':'')+'" x="'+x.toFixed(1)+'" y="'+Math.min(y1,y2).toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+Math.max(1.4,Math.abs(y2-y1)).toFixed(1)+'" rx="'+(barW/2).toFixed(1)+'"/>';
     const py=pY(loc.prec[m]);
-    pbars+='<rect class="cq-pbar" x="'+x.toFixed(1)+'" y="'+py.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+Math.max(0,(pH-4-py)).toFixed(1)+'" rx="'+(barW*0.28).toFixed(1)+'"/>';
+    const pOver=loc.prec[m]>pHi;
+    pbars+='<rect class="cq-pbar'+(pOver?' of':'')+'" x="'+x.toFixed(1)+'" y="'+py.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+Math.max(0,(pH-4-py)).toFixed(1)+'" rx="'+(barW*0.28).toFixed(1)+'"/>';
   }
   const totalH=mTop+tH+gap+pH;
-  /* y 범위를 이미 ±CQ_BLEED로 픽셀 단위로 제한해뒀으므로(위 tY/pY), mTop·gap 여백 안에서만
-     삐져나오고 SVG 밖으로는 못 나간다 — 별도 clip 없이 그대로 그려서 틀을 뚫는 효과를 낸다. */
   let s='<svg viewBox="0 0 '+W+' '+totalH+'" class="cq-chart-svg" preserveAspectRatio="xMidYMid meet">';
   s+='<g transform="translate(0,'+mTop+')">';
   s+='<rect class="cq-panel-bg" x="0" y="0" width="'+W+'" height="'+tH+'" rx="6"/>';
@@ -109,10 +104,13 @@ function cqChartSVG(loc){
   return s;
 }
 
-/* ══════════ 게임 상태 ══════════ */
-const CQ={diff:'M',pool:[],plan:[],roundIdx:0,cur:null,saveKey:'cq_M_all',pts:0,cor:0,wr:0,attempted:0,recorded:false,isRetry:false};
+/* ══════════ 게임 상태 ══════════
+   중·상: "판" 구분 없이 전체 그래프를 이어서 진행하고, 오답 기회(chances)는
+   그래프 하나당이 아니라 세션 전체에서 5번을 공유한다(다 쓰면 그다음부터는
+   틀리는 즉시 정답 공개). 하는애초에 1회 입력이라 기회 개념이 없다. */
+const CQ={diff:'M',pool:[],plan:[],roundIdx:0,cur:null,chances:5,saveKey:'cq_M_all',pts:0,cor:0,wr:0,attempted:0,recorded:false,isRetry:false};
 function cqPer(){return CQ.diff==='H'?8:CQ.diff==='L'?2:4;}
-const CQ_TRIES=5;
+const CQ_CHANCES=5;
 
 function cqDiffOf(filterKey){
   const dPart=(filterKey||'').split('_').find(p=>p.startsWith('cl'));
@@ -194,18 +192,19 @@ function cqInit(filterKey){
   const por=_portion(filterKey);
   CQ.pool=pool;
   CQ.plan=cqBuildPlan(pool,por,CQ.diff);
-  CQ.roundIdx=0;CQ.pts=0;CQ.cor=0;CQ.wr=0;CQ.attempted=0;CQ.recorded=false;CQ.isRetry=false;CQ.cur=null;
+  CQ.roundIdx=0;CQ.pts=0;CQ.cor=0;CQ.wr=0;CQ.attempted=0;CQ.chances=CQ_CHANCES;CQ.recorded=false;CQ.isRetry=false;CQ.cur=null;
   cqLoad();
 }
 function cqSaveState(){
-  try{localStorage.setItem(CQ.saveKey,JSON.stringify({roundIdx:CQ.roundIdx,pts:CQ.pts,cor:CQ.cor,wr:CQ.wr,attempted:CQ.attempted,recorded:CQ.recorded}));}catch(e){}
+  try{localStorage.setItem(CQ.saveKey,JSON.stringify({roundIdx:CQ.roundIdx,pts:CQ.pts,cor:CQ.cor,wr:CQ.wr,attempted:CQ.attempted,chances:CQ.chances,recorded:CQ.recorded}));}catch(e){}
 }
 function cqLoad(){
   try{
     const raw=localStorage.getItem(CQ.saveKey);if(!raw)return;
     const d=JSON.parse(raw);
     if(d.roundIdx<CQ.plan.length){
-      CQ.roundIdx=d.roundIdx||0;CQ.pts=d.pts||0;CQ.cor=d.cor||0;CQ.wr=d.wr||0;CQ.attempted=d.attempted||0;CQ.recorded=!!d.recorded;
+      CQ.roundIdx=d.roundIdx||0;CQ.pts=d.pts||0;CQ.cor=d.cor||0;CQ.wr=d.wr||0;CQ.attempted=d.attempted||0;
+      CQ.chances=typeof d.chances==='number'?d.chances:CQ_CHANCES;CQ.recorded=!!d.recorded;
     }
   }catch(e){}
 }
@@ -215,7 +214,7 @@ function cqReset(skipConfirm){
   const por=_portion(SESSION.filterKey);
   CQ.pool=cqPoolFor(SESSION.filterKey);
   CQ.plan=cqBuildPlan(CQ.pool,por,CQ.diff);
-  CQ.roundIdx=0;CQ.pts=0;CQ.cor=0;CQ.wr=0;CQ.attempted=0;CQ.recorded=false;CQ.cur=null;
+  CQ.roundIdx=0;CQ.pts=0;CQ.cor=0;CQ.wr=0;CQ.attempted=0;CQ.chances=CQ_CHANCES;CQ.recorded=false;CQ.cur=null;
   if(SESSION.cur==='climate')cqShowRound();
 }
 
@@ -223,7 +222,7 @@ function cqReset(skipConfirm){
 function cqEnter(){
   cqInitMapPath();
   cqUpdateModeUI();
-  /* 탭을 벗어났다 돌아와도 진행 중이던 라운드 상태를 유지 (다시 섞지 않음) */
+  /* 탭을 벗어났다 돌아와도 진행 중이던 상태를 유지 (다시 섞지 않음) */
   if(CQ.cur){
     if(CQ.diff==='L'){cqLRenderCurrentPin();cqUpdateProgress();cqLShowActive();}
     else{cqRenderCards();cqRenderPins();cqFitToPins();cqUpdateProgress();}
@@ -234,7 +233,10 @@ function cqUpdateModeUI(){
   const isL=CQ.diff==='L';
   const cards=document.getElementById('cq-cards');if(cards)cards.style.display=isL?'none':'';
   const lp=document.getElementById('cq-l-panel');if(lp)lp.style.display=isL?'':'none';
+  const dots=document.getElementById('cq-chance-dots');if(dots)dots.style.display=isL?'none':'flex';
 }
+/* "판" 구분 없이 10개짜리 묶음을 끊김 없이 이어서 보여준다(묶음 자체는 카테고리 배분·핀
+   간격 확보를 위해 내부적으로만 씀 — 화면엔 완료 팝업 없이 바로 다음 묶음이 이어진다) */
 function cqShowRound(){
   const end=document.getElementById('cq-end');if(end&&end.classList.contains('on'))return;
   if(CQ.roundIdx>=CQ.plan.length){cqEnd();return;}
@@ -243,29 +245,43 @@ function cqShowRound(){
   const order=shuffle(round.locs.map((l,i)=>i));
   CQ.cur={
     locs:round.locs, cat:round.cat, pinOrder:order,
-    matched:{}, wrongCounts:{}, resolvedSet:new Set(), selectedGraph:null
+    matched:{}, resolvedSet:new Set(), selectedGraph:null
   };
   cqRenderCards();
   cqRenderPins();
   cqFitToPins();
   cqUpdateProgress();
-  const rb=document.getElementById('cq-round-bar');if(rb)rb.classList.remove('on');
+}
+function cqAdvanceBatch(){
+  CQ.roundIdx++;
+  cqSaveState();
+  cqShowRound();
 }
 function cqCatLabel(cat){return {temperate:'온대',mix:'온·냉·한대 혼합',tropical:'열대',random:'전 기후 랜덤'}[cat]||'';}
 function cqUpdateProgress(){
   const t=document.getElementById('cq-round-title');
-  if(t)t.textContent=(CQ.roundIdx+1)+' / '+CQ.plan.length+'판 · '+cqCatLabel(CQ.cur?CQ.cur.cat:'');
+  const total=CQ.plan.length*10;
+  if(t)t.textContent=CQ.attempted+' / '+total+'지점 · '+cqCatLabel(CQ.cur?CQ.cur.cat:'');
   const pf=document.getElementById('cq-pf');
-  if(pf)pf.style.width=(CQ.plan.length?(CQ.roundIdx)/CQ.plan.length*100:0)+'%';
+  if(pf)pf.style.width=(total?CQ.attempted/total*100:0)+'%';
   const cor=document.getElementById('cq-cor');if(cor)cor.textContent=CQ.cor;
   const wr=document.getElementById('cq-wr');if(wr)wr.textContent=CQ.wr;
   const pts=document.getElementById('cq-pts');if(pts)pts.textContent=CQ.pts;
+  cqUpdateChanceDots();
   /* 상단 헤더의 남은/정답/오답 표시(다른 모드와 공통 UI)도 함께 갱신 */
-  const total=CQ.plan.length*10;
   const urem=document.getElementById('ui-rem');if(urem)urem.textContent=Math.max(0,total-CQ.attempted);
   const ucor=document.getElementById('ui-cor');if(ucor)ucor.textContent=CQ.cor;
   const urev=document.getElementById('ui-rev');if(urev)urev.textContent=CQ.wr;
   const upf=document.getElementById('ui-pf');if(upf)upf.style.width=(total?CQ.attempted/total*100:0)+'%';
+}
+/* 세션 전체가 공유하는 오답 기회 5번을 작은 점 5개로 표시(접경국 퀴즈의 점 표시와 같은 방식) */
+function cqUpdateChanceDots(){
+  if(CQ.diff==='L')return;
+  const used=CQ_CHANCES-CQ.chances;
+  for(let i=0;i<CQ_CHANCES;i++){
+    const d=document.getElementById('cq-cd'+i);
+    if(d)d.className='bq-dot'+(i<used?' ng':'');
+  }
 }
 function cqRenderCards(){
   const wrap=document.getElementById('cq-cards');if(!wrap)return;
@@ -280,6 +296,14 @@ function cqRenderCards(){
     wrap.appendChild(card);
   });
   cqRefreshCardStates();
+}
+/* 아직 못 맞춘 카드는 앞으로, 이미 맞춘/틀린(확정된) 카드는 뒤로 보낸다 */
+function cqReorderCards(){
+  const wrap=document.getElementById('cq-cards');if(!wrap||!CQ.cur)return;
+  const cards=[...wrap.children];
+  const unresolved=cards.filter(c=>!CQ.cur.resolvedSet.has(+c.dataset.gi));
+  const resolved=cards.filter(c=>CQ.cur.resolvedSet.has(+c.dataset.gi));
+  [...unresolved,...resolved].forEach(c=>wrap.appendChild(c));
 }
 function cqSelectCard(gi){
   if(!CQ.cur||CQ.cur.resolvedSet.has(gi))return;
@@ -313,14 +337,18 @@ function cqTryPin(li){
   if(li===targetLi){
     cqResolveGraph(gi,true,li);
   }else{
-    CQ.cur.wrongCounts[gi]=(CQ.cur.wrongCounts[gi]||0)+1;
     const pinEl=document.querySelector('#cq-pins-ov .cq-pin[data-li="'+li+'"]');
     if(pinEl){pinEl.classList.add('shake-ng');setTimeout(()=>pinEl.classList.remove('shake-ng'),380);}
     const fb=document.getElementById('cq-fb');
-    if(CQ.cur.wrongCounts[gi]>=CQ_TRIES){
+    if(CQ.chances<=0){ /* 세션 기회를 다 썼으면 이제부터는 틀리는 즉시 정답 공개 */
       cqResolveGraph(gi,false,targetLi);
-    }else if(fb){
-      fb.textContent='아니에요 (기회 '+(CQ_TRIES-CQ.cur.wrongCounts[gi])+')';fb.className='bq-fb ng';
+      return;
+    }
+    CQ.chances--;
+    cqUpdateChanceDots();cqSaveState();
+    if(fb){
+      fb.textContent=CQ.chances>0?'아니에요 (남은 기회 '+CQ.chances+')':'기회를 다 썼어요 — 다음 오답부터 바로 공개';
+      fb.className='bq-fb ng';
     }
   }
 }
@@ -342,34 +370,10 @@ function cqResolveGraph(gi,ok,li){
   }
   const fb=document.getElementById('cq-fb');
   if(fb){fb.textContent=ok?'정답! '+cqLocLabel(loc):'정답은 '+cqLocLabel(loc);fb.className='bq-fb '+(ok?'ok':'ng');}
-  cqRefreshCardStates();cqRefreshPinStates();cqUpdateProgress();cqSaveState();
+  cqRefreshCardStates();cqRefreshPinStates();cqReorderCards();cqUpdateProgress();cqSaveState();
   if(CQ.cur.resolvedSet.size>=CQ.cur.locs.length){
-    setTimeout(cqRoundComplete,600);
+    setTimeout(cqAdvanceBatch,600);
   }
-}
-function cqRoundComplete(){
-  const rb=document.getElementById('cq-round-bar');
-  const cor=CQ.cur.locs.filter((l,gi)=>CQ.cur.matched[gi]&&CQ.cur.matched[gi].ok).length;
-  const txt=document.getElementById('cq-round-txt');
-  if(txt)txt.innerHTML=(CQ.roundIdx+1)+'판 완료 — '+cor+' / '+CQ.cur.locs.length+'개 정답';
-  if(rb)rb.classList.add('on');
-}
-function cqNextRound(){
-  const rb=document.getElementById('cq-round-bar');if(rb)rb.classList.remove('on');
-  CQ.roundIdx++;
-  cqSaveState();
-  cqShowRound();
-}
-function cqSkipRound(){
-  if(!CQ.cur)return;
-  CQ.cur.locs.forEach((loc,gi)=>{
-    if(!CQ.cur.resolvedSet.has(gi)){
-      const li=CQ.cur.pinOrder.indexOf(gi);
-      CQ.cur.matched[gi]={li,ok:false};CQ.cur.resolvedSet.add(gi);
-      CQ.attempted++;CQ.wr++;
-    }
-  });
-  cqRoundComplete();
 }
 
 /* ══════════ 하(下): 지점 → 쾨펜 기호 입력 ══════════
@@ -382,7 +386,6 @@ function cqLShowRound(){
   cqLRenderCurrentPin();
   cqUpdateProgress();
   cqLShowActive();
-  const rb=document.getElementById('cq-round-bar');if(rb)rb.classList.remove('on');
 }
 /* 현재 문제의 핀 하나만 지도에 표시 (이전 지점은 지움) */
 function cqLRenderCurrentPin(){
@@ -484,7 +487,7 @@ function cqLResolve(gi,ok){
   if(fb){fb.textContent=ok?'정답! '+loc.kop:'정답은 '+loc.kop+' · '+cqLocLabel(loc);fb.className='bq-fb '+(ok?'ok':'ng');}
   cqUpdateProgress();cqSaveState();
   if(CQ.cur.resolvedSet.size>=CQ.cur.locs.length){
-    setTimeout(cqRoundComplete,900);
+    setTimeout(cqAdvanceBatch,900);
   }else{
     const next=CQ.cur.locs.findIndex((l,i)=>!CQ.cur.resolvedSet.has(i));
     CQ.cur.activeGi=next;

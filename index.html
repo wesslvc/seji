@@ -14,7 +14,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
 </noscript>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%235eead4%27 stroke-width=%272%27 stroke-linecap=%27round%27%3E%3Ccircle cx=%2712%27 cy=%2712%27 r=%279%27/%3E%3Cellipse cx=%2712%27 cy=%2712%27 rx=%274%27 ry=%279%27/%3E%3Cpath d=%27M3.5 9h17M3.5 15h17%27/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/main.css?v=20260708e">
+<link rel="stylesheet" href="css/main.css?v=20260708g">
 </head>
 <body>
 <div id="landing-overlay">
@@ -159,10 +159,13 @@
 <svg id="cq-pins-ov"></svg>
 <div id="cq-box">
   <div class="cq-head">
-    <div id="cq-round-title">1 / 10판</div>
+    <div id="cq-round-title">0 / 10지점</div>
     <div class="cq-stats"><span>정답 <b id="cq-cor">0</b></span><span>오답 <b id="cq-wr">0</b></span><span>점수 <b id="cq-pts">0</b></span></div>
   </div>
   <div class="cq-progress"><div class="cq-pf" id="cq-pf"></div></div>
+  <div class="bq-dots" id="cq-chance-dots">
+    <div class="bq-dot" id="cq-cd0"></div><div class="bq-dot" id="cq-cd1"></div><div class="bq-dot" id="cq-cd2"></div><div class="bq-dot" id="cq-cd3"></div><div class="bq-dot" id="cq-cd4"></div>
+  </div>
   <div class="bq-fb" id="cq-fb"></div>
   <div id="cq-cards"></div>
   <div id="cq-l-panel" style="display:none">
@@ -177,10 +180,6 @@
     </div>
     <div class="cq-l-hint">Af 열대우림 · Am 열대몬순 · Aw 사바나 · BW 사막 · BS 스텝 · Cs 지중해성 · Cfa 온난습윤 · Cfb 서안해양성 · Cw 온대겨울건조 · Df 냉대습윤 · Dw 냉대겨울건조 · ET 툰드라 · EF 빙설</div>
   </div>
-</div>
-<div id="cq-round-bar">
-  <div id="cq-round-txt"></div>
-  <button class="btn bp" type="button" onclick="cqNextRound()">다음 판 →</button>
 </div>
 <!-- 기후 맞추기 완료 -->
 <div id="cq-end">
@@ -4792,16 +4791,16 @@
     <button class="reb secondary" onclick="runPendingReset();document.getElementById('rbq-end').classList.remove('on')">다시 시작</button>
   </div>
 </div>
-<script src="js/data.js?v=20260708e"></script>
-<script src="js/rivers-data.js?v=20260708e"></script>
-<script src="js/climate-data.js?v=20260708e"></script>
-<script src="js/climate-map-data.js?v=20260708e"></script>
-<script src="js/app.js?v=20260708e"></script>
-<script src="js/climate.js?v=20260708e"></script>
+<script src="js/data.js?v=20260708g"></script>
+<script src="js/rivers-data.js?v=20260708g"></script>
+<script src="js/climate-data.js?v=20260708g"></script>
+<script src="js/climate-map-data.js?v=20260708g"></script>
+<script src="js/app.js?v=20260708g"></script>
+<script src="js/climate.js?v=20260708g"></script>
 <!-- ════════════════════════════════════════════════════════════
      계정 · 소셜로그인 · 랭킹 (Supabase) — 빌드/명령어 불필요, 이 파일만으로 동작
      ▼▼▼ 여기 두 줄만 본인 Supabase 값으로 바꾸면 끝 ▼▼▼ -->
-<script type="module" src="js/account.js?v=20260708e"></script>
+<script type="module" src="js/account.js?v=20260708g"></script>
 
 </body>
 </html>
