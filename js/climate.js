@@ -4,7 +4,9 @@
    Map v2 World 1991–2020 래스터에서 위경도로 직접 조회한 실측값) / ex: 1=17년 평가원 출제지(중·하 난이도 풀)
    ko: 한글 지명(120개 출제지만 보유, 나머지는 null → 영문 지명 표시) */
 const CLIMATE_LOC = CLIMATE.map(r=>({id:r[0],city:r[1],ko:r[2],cc:r[3],cont:r[4],lat:r[5],lon:r[6],grp:r[7],ex:r[8]===1,tmin:r[9],tmax:r[10],prec:r[11],kop:r[12]}));
-function cqCountryName(cc){return (COUNTRIES[cc]&&COUNTRIES[cc].k)||cc.toUpperCase();}
+/* COUNTRIES엔 없는(그린란드는 덴마크 영토로, 프랑스령 남방/남극지역은 별도 미등록) 코드 보정 */
+const CQ_CC_NAME_FIX={gl:'그린란드',tf:'프랑스령 남방·남극지역'};
+function cqCountryName(cc){return (COUNTRIES[cc]&&COUNTRIES[cc].k)||CQ_CC_NAME_FIX[cc]||cc.toUpperCase();}
 function cqCityName(loc){return loc.ko||loc.city;}
 function cqLocLabel(loc){return cqCityName(loc)+' · '+cqCountryName(loc.cc);}
 
@@ -13,6 +15,30 @@ function cqLocLabel(loc){return cqCityName(loc)+' · '+cqCountryName(loc.cc);}
    기존 세계지도(world-svg, 근사 추정)와 달리 핀이 실제 위치에 정확히 찍힌다 */
 function cqLonLatToMain(lon,lat){
   return [(lon+180)/360*SW, (90-lat)/180*SH];
+}
+
+/* 위경도 거리(도 단위, 근사) — 같은 판에 너무 가까운 지점끼리 겹쳐 뜨는 걸 막는 용도라
+   정밀한 대권거리까지는 필요 없다 */
+function cqDegDist(a,b){
+  const dLat=a.lat-b.lat;
+  let dLon=Math.abs(a.lon-b.lon);if(dLon>180)dLon=360-dLon;
+  return Math.sqrt(dLat*dLat+dLon*dLon);
+}
+/* 후보를 섞은 뒤, 이미 뽑힌 지점들과 최소 거리 이상 떨어진 것만 그리디하게 채용.
+   풀이 좁아 못 채우면 기준을 단계적으로 완화하고, 그래도 안 되면 그냥 랜덤 샘플로 채운다. */
+function cqSpatialSample(arr,n,minDist){
+  const shuffled=shuffle(arr.slice());
+  let dist=minDist||6;
+  for(let attempt=0;attempt<4;attempt++){
+    const picked=[];
+    for(const cand of shuffled){
+      if(picked.length>=n)break;
+      if(picked.every(p=>cqDegDist(p,cand)>=dist))picked.push(cand);
+    }
+    if(picked.length>=n)return picked.slice(0,n);
+    dist/=2.2;
+  }
+  return _rnSample(arr,n);
 }
 
 /* ── 기후 그래프 SVG 렌더 (퀴즈 카드용 축약형) ──
@@ -143,7 +169,7 @@ function cqBuildPlan(pool,portion,diff){
       counts[n]=possible;
     }
     for(let r=0;r<counts[n];r++){
-      const picked=_rnSample(avail.filter(l=>!used.has(l.id)),10).slice(0,10);
+      const picked=cqSpatialSample(avail.filter(l=>!used.has(l.id)),10);
       if(picked.length<10)break;
       picked.forEach(l=>used.add(l.id));
       plan.push({cat:n,locs:picked});
@@ -153,7 +179,7 @@ function cqBuildPlan(pool,portion,diff){
   const possibleR=Math.floor(availR.length/10);
   counts.random=Math.min(counts.random,possibleR);
   for(let r=0;r<counts.random;r++){
-    const picked=_rnSample(pool.filter(l=>!used.has(l.id)),10).slice(0,10);
+    const picked=cqSpatialSample(pool.filter(l=>!used.has(l.id)),10);
     if(picked.length<10)break;
     picked.forEach(l=>used.add(l.id));
     plan.push({cat:'random',locs:picked});
@@ -309,7 +335,11 @@ function cqResolveGraph(gi,ok,li){
   const card=document.querySelector('#cq-cards .cq-card[data-gi="'+gi+'"]');
   if(card){const lbl=card.querySelector('.cq-card-lbl');if(lbl)lbl.innerHTML=cqLocLabel(loc)+(ok?' <b>+'+pts+'점</b>':' <span class="wr">0점</span>');}
   const pinEl=document.querySelector('#cq-pins-ov .cq-pin[data-li="'+li+'"]');
-  if(pinEl){pinEl.classList.add(ok?'ok':'ng');pinEl.querySelector('text').textContent=cqCityName(loc);}
+  if(pinEl){
+    pinEl.classList.add(ok?'ok':'ng');
+    const t=pinEl.querySelector('text');
+    if(t){t.textContent=cqCityName(loc);t.classList.add('side');t.setAttribute('x','13');}
+  }
   const fb=document.getElementById('cq-fb');
   if(fb){fb.textContent=ok?'정답! '+cqLocLabel(loc):'정답은 '+cqLocLabel(loc);fb.className='bq-fb '+(ok?'ok':'ng');}
   cqRefreshCardStates();cqRefreshPinStates();cqUpdateProgress();cqSaveState();
@@ -363,7 +393,7 @@ function cqLRenderCurrentPin(){
   const [mx,my]=cqLonLatToMain(loc.lon,loc.lat);
   const g=document.createElementNS('http://www.w3.org/2000/svg','g');
   g.setAttribute('class','cq-pin active');g.dataset.li=gi;g.dataset.mx=mx;g.dataset.my=my;
-  g.innerHTML='<circle class="cq-pin-c" r="9"/><text class="cq-pin-t">?</text>';
+  g.innerHTML='<circle class="cq-pin-c" r="9"/>'+cqPinTextHTML('?',false);
   svg.appendChild(g);
   cqPinsRender();
   cqLFitToCurrent();
@@ -445,7 +475,11 @@ function cqLResolve(gi,ok){
   const pts=ok?cqPer():0;
   CQ.pts+=pts;if(ok)CQ.cor++;else CQ.wr++;
   const pinEl=document.querySelector('#cq-pins-ov .cq-pin[data-li="'+gi+'"]');
-  if(pinEl){pinEl.classList.remove('active');pinEl.classList.add(ok?'ok':'ng');const t=pinEl.querySelector('text');if(t)t.textContent=loc.kop;}
+  if(pinEl){
+    pinEl.classList.remove('active');pinEl.classList.add(ok?'ok':'ng');
+    const t=pinEl.querySelector('text');
+    if(t){t.textContent=loc.kop;t.classList.add('side');t.setAttribute('x','13');}
+  }
   const fb=document.getElementById('cq-l-fb');
   if(fb){fb.textContent=ok?'정답! '+loc.kop:'정답은 '+loc.kop+' · '+cqLocLabel(loc);fb.className='bq-fb '+(ok?'ok':'ng');}
   cqUpdateProgress();cqSaveState();
@@ -485,6 +519,11 @@ function cqInitMapPath(){
   };
 })();
 function cqPinsStop(){} /* 하위 호환용 no-op — 더 이상 별도 루프를 쓰지 않음 */
+/* 번호/물음표는 원 안에 그대로, 확정된 지명·기호는 원 옆으로 빼서 온전히 보이게 */
+function cqPinTextHTML(label,resolved){
+  return resolved?'<text class="cq-pin-t side" x="13" y="0">'+label+'</text>'
+                 :'<text class="cq-pin-t" x="0" y="0">'+label+'</text>';
+}
 function cqRenderPins(){
   const svg=document.getElementById('cq-pins-ov');if(!svg)return;
   svg.innerHTML='';
@@ -498,7 +537,7 @@ function cqRenderPins(){
     const r=resolvedByLi[li];
     const label=r?cqCityName(r.loc):(li+1);
     if(r)g.classList.add(r.ok?'ok':'ng');
-    g.innerHTML='<circle class="cq-pin-c" r="9"/><text class="cq-pin-t">'+label+'</text>';
+    g.innerHTML='<circle class="cq-pin-c" r="9"/>'+cqPinTextHTML(label,!!r);
     g.addEventListener('click',()=>cqTryPin(li));
     svg.appendChild(g);
   });
@@ -523,7 +562,11 @@ function cqFitToPins(){
   let minX=Math.min(...pts.map(p=>p[0])),maxX=Math.max(...pts.map(p=>p[0]));
   let minY=Math.min(...pts.map(p=>p[1])),maxY=Math.max(...pts.map(p=>p[1]));
   const bw=(maxX-minX)*1.5+140, bh=(maxY-minY)*1.5+140;
-  let ns=Math.min(mw.clientWidth/Math.max(bw,120),availH/Math.max(bh,90));
+  const wScale=mw.clientWidth/Math.max(bw,120), hScale=availH/Math.max(bh,90);
+  /* 세로로 긴 모바일 화면은 핀 묶음의 가로 폭에 맞추면 세로 공간이 크게 남는다(세계지도는
+     가로가 훨씬 긴 형태라서). PC처럼 두 축 중 더 빡빡한 쪽에 맞추는 대신, 기하평균 쪽으로
+     당겨써서 화면을 더 채운다 — 화면 밖으로 나가는 핀은 패닝으로 찾으면 된다. */
+  let ns=isMobile?Math.min(Math.sqrt(wScale*hScale),hScale):Math.min(wScale,hScale);
   ns=Math.min(Math.max(ns,Math.min(mw.clientWidth/SW,availH/SH)),9);
   _s=ns;_x=mw.clientWidth/2-((minX+maxX)/2)*ns;_y=availH/2-((minY+maxY)/2)*ns;
   applyT();
