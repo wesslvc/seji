@@ -3012,6 +3012,14 @@ function listSaves(){
       const ty=k.startsWith('tq_x_')?'texp':k.startsWith('tq_m_')?'timp':k.startsWith('tq_e_')?'tenergy':'religion';
       out.push({type:ty,key:k,scope:d.filterKey||k.slice(5),
         done,total:d.totalCountries||0,wrong:(d.wrong||[]).length});
+    }else if(k.startsWith('cq_')&&!k.includes('__')){
+      if(!d.attempted)continue; /* 시작만 한 건 제외 */
+      const m=k.match(/^cq_([LMH])_(.+)$/);if(!m)continue;
+      const diff=m[1],fk=m[2];
+      let total=0;
+      try{total=cqBuildPlan(cqPoolFor(fk,diff),_portion(fk),diff).length*10;}catch(e){}
+      if(!total)continue;
+      out.push({type:'climate',key:k,scope:fk,done:Math.min(d.attempted,total),total,wrong:d.wr||0});
     }
   }
   // 진행 중(미완료) 먼저, 그다음 완료
@@ -3030,6 +3038,7 @@ function _resumeStart(type,key){
   else if(type==='tenergy')startSession('world',['tenergy'],key.slice(5),key.slice(5));
   else if(type==='korea')startSession('korea',['korea'],key==='kq_prov_v1'?'L':null);
   else if(type==='river'){const m=key.match(/^rv_([LMH])_(.*)$/);if(m)startSession('world',['river'],m[2]+'_v'+m[1]);}
+  else if(type==='climate'){const m=key.match(/^cq_[LMH]_(.+)$/);if(m)startSession('world',['climate'],m[1]);}
 }
 function resumeSave(type,key){_resumeStart(type,key);}
 /* 저장본에서 종교 오답 ISO 목록을 미리 읽음 (startSession이 새로 만들며 비우기 전에) */
