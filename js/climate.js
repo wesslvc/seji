@@ -105,9 +105,9 @@ function cqChartSVG(loc){
 }
 
 /* ══════════ 게임 상태 ══════════
-   중·상: "판" 구분 없이 전체 그래프를 이어서 진행하고, 오답 기회(chances)는
-   그래프 하나당이 아니라 세션 전체에서 5번을 공유한다(다 쓰면 그다음부터는
-   틀리는 즉시 정답 공개). 하는애초에 1회 입력이라 기회 개념이 없다. */
+   중·상: 10지점 묶음 단위로 이어서 진행하고, 오답 기회(chances) 5번은 묶음마다
+   새로 준다. 한 묶음에서 5번을 다 쓰면 남은 그래프를 전부 정답 공개하고 "다음"
+   버튼으로 넘어간다. 하는 애초에 1회 입력이라 기회 개념이 없다. */
 const CQ={diff:'M',pool:[],plan:[],roundIdx:0,cur:null,chances:5,saveKey:'cq_M_all',pts:0,cor:0,wr:0,attempted:0,recorded:false,isRetry:false};
 function cqPer(){return CQ.diff==='H'?8:CQ.diff==='L'?2:4;}
 const CQ_CHANCES=5;
@@ -130,6 +130,38 @@ function cqPoolFor(filterKey,diffOverride){
     return true;
   });
 }
+/* 상 난이도: 한 게임은 100지점(10판)으로 끝나지만, 그 100개는 영구 기록되어
+   다음 게임부터 자동으로 아직 안 나온 지점을 이어서 준다(전체 1000+ 지점 풀을
+   여러 게임에 걸쳐 누적으로 다 돌게 됨). 기록 시점은 게임이 "끝났을 때"(결과창
+   도달)뿐 — 도중에 초기화하면 이번 게임은 누적에 반영되지 않는다. */
+const CQ_H_COVERED_KEY='cq_H_covered';
+function cqCoveredGet(){
+  try{return new Set(JSON.parse(localStorage.getItem(CQ_H_COVERED_KEY)||'[]'));}catch(e){return new Set();}
+}
+function cqCoveredAdd(ids){
+  if(!ids||!ids.length)return;
+  const s=cqCoveredGet();ids.forEach(id=>s.add(id));
+  try{localStorage.setItem(CQ_H_COVERED_KEY,JSON.stringify([...s]));}catch(e){}
+}
+function cqCoveredReset(){try{localStorage.removeItem(CQ_H_COVERED_KEY);}catch(e){}}
+function cqCoveredTotal(){return cqPoolFor('all','H').length;}
+function cqCoveredCommit(){
+  if(CQ.diff!=='H'||!CQ.plan.length)return;
+  const ids=[];
+  for(let i=0;i<CQ.roundIdx;i++){const r=CQ.plan[i];if(r)r.locs.forEach(l=>ids.push(l.id));}
+  if(CQ.cur&&CQ.cur.locs&&CQ.cur.resolvedSet)CQ.cur.locs.forEach((l,gi)=>{if(CQ.cur.resolvedSet.has(gi))ids.push(l.id);});
+  cqCoveredAdd(ids);
+}
+/* 상 난이도용 풀: 이미 누적 기록된 지점은 제외하고, 남은 게 한 게임(10판)도 안 되면
+   기록을 새로 한 바퀴 돌린다(전체 풀을 다 돌았다는 뜻이므로 처음부터 다시) */
+function cqPoolForGame(filterKey,diff){
+  const pool=cqPoolFor(filterKey,diff);
+  if(diff!=='H')return pool;
+  const covered=cqCoveredGet();
+  let remain=pool.filter(l=>!covered.has(l.id));
+  if(remain.length<10){cqCoveredReset();remain=pool;}
+  return remain;
+}
 /* 시작 전 미리보기용 — 선택한 조건으로 최소 1판(10지점)이 가능한지 확인 */
 function cqEstimateRounds(filterKey){
   const pool=cqPoolFor(filterKey);
@@ -138,9 +170,9 @@ function cqEstimateRounds(filterKey){
 /* 4(온대)+2(온+냉+한)+2(열대)+2(전기후랜덤) = 10판 비율, 포션에 맞춰 축소 */
 function cqBuildPlan(pool,portion,diff){
   /* 하·중: 17년 출제지 120개 전체를 12판(=120지점)으로 소화.
-     상: 전 세계 1000+ 지점 풀 전체가 누적되도록 상한을 두지 않는다(10지점 묶음은
-     카테고리 배분용 내부 단위일 뿐, 화면엔 100개 단위로 끊김 없이 이어진다). */
-  const cap=(diff==='M'||diff==='L')?12:Infinity;
+     상: 한 게임은 10판(=100지점)까지만 — 전체 누적은 cqPoolForGame이 게임 간
+     남은 지점을 이어서 주는 방식으로 처리한다. */
+  const cap=(diff==='M'||diff==='L')?12:10;
   const baseRounds=Math.min(cap,Math.floor(pool.length/10));
   if(baseRounds<1)return [];
   let totalRounds=Math.max(1,Math.round(baseRounds*(portion||1)));
@@ -191,7 +223,7 @@ function cqBuildPlan(pool,portion,diff){
 function cqInit(filterKey){
   CQ.diff=cqDiffOf(filterKey);
   CQ.saveKey='cq_'+CQ.diff+'_'+(filterKey||'all');
-  const pool=cqPoolFor(filterKey);
+  const pool=cqPoolForGame(filterKey,CQ.diff);
   const por=_portion(filterKey);
   CQ.pool=pool;
   CQ.plan=cqBuildPlan(pool,por,CQ.diff);
@@ -215,7 +247,7 @@ function cqReset(skipConfirm){
   if(skipConfirm!==true&&!confirm('기후 맞추기 진행 상황을 초기화할까요?'))return;
   localStorage.removeItem(CQ.saveKey);
   const por=_portion(SESSION.filterKey);
-  CQ.pool=cqPoolFor(SESSION.filterKey);
+  CQ.pool=cqPoolForGame(SESSION.filterKey,CQ.diff);
   CQ.plan=cqBuildPlan(CQ.pool,por,CQ.diff);
   CQ.roundIdx=0;CQ.pts=0;CQ.cor=0;CQ.wr=0;CQ.attempted=0;CQ.chances=CQ_CHANCES;CQ.recorded=false;CQ.cur=null;
   if(SESSION.cur==='climate')cqShowRound();
@@ -228,7 +260,11 @@ function cqEnter(){
   /* 탭을 벗어났다 돌아와도 진행 중이던 상태를 유지 (다시 섞지 않음) */
   if(CQ.cur){
     if(CQ.diff==='L'){cqLRenderCurrentPin();cqUpdateProgress();cqLShowActive();}
-    else{cqRenderCards();cqRenderPins();cqFitToPins();cqUpdateProgress();}
+    else{
+      cqRenderCards();cqRenderPins();cqFitToPins();cqUpdateProgress();
+      const nb=document.getElementById('cq-next-btn');
+      if(nb)nb.style.display=(CQ.cur.revealed&&CQ.cur.resolvedSet.size>=CQ.cur.locs.length)?'':'none';
+    }
   }
   else cqShowRound();
 }
@@ -238,8 +274,9 @@ function cqUpdateModeUI(){
   const lp=document.getElementById('cq-l-panel');if(lp)lp.style.display=isL?'':'none';
   const dots=document.getElementById('cq-chance-dots');if(dots)dots.style.display=isL?'none':'flex';
 }
-/* "판" 구분 없이 10개짜리 묶음을 끊김 없이 이어서 보여준다(묶음 자체는 카테고리 배분·핀
-   간격 확보를 위해 내부적으로만 씀 — 화면엔 완료 팝업 없이 바로 다음 묶음이 이어진다) */
+/* 10개짜리 묶음(진행) 단위로 이어서 보여준다. 오답 기회 5번은 묶음마다 새로 준다 —
+   한 묶음 안에서 5번을 다 쓰면 남은 그래프 전체를 정답 공개하고, 자동으로 넘어가지
+   않고 "다음" 버튼을 눌러야 다음 묶음으로 간다. */
 function cqShowRound(){
   const end=document.getElementById('cq-end');if(end&&end.classList.contains('on'))return;
   if(CQ.roundIdx>=CQ.plan.length){cqEnd();return;}
@@ -248,8 +285,11 @@ function cqShowRound(){
   const order=shuffle(round.locs.map((l,i)=>i));
   CQ.cur={
     locs:round.locs, cat:round.cat, pinOrder:order,
-    matched:{}, resolvedSet:new Set(), selectedGraph:null
+    matched:{}, resolvedSet:new Set(), selectedGraph:null, revealed:false
   };
+  CQ.chances=CQ_CHANCES; /* 묶음마다 기회 5번 리셋 */
+  const nb=document.getElementById('cq-next-btn');if(nb)nb.style.display='none';
+  const fb=document.getElementById('cq-fb');if(fb){fb.textContent='';fb.className='bq-fb';}
   cqRenderCards();
   cqRenderPins();
   cqFitToPins();
@@ -277,7 +317,7 @@ function cqUpdateProgress(){
   const urev=document.getElementById('ui-rev');if(urev)urev.textContent=CQ.wr;
   const upf=document.getElementById('ui-pf');if(upf)upf.style.width=(total?CQ.attempted/total*100:0)+'%';
 }
-/* 세션 전체가 공유하는 오답 기회 5번을 작은 점 5개로 표시(접경국 퀴즈의 점 표시와 같은 방식) */
+/* 묶음(10지점)마다 새로 주어지는 오답 기회 5번을 작은 점 5개로 표시(접경국 퀴즈와 같은 방식) */
 function cqUpdateChanceDots(){
   if(CQ.diff==='L')return;
   const used=CQ_CHANCES-CQ.chances;
@@ -342,18 +382,31 @@ function cqTryPin(li){
   }else{
     const pinEl=document.querySelector('#cq-pins-ov .cq-pin[data-li="'+li+'"]');
     if(pinEl){pinEl.classList.add('shake-ng');setTimeout(()=>pinEl.classList.remove('shake-ng'),380);}
-    const fb=document.getElementById('cq-fb');
-    if(CQ.chances<=0){ /* 세션 기회를 다 썼으면 이제부터는 틀리는 즉시 정답 공개 */
-      cqResolveGraph(gi,false,targetLi);
-      return;
-    }
     CQ.chances--;
     cqUpdateChanceDots();cqSaveState();
-    if(fb){
-      fb.textContent=CQ.chances>0?'아니에요 (남은 기회 '+CQ.chances+')':'기회를 다 썼어요 — 다음 오답부터 바로 공개';
-      fb.className='bq-fb ng';
-    }
+    if(CQ.chances<=0){cqRevealBatch();return;} /* 이 묶음의 기회 소진 → 전체 공개 */
+    const fb=document.getElementById('cq-fb');
+    if(fb){fb.textContent='아니에요 (남은 기회 '+CQ.chances+')';fb.className='bq-fb ng';}
   }
+}
+/* 기회 5번을 다 쓴 묶음: 남은 그래프를 전부 정답 공개(모두 오답 처리)하고
+   "다음" 버튼을 눌러야 다음 묶음으로 넘어간다 */
+function cqRevealBatch(){
+  if(!CQ.cur||CQ.cur.revealed)return;
+  CQ.cur.revealed=true;
+  CQ.cur.locs.forEach((l,gi)=>{
+    if(!CQ.cur.resolvedSet.has(gi))cqResolveGraph(gi,false,CQ.cur.pinOrder.indexOf(gi));
+  });
+  const fb=document.getElementById('cq-fb');
+  if(fb){fb.textContent='기회 5번을 다 썼어요 — 정답을 모두 공개했어요';fb.className='bq-fb ng';}
+}
+function cqShowNextBtn(){
+  const nb=document.getElementById('cq-next-btn');
+  if(nb)nb.style.display='';
+}
+function cqNextBatch(){
+  const nb=document.getElementById('cq-next-btn');if(nb)nb.style.display='none';
+  cqAdvanceBatch();
 }
 function cqResolveGraph(gi,ok,li){
   const loc=CQ.cur.locs[gi];
@@ -375,7 +428,8 @@ function cqResolveGraph(gi,ok,li){
   if(fb){fb.textContent=ok?'정답! '+cqLocLabel(loc):'정답은 '+cqLocLabel(loc);fb.className='bq-fb '+(ok?'ok':'ng');}
   cqRefreshCardStates();cqRefreshPinStates();cqReorderCards();cqUpdateProgress();cqSaveState();
   if(CQ.cur.resolvedSet.size>=CQ.cur.locs.length){
-    setTimeout(cqAdvanceBatch,600);
+    if(CQ.cur.revealed)cqShowNextBtn(); /* 전체 공개된 묶음은 직접 "다음"을 눌러야 진행 */
+    else setTimeout(cqAdvanceBatch,600);
   }
 }
 
@@ -582,6 +636,7 @@ function cqFitToPins(){
 function cqEnd(){
   const el=document.getElementById('cq-end');if(!el)return;
   const done=CQ.attempted;
+  cqCoveredCommit();
   document.getElementById('cq-escore').textContent=CQ.pts+'점';
   document.getElementById('cq-e1').textContent=CQ.cor;
   document.getElementById('cq-e2').textContent=CQ.wr;

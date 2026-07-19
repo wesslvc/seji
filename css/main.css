@@ -12,7 +12,7 @@ header{padding:.55rem 1.2rem;border-bottom:1px solid var(--bd);display:flex;alig
 .pf{height:100%;background:var(--ac);transition:width .4s;width:0%}
 main{flex:1;position:relative;overflow:hidden}
 body.mob-mode main{padding-bottom:72px}
-#ui-map{width:100%;height:100%;overflow:hidden;cursor:grab;user-select:none;position:absolute;inset:0;z-index:1}
+#ui-map{width:100%;height:100%;overflow:hidden;cursor:grab;user-select:none;position:absolute;inset:0;z-index:1;touch-action:none}
 #ui-map:active{cursor:grabbing}
 #ui-map svg{position:absolute;top:0;left:0;transform-origin:0 0;will-change:transform}
 #world-svg .oceanxx{fill:var(--bg)}
@@ -130,7 +130,7 @@ body.mob-mode .ui-ov .modal{max-width:96vw}
 .kr-hbtns{display:flex;gap:.35rem;align-items:center;flex-wrap:wrap}
 #kr-main{flex:1;position:relative;overflow:hidden}
 body.mob-mode #kr-main{padding-bottom:72px}
-#kr-map{width:100%;height:100%;overflow:hidden;cursor:grab;user-select:none;position:absolute;inset:0}
+#kr-map{width:100%;height:100%;overflow:hidden;cursor:grab;user-select:none;position:absolute;inset:0;touch-action:none}
 #kr-map:active{cursor:grabbing}
 #kr-map svg{position:absolute;top:0;left:0;transform-origin:0 0;will-change:transform}
 #korea-svg path{fill:var(--land);stroke:#161e2b;stroke-width:.6;transition:fill .12s}
@@ -273,6 +273,7 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 .ld-chip:hover{color:var(--tx);border-color:var(--tx2)}
 .ld-chip.on{background:var(--ac2);border-color:var(--ac);color:var(--ac)}
 .ld-chip-desc{font-size:.7rem;color:var(--tx2);min-height:1.2em;line-height:1.4;text-align:center}
+.ld-cov-txt{font-size:.76rem;color:var(--tx);font-weight:700}
 /* start + defaults */
 .ld-start{width:min(340px,86vw);display:flex;align-items:center;justify-content:center;gap:.5rem;padding:.85rem;margin-top:.35rem;background:var(--btn);color:#fff;border:none;border-radius:999px;font-family:'Pretendard','Noto Sans KR',sans-serif;font-size:.95rem;font-weight:700;letter-spacing:.02em;cursor:pointer;box-shadow:var(--shadow);transition:.18s var(--ease)}
 .ld-start:hover{background:#3b82ea;box-shadow:var(--shadow2)}

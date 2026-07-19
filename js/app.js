@@ -141,13 +141,23 @@ function ldRenderDetail(){
     rows+='<div class="ld-dt-row" data-esub><span class="ld-dt-lb">유형</span>'
       +['all','ff','re'].map(v=>'<button type="button" class="ld-chip'+(LD.esub===v?' on':'')+'" data-v="'+v+'">'+LD_ESUB_LABEL[v]+'</button>').join('')+'</div>';
   }
+  /* 상(H) 기후 맞추기는 한 게임 100지점이지만 여러 게임에 걸쳐 전체 풀을 누적으로 다 돈다 —
+     지금까지 얼마나 누적됐는지 미리보기 + 누적 자체를 초기화하는 버튼 */
+  const climateCov=(sl.act==='climate'&&LD.cldiff==='H');
+  if(climateCov){
+    rows+='<div class="ld-dt-row" data-cov><span class="ld-dt-lb">누적 진행</span>'
+      +'<span class="ld-cov-txt">'+cqCoveredGet().size+' / '+cqCoveredTotal()+'지점</span>'
+      +'<button type="button" class="ld-chip" data-cov-reset>초기화</button></div>';
+  }
   box.innerHTML='<div class="ld-dt"><div class="ld-dt-ds">'+sl.ds+'</div>'+rows+'</div>';
   box.classList.add('on');
   box.querySelectorAll('[data-diff] .ld-chip').forEach(ch=>ch.addEventListener('click',()=>{
     LD[sl.diff]=ch.dataset.d;
-    ch.parentElement.querySelectorAll('.ld-chip').forEach(c=>c.classList.toggle('on',c===ch));
-    const dd=box.querySelector('[data-dd]');if(dd)dd.textContent=ddOf();
-    ldSave();
+    ldSave();ldRenderDetail(); /* 기후는 난이도(상)에 따라 누적 진행 표시가 붙었다 빠졌다 하므로 전체 다시 렌더 */
+  }));
+  box.querySelectorAll('[data-cov-reset]').forEach(ch=>ch.addEventListener('click',()=>{
+    if(!confirm('기후 맞추기(상) 누적 진행을 초기화할까요?'))return;
+    cqCoveredReset();ldRenderDetail();
   }));
   box.querySelectorAll('[data-tkind] .ld-chip').forEach(ch=>ch.addEventListener('click',()=>{
     LD.tkind=ch.dataset.v;
