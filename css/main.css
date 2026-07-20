@@ -734,3 +734,4 @@ body.cq-mode #cq-pins-ov{display:block}
 .wd-rv-row{display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap;background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:.45rem .6rem}
 .wd-rv-route{font-size:.68rem;color:var(--tx2);line-height:1.5}
 .wd-rv-route b{color:var(--ac)}
+.wd-nb-anno{font-size:.6rem;color:var(--tx2);font-weight:400}

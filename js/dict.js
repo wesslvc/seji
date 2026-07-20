@@ -73,13 +73,43 @@ function wdBars(rows){ /* rows: [[label,pct,color]] */
     +'<span class="wd-bar-v">'+v+'%</span></div>').join('')+'</div>';
 }
 
+/* ── 해외영토를 통한 접경 (사전 전용 보강) ──
+   본토끼리는 안 닿아도 해외영토·특별행정구를 통해 국경을 맞대는 관계 —
+   퀴즈 채점에는 쓰지 않고 사전 표시에만 더한다. [iso, 설명] */
+const WD_XBORDERS={
+fr:[['sr','프랑스령 기아나 국경'],['br','프랑스령 기아나 국경'],['nl','생마르탱 섬 분할']],
+sr:[['fr','프랑스령 기아나'],['gf','']],
+br:[['fr','프랑스령 기아나'],['gf','']],
+gf:[['sr',''],['br','']],
+nl:[['fr','카리브해 생마르탱 섬 분할']],
+gb:[['es','지브롤터'],['cy','아크로티리·데켈리아 기지']],
+es:[['gb','지브롤터']],
+cy:[['gb','아크로티리·데켈리아 기지']],
+cn:[['hk','특별행정구'],['mo','특별행정구']],
+hk:[['cn','선전과 접경']],
+mo:[['cn','주하이와 접경']],
+dk:[['ca','한스섬 분할 (2022)']],
+ca:[['dk','한스섬(그린란드) 분할']],
+};
+/* 기본 접경(BORDERS) + 해외영토 접경을 합친 목록과 주석 */
+function wdNeighbors(iso){
+  const base=((typeof BORDERS!=='undefined'&&BORDERS[iso])||[]).filter(n=>COUNTRIES[n]);
+  const anno={};
+  const extra=[];
+  (WD_XBORDERS[iso]||[]).forEach(([n,lb])=>{
+    if(!COUNTRIES[n]||base.includes(n)||extra.includes(n))return;
+    extra.push(n);if(lb)anno[n]=lb;
+  });
+  return {list:[...base,...extra],anno};
+}
+
 /* ── 접경국 미니 지도 ──
    접경국 퀴즈(중·상) 정답 확인 화면과 같은 색 규칙(파랑=이 나라, 초록=접경국)으로,
    세계지도(world-svg)에서 해당 나라들의 패스를 복제해 상세 페이지 안에 작게 그린다.
    주변 맥락용으로 접경국의 접경국까지 회색으로 깔아준다. */
 function wdMiniMapSVG(iso){
   if(typeof els4iso==='undefined')return '';
-  const nbs=(typeof BORDERS!=='undefined'&&BORDERS[iso])?BORDERS[iso].filter(n=>COUNTRIES[n]):[];
+  const nbs=wdNeighbors(iso).list;
   const ring=new Set();
   nbs.forEach(n=>((BORDERS[n]||[])).forEach(m=>{if(m!==iso&&!nbs.includes(m)&&COUNTRIES[m])ring.add(m);}));
   let minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9;
@@ -92,31 +122,48 @@ function wdMiniMapSVG(iso){
     return false;
   };
   const parts=[];
+  const bbs=[];
+  /* 원형 마커(circlexx)는 쓰지 않고 실제 국경 패스만 그린다 — 소국도 확대해서 실제 모양으로 */
   const addIso=(i,fill,forBBox)=>{
-    if(CIRCLE_ISOS.has(i)){
-      const p=CIRCLE_POS[i];if(!p)return;
-      parts.push('<circle cx="'+p.cx+'" cy="'+p.cy+'" r="8" fill="'+fill+'" stroke="#161e2b" stroke-width="1"/>');
-      if(forBBox){minX=Math.min(minX,p.cx-14);maxX=Math.max(maxX,p.cx+14);minY=Math.min(minY,p.cy-14);maxY=Math.max(maxY,p.cy+14);}
-      return;
-    }
     els4iso(i).forEach(el=>{
       if(skip(i,el))return;
+      if((el.getAttribute('class')||'').includes('circlexx'))return;
       const paths=el.tagName==='path'?[el]:[...el.querySelectorAll('path')];
-      paths.forEach(p=>{const d=p.getAttribute('d');if(d)parts.push('<path d="'+d+'" fill="'+fill+'" stroke="#161e2b" stroke-width="1"/>');});
-      if(forBBox){try{const b=el.getBBox();minX=Math.min(minX,b.x);minY=Math.min(minY,b.y);maxX=Math.max(maxX,b.x+b.width);maxY=Math.max(maxY,b.y+b.height);}catch(e){}}
+      paths.forEach(p=>{
+        const d=p.getAttribute('d');if(!d)return;
+        parts.push('<path d="'+d+'" fill="'+fill+'"/>');
+        /* 화면 맞춤용 조각은 그룹(g)이 아닌 개별 패스 단위로 — 그룹 bbox는 흩어진
+           섬 전체를 덮어 태평양 국가(키리바시 등)에서 지도가 무한정 넓어진다 */
+        if(forBBox&&!skip(i,p)){try{const b=p.getBBox();if(b.width||b.height)bbs.push(b);}catch(e){}}
+      });
     });
   };
+  /* 화면 맞춤은 본국 기준 — 접경국은 잘려도 본국이 크게 보이는 쪽을 우선한다 */
   [...ring].forEach(i=>addIso(i,'#2b3442',false)); /* 맥락: 회색 */
-  nbs.forEach(i=>addIso(i,COLOR_MAP.c2,true));     /* 접경국: 초록 */
-  addIso(iso,COLOR_MAP.c1,true);                   /* 이 나라: 파랑 */
+  nbs.forEach(i=>addIso(i,COLOR_MAP.c2,false));    /* 접경국: 초록 (맞춤엔 미반영) */
+  addIso(iso,COLOR_MAP.c1,true);                   /* 이 나라: 파랑 (여기에 맞춤) */
+  if(bbs.length){
+    /* 본토(가장 큰 조각)에서 멀리 떨어진 해외영토·섬은 화면 맞춤에서 자동 제외
+       (네덜란드 카리브 섬들, 노르웨이 스발바르 등) */
+    const main=bbs.reduce((a,b)=>(b.width*b.height>a.width*a.height?b:a));
+    const diag=Math.hypot(main.width,main.height);
+    const cx=main.x+main.width/2,cy=main.y+main.height/2;
+    bbs.forEach(b=>{
+      if(Math.hypot(b.x+b.width/2-cx,b.y+b.height/2-cy)>Math.max(diag*1.2,30))return;
+      minX=Math.min(minX,b.x);minY=Math.min(minY,b.y);maxX=Math.max(maxX,b.x+b.width);maxY=Math.max(maxY,b.y+b.height);
+    });
+  }
   if(minX>1e8||!parts.length)return '';
   const w=maxX-minX,h=maxY-minY;
-  const pad=Math.max(Math.max(w,h)*0.18,25);
-  const vx=(minX-pad).toFixed(1),vy=(minY-pad).toFixed(1),vw=(w+pad*2).toFixed(1),vh=(h+pad*2).toFixed(1);
+  /* 소국은 최소 시야(약 100km 폭)를 보장해 주변 해안·이웃이 살짝 보이게 확대 */
+  const pad=Math.max(Math.max(w,h)*0.45,4);
+  const vx=minX-pad,vy=minY-pad,vw=w+pad*2,vh=h+pad*2;
+  const sw=(Math.max(vw,vh)/300).toFixed(3); /* 화면상 약 1px 국경선 유지 */
   const legend=nbs.length
     ?'<div class="wd-map-lg"><span><i style="background:'+COLOR_MAP.c1+'"></i>'+COUNTRIES[iso].k+'</span><span><i style="background:'+COLOR_MAP.c2+'"></i>접경국</span></div>'
     :'<div class="wd-map-lg"><span><i style="background:'+COLOR_MAP.c1+'"></i>'+COUNTRIES[iso].k+'</span></div>';
-  return '<div class="wd-map"><svg viewBox="'+vx+' '+vy+' '+vw+' '+vh+'" preserveAspectRatio="xMidYMid meet">'+parts.join('')+'</svg>'+legend+'</div>';
+  return '<div class="wd-map"><svg viewBox="'+vx.toFixed(2)+' '+vy.toFixed(2)+' '+vw.toFixed(2)+' '+vh.toFixed(2)+'" preserveAspectRatio="xMidYMid meet">'
+    +'<g stroke="#161e2b" stroke-width="'+sw+'">'+parts.join('')+'</g></svg>'+legend+'</div>';
 }
 
 /* ── 국가 상세 ── */
@@ -143,12 +190,15 @@ function wdShow(iso){
   if(d.rg)info.push(['지역',d.rg]);
   const infoHtml='<div class="wd-info">'+info.map(([k,v])=>'<div class="wd-info-it"><small>'+k+'</small><b>'+v+'</b></div>').join('')+'</div>';
 
-  /* 접경국 — 퀴즈 정답 확인과 같은 색의 미니 지도 + 칩(bq-nb, 누르면 그 나라로 이동) */
-  const nb=(typeof BORDERS!=='undefined'&&BORDERS[iso])?BORDERS[iso].filter(n=>COUNTRIES[n]):[];
+  /* 접경국 — 퀴즈 정답 확인과 같은 색의 미니 지도 + 칩(bq-nb, 누르면 그 나라로 이동)
+     해외영토·특별행정구를 통한 접경도 포함(주석 병기) */
+  const nbInfo=wdNeighbors(iso);
+  const nb=nbInfo.list;
   let nbHtml='';
   try{nbHtml+=wdMiniMapSVG(iso);}catch(e){}
   nbHtml+=nb.length
-    ?'<div class="bq-neighbors wd-nbs">'+nb.map(n=>'<button type="button" class="bq-nb wd-nb" data-iso="'+n+'">'+wdFlag(n)+' '+COUNTRIES[n].k+'</button>').join('')+'</div>'
+    ?'<div class="bq-neighbors wd-nbs">'+nb.map(n=>'<button type="button" class="bq-nb wd-nb" data-iso="'+n+'">'+wdFlag(n)+' '+COUNTRIES[n].k
+      +(nbInfo.anno[n]?' <small class="wd-nb-anno">('+nbInfo.anno[n]+')</small>':'')+'</button>').join('')+'</div>'
     :'<div class="wd-none">국경을 맞댄 나라가 없어요 (섬나라 또는 데이터 없음)</div>';
 
   /* 종교 (원그래프 데이터 있으면 상세, 없으면 주요 종교만) */
