@@ -73,6 +73,52 @@ function wdBars(rows){ /* rows: [[label,pct,color]] */
     +'<span class="wd-bar-v">'+v+'%</span></div>').join('')+'</div>';
 }
 
+/* ── 접경국 미니 지도 ──
+   접경국 퀴즈(중·상) 정답 확인 화면과 같은 색 규칙(파랑=이 나라, 초록=접경국)으로,
+   세계지도(world-svg)에서 해당 나라들의 패스를 복제해 상세 페이지 안에 작게 그린다.
+   주변 맥락용으로 접경국의 접경국까지 회색으로 깔아준다. */
+function wdMiniMapSVG(iso){
+  if(typeof els4iso==='undefined')return '';
+  const nbs=(typeof BORDERS!=='undefined'&&BORDERS[iso])?BORDERS[iso].filter(n=>COUNTRIES[n]):[];
+  const ring=new Set();
+  nbs.forEach(n=>((BORDERS[n]||[])).forEach(m=>{if(m!==iso&&!nbs.includes(m)&&COUNTRIES[m])ring.add(m);}));
+  let minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9;
+  /* 본토에서 멀리 떨어진 속령은 정답 확인 지도와 같은 규칙으로 화면 맞춤에서 제외 */
+  const skip=(i,el)=>{
+    if(i==='dk'&&(el.classList.contains('gl')||el.closest('#gl')))return true;
+    if(i==='fr'&&el.closest('#gf'))return true;
+    if(i==='us'&&(el.closest('#ak')||el.closest('#hi')))return true;
+    if(i==='ru'){try{const b=el.getBBox();if(b.x>2400)return true;}catch(e){}}
+    return false;
+  };
+  const parts=[];
+  const addIso=(i,fill,forBBox)=>{
+    if(CIRCLE_ISOS.has(i)){
+      const p=CIRCLE_POS[i];if(!p)return;
+      parts.push('<circle cx="'+p.cx+'" cy="'+p.cy+'" r="8" fill="'+fill+'" stroke="#161e2b" stroke-width="1"/>');
+      if(forBBox){minX=Math.min(minX,p.cx-14);maxX=Math.max(maxX,p.cx+14);minY=Math.min(minY,p.cy-14);maxY=Math.max(maxY,p.cy+14);}
+      return;
+    }
+    els4iso(i).forEach(el=>{
+      if(skip(i,el))return;
+      const paths=el.tagName==='path'?[el]:[...el.querySelectorAll('path')];
+      paths.forEach(p=>{const d=p.getAttribute('d');if(d)parts.push('<path d="'+d+'" fill="'+fill+'" stroke="#161e2b" stroke-width="1"/>');});
+      if(forBBox){try{const b=el.getBBox();minX=Math.min(minX,b.x);minY=Math.min(minY,b.y);maxX=Math.max(maxX,b.x+b.width);maxY=Math.max(maxY,b.y+b.height);}catch(e){}}
+    });
+  };
+  [...ring].forEach(i=>addIso(i,'#2b3442',false)); /* 맥락: 회색 */
+  nbs.forEach(i=>addIso(i,COLOR_MAP.c2,true));     /* 접경국: 초록 */
+  addIso(iso,COLOR_MAP.c1,true);                   /* 이 나라: 파랑 */
+  if(minX>1e8||!parts.length)return '';
+  const w=maxX-minX,h=maxY-minY;
+  const pad=Math.max(Math.max(w,h)*0.18,25);
+  const vx=(minX-pad).toFixed(1),vy=(minY-pad).toFixed(1),vw=(w+pad*2).toFixed(1),vh=(h+pad*2).toFixed(1);
+  const legend=nbs.length
+    ?'<div class="wd-map-lg"><span><i style="background:'+COLOR_MAP.c1+'"></i>'+COUNTRIES[iso].k+'</span><span><i style="background:'+COLOR_MAP.c2+'"></i>접경국</span></div>'
+    :'<div class="wd-map-lg"><span><i style="background:'+COLOR_MAP.c1+'"></i>'+COUNTRIES[iso].k+'</span></div>';
+  return '<div class="wd-map"><svg viewBox="'+vx+' '+vy+' '+vw+' '+vh+'" preserveAspectRatio="xMidYMid meet">'+parts.join('')+'</svg>'+legend+'</div>';
+}
+
 /* ── 국가 상세 ── */
 function wdShow(iso){
   const c=COUNTRIES[iso];if(!c)return;
@@ -94,9 +140,11 @@ function wdShow(iso){
   if(d.rg)info.push(['지역',d.rg]);
   const infoHtml='<div class="wd-info">'+info.map(([k,v])=>'<div class="wd-info-it"><small>'+k+'</small><b>'+v+'</b></div>').join('')+'</div>';
 
-  /* 접경국 — 접경국 퀴즈 정답 표시와 같은 칩(bq-nb), 누르면 그 나라로 이동 */
+  /* 접경국 — 퀴즈 정답 확인과 같은 색의 미니 지도 + 칩(bq-nb, 누르면 그 나라로 이동) */
   const nb=(typeof BORDERS!=='undefined'&&BORDERS[iso])?BORDERS[iso].filter(n=>COUNTRIES[n]):[];
-  const nbHtml=nb.length
+  let nbHtml='';
+  try{nbHtml+=wdMiniMapSVG(iso);}catch(e){}
+  nbHtml+=nb.length
     ?'<div class="bq-neighbors wd-nbs">'+nb.map(n=>'<button type="button" class="bq-nb wd-nb" data-iso="'+n+'">'+wdFlag(n)+' '+COUNTRIES[n].k+'</button>').join('')+'</div>'
     :'<div class="wd-none">국경을 맞댄 나라가 없어요 (섬나라 또는 데이터 없음)</div>';
 

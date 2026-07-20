@@ -715,3 +715,8 @@ body.cq-mode #world-svg{visibility:hidden}
 .wd-chart{margin-top:.55rem;background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:.6rem .7rem;max-width:250px}
 .wd-chart-cap{font-size:.66rem;color:var(--tx2);margin-bottom:.35rem}
 .wd-chart .cq-chart-svg{overflow:visible}
+.wd-map{background:#10151c;border:1px solid var(--bd);border-radius:12px;padding:.45rem;margin-bottom:.5rem}
+.wd-map svg{width:100%;max-height:260px;display:block}
+.wd-map-lg{display:flex;gap:.9rem;justify-content:center;padding:.35rem 0 .1rem;font-size:.66rem;color:var(--tx2)}
+.wd-map-lg span{display:inline-flex;align-items:center;gap:.3rem}
+.wd-map-lg i{width:10px;height:10px;border-radius:3px;display:inline-block}
