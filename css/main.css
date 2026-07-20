@@ -624,7 +624,9 @@ body.br-review #bq-box,body.br-review #rbq-box,body.br-review #bq-flash{display:
 #cq-world-svg.on{display:block}
 #cq-world-path{fill:var(--land);stroke:#161e2b;stroke-width:.5}
 body.cq-mode #world-svg{visibility:hidden}
-#cq-pins-ov{position:absolute;inset:0;width:100%;height:100%;z-index:10;pointer-events:none}
+/* 핀 오버레이는 기후 모드에서만 표시 — 다른 지도 모드로 전환하면 핀이 남지 않게 */
+#cq-pins-ov{display:none;position:absolute;inset:0;width:100%;height:100%;z-index:10;pointer-events:none}
+body.cq-mode #cq-pins-ov{display:block}
 .cq-pin{pointer-events:auto;cursor:pointer}
 .cq-pin-c{fill:#9aa0a6;stroke:#161e2b;stroke-width:1.5;transition:fill .15s var(--ease),r .15s var(--ease)}
 .cq-pin-t{font-size:8px;font-weight:700;fill:#161e2b;text-anchor:middle;dominant-baseline:central;pointer-events:none}
