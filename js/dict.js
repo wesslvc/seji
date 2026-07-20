@@ -129,13 +129,16 @@ function wdShow(iso){
   det.scrollTop=0;
 
   /* 기본 정보 그리드 */
+  const more=(typeof DICT_MORE!=='undefined'&&DICT_MORE[iso])||null; /* [수도 해발, 공용어, 통화] */
   const info=[];
-  if(d.cap)info.push(['수도',d.cap]);
+  if(d.cap)info.push(['수도 (해발)',d.cap+(more&&more[0]?' ('+more[0]+')':'')]);
   if(d.big)info.push(['최대도시 (해발)',d.big]);
   if(d.pop)info.push(['인구',d.pop]);
   if(d.gdp&&d.gdp!=='-')info.push(['GDP (명목)',d.gdp]);
   if(d.pc&&d.pc!=='-')info.push(['1인당 GDP',d.pc]);
   if(d.area)info.push(['면적',d.area]);
+  if(more&&more[1])info.push(['공용어',more[1]]);
+  if(more&&more[2])info.push(['통화',more[2]]);
   if(d.ll)info.push(['좌표 (수도)',(d.ll[0]>=0?'북위 ':'남위 ')+Math.abs(d.ll[0]).toFixed(1)+'° · '+(d.ll[1]>=0?'동경 ':'서경 ')+Math.abs(d.ll[1]).toFixed(1)+'°']);
   if(d.rg)info.push(['지역',d.rg]);
   const infoHtml='<div class="wd-info">'+info.map(([k,v])=>'<div class="wd-info-it"><small>'+k+'</small><b>'+v+'</b></div>').join('')+'</div>';
@@ -170,24 +173,42 @@ function wdShow(iso){
     if(typeof ENERGY_STORY!=='undefined'&&ENERGY_STORY[iso])enHtml+='<div class="wd-plain">'+ENERGY_STORY[iso]+'</div>';
   }
 
-  /* 기후 — 이 나라의 기후 관측 지점(쾨펜)과 대표 지점 기후그래프 */
+  /* 기후 — 지점 칩을 누르면 그 지점의 기후그래프로 전환 */
   let clHtml='';
+  _wdClimateLocs=[];
   if(typeof CLIMATE_LOC!=='undefined'){
     const locs=CLIMATE_LOC.filter(l=>l.cc===iso);
     if(locs.length){
       const sorted=[...locs].sort((a,b)=>(b.ex?1:0)-(a.ex?1:0));
-      const chips=sorted.slice(0,8).map(l=>'<span class="bq-nb">'+cqCityName(l)+' <b>'+l.kop+'</b></span>').join('');
-      const chart=sorted[0];
-      clHtml='<div class="bq-neighbors wd-nbs">'+chips+(locs.length>8?'<span class="wd-none" style="align-self:center">외 '+(locs.length-8)+'곳</span>':'')+'</div>'
-        +'<div class="wd-chart"><div class="wd-chart-cap">'+cqCityName(chart)+' ('+chart.kop+') 기후그래프</div>'+cqChartSVG(chart)+'</div>';
+      _wdClimateLocs=sorted;
+      const chips=sorted.slice(0,12).map((l,i)=>'<button type="button" class="bq-nb wd-cl-chip'+(i===0?' on':'')+'" data-ci="'+i+'">'+cqCityName(l)+' <b>'+l.kop+'</b></button>').join('');
+      clHtml='<div class="wd-none" style="margin-bottom:.3rem">지점을 누르면 그 지점의 기후그래프가 보여요</div>'
+        +'<div class="bq-neighbors wd-nbs">'+chips+(locs.length>12?'<span class="wd-none" style="align-self:center">외 '+(locs.length-12)+'곳</span>':'')+'</div>'
+        +'<div class="wd-chart" id="wd-chart-box">'+wdChartInner(sorted[0])+'</div>';
     }
   }
 
-  /* 하천 — 이 나라를 지나는 세계 주요 하천 */
+  /* 하천 — 이 나라를 지나는 세계 주요 하천 + 경유 국가(흐르는 경로) */
   let rvHtml='';
   if(typeof RIVERS!=='undefined'){
     const rs=RIVERS.filter(r=>(r.c||[]).includes(iso));
-    if(rs.length)rvHtml='<div class="bq-neighbors wd-nbs">'+rs.map(r=>'<span class="bq-nb">'+r.ko+'</span>').join('')+'</div>';
+    if(rs.length){
+      rvHtml='<div class="wd-rvs">'+rs.map(r=>{
+        const names=(r.c||[]).filter(i=>COUNTRIES[i]).map(i=>i===iso?'<b>'+COUNTRIES[i].k+'</b>':COUNTRIES[i].k);
+        return '<div class="wd-rv-row"><span class="bq-nb">'+r.ko+'</span><span class="wd-rv-route">경유: '+names.join(' · ')+'</span></div>';
+      }).join('')+'</div>';
+    }
+  }
+
+  /* 주요 도시 — 수도·최대도시·기후 지점 중 설명이 있는 도시들 */
+  let ctHtml='';
+  if(typeof DICT_CITY!=='undefined'){
+    const cand=[];
+    const push=n=>{if(n&&DICT_CITY[n]&&!cand.includes(n))cand.push(n);};
+    String(d.cap||'').split('·').forEach(p=>push(p.replace(/\(.*?\)/g,'').trim()));
+    push(String(d.big||'').replace(/\s*\(.*?\)/g,'').trim());
+    _wdClimateLocs.forEach(l=>push(cqCityName(l)));
+    if(cand.length)ctHtml='<div class="wd-cities">'+cand.slice(0,7).map(n=>'<div class="wd-city-row"><b>'+n+'</b><span>'+DICT_CITY[n]+'</span></div>').join('')+'</div>';
   }
 
   det.innerHTML=
@@ -197,6 +218,7 @@ function wdShow(iso){
     +(d.fact?'<div class="wd-fact">'+d.fact+'</div>':'')
     +infoHtml
     +wdSec('접경국',nbHtml)
+    +wdSec('주요 도시',ctHtml)
     +wdSec('종교 구성',relHtml)
     +wdSec('수출 구조 (상위 품목)',expHtml)
     +wdSec('에너지 구성',enHtml)
@@ -205,6 +227,21 @@ function wdShow(iso){
   injectIcons(det);
   document.getElementById('wd-back-btn').addEventListener('click',wdBackToList);
   det.querySelectorAll('.wd-nb').forEach(b=>b.addEventListener('click',()=>wdShow(b.dataset.iso)));
+  det.querySelectorAll('.wd-cl-chip').forEach(b=>b.addEventListener('click',()=>{
+    const l=_wdClimateLocs[+b.dataset.ci];if(!l)return;
+    det.querySelectorAll('.wd-cl-chip').forEach(x=>x.classList.toggle('on',x===b));
+    const box=document.getElementById('wd-chart-box');
+    if(box)box.innerHTML=wdChartInner(l);
+  }));
+}
+/* 기후그래프 카드 내부(그래프 + 캡션 + 도시 설명) */
+let _wdClimateLocs=[];
+function wdChartInner(l){
+  const blurb=(typeof DICT_CITY!=='undefined'&&DICT_CITY[cqCityName(l)])||'';
+  return '<div class="wd-chart-cap">'+cqCityName(l)+' ('+l.kop+') 기후그래프 · '
+    +(l.lat>=0?'북위 ':'남위 ')+Math.abs(l.lat).toFixed(1)+'°</div>'
+    +cqChartSVG(l)
+    +(blurb?'<div class="wd-city-blurb">'+blurb+'</div>':'');
 }
 
 (function(){
