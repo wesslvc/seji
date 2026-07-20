@@ -70,7 +70,7 @@ const LD_SLIDES=[
  {act:'trade',  ic:'trade', mc:'#8b9dff', tt:'무역 구조', ds:'수출·수입 품목 트리맵을 보고 어느 나라인지 맞혀요.', pts:'2~9점', diff:'tdiff', tkind:true},
  {act:'tenergy',ic:'power', mc:'#ffb37a', tt:'에너지 구성', ds:'발전·에너지 믹스를 보고 나라를 맞혀요. 유형 필터도 고를 수 있어요.', pts:'2 · 4 · 6점', diff:'ediff',
   dd:{L:'하 · 특징 뚜렷한 국가만 (2점)',M:'중 · 모든 국가 · 힌트 있음 (4점)',H:'상 · 힌트 없음 (6점)'}, esub:true},
- {act:'worlddict', ic:'dict', mc:'#9aa0a6', tt:'세계지리 사전', ds:'세계 지리 용어와 개념을 찾아볼 수 있는 사전이 준비 중이에요.', pts:'준비중', disabled:true}
+ {act:'worlddict', ic:'dict', mc:'#e2c07a', tt:'세계지리 사전', ds:'국가별 수도·인구·GDP·기후·수출·에너지·종교·접경국 정보를 한눈에 봐요.', pts:'모든 나라 정보', dict:true}
 ];
 const TRADE_DD={
  x:{L:'하 · 주요국만 · 힌트 있음 (2점)',M:'중 · 모든 국가 · 힌트 있음 (4점)',H:'상 · 힌트 없음 (6점)'},
@@ -116,7 +116,8 @@ function ldBuildGrid(){
     const txt='<div class="ld-cell-tt">'+sl.tt+'</div><div class="ld-cell-pt">'+pt+'</div>';
     c.innerHTML='<span class="ck"><span data-ic="check"></span></span>'
       +'<div class="ld-cell-ic"><span data-ic="'+sl.ic+'"></span></div>'+txt;
-    if(!sl.disabled)c.addEventListener('click',()=>ldToggle(sl.act));
+    if(sl.dict)c.addEventListener('click',()=>{try{wdOpen();}catch(e){}}); /* 사전은 세션 없이 바로 열람 */
+    else if(!sl.disabled)c.addEventListener('click',()=>ldToggle(sl.act));
     grid.appendChild(c);
   });
   injectIcons(grid);

@@ -105,8 +105,8 @@ function cqChartSVG(loc){
 }
 
 /* ══════════ 게임 상태 ══════════
-   중·상: 10지점 묶음 단위로 이어서 진행하고, 오답 기회(chances) 5번은 묶음마다
-   새로 준다. 한 묶음에서 5번을 다 쓰면 남은 그래프를 전부 정답 공개하고 "다음"
+   중·상: 10지점 세트 단위로 이어서 진행하고, 오답 기회(chances) 5번은 세트마다
+   새로 준다. 한 세트에서 5번을 다 쓰면 남은 그래프를 전부 정답 공개하고 "다음"
    버튼으로 넘어간다. 하는 애초에 1회 입력이라 기회 개념이 없다. */
 const CQ={diff:'M',pool:[],plan:[],roundIdx:0,cur:null,chances:5,saveKey:'cq_M_all',pts:0,cor:0,wr:0,attempted:0,recorded:false,isRetry:false};
 function cqPer(){return CQ.diff==='H'?8:CQ.diff==='L'?2:4;}
@@ -274,9 +274,9 @@ function cqUpdateModeUI(){
   const lp=document.getElementById('cq-l-panel');if(lp)lp.style.display=isL?'':'none';
   const dots=document.getElementById('cq-chance-dots');if(dots)dots.style.display=isL?'none':'flex';
 }
-/* 10개짜리 묶음(진행) 단위로 이어서 보여준다. 오답 기회 5번은 묶음마다 새로 준다 —
-   한 묶음 안에서 5번을 다 쓰면 남은 그래프 전체를 정답 공개하고, 자동으로 넘어가지
-   않고 "다음" 버튼을 눌러야 다음 묶음으로 간다. */
+/* 10개짜리 세트(진행) 단위로 이어서 보여준다. 오답 기회 5번은 세트마다 새로 준다 —
+   한 세트 안에서 5번을 다 쓰면 남은 그래프 전체를 정답 공개하고, 자동으로 넘어가지
+   않고 "다음" 버튼을 눌러야 다음 세트으로 간다. */
 function cqShowRound(){
   const end=document.getElementById('cq-end');if(end&&end.classList.contains('on'))return;
   if(CQ.roundIdx>=CQ.plan.length){cqEnd();return;}
@@ -287,7 +287,7 @@ function cqShowRound(){
     locs:round.locs, cat:round.cat, pinOrder:order,
     matched:{}, resolvedSet:new Set(), selectedGraph:null, revealed:false
   };
-  CQ.chances=CQ_CHANCES; /* 묶음마다 기회 5번 리셋 */
+  CQ.chances=CQ_CHANCES; /* 세트마다 기회 5번 리셋 */
   const nb=document.getElementById('cq-next-btn');if(nb)nb.style.display='none';
   const fb=document.getElementById('cq-fb');if(fb){fb.textContent='';fb.className='bq-fb';}
   cqRenderCards();
@@ -317,7 +317,7 @@ function cqUpdateProgress(){
   const urev=document.getElementById('ui-rev');if(urev)urev.textContent=CQ.wr;
   const upf=document.getElementById('ui-pf');if(upf)upf.style.width=(total?CQ.attempted/total*100:0)+'%';
 }
-/* 묶음(10지점)마다 새로 주어지는 오답 기회 5번을 작은 점 5개로 표시(접경국 퀴즈와 같은 방식) */
+/* 세트(10지점)마다 새로 주어지는 오답 기회 5번을 작은 점 5개로 표시(접경국 퀴즈와 같은 방식) */
 function cqUpdateChanceDots(){
   if(CQ.diff==='L')return;
   const used=CQ_CHANCES-CQ.chances;
@@ -384,13 +384,13 @@ function cqTryPin(li){
     if(pinEl){pinEl.classList.add('shake-ng');setTimeout(()=>pinEl.classList.remove('shake-ng'),380);}
     CQ.chances--;
     cqUpdateChanceDots();cqSaveState();
-    if(CQ.chances<=0){cqRevealBatch();return;} /* 이 묶음의 기회 소진 → 전체 공개 */
+    if(CQ.chances<=0){cqRevealBatch();return;} /* 이 세트의 기회 소진 → 전체 공개 */
     const fb=document.getElementById('cq-fb');
     if(fb){fb.textContent='아니에요 (남은 기회 '+CQ.chances+')';fb.className='bq-fb ng';}
   }
 }
-/* 기회 5번을 다 쓴 묶음: 남은 그래프를 전부 정답 공개(모두 오답 처리)하고
-   "다음" 버튼을 눌러야 다음 묶음으로 넘어간다 */
+/* 기회 5번을 다 쓴 세트: 남은 그래프를 전부 정답 공개(모두 오답 처리)하고
+   "다음" 버튼을 눌러야 다음 세트으로 넘어간다 */
 function cqRevealBatch(){
   if(!CQ.cur||CQ.cur.revealed)return;
   CQ.cur.revealed=true;
@@ -428,7 +428,7 @@ function cqResolveGraph(gi,ok,li){
   if(fb){fb.textContent=ok?'정답! '+cqLocLabel(loc):'정답은 '+cqLocLabel(loc);fb.className='bq-fb '+(ok?'ok':'ng');}
   cqRefreshCardStates();cqRefreshPinStates();cqReorderCards();cqUpdateProgress();cqSaveState();
   if(CQ.cur.resolvedSet.size>=CQ.cur.locs.length){
-    if(CQ.cur.revealed)cqShowNextBtn(); /* 전체 공개된 묶음은 직접 "다음"을 눌러야 진행 */
+    if(CQ.cur.revealed)cqShowNextBtn(); /* 전체 공개된 세트은 직접 "다음"을 눌러야 진행 */
     else setTimeout(cqAdvanceBatch,600);
   }
 }
@@ -623,7 +623,7 @@ function cqFitToPins(){
   let minY=Math.min(...pts.map(p=>p[1])),maxY=Math.max(...pts.map(p=>p[1]));
   const bw=(maxX-minX)*1.5+140, bh=(maxY-minY)*1.5+140;
   const wScale=mw.clientWidth/Math.max(bw,120), hScale=availH/Math.max(bh,90);
-  /* 세로로 긴 모바일 화면은 핀 묶음의 가로 폭에 맞추면 세로 공간이 크게 남는다(세계지도는
+  /* 세로로 긴 모바일 화면은 핀 세트의 가로 폭에 맞추면 세로 공간이 크게 남는다(세계지도는
      가로가 훨씬 긴 형태라서). PC처럼 두 축 중 더 빡빡한 쪽에 맞추는 대신, 기하평균 쪽으로
      당겨써서 화면을 더 채운다 — 화면 밖으로 나가는 핀은 패닝으로 찾으면 된다. */
   let ns=isMobile?Math.min(Math.sqrt(wScale*hScale),hScale):Math.min(wScale,hScale);
