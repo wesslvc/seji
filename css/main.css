@@ -827,3 +827,14 @@ body.cq-mode #cq-pins-ov{display:block}
 .wd-approve-btn{background:rgba(129,201,149,.14);color:#81c995;border-color:rgba(129,201,149,.4)}
 .wd-reject-btn{background:rgba(242,139,130,.1);color:var(--wr);border-color:rgba(242,139,130,.35)}
 .wd-approve-btn:disabled,.wd-reject-btn:disabled{opacity:.5;cursor:default}
+
+/* PC(넓은 화면): 좁은 모바일 칼럼에 그대로 늘어놓지 말고 화면을 넓게 쓴다 —
+   목록은 여러 열 그리드로, 국가 상세는 정보 섹션들을 2단으로 배치 */
+@media (min-width:900px){
+  #wd-list-view{max-width:1400px}
+  #wd-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:.5rem;align-content:start}
+  #wd-detail{max-width:1400px}
+  .wd-sections-2col{columns:2;column-gap:1.3rem}
+  .wd-sections-2col .wd-sec{break-inside:avoid;margin-top:0;margin-bottom:.85rem}
+  .wd-sections-2col .wd-sec:first-child{margin-top:.85rem}
+}

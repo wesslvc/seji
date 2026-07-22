@@ -18,14 +18,21 @@ function wdFlagImg(iso,px,cls){
     +'onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{className:\'wd-flag\'+(this.className.includes(\'big\')?\' big\':\'\'),textContent:wdFlag(this.dataset.iso)}))">';
 }
 /* 국기 대표색 2개 추출 — flagcdn PNG을 작은 캔버스에 그려 색상 히스토그램에서
-   채도 높은 상위 2색을 뽑아 그 나라 페이지 테마(틀 색)로 쓴다. CORS 등으로
-   실패하면 null을 돌려주고, 호출부는 조용히 기본 색(호박색)으로 남는다. */
+   채도 높은 상위 2색을 뽑아 그 나라 페이지 테마(틀 색)로 쓴다. CORS/네트워크 등으로
+   실패하면 null을 돌려주고, 호출부는 조용히 기본 색(호박색)으로 남는다.
+   중요: 실패는 캐시하지 않는다 — 한 번 일시적으로 실패했다고 그 나라를 세션 내내
+   "색 없음"으로 영구히 박제해버리면 안 되므로, 다시 그 나라 페이지를 열면 재시도한다.
+   실패 시 1회 자동 재시도도 해서 일회성 네트워크 hiccup에 덜 취약하게 함. */
 const _wdFlagColorCache={};
-function wdExtractFlagColors(iso){
+function wdExtractFlagColors(iso,_retried){
   if(_wdFlagColorCache[iso]!==undefined)return Promise.resolve(_wdFlagColorCache[iso]);
   return new Promise(resolve=>{
     const img=new Image();
     img.crossOrigin='anonymous';
+    const fail=()=>{
+      if(!_retried){wdExtractFlagColors(iso,true).then(resolve);return;}
+      resolve(null); /* 캐시에 안 남김 — 다음 방문 때 다시 시도 */
+    };
     img.onload=()=>{
       try{
         const W=48,H=30;
@@ -57,10 +64,10 @@ function wdExtractFlagColors(iso){
         const result={c1:toHex(picked[0]),c2:toHex(picked[1]||picked[0])};
         _wdFlagColorCache[iso]=result;
         resolve(result);
-      }catch(e){_wdFlagColorCache[iso]=null;resolve(null);}
+      }catch(e){fail();}
     };
-    img.onerror=()=>{_wdFlagColorCache[iso]=null;resolve(null);};
-    img.src='https://flagcdn.com/w80/'+iso+'.png';
+    img.onerror=fail;
+    img.src='https://flagcdn.com/w80/'+iso+'.png'+(_retried?'?r=1':'');
   });
 }
 /* 국가 상세 페이지 틀 색을 그 나라 국기 대표색으로 물들인다 */
@@ -347,10 +354,19 @@ function wdNeighbors(iso){
   return {list:[...base,...extra],anno};
 }
 
+/* 국기 이미지를 그 나라 영토 모양에 맞춰 클리핑해 채우는 SVG 패턴 —
+   patternUnits=objectBoundingBox라 패스(조각)마다 국기가 그 조각의 테두리에 맞춰
+   다시 스케일되어 채워진다(작은 섬도 국기가 잘리지 않고 꽉 차 보임). */
+function wdFlagPatternDef(iso){
+  return '<pattern id="wdfp-'+iso+'" patternUnits="objectBoundingBox" width="1" height="1">'
+    +'<image href="https://flagcdn.com/w160/'+iso+'.png" x="0" y="0" width="1" height="1" preserveAspectRatio="xMidYMid slice"/>'
+    +'</pattern>';
+}
 /* ── 접경국 미니 지도 ──
-   접경국 퀴즈(중·상) 정답 확인 화면과 같은 색 규칙(파랑=이 나라, 초록=접경국)으로,
-   세계지도(world-svg)에서 해당 나라들의 패스를 복제해 상세 페이지 안에 작게 그린다.
-   주변 맥락용으로 접경국의 접경국까지 회색으로 깔아준다. */
+   이 나라와 접경국을 각자의 국기로 채워서(영토 모양에 맞게 클리핑) 그린다 —
+   접경국은 투명도를 낮춰 본국과 시각적으로 구분한다. 세계지도(world-svg)에서
+   해당 나라들의 패스를 복제해 상세 페이지 안에 작게 그린다. 주변 맥락용으로
+   접경국의 접경국까지 회색으로 깔아준다. */
 function wdMiniMapSVG(iso){
   if(typeof els4iso==='undefined')return '';
   const nbs=wdNeighbors(iso).list;
@@ -368,24 +384,25 @@ function wdMiniMapSVG(iso){
   const parts=[];
   const bbs=[];
   /* 원형 마커(circlexx)는 쓰지 않고 실제 국경 패스만 그린다 — 소국도 확대해서 실제 모양으로 */
-  const addIso=(i,fill,forBBox)=>{
+  const addIso=(i,fill,forBBox,opacity)=>{
     els4iso(i).forEach(el=>{
       if(skip(i,el))return;
       if((el.getAttribute('class')||'').includes('circlexx'))return;
       const paths=el.tagName==='path'?[el]:[...el.querySelectorAll('path')];
       paths.forEach(p=>{
         const d=p.getAttribute('d');if(!d)return;
-        parts.push('<path d="'+d+'" fill="'+fill+'"/>');
+        parts.push('<path d="'+d+'" fill="'+fill+'"'+(opacity!=null?' opacity="'+opacity+'"':'')+'/>');
         /* 화면 맞춤용 조각은 그룹(g)이 아닌 개별 패스 단위로 — 그룹 bbox는 흩어진
            섬 전체를 덮어 태평양 국가(키리바시 등)에서 지도가 무한정 넓어진다 */
         if(forBBox&&!skip(i,p)){try{const b=p.getBBox();if(b.width||b.height)bbs.push(b);}catch(e){}}
       });
     });
   };
+  const defs=[wdFlagPatternDef(iso)];
   /* 화면 맞춤은 본국 기준 — 접경국은 잘려도 본국이 크게 보이는 쪽을 우선한다 */
   [...ring].forEach(i=>addIso(i,'#2b3442',false)); /* 맥락: 회색 */
-  nbs.forEach(i=>addIso(i,COLOR_MAP.c2,false));    /* 접경국: 초록 (맞춤엔 미반영) */
-  addIso(iso,COLOR_MAP.c1,true);                   /* 이 나라: 파랑 (여기에 맞춤) */
+  nbs.forEach(i=>{defs.push(wdFlagPatternDef(i));addIso(i,'url(#wdfp-'+i+')',false,0.55);}); /* 접경국: 국기, 반투명 */
+  addIso(iso,'url(#wdfp-'+iso+')',true,1);          /* 이 나라: 국기, 불투명 (여기에 맞춤) */
   if(bbs.length){
     /* 본토(가장 큰 조각)에서 멀리 떨어진 해외영토·섬은 화면 맞춤에서 자동 제외
        (네덜란드 카리브 섬들, 노르웨이 스발바르 등) */
@@ -404,9 +421,10 @@ function wdMiniMapSVG(iso){
   const vx=minX-pad,vy=minY-pad,vw=w+pad*2,vh=h+pad*2;
   const sw=(Math.max(vw,vh)/300).toFixed(3); /* 화면상 약 1px 국경선 유지 */
   const legend=nbs.length
-    ?'<div class="wd-map-lg"><span><i style="background:'+COLOR_MAP.c1+'"></i>'+COUNTRIES[iso].k+'</span><span><i style="background:'+COLOR_MAP.c2+'"></i>접경국</span></div>'
+    ?'<div class="wd-map-lg"><span><i style="background:'+COLOR_MAP.c1+'"></i>'+COUNTRIES[iso].k+'</span><span><i style="background:'+COLOR_MAP.c2+';opacity:.55"></i>접경국</span></div>'
     :'<div class="wd-map-lg"><span><i style="background:'+COLOR_MAP.c1+'"></i>'+COUNTRIES[iso].k+'</span></div>';
   return '<div class="wd-map"><svg viewBox="'+vx.toFixed(2)+' '+vy.toFixed(2)+' '+vw.toFixed(2)+' '+vh.toFixed(2)+'" preserveAspectRatio="xMidYMid meet">'
+    +'<defs>'+defs.join('')+'</defs>'
     +'<g stroke="#161e2b" stroke-width="'+sw+'">'+parts.join('')+'</g></svg>'+legend+'</div>';
 }
 
@@ -518,6 +536,7 @@ function wdShow(iso){
       +'<div class="wd-fact-actions"><button type="button" class="wd-edit-btn" id="wd-edit-btn">✎ 설명 수정 제안</button>'
       +'<span class="wd-my-status" id="wd-my-status"></span></div></div>'
     +infoHtml
+    +'<div class="wd-sections-2col">'
     +wdSec('접경국',nbHtml)
     +wdSec('주요 도시',ctHtml)
     +wdSec('종교 구성',relHtml)
@@ -525,6 +544,7 @@ function wdShow(iso){
     +wdSec('에너지 구성',enHtml)
     +wdSec('기후 (쾨펜 구분)',clHtml)
     +wdSec('지나는 주요 하천',rvHtml)
+    +'</div>'
     +'<div class="wd-sec"><div class="wd-sec-t">댓글<span id="wd-comment-count"></span> <small class="wd-sec-note">정보 오류 제보나 의견 — 위 정보들은 여기서 직접 수정되지 않아요</small></div>'
       +'<div id="wd-comments-list" class="wd-comments">불러오는 중…</div>'
       +'<div class="wd-comment-input"><textarea id="wd-comment-text" rows="2" placeholder="댓글을 남기려면 로그인하세요"></textarea>'

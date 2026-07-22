@@ -690,7 +690,8 @@ function bqHandleClick(iso){
       const grp=(BQ.currentGroup||[iso]).slice();
       BQ.queue.shift();bqSave();bqStats();
       bqFlash('정답!','bfok');
-      fb.textContent='정답!';fb.className='bq-fb ok';
+      fb.innerHTML='정답! '+grp.map(g=>typeof wdFlagImg==='function'?wdFlagImg(g,16):'').join('');
+      fb.className='bq-fb ok';
       if(!BQ.noMap)centerCountry(iso);
       if(BQ.noMap){ /* 지도 없는 모드: 색칠된 지도로 접경 관계 확인 */
         const nbs=[...new Set(grp.flatMap(g=>BORDERS[g]||[]))];
@@ -701,7 +702,7 @@ function bqHandleClick(iso){
       /* 그룹 내 일부 남음 */
       const nm=COUNTRIES[iso]?COUNTRIES[iso].k:'?';
       bqFlash(nm+' ✓','bfok');
-      fb.textContent=nm+' ✓  |  '+BQ.remaining.size+'개 남음';fb.className='bq-fb ok';
+      fb.innerHTML=(typeof wdFlagImg==='function'?wdFlagImg(iso,16)+' ':'')+nm+' ✓  |  '+BQ.remaining.size+'개 남음';fb.className='bq-fb ok';
     }
   }else{
     /* 오답 클릭 */
@@ -714,7 +715,7 @@ function bqHandleClick(iso){
       const revNames=revISOs.map(i=>COUNTRIES[i]?COUNTRIES[i].k:i);
       for(const tgt of BQ.remaining){BQ.status[tgt]='cr';BQ.wrong++;setColor(tgt,'cr');if(!BQ.noMap)centerCountry(tgt);}
       BQ.remaining=new Set();
-      fb.textContent='정답: '+revNames.join(', ');fb.className='bq-fb ng';
+      fb.innerHTML='정답: '+revISOs.map(i=>(typeof wdFlagImg==='function'?wdFlagImg(i,16):'')+(COUNTRIES[i]?COUNTRIES[i].k:i)).join(', ');fb.className='bq-fb ng';
       bqFlash('오답  →  '+revNames.join(', '),'bfng');
       BQ.queue.shift();bqSave();bqStats();
       if(BQ.noMap){
@@ -1772,7 +1773,11 @@ function submit(){
     setColor(iso,cls);
     S.status[iso]=cls;S.correct++;
     gi.value='';
-    document.getElementById('ui-fb').textContent='정답! ✓';document.getElementById('ui-fb').className='fb ok';
+    {
+      const fbEl=document.getElementById('ui-fb');
+      fbEl.className='fb ok';
+      fbEl.innerHTML=(typeof wdFlagImg==='function'?wdFlagImg(iso,18)+' ':'')+'정답! ✓';
+    }
     document.getElementById('ui-d'+w).classList.add('win');
     setTimeout(()=>{closeModal();stats();},400);
   }else{
@@ -1785,7 +1790,7 @@ function submit(){
       clearBlink(iso);
       setColor(iso,'cr');
       S.status[iso]='cr';S.revealed++;
-      document.getElementById('ui-an').textContent=COUNTRIES[iso].k+' ('+COUNTRIES[iso].e+')';
+      document.getElementById('ui-an').innerHTML=(typeof wdFlagImg==='function'?wdFlagImg(iso,18)+' ':'')+COUNTRIES[iso].k+' ('+COUNTRIES[iso].e+')';
       document.getElementById('ui-ab').style.display='block';
       gi.value='';
       setTimeout(()=>{closeModal();stats();},1600);
