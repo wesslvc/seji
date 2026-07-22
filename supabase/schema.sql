@@ -256,6 +256,7 @@ revoke all on function public.wiki_comments_for(text) from public;
 grant execute on function public.wiki_comments_for(text) to authenticated, anon;
 
 -- 국가별 댓글 개수(위키 목록 화면에 국가 옆에 표시) — 게스트도 조회 가능
+drop function if exists public.wiki_comment_counts_all();
 create or replace function public.wiki_comment_counts_all()
 returns table(iso text, cnt bigint)
 language sql security definer set search_path = public stable as $$
@@ -265,6 +266,7 @@ revoke all on function public.wiki_comment_counts_all() from public, anon;
 grant execute on function public.wiki_comment_counts_all() to authenticated, anon;
 
 -- 승인 대기 제안 목록(관리자만 — 관리자가 아니면 빈 목록). LEFT JOIN 이유는 위와 동일.
+drop function if exists public.wiki_pending_edits();
 create or replace function public.wiki_pending_edits()
 returns table(id bigint, iso text, user_id uuid, proposed_fact text, status text, created_at timestamptz, user_nickname text, user_avatar text)
 language sql security definer set search_path = public stable as $$
@@ -278,6 +280,7 @@ revoke all on function public.wiki_pending_edits() from public, anon;
 grant execute on function public.wiki_pending_edits() to authenticated;
 
 -- 지금 위키에 반영 중인 설명 전체(마지막 수정자 닉네임·프로필사진 포함) — 게스트도 조회 가능
+drop function if exists public.wiki_facts_all();
 create or replace function public.wiki_facts_all()
 returns table(iso text, fact text, updated_by uuid, updated_at timestamptz, user_nickname text, user_avatar text)
 language sql security definer set search_path = public stable as $$
@@ -293,6 +296,7 @@ grant execute on function public.wiki_facts_all() to authenticated, anon;
 -- 계산한다. 게스트도 조회 가능.
 drop function if exists public.wiki_contributors_all();
 drop function if exists public.wiki_contrib_leaderboard();
+drop function if exists public.wiki_fact_history_all();
 create or replace function public.wiki_fact_history_all()
 returns table(id bigint, iso text, user_id uuid, nickname text, avatar_url text, proposed_fact text, reviewed_at timestamptz)
 language sql security definer set search_path = public stable as $$
@@ -306,6 +310,7 @@ revoke all on function public.wiki_fact_history_all() from public, anon;
 grant execute on function public.wiki_fact_history_all() to authenticated, anon;
 
 -- 특정 유저가 승인받은 기여 목록(프로필사진 클릭 시 보여줄 용도) — 게스트도 조회 가능
+drop function if exists public.wiki_user_contributions(uuid);
 create or replace function public.wiki_user_contributions(target_user uuid)
 returns table(id bigint, iso text, proposed_fact text, reviewed_at timestamptz, nickname text, avatar_url text)
 language sql security definer set search_path = public stable as $$
