@@ -712,6 +712,9 @@ body.cq-mode #cq-pins-ov{display:block}
 .wd-row-rg{color:var(--tx2);font-size:.66rem;flex-shrink:0}
 .wd-row-avs{flex-shrink:0}
 .wd-row-avs:empty{display:none}
+.wd-row-cc{flex-shrink:0;display:inline-flex;align-items:center;gap:.15rem;color:var(--tx2);font-size:.64rem;font-weight:600}
+.wd-row-cc:empty{display:none}
+.wd-row-cc svg{width:11px;height:11px}
 .wd-av-stack{display:inline-flex;align-items:center}
 .wd-av-stack .wd-av{margin-left:-6px;box-shadow:0 0 0 2px var(--sf)}
 .wd-av-stack .wd-av:first-child{margin-left:0}
@@ -786,6 +789,10 @@ body.cq-mode #cq-pins-ov{display:block}
 .wd-comment b{color:var(--tx);margin-right:.4rem}
 .wd-comment span{color:var(--tx)}
 .wd-comment small{display:block;color:var(--tx2);font-size:.6rem;margin-top:.2rem}
+.wd-comment-acts{display:flex;gap:.5rem;margin-top:.3rem}
+.wd-comment-acts button{background:none;border:none;padding:0;font-family:inherit;font-size:.62rem;font-weight:600;color:var(--tx2);cursor:pointer}
+.wd-comment-acts button:hover{color:var(--ac)}
+.wd-comment-acts .wd-comment-del-btn:hover{color:var(--wr)}
 .wd-av{border-radius:50%;object-fit:cover;flex-shrink:0;display:inline-block;vertical-align:middle}
 .wd-av-ph{background:var(--ac2);color:var(--ac);display:inline-flex;align-items:center;justify-content:center;font-weight:700}
 .wd-comment-input{display:flex;gap:.4rem;align-items:flex-end}

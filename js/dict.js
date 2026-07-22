@@ -245,6 +245,7 @@ function wdBuildList(){
       +wdFlagImg(iso,28)
       +'<span class="wd-row-tx"><b>'+c.k+'</b><small>'+c.e+'</small></span>'
       +'<span class="wd-row-avs" data-iso="'+iso+'"></span>'
+      +'<span class="wd-row-cc" data-iso="'+iso+'"></span>'
       +'<span class="wd-row-rg">'+wdContOf(iso)+'</span></button>';
   }).join('');
   box.querySelectorAll('.wd-row').forEach(r=>r.addEventListener('click',()=>wdShow(r.dataset.iso)));
@@ -256,14 +257,20 @@ async function wdFillListMeta(){
   const SA=window.SejiAccount;
   if(!SA)return;
   try{
-    const [historyMap,facts]=await Promise.all([
+    const [historyMap,facts,commentCounts]=await Promise.all([
       SA.wikiFactHistory?SA.wikiFactHistory():{},
       SA.wikiApprovedFacts?SA.wikiApprovedFacts():{},
+      SA.wikiCommentCounts?SA.wikiCommentCounts():{},
     ]);
     for(const iso in historyMap){
       const slot=document.querySelector('.wd-row-avs[data-iso="'+iso+'"]');
       if(slot)slot.innerHTML=wdAvatarStack(wdContribListFromHistory(historyMap[iso]),14,3);
     }
+    for(const iso in commentCounts){
+      const cc=document.querySelector('.wd-row-cc[data-iso="'+iso+'"]');
+      if(cc&&commentCounts[iso])cc.innerHTML='<span data-ic="comment"></span>'+commentCounts[iso];
+    }
+    injectIcons(document.getElementById('wd-list'));
     _wdUpdatedAt={};
     for(const iso in facts)_wdUpdatedAt[iso]=facts[iso].updatedAt?new Date(facts[iso].updatedAt).getTime():0;
     wdApplySort();
@@ -511,14 +518,14 @@ function wdShow(iso){
       +'<div class="wd-fact-actions"><button type="button" class="wd-edit-btn" id="wd-edit-btn">✎ 설명 수정 제안</button>'
       +'<span class="wd-my-status" id="wd-my-status"></span></div></div>'
     +infoHtml
-    +wdSec('접경국',nbHtml,'댓글만 가능')
-    +wdSec('주요 도시',ctHtml,'댓글만 가능')
-    +wdSec('종교 구성',relHtml,'댓글만 가능')
-    +wdSec('수출 구조 (상위 품목)',expHtml,'댓글만 가능')
-    +wdSec('에너지 구성',enHtml,'댓글만 가능')
-    +wdSec('기후 (쾨펜 구분)',clHtml,'댓글만 가능')
-    +wdSec('지나는 주요 하천',rvHtml,'댓글만 가능')
-    +'<div class="wd-sec"><div class="wd-sec-t">댓글 <small class="wd-sec-note">정보 오류 제보나 의견 — 위 정보들은 여기서 직접 수정되지 않아요</small></div>'
+    +wdSec('접경국',nbHtml)
+    +wdSec('주요 도시',ctHtml)
+    +wdSec('종교 구성',relHtml)
+    +wdSec('수출 구조 (상위 품목)',expHtml)
+    +wdSec('에너지 구성',enHtml)
+    +wdSec('기후 (쾨펜 구분)',clHtml)
+    +wdSec('지나는 주요 하천',rvHtml)
+    +'<div class="wd-sec"><div class="wd-sec-t">댓글<span id="wd-comment-count"></span> <small class="wd-sec-note">정보 오류 제보나 의견 — 위 정보들은 여기서 직접 수정되지 않아요</small></div>'
       +'<div id="wd-comments-list" class="wd-comments">불러오는 중…</div>'
       +'<div class="wd-comment-input"><textarea id="wd-comment-text" rows="2" placeholder="댓글을 남기려면 로그인하세요"></textarea>'
       +'<button type="button" id="wd-comment-submit">등록</button></div></div>';
@@ -650,12 +657,45 @@ async function wdLoadComments(iso){
   try{
     const list=await SA.wikiListComments(iso);
     if(_wdCurIso!==iso)return;
+    const cntEl=document.getElementById('wd-comment-count');
+    if(cntEl)cntEl.textContent=list.length?' ('+list.length+')':'';
+    const myId=SA.myUserId?SA.myUserId():null;
+    const isAdmin=SA.isAdmin&&SA.isAdmin();
     box.innerHTML=list.length
-      ?list.map(c=>'<div class="wd-comment">'+wdAvatar(c.user_avatar,c.user_nickname,22,c.user_id)
-        +'<div class="wd-comment-body"><b>'+escHtmlWd(c.user_nickname||'익명')+'</b><span>'+escHtmlWd(c.body)+'</span>'
-        +'<small>'+new Date(c.created_at).toLocaleDateString('ko-KR')+'</small></div></div>').join('')
+      ?list.map(c=>{
+        const mine=!!(myId&&c.user_id===myId);
+        const canDel=mine||isAdmin;
+        return '<div class="wd-comment">'+wdAvatar(c.user_avatar,c.user_nickname,22,c.user_id)
+          +'<div class="wd-comment-body"><b>'+escHtmlWd(c.user_nickname||'익명')+'</b><span>'+escHtmlWd(c.body)+'</span>'
+          +'<small>'+new Date(c.created_at).toLocaleDateString('ko-KR')+(c.updated_at?' · 수정됨':'')+'</small>'
+          +((mine||canDel)?'<div class="wd-comment-acts">'
+            +(mine?'<button type="button" class="wd-comment-edit-btn" data-id="'+c.id+'">수정</button>':'')
+            +(canDel?'<button type="button" class="wd-comment-del-btn" data-id="'+c.id+'">삭제</button>':'')
+            +'</div>':'')
+          +'</div></div>';
+      }).join('')
       :'<div class="wd-none">아직 댓글이 없어요</div>';
+    box.querySelectorAll('.wd-comment-edit-btn').forEach(b=>b.addEventListener('click',()=>{
+      const c=list.find(x=>String(x.id)===b.dataset.id);
+      if(c)wdEditComment(iso,c.id,c.body);
+    }));
+    box.querySelectorAll('.wd-comment-del-btn').forEach(b=>b.addEventListener('click',()=>wdDeleteComment(iso,+b.dataset.id)));
   }catch(e){box.innerHTML='<div class="wd-none">댓글을 불러올 수 없어요</div>';}
+}
+async function wdEditComment(iso,id,curBody){
+  const SA=window.SejiAccount;if(!SA)return;
+  const next=prompt('댓글 수정:',curBody);
+  if(next===null)return;
+  const body=next.trim();
+  if(!body)return;
+  const ok=await SA.wikiEditComment(id,body);
+  if(ok)wdLoadComments(iso);
+}
+async function wdDeleteComment(iso,id){
+  const SA=window.SejiAccount;if(!SA)return;
+  if(!confirm('댓글을 삭제할까요?'))return;
+  const ok=await SA.wikiDeleteComment(id);
+  if(ok)wdLoadComments(iso);
 }
 function escHtmlWd(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 async function wdSubmitComment(iso){

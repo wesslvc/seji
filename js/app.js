@@ -24,7 +24,8 @@ const ICON={
   export:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="13" width="16" height="7" rx="1.2"/><path d="M12 13V3M8.5 6.5 12 3l3.5 3.5"/></svg>',
   import:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="13" width="16" height="7" rx="1.2"/><path d="M12 13V3M8.5 9.5 12 13l3.5-3.5"/></svg>',
   trade:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h13M13 4l3.5 4L13 12"/><path d="M21 16H8M11 20l-3.5-4L11 12"/></svg>',
-  dict:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5c-2-1.3-4.5-1.6-7-1v14c2.5-.6 5-.3 7 1 2-1.3 4.5-1.6 7-1V4c-2.5-.6-5-.3-7 1z"/><path d="M12 5v14"/></svg>'
+  dict:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5c-2-1.3-4.5-1.6-7-1v14c2.5-.6 5-.3 7 1 2-1.3 4.5-1.6 7-1V4c-2.5-.6-5-.3-7 1z"/><path d="M12 5v14"/></svg>',
+  comment:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8A2.5 2.5 0 0 1 17.5 16H10l-4.5 4v-4H6.5A2.5 2.5 0 0 1 4 13.5z"/></svg>'
 };
 function ic(name){return ICON[name]||'';}
 function injectIcons(root){(root||document).querySelectorAll('[data-ic]').forEach(e=>{if(!e.dataset.icDone){e.innerHTML=ICON[e.dataset.ic]||'';e.dataset.icDone='1';}});}

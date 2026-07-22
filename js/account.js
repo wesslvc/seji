@@ -1042,6 +1042,7 @@ async function wikiAddComment(iso, body) {
   await ensureSB();
   const { error } = await supabase.from('wiki_comments').insert({ iso, user_id: session.user.id, body });
   if (error) { toast('댓글 등록 실패: ' + (error.message || '')); return false; }
+  _wikiCommentCountsCache = null;
   return true;
 }
 async function wikiListComments(iso) {
@@ -1051,10 +1052,30 @@ async function wikiListComments(iso) {
   if (error) { console.error('[세지위키] wiki_comments_for 실패:', error); return []; }
   return data || [];
 }
+async function wikiEditComment(id, body) {
+  await ensureSB();
+  const { error } = await supabase.from('wiki_comments').update({ body, updated_at: new Date().toISOString() }).eq('id', id);
+  if (error) { toast('댓글 수정 실패: ' + (error.message || '')); return false; }
+  return true;
+}
 async function wikiDeleteComment(id) {
   await ensureSB();
   const { error } = await supabase.from('wiki_comments').delete().eq('id', id);
+  if (!error) _wikiCommentCountsCache = null;
   return !error;
+}
+/* iso → 댓글 개수(위키 목록에서 국가 옆에 표시) */
+let _wikiCommentCountsCache = null;
+async function wikiCommentCounts() {
+  if (_wikiCommentCountsCache) return _wikiCommentCountsCache;
+  await ensureSB();
+  if (!supabase) return {};
+  const { data, error } = await supabase.rpc('wiki_comment_counts_all');
+  if (error) { console.error('[세지위키] wiki_comment_counts_all 실패:', error); return {}; }
+  const map = {};
+  (data || []).forEach((r) => { map[r.iso] = Number(r.cnt); });
+  _wikiCommentCountsCache = map;
+  return map;
 }
 /* 프로필사진 클릭 시: 그 사람이 승인받은 기여 목록(국가·내용·개수) */
 async function wikiUserContributions(userId) {
@@ -1091,10 +1112,11 @@ async function getShareInfo() {
 window.SejiAccount = {
   submitScore, isLoggedIn: () => !!session, getShareInfo,
   isAdmin: () => !!(profile && profile.is_admin),
+  myUserId: () => (session && session.user.id) || null,
   promptLogin: () => open('acct-login'),
   wikiSubmitEdit, wikiMyEdits, wikiPendingList, wikiApprovedFacts, wikiFactHistory,
-  wikiApprove, wikiReject, wikiAddComment, wikiListComments, wikiDeleteComment,
-  wikiUserContributions,
+  wikiApprove, wikiReject, wikiAddComment, wikiListComments, wikiEditComment, wikiDeleteComment,
+  wikiCommentCounts, wikiUserContributions,
 };
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
