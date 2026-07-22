@@ -367,6 +367,10 @@ function wdMiniMapAddIso(targetParts,defs,bbs,skip,i,solidFill,forBBox,patternIs
     if((el.getAttribute('class')||'').includes('circlexx'))return;
     const paths=el.tagName==='path'?[el]:[...el.querySelectorAll('path')];
     paths.forEach(p=>{
+      /* el 자체는 skip에 안 걸려도(예: #cn), querySelectorAll('path')로 펼치면
+         그 안에 중첩된 분쟁지역(#tw 등)의 개별 path까지 딸려 나올 수 있어 —
+         조각(p) 단위로도 다시 한번 skip 검사 */
+      if(skip(i,p))return;
       const d=p.getAttribute('d');if(!d)return;
       if(seenD.has(d))return;
       seenD.add(d);
@@ -375,7 +379,7 @@ function wdMiniMapAddIso(targetParts,defs,bbs,skip,i,solidFill,forBBox,patternIs
       items.push({d,bbox});
       /* 화면 맞춤용 조각은 그룹(g)이 아닌 개별 패스 단위로 — 그룹 bbox는 흩어진
          섬 전체를 덮어 태평양 국가(키리바시 등)에서 지도가 무한정 넓어진다 */
-      if(forBBox&&bbox&&(bbox.width||bbox.height)&&!skip(i,p))bbs.push(bbox);
+      if(forBBox&&bbox&&(bbox.width||bbox.height))bbs.push(bbox);
     });
   });
   if(!items.length)return;
@@ -415,6 +419,11 @@ function wdMiniMapSVG(iso){
     if(i==='fr'&&el.closest('#gf'))return true;
     if(i==='us'&&(el.closest('#ak')||el.closest('#hi')))return true;
     if(i==='ru'){try{const b=el.getBBox();if(b.x>2400)return true;}catch(e){}}
+    /* 대만(#tw)이 세계지도 원본에서 중국(#cn) 그룹 안에 자식으로 중첩돼 있어서,
+       중국을 그릴 때 querySelectorAll('path')가 대만 영역까지 같이 쓸어담아
+       중국 국기로 덮어버리는 문제가 있었다 — 대만은 독립국으로 취급해 항상 제외.
+       코소보·팔레스타인·서사하라는 세계지도에서 이미 별도 그룹이라 이 문제가 없음. */
+    if(i==='cn'&&el.closest('#tw'))return true;
     return false;
   };
   const ringParts=[],nbParts=[],homeParts=[];
