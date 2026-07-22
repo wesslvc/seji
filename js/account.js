@@ -1005,19 +1005,20 @@ async function wikiApprovedFacts() {
   _wikiFactsCache = map;
   return map;
 }
-/* iso → 기여자 목록(최근 기여 순, 여러 명 가능) — 승인된 제안 기준 */
-let _wikiContribCache = null;
-async function wikiContributors() {
-  if (_wikiContribCache) return _wikiContribCache;
+/* iso → 승인된 수정 이력 전체(오래된 순) — 여러 명이 고친 경우 블레임(누가 어디까지
+   고쳤는지) 표시와 기여 랭킹(수정 글자수) 계산에 씀 */
+let _wikiHistoryCache = null;
+async function wikiFactHistory() {
+  if (_wikiHistoryCache) return _wikiHistoryCache;
   await ensureSB();
   if (!supabase) return {};
-  const { data, error } = await supabase.rpc('wiki_contributors_all');
-  if (error) { console.error('[세지위키] wiki_contributors_all 실패:', error); return {}; }
+  const { data, error } = await supabase.rpc('wiki_fact_history_all');
+  if (error) { console.error('[세지위키] wiki_fact_history_all 실패:', error); return {}; }
   const map = {};
   (data || []).forEach((r) => {
-    (map[r.iso] || (map[r.iso] = [])).push({ userId: r.user_id, nickname: r.nickname, avatarUrl: r.avatar_url, lastAt: r.last_at });
+    (map[r.iso] || (map[r.iso] = [])).push({ userId: r.user_id, nickname: r.nickname, avatarUrl: r.avatar_url, fact: r.proposed_fact, reviewedAt: r.reviewed_at });
   });
-  _wikiContribCache = map;
+  _wikiHistoryCache = map;
   return map;
 }
 async function wikiApprove(id) {
@@ -1025,7 +1026,7 @@ async function wikiApprove(id) {
   const { error } = await supabase.rpc('approve_wiki_edit', { edit_id: id });
   if (error) { toast('승인 실패: ' + (error.message || '')); return false; }
   _wikiFactsCache = null;
-  _wikiContribCache = null;
+  _wikiHistoryCache = null;
   toast('승인 완료 — 위키에 반영됐어요');
   return true;
 }
@@ -1054,14 +1055,6 @@ async function wikiDeleteComment(id) {
   await ensureSB();
   const { error } = await supabase.from('wiki_comments').delete().eq('id', id);
   return !error;
-}
-/* 기여 랭킹 — 승인된 수정 제안 수 기준 */
-async function wikiContribLeaderboard() {
-  await ensureSB();
-  if (!supabase) return [];
-  const { data, error } = await supabase.rpc('wiki_contrib_leaderboard');
-  if (error) { console.error('[세지위키] wiki_contrib_leaderboard 실패:', error); return []; }
-  return data || [];
 }
 /* 프로필사진 클릭 시: 그 사람이 승인받은 기여 목록(국가·내용·개수) */
 async function wikiUserContributions(userId) {
@@ -1099,9 +1092,9 @@ window.SejiAccount = {
   submitScore, isLoggedIn: () => !!session, getShareInfo,
   isAdmin: () => !!(profile && profile.is_admin),
   promptLogin: () => open('acct-login'),
-  wikiSubmitEdit, wikiMyEdits, wikiPendingList, wikiApprovedFacts, wikiContributors,
+  wikiSubmitEdit, wikiMyEdits, wikiPendingList, wikiApprovedFacts, wikiFactHistory,
   wikiApprove, wikiReject, wikiAddComment, wikiListComments, wikiDeleteComment,
-  wikiContribLeaderboard, wikiUserContributions,
+  wikiUserContributions,
 };
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

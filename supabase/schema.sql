@@ -271,20 +271,22 @@ $$;
 revoke all on function public.wiki_facts_all() from public, anon;
 grant execute on function public.wiki_facts_all() to authenticated, anon;
 
--- 국가별 기여자 전원(승인된 제안 기준, 여러 명일 수 있음) — 최근 기여 순 정렬(가나다 아님).
--- 게스트도 조회 가능(목록 화면에서 기여자 아바타를 보여주는 데 씀).
-create or replace function public.wiki_contributors_all()
-returns table(iso text, user_id uuid, nickname text, avatar_url text, last_at timestamptz)
+-- 국가별 승인된 수정 이력 전체(오래된 순) — 여러 명이 고친 경우 각자 어디까지
+-- 고쳤는지(블레임) 표시하는 데 쓰고, 전체를 합치면 기여 랭킹(수정 글자수)도 여기서
+-- 계산한다. 게스트도 조회 가능.
+drop function if exists public.wiki_contributors_all();
+drop function if exists public.wiki_contrib_leaderboard();
+create or replace function public.wiki_fact_history_all()
+returns table(id bigint, iso text, user_id uuid, nickname text, avatar_url text, proposed_fact text, reviewed_at timestamptz)
 language sql security definer set search_path = public stable as $$
-  select we.iso, we.user_id, p.nickname, p.avatar_url, max(we.reviewed_at) as last_at
+  select we.id, we.iso, we.user_id, p.nickname, p.avatar_url, we.proposed_fact, we.reviewed_at
   from public.wiki_edits we
   left join public.profiles p on p.id = we.user_id
   where we.status = 'approved'
-  group by we.iso, we.user_id, p.nickname, p.avatar_url
-  order by we.iso, last_at desc;
+  order by we.iso, we.reviewed_at asc;
 $$;
-revoke all on function public.wiki_contributors_all() from public, anon;
-grant execute on function public.wiki_contributors_all() to authenticated, anon;
+revoke all on function public.wiki_fact_history_all() from public, anon;
+grant execute on function public.wiki_fact_history_all() to authenticated, anon;
 
 -- 특정 유저가 승인받은 기여 목록(프로필사진 클릭 시 보여줄 용도) — 게스트도 조회 가능
 create or replace function public.wiki_user_contributions(target_user uuid)
@@ -343,16 +345,3 @@ $$;
 revoke all on function public.reject_wiki_edit(bigint, text) from public, anon;
 grant execute on function public.reject_wiki_edit(bigint, text) to authenticated;
 
--- 기여 랭킹 — 승인된 수정 제안 수 기준 (닉네임·프로필사진 포함, 게스트도 조회 가능)
-create or replace function public.wiki_contrib_leaderboard()
-returns table(user_id uuid, nickname text, avatar_url text, approved_count bigint)
-language sql security definer set search_path = public stable as $$
-  select we.user_id, p.nickname, p.avatar_url, count(*) as approved_count
-  from public.wiki_edits we
-  left join public.profiles p on p.id = we.user_id
-  where we.status = 'approved'
-  group by we.user_id, p.nickname, p.avatar_url
-  order by approved_count desc, p.nickname asc;
-$$;
-revoke all on function public.wiki_contrib_leaderboard() from public, anon;
-grant execute on function public.wiki_contrib_leaderboard() to authenticated, anon;

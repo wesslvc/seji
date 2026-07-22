@@ -55,6 +55,80 @@ function wdWordDiff(oldText,newText){
   while(j<m){out+='<ins>'+escHtmlWd(b[j])+'</ins>';j++;}
   return out;
 }
+/* 글자 단위 LCS diff — 추가/삭제된 글자 수만 센다(기여 랭킹용) */
+function wdCharDiffCounts(oldText,newText){
+  const a=oldText||'',b=newText||'';
+  const n=a.length,m=b.length;
+  const dp=new Array(n+1);
+  for(let i=0;i<=n;i++)dp[i]=new Int32Array(m+1);
+  for(let i=n-1;i>=0;i--)for(let j=m-1;j>=0;j--)
+    dp[i][j]=a[i]===b[j]?dp[i+1][j+1]+1:Math.max(dp[i+1][j],dp[i][j+1]);
+  let i=0,j=0,added=0,removed=0;
+  while(i<n&&j<m){
+    if(a[i]===b[j]){i++;j++;}
+    else if(dp[i+1][j]>=dp[i][j+1]){removed++;i++;}
+    else{added++;j++;}
+  }
+  removed+=(n-i);added+=(m-j);
+  return {added,removed};
+}
+/* iso별 승인 이력(오래된 순)에서 현재 기여자 목록을 뽑는다 — 최근 기여 순(가나다 아님) */
+function wdContribListFromHistory(historyArr){
+  const map=new Map();
+  (historyArr||[]).forEach(h=>{map.set(h.userId,{userId:h.userId,nickname:h.nickname,avatarUrl:h.avatarUrl,lastAt:h.reviewedAt});});
+  return [...map.values()].sort((a,b)=>new Date(b.lastAt)-new Date(a.lastAt));
+}
+/* 블레임 — 승인 이력을 순서대로 겹쳐 쓰면서, 지금 남아있는 각 글자가 어느 기여자의
+   수정에서 왔는지 추적한다(나중 수정이 이전 글자를 그대로 남겨두면 원래 기여자 유지). */
+function wdBlameStep(prevTokens,prevOwners,newFact,owner){
+  const b=(newFact||'').split(/(\s+)/);
+  const a=prevTokens;
+  const n=a.length,m=b.length;
+  const dp=new Array(n+1);
+  for(let i=0;i<=n;i++)dp[i]=new Int32Array(m+1);
+  for(let i=n-1;i>=0;i--)for(let j=m-1;j>=0;j--)
+    dp[i][j]=a[i]===b[j]?dp[i+1][j+1]+1:Math.max(dp[i+1][j],dp[i][j+1]);
+  let i=0,j=0;
+  const tokens=[],owners=[];
+  while(i<n&&j<m){
+    if(a[i]===b[j]){tokens.push(b[j]);owners.push(prevOwners[i]);i++;j++;}
+    else if(dp[i+1][j]>=dp[i][j+1]){i++;}
+    else{tokens.push(b[j]);owners.push(owner);j++;}
+  }
+  while(j<m){tokens.push(b[j]);owners.push(owner);j++;}
+  return {tokens,owners};
+}
+function wdComputeBlame(historyArr){
+  let tokens=[],owners=[];
+  (historyArr||[]).forEach(h=>{
+    const r=wdBlameStep(tokens,owners,h.fact,{userId:h.userId,nickname:h.nickname,avatarUrl:h.avatarUrl});
+    tokens=r.tokens;owners=r.owners;
+  });
+  return {tokens,owners};
+}
+const WD_BLAME_COLORS=['#8ab4f8','#81c995','#fdd663','#f28b82','#c58af9','#78d9ec','#ff8bcb','#ffab70'];
+/* 여러 명이 고친 국가의 현재 설명을, 어느 부분이 누구 글인지 밑줄 색으로 표시 + 범례 */
+function wdRenderBlame(historyArr){
+  const {tokens,owners}=wdComputeBlame(historyArr);
+  const colorOf={};const ownerList=[];let ci=0;
+  owners.forEach(o=>{if(o&&!colorOf[o.userId]){colorOf[o.userId]=WD_BLAME_COLORS[ci%WD_BLAME_COLORS.length];ci++;ownerList.push(o);}});
+  let html='',buf='',curKey=undefined;
+  const flush=()=>{
+    if(!buf)return;
+    if(curKey)html+='<span class="wd-blame-run" style="border-bottom-color:'+colorOf[curKey]+'" title="'+escHtmlWd((owners.find(o=>o&&o.userId===curKey)||{}).nickname||'익명')+'">'+escHtmlWd(buf)+'</span>';
+    else html+=escHtmlWd(buf);
+    buf='';
+  };
+  tokens.forEach((t,idx)=>{
+    const o=owners[idx];
+    const key=o?o.userId:null;
+    if(curKey!==key){flush();curKey=key;}
+    buf+=t;
+  });
+  flush();
+  const legendHtml=ownerList.length>1?ownerList.map(o=>'<span class="wd-blame-lg-it"><i style="background:'+colorOf[o.userId]+'"></i>'+wdAvatar(o.avatarUrl,o.nickname,14,o.userId)+' '+escHtmlWd(o.nickname||'익명')+'</span>').join(''):'';
+  return {html,legendHtml};
+}
 /* iso → 대륙 한글명 (CONT: 대륙→iso 목록의 역방향) */
 let _wdContOf=null;
 function wdContOf(iso){
@@ -123,13 +197,13 @@ async function wdFillListMeta(){
   const SA=window.SejiAccount;
   if(!SA)return;
   try{
-    const [contribMap,facts]=await Promise.all([
-      SA.wikiContributors?SA.wikiContributors():{},
+    const [historyMap,facts]=await Promise.all([
+      SA.wikiFactHistory?SA.wikiFactHistory():{},
       SA.wikiApprovedFacts?SA.wikiApprovedFacts():{},
     ]);
-    for(const iso in contribMap){
+    for(const iso in historyMap){
       const slot=document.querySelector('.wd-row-avs[data-iso="'+iso+'"]');
-      if(slot)slot.innerHTML=wdAvatarStack(contribMap[iso],14,3);
+      if(slot)slot.innerHTML=wdAvatarStack(wdContribListFromHistory(historyMap[iso]),14,3);
     }
     _wdUpdatedAt={};
     for(const iso in facts)_wdUpdatedAt[iso]=facts[iso].updatedAt?new Date(facts[iso].updatedAt).getTime():0;
@@ -372,6 +446,7 @@ function wdShow(iso){
     +'<div class="wd-head">'+wdFlagImg(iso,64,'big')
     +'<div class="wd-head-tx"><h2>'+c.k+'</h2><small>'+c.e+' · '+wdContOf(iso)+'</small></div></div>'
     +'<div class="wd-fact" id="wd-fact-box"><div id="wd-fact-text">'+(d.fact||'')+'</div>'
+      +'<div id="wd-blame-legend" class="wd-blame-legend" style="display:none"></div>'
       +'<div class="wd-fact-actions"><button type="button" class="wd-edit-btn" id="wd-edit-btn">✎ 설명 수정 제안</button>'
       +'<span class="wd-my-status" id="wd-my-status"></span></div></div>'
     +infoHtml
@@ -420,26 +495,34 @@ function wdChartInner(l){
 async function wdEnhanceFact(iso){
   const SA=window.SejiAccount;if(!SA)return;
   try{
-    const facts=await SA.wikiApprovedFacts();
+    const [facts,historyMap]=await Promise.all([
+      SA.wikiApprovedFacts(),
+      SA.wikiFactHistory?SA.wikiFactHistory():{},
+    ]);
     if(_wdCurIso!==iso)return; /* 그 사이 다른 나라로 넘어갔으면 무시 */
     const rec=facts[iso];
+    const history=historyMap[iso]||[];
     if(rec&&rec.fact){
       const box=document.getElementById('wd-fact-text');
-      const orig=(DICT_DATA[iso]||{}).fact||'';
-      const changed=rec.fact!==orig;
+      const legendBox=document.getElementById('wd-blame-legend');
       const render=highlight=>{
         if(!box)return;
-        if(highlight&&changed)box.innerHTML=wdWordDiff(orig,rec.fact);
-        else box.textContent=rec.fact;
+        if(highlight&&history.length){
+          const {html,legendHtml}=wdRenderBlame(history);
+          box.innerHTML=html;
+          if(legendBox){legendBox.innerHTML=legendHtml;legendBox.style.display=legendHtml?'':'none';}
+        }else{
+          box.textContent=rec.fact;
+          if(legendBox){legendBox.innerHTML='';legendBox.style.display='none';}
+        }
       };
       render(false);
       const badge=document.getElementById('wd-fact-box');
       if(badge&&!badge.querySelector('.wd-edited-badge')){
-        const contribs=(SA.wikiContributors?(await SA.wikiContributors())[iso]:null)||[];
-        if(_wdCurIso!==iso)return;
+        const contribs=wdContribListFromHistory(history);
         const b=document.createElement('div');b.className='wd-edited-badge';
         b.innerHTML='✓ 커뮤니티 편집 반영됨'+wdAvatarStack(contribs,16)
-          +(changed?'<label class="wd-diff-toggle"><input type="checkbox" id="wd-diff-chk">커뮤니티 수정내용 보기</label>':'');
+          +(history.length?'<label class="wd-diff-toggle"><input type="checkbox" id="wd-diff-chk">커뮤니티 수정내용 보기</label>':'');
         badge.insertBefore(b,badge.firstChild);
         const chk=document.getElementById('wd-diff-chk');
         if(chk)chk.addEventListener('change',()=>render(chk.checked));
@@ -616,7 +699,7 @@ async function wdOpenMyContribs(){
   }).join('');
 }
 
-/* ══════════ 기여 랭킹 (승인된 수정 제안 수) ══════════ */
+/* ══════════ 기여 랭킹 (수정한 글자 수 +/-) ══════════ */
 let _wdRankModal=null;
 function wdEnsureRankModal(){
   if(_wdRankModal)return _wdRankModal;
@@ -625,13 +708,27 @@ function wdEnsureRankModal(){
   m.innerHTML='<div class="acct-card" style="position:relative;width:min(440px,92vw);max-height:82vh;overflow-y:auto">'
     +'<button class="acct-x" type="button" id="wd-rank-close">✕</button>'
     +'<h2>🏆 기여 랭킹</h2>'
-    +'<div class="sub">승인된 수정 제안 수 기준이에요.</div>'
+    +'<div class="sub">승인된 수정에서 바뀐 글자 수 기준이에요.</div>'
     +'<div id="wd-rank-list"></div></div>';
   document.body.appendChild(m);
   m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('on');});
   document.getElementById('wd-rank-close').addEventListener('click',()=>m.classList.remove('on'));
   _wdRankModal=m;
   return m;
+}
+/* 국가별 승인 이력을 순서대로 diff해서 사용자별 추가/삭제 글자 수를 합산 */
+function wdCharTotalsFromHistory(historyMap){
+  const totals={};
+  for(const iso in historyMap){
+    let prevText='';
+    (historyMap[iso]||[]).forEach(h=>{
+      const {added,removed}=wdCharDiffCounts(prevText,h.fact);
+      const t=totals[h.userId]||(totals[h.userId]={userId:h.userId,nickname:h.nickname,avatarUrl:h.avatarUrl,added:0,removed:0});
+      t.added+=added;t.removed+=removed;
+      prevText=h.fact;
+    });
+  }
+  return Object.values(totals).sort((a,b)=>(b.added+b.removed)-(a.added+a.removed));
 }
 async function wdOpenContribRanking(){
   const SA=window.SejiAccount;
@@ -640,15 +737,16 @@ async function wdOpenContribRanking(){
   m.classList.add('on');
   const list=document.getElementById('wd-rank-list');
   list.innerHTML='불러오는 중…';
-  if(!SA||!SA.wikiContribLeaderboard){list.innerHTML='<div class="wd-none">랭킹을 불러올 수 없어요</div>';return;}
-  const rows=await SA.wikiContribLeaderboard();
+  if(!SA||!SA.wikiFactHistory){list.innerHTML='<div class="wd-none">랭킹을 불러올 수 없어요</div>';return;}
+  const historyMap=await SA.wikiFactHistory();
+  const rows=wdCharTotalsFromHistory(historyMap);
   if(!rows.length){list.innerHTML='<div class="wd-none">아직 승인된 기여가 없어요 — 첫 기여자가 되어보세요!</div>';return;}
   const medal=i=>i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.';
   list.innerHTML=rows.map((r,i)=>
     '<div class="wd-rank-row"><span class="wd-rank-no">'+medal(i)+'</span>'
-    +wdAvatar(r.avatar_url,r.nickname,28,r.user_id)
+    +wdAvatar(r.avatarUrl,r.nickname,28,r.userId)
     +'<span class="wd-rank-nm">'+escHtmlWd(r.nickname||'익명')+'</span>'
-    +'<span class="wd-rank-ct">'+r.approved_count+'건</span></div>'
+    +'<span class="wd-rank-ct"><span class="wd-plus">+'+r.added+'</span> <span class="wd-minus">-'+r.removed+'</span></span></div>'
   ).join('');
 }
 

@@ -685,6 +685,8 @@ body.cq-mode #cq-pins-ov{display:block}
 .wd-rank-no{width:28px;flex-shrink:0;text-align:center;font-size:.9rem;font-weight:800;color:var(--tx2)}
 .wd-rank-nm{flex:1;font-size:.82rem;font-weight:700;color:var(--tx);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .wd-rank-ct{font-size:.76rem;font-weight:700;color:var(--ac);flex-shrink:0}
+.wd-rank-ct .wd-plus{color:#81c995}
+.wd-rank-ct .wd-minus{color:var(--wr);margin-left:.3rem}
 .wd-title{display:flex;align-items:center;gap:.45rem;font-weight:800;font-size:.95rem;color:var(--tx)}
 .wd-title svg{width:1.05em;height:1.05em;color:#e2c07a}
 .wd-back{display:inline-flex;align-items:center;gap:.3rem;background:var(--sf2);border:1px solid var(--bd);border-radius:999px;color:var(--tx2);font-family:inherit;font-size:.76rem;font-weight:600;padding:.34rem .8rem;cursor:pointer;transition:.15s var(--ease)}
@@ -787,6 +789,11 @@ body.cq-mode #cq-pins-ov{display:block}
 .wd-diff ins,#wd-fact-text ins{color:#81c995;text-decoration:none;background:rgba(129,201,149,.16);border-radius:3px;padding:0 1px}
 .wd-diff-toggle{margin-left:auto;display:inline-flex;align-items:center;gap:.25rem;font-size:.62rem;color:var(--tx2);font-weight:600;cursor:pointer}
 .wd-diff-toggle input{cursor:pointer}
+/* 블레임 — 여러 명이 고친 설명에서 누가 어디를 썼는지 밑줄 색으로 구분 */
+.wd-blame-run{border-bottom:2px solid;padding-bottom:1px}
+.wd-blame-legend{display:flex;flex-wrap:wrap;gap:.5rem;margin:.4rem 0 0}
+.wd-blame-lg-it{display:inline-flex;align-items:center;gap:.3rem;font-size:.64rem;color:var(--tx2);background:var(--sf2);border-radius:999px;padding:.15rem .55rem .15rem .3rem}
+.wd-blame-lg-it i{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
 .wd-av-clickable{cursor:pointer}
 .wd-user-head{display:flex;align-items:center;gap:.6rem;margin-bottom:.8rem}
 .wd-user-tx{display:flex;flex-direction:column;gap:.15rem}
