@@ -13,9 +13,9 @@ function wdFlag(iso){
   const A=0x1F1E6;
   return String.fromCodePoint(A+iso.charCodeAt(0)-97,A+iso.charCodeAt(1)-97);
 }
-/* 국기 PNG(flagcdn)도 못 뜨고 국기 이모지도 깨지는 환경(네트워크 차단, 윈도우 폰트 등)을
-   대비한 최종 대체 표시 — flag-colors-data.js 고정표의 국기 배색 2개로 만든 색상
-   스와치. 네트워크·폰트에 전혀 의존하지 않아 항상 "국기처럼 보이는 무언가"가 뜬다. */
+/* 국기 SVG(flags/ 폴더, 같은 origin이라 사실상 항상 뜸)조차 실패하는 극히 드문
+   경우와 국기 이모지가 깨지는 환경(윈도우 폰트 등)을 대비한 최종 대체 표시 —
+   flag-colors-data.js 고정표의 국기 배색 2개로 만든 색상 스와치. */
 function wdFlagSwatch(iso,px,cls){
   px=Math.round(px)||18;
   const h=Math.max(3,Math.round(px*0.72));
@@ -30,10 +30,12 @@ function wdFlagFail(el){
   tmp.innerHTML=wdFlagSwatch(iso,px,big?'big':'');
   el.replaceWith(tmp.firstElementChild);
 }
-/* iso2 → 국기 PNG (flagcdn) — 실패하면 색상 스와치로 대체 */
+/* iso2 → 국기 SVG — flags/ 폴더에 같은 origin으로 직접 담아둠(flagcdn.com 같은 외부
+   CDN은 네트워크 환경에 따라 차단/실패해 국기가 하나도 안 보이는 문제가 있었음).
+   실패하면(파일 자체가 없는 극히 드문 코드 등) 색상 스와치로 대체 */
 function wdFlagImg(iso,px,cls){
   return '<img class="wd-flag-img'+(cls?' '+cls:'')+'" data-iso="'+iso+'" data-px="'+px+'" alt="" loading="lazy" width="'+px+'" '
-    +'src="https://flagcdn.com/w'+(px<=40?80:px<=160?160:320)+'/'+iso+'.png" '
+    +'src="flags/'+iso+'.svg" '
     +'onerror="wdFlagFail(this)">';
 }
 /* 국가 상세 페이지 틀 색을 그 나라 국기 대표색으로 물들인다 — flag-colors-data.js의
@@ -340,10 +342,16 @@ function wdNeighbors(iso){
 /* 국기 이미지를 그 나라 영토 모양에 맞춰 클리핑해 채우는 SVG 패턴 —
    patternUnits=objectBoundingBox라 패스(조각)마다 국기가 그 조각의 테두리에 맞춰
    다시 스케일되어 채워진다(작은 섬도 국기가 잘리지 않고 꽉 차 보임).
+   patternContentUnits도 반드시 objectBoundingBox로 같이 줘야 한다 — 이걸 안 주면
+   기본값(userSpaceOnUse)이 적용돼서 안의 <image width=1 height=1>이 "실제 1px×1px"로
+   그려져(패턴 타일 크기와 단위가 안 맞음) 사실상 안 보이는 점이 되고, 결과적으로
+   국기 무늬 없이 밑에 깐 단색만 계속 보이는 버그가 있었다(교체 전 실제 증상).
+   flags/ 폴더(같은 origin, flag-icons SVG)를 쓴다 — flagcdn.com 같은 외부 CDN은
+   네트워크 환경에 따라 이미지가 아예 안 뜨는 문제가 있어서 로컬로 바꿈.
    href·xlink:href를 둘 다 써서 구형 렌더러(xlink:href만 인식하는 경우)도 대응. */
 function wdFlagPatternDef(iso){
-  const url='https://flagcdn.com/w160/'+iso+'.png';
-  return '<pattern id="wdfp-'+iso+'" patternUnits="objectBoundingBox" width="1" height="1">'
+  const url='flags/'+iso+'.svg';
+  return '<pattern id="wdfp-'+iso+'" patternUnits="objectBoundingBox" patternContentUnits="objectBoundingBox" width="1" height="1">'
     +'<image href="'+url+'" xlink:href="'+url+'" x="0" y="0" width="1" height="1" preserveAspectRatio="xMidYMid slice"/>'
     +'</pattern>';
 }
