@@ -271,6 +271,21 @@ $$;
 revoke all on function public.wiki_facts_all() from public, anon;
 grant execute on function public.wiki_facts_all() to authenticated, anon;
 
+-- 국가별 기여자 전원(승인된 제안 기준, 여러 명일 수 있음) — 최근 기여 순 정렬(가나다 아님).
+-- 게스트도 조회 가능(목록 화면에서 기여자 아바타를 보여주는 데 씀).
+create or replace function public.wiki_contributors_all()
+returns table(iso text, user_id uuid, nickname text, avatar_url text, last_at timestamptz)
+language sql security definer set search_path = public stable as $$
+  select we.iso, we.user_id, p.nickname, p.avatar_url, max(we.reviewed_at) as last_at
+  from public.wiki_edits we
+  left join public.profiles p on p.id = we.user_id
+  where we.status = 'approved'
+  group by we.iso, we.user_id, p.nickname, p.avatar_url
+  order by we.iso, last_at desc;
+$$;
+revoke all on function public.wiki_contributors_all() from public, anon;
+grant execute on function public.wiki_contributors_all() to authenticated, anon;
+
 -- 승인 — 관리자만, 통과되면 wiki_facts에 반영되고 제안은 approved로 표시됨
 create or replace function public.approve_wiki_edit(edit_id bigint)
 returns void
@@ -285,8 +300,9 @@ begin
   if not found then
     raise exception '대기 중인 제안을 찾을 수 없습니다';
   end if;
+  -- updated_by는 제안자(e.user_id)로 기록 — 승인한 관리자가 아니라 실제 기여자가 표시돼야 함
   insert into public.wiki_facts (iso, fact, updated_by, updated_at)
-  values (e.iso, e.proposed_fact, auth.uid(), now())
+  values (e.iso, e.proposed_fact, e.user_id, now())
   on conflict (iso) do update set fact = excluded.fact, updated_by = excluded.updated_by, updated_at = excluded.updated_at;
   update public.wiki_edits set status = 'approved', reviewed_by = auth.uid(), reviewed_at = now()
   where id = edit_id;

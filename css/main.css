@@ -704,6 +704,12 @@ body.cq-mode #cq-pins-ov{display:block}
 .wd-row-tx b{color:var(--tx);font-size:.86rem;font-weight:700}
 .wd-row-tx small{color:var(--tx2);font-size:.66rem}
 .wd-row-rg{color:var(--tx2);font-size:.66rem;flex-shrink:0}
+.wd-row-avs{flex-shrink:0}
+.wd-row-avs:empty{display:none}
+.wd-av-stack{display:inline-flex;align-items:center}
+.wd-av-stack .wd-av{margin-left:-6px;box-shadow:0 0 0 2px var(--sf)}
+.wd-av-stack .wd-av:first-child{margin-left:0}
+.wd-av-more{border-radius:50%;background:var(--sf2);color:var(--tx2);display:inline-flex;align-items:center;justify-content:center;font-weight:700}
 #wd-detail{flex:1;overflow-y:auto;padding:.8rem .9rem 2rem;max-width:720px;width:100%;margin:0 auto;scrollbar-width:thin}
 .wd-head{display:flex;align-items:center;gap:.8rem;margin:.7rem 0 .5rem}
 .wd-head-tx h2{font-size:1.35rem;font-weight:800;color:var(--tx);line-height:1.2}

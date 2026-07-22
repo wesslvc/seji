@@ -1005,11 +1005,27 @@ async function wikiApprovedFacts() {
   _wikiFactsCache = map;
   return map;
 }
+/* iso → 기여자 목록(최근 기여 순, 여러 명 가능) — 승인된 제안 기준 */
+let _wikiContribCache = null;
+async function wikiContributors() {
+  if (_wikiContribCache) return _wikiContribCache;
+  await ensureSB();
+  if (!supabase) return {};
+  const { data, error } = await supabase.rpc('wiki_contributors_all');
+  if (error) { console.error('[세지위키] wiki_contributors_all 실패:', error); return {}; }
+  const map = {};
+  (data || []).forEach((r) => {
+    (map[r.iso] || (map[r.iso] = [])).push({ userId: r.user_id, nickname: r.nickname, avatarUrl: r.avatar_url, lastAt: r.last_at });
+  });
+  _wikiContribCache = map;
+  return map;
+}
 async function wikiApprove(id) {
   await ensureSB();
   const { error } = await supabase.rpc('approve_wiki_edit', { edit_id: id });
   if (error) { toast('승인 실패: ' + (error.message || '')); return false; }
   _wikiFactsCache = null;
+  _wikiContribCache = null;
   toast('승인 완료 — 위키에 반영됐어요');
   return true;
 }
@@ -1075,7 +1091,7 @@ window.SejiAccount = {
   submitScore, isLoggedIn: () => !!session, getShareInfo,
   isAdmin: () => !!(profile && profile.is_admin),
   promptLogin: () => open('acct-login'),
-  wikiSubmitEdit, wikiMyEdits, wikiPendingList, wikiApprovedFacts,
+  wikiSubmitEdit, wikiMyEdits, wikiPendingList, wikiApprovedFacts, wikiContributors,
   wikiApprove, wikiReject, wikiAddComment, wikiListComments, wikiDeleteComment,
   wikiContribLeaderboard,
 };
