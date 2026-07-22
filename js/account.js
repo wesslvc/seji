@@ -982,13 +982,15 @@ async function wikiMyEdits(iso) {
   let q = supabase.from('wiki_edits').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false });
   if (iso) q = q.eq('iso', iso);
   const { data, error } = await q;
-  return error ? [] : (data || []);
+  if (error) { console.error('[세지위키] wikiMyEdits 실패:', error); return []; }
+  return data || [];
 }
 async function wikiPendingList() {
   await ensureSB();
   if (!supabase) return [];
   const { data, error } = await supabase.rpc('wiki_pending_edits');
-  return error ? [] : (data || []);
+  if (error) { console.error('[세지위키] wiki_pending_edits 실패:', error); return []; }
+  return data || [];
 }
 /* iso → {fact, nickname, avatarUrl} — 지금 위키에 반영 중인 설명 + 마지막 수정자 */
 let _wikiFactsCache = null;
@@ -997,7 +999,7 @@ async function wikiApprovedFacts() {
   await ensureSB();
   if (!supabase) return {};
   const { data, error } = await supabase.rpc('wiki_facts_all');
-  if (error) return {};
+  if (error) { console.error('[세지위키] wiki_facts_all 실패:', error); return {}; }
   const map = {};
   (data || []).forEach((r) => { map[r.iso] = { fact: r.fact, nickname: r.user_nickname, avatarUrl: r.user_avatar }; });
   _wikiFactsCache = map;
@@ -1029,7 +1031,8 @@ async function wikiListComments(iso) {
   await ensureSB();
   if (!supabase) return [];
   const { data, error } = await supabase.rpc('wiki_comments_for', { p_iso: iso });
-  return error ? [] : (data || []);
+  if (error) { console.error('[세지위키] wiki_comments_for 실패:', error); return []; }
+  return data || [];
 }
 async function wikiDeleteComment(id) {
   await ensureSB();
@@ -1041,7 +1044,8 @@ async function wikiContribLeaderboard() {
   await ensureSB();
   if (!supabase) return [];
   const { data, error } = await supabase.rpc('wiki_contrib_leaderboard');
-  return error ? [] : (data || []);
+  if (error) { console.error('[세지위키] wiki_contrib_leaderboard 실패:', error); return []; }
+  return data || [];
 }
 
 /* 자랑하기 카드용: 닉네임·프사·총점·랭킹 */

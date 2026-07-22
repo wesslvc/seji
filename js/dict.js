@@ -380,7 +380,7 @@ async function wdEnhanceFact(iso){
         badge.insertBefore(b,badge.firstChild);
       }
     }
-  }catch(e){}
+  }catch(e){console.error('[세지위키] 설명 반영 조회 실패:',e);}
   if(!SA.isLoggedIn||!SA.isLoggedIn())return;
   try{
     const mine=await SA.wikiMyEdits(iso);
@@ -391,7 +391,7 @@ async function wdEnhanceFact(iso){
     if(latest.status==='pending')st.textContent='내 제안: 승인 대기 중';
     else if(latest.status==='approved')st.textContent='내 제안: 승인됨';
     else if(latest.status==='rejected')st.textContent='내 제안: 반려됨'+(latest.admin_note?' ('+latest.admin_note+')':'');
-  }catch(e){}
+  }catch(e){console.error('[세지위키] 내 제안 상태 조회 실패:',e);}
 }
 let _wdEditModal=null;
 function wdEnsureEditModal(){
