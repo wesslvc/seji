@@ -674,7 +674,12 @@ body.cq-mode #cq-pins-ov{display:block}
 /* ══════════ 세계지리 사전 ══════════ */
 #wd-screen{position:fixed;inset:0;z-index:9200;background:var(--bg);display:none;flex-direction:column}
 #wd-screen.on{display:flex;animation:fadeUp .25s var(--ease)}
-.wd-top{display:flex;align-items:center;gap:.6rem;padding:.55rem 6.5rem .55rem .8rem;border-bottom:1px solid var(--bd);background:var(--sf);flex-shrink:0}
+/* 계정 칩(#acct-chip)이 화면 우상단에 고정으로 떠 있어서, 우측 정렬 버튼을 같은 줄에 두면
+   닉네임 길이에 따라 가려질 수 있다 — 항상 새 줄로 내려서 절대 겹치지 않게 한다 */
+.wd-top{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;padding:.55rem .8rem;border-bottom:1px solid var(--bd);background:var(--sf);flex-shrink:0}
+.wd-top-acts{flex:1 0 100%;display:flex;justify-content:flex-end;gap:.5rem}
+.wd-my-btn{background:var(--sf2);border:1px solid var(--bd);color:var(--tx2);font-family:inherit;font-size:.72rem;font-weight:700;border-radius:999px;padding:.3rem .7rem;cursor:pointer}
+.wd-my-btn:hover{color:var(--tx);border-color:var(--tx2)}
 .wd-title{display:flex;align-items:center;gap:.45rem;font-weight:800;font-size:.95rem;color:var(--tx)}
 .wd-title svg{width:1.05em;height:1.05em;color:#e2c07a}
 .wd-back{display:inline-flex;align-items:center;gap:.3rem;background:var(--sf2);border:1px solid var(--bd);border-radius:999px;color:var(--tx2);font-family:inherit;font-size:.76rem;font-weight:600;padding:.34rem .8rem;cursor:pointer;transition:.15s var(--ease)}
@@ -737,31 +742,38 @@ body.cq-mode #cq-pins-ov{display:block}
 .wd-rv-route{font-size:.68rem;color:var(--tx2);line-height:1.5}
 .wd-rv-route b{color:var(--ac)}
 .wd-nb-anno{font-size:.6rem;color:var(--tx2);font-weight:400}
-.wd-admin-btn{margin-left:auto;background:#3a2f1a;border:1px solid #7a5c1e;color:#e2c07a;font-family:inherit;font-size:.72rem;font-weight:700;border-radius:999px;padding:.3rem .7rem;cursor:pointer}
+.wd-admin-btn{background:#3a2f1a;border:1px solid #7a5c1e;color:#e2c07a;font-family:inherit;font-size:.72rem;font-weight:700;border-radius:999px;padding:.3rem .7rem;cursor:pointer}
 .wd-admin-btn:hover{border-color:#e2c07a}
 .wd-fact-actions{display:flex;align-items:center;gap:.6rem;margin-top:.55rem;flex-wrap:wrap}
 .wd-edit-btn{background:var(--sf2);border:1px solid var(--bd);color:var(--tx2);font-family:inherit;font-size:.68rem;font-weight:600;border-radius:999px;padding:.28rem .7rem;cursor:pointer;transition:.15s var(--ease)}
 .wd-edit-btn:hover{color:var(--tx);border-color:var(--tx2)}
 .wd-my-status{font-size:.66rem;color:var(--tx2)}
-.wd-edited-badge{font-size:.64rem;font-weight:700;color:#81c995;margin-bottom:.4rem}
+.wd-edited-badge{display:flex;align-items:center;gap:.35rem;font-size:.64rem;font-weight:700;color:#81c995;margin-bottom:.4rem}
+.wd-edited-badge span{color:var(--tx2);font-weight:600}
 .wd-sec-note{font-weight:400;color:var(--tx2);letter-spacing:0;font-size:.64rem}
 .wd-comments{display:flex;flex-direction:column;gap:.4rem;margin-bottom:.5rem}
-.wd-comment{background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:.5rem .65rem;font-size:.74rem;line-height:1.5}
+.wd-comment{display:flex;gap:.5rem;background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:.5rem .65rem;font-size:.74rem;line-height:1.5}
+.wd-comment-body{flex:1;min-width:0}
 .wd-comment b{color:var(--tx);margin-right:.4rem}
 .wd-comment span{color:var(--tx)}
 .wd-comment small{display:block;color:var(--tx2);font-size:.6rem;margin-top:.2rem}
+.wd-av{border-radius:50%;object-fit:cover;flex-shrink:0;display:inline-block;vertical-align:middle}
+.wd-av-ph{background:var(--ac2);color:var(--ac);display:inline-flex;align-items:center;justify-content:center;font-weight:700}
 .wd-comment-input{display:flex;gap:.4rem;align-items:flex-end}
 .wd-comment-input textarea{flex:1;background:var(--sf2);border:1px solid var(--bd);border-radius:8px;color:var(--tx);font-family:inherit;font-size:.78rem;padding:.5rem .6rem;resize:vertical}
 .wd-comment-input button{background:var(--btn);color:#fff;border:none;border-radius:8px;padding:.5rem .9rem;font-family:inherit;font-size:.78rem;font-weight:700;cursor:pointer;flex-shrink:0}
 .wd-comment-input button:disabled{opacity:.5;cursor:default}
 .wd-admin-item{background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:.6rem .7rem;margin-bottom:.55rem}
 .wd-admin-head{display:flex;align-items:center;gap:.4rem;font-size:.78rem;margin-bottom:.4rem}
-.wd-admin-by{margin-left:auto;color:var(--tx2);font-size:.64rem;font-weight:400}
-.wd-admin-diff{display:flex;flex-direction:column;gap:.35rem;margin-bottom:.5rem}
-.wd-admin-old,.wd-admin-new{font-size:.74rem;line-height:1.5;padding:.4rem .55rem;border-radius:8px}
-.wd-admin-old{background:rgba(242,139,130,.08);color:var(--tx2);text-decoration:line-through}
-.wd-admin-new{background:rgba(129,201,149,.1);color:var(--tx)}
-.wd-admin-old small,.wd-admin-new small{display:block;font-weight:700;text-decoration:none;color:var(--tx2);margin-bottom:.15rem}
+.wd-admin-by{margin-left:auto;display:inline-flex;align-items:center;gap:.3rem;color:var(--tx2);font-size:.64rem;font-weight:400}
+/* 나무위키식 인라인 diff — 한 문단 안에서 바뀐 부분만 표시 */
+.wd-diff{font-size:.76rem;line-height:1.7;color:var(--tx);background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:.55rem .65rem;margin-bottom:.5rem}
+.wd-diff del{color:var(--wr);text-decoration:line-through;background:rgba(242,139,130,.12);border-radius:3px;padding:0 1px}
+.wd-diff ins{color:#81c995;text-decoration:none;background:rgba(129,201,149,.16);border-radius:3px;padding:0 1px}
+.wd-my-badge{margin-left:auto;font-size:.62rem;font-weight:700;border-radius:999px;padding:.15rem .55rem}
+.wd-my-badge-pending{background:rgba(253,214,99,.14);color:var(--gd)}
+.wd-my-badge-approved{background:rgba(129,201,149,.14);color:#81c995}
+.wd-my-badge-rejected{background:rgba(242,139,130,.12);color:var(--wr)}
 .wd-admin-acts{display:flex;gap:.5rem}
 .wd-approve-btn,.wd-reject-btn{flex:1;border-radius:8px;padding:.45rem;font-family:inherit;font-size:.76rem;font-weight:700;cursor:pointer;border:1px solid var(--bd)}
 .wd-approve-btn{background:rgba(129,201,149,.14);color:#81c995;border-color:rgba(129,201,149,.4)}

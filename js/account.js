@@ -987,18 +987,19 @@ async function wikiMyEdits(iso) {
 async function wikiPendingList() {
   await ensureSB();
   if (!supabase) return [];
-  const { data, error } = await supabase.from('wiki_edits_view').select('*').eq('status', 'pending').order('created_at', { ascending: true });
+  const { data, error } = await supabase.rpc('wiki_pending_edits');
   return error ? [] : (data || []);
 }
+/* iso → {fact, nickname, avatarUrl} — 지금 위키에 반영 중인 설명 + 마지막 수정자 */
 let _wikiFactsCache = null;
 async function wikiApprovedFacts() {
   if (_wikiFactsCache) return _wikiFactsCache;
   await ensureSB();
   if (!supabase) return {};
-  const { data, error } = await supabase.from('wiki_facts').select('iso,fact');
+  const { data, error } = await supabase.rpc('wiki_facts_all');
   if (error) return {};
   const map = {};
-  (data || []).forEach((r) => { map[r.iso] = r.fact; });
+  (data || []).forEach((r) => { map[r.iso] = { fact: r.fact, nickname: r.user_nickname, avatarUrl: r.user_avatar }; });
   _wikiFactsCache = map;
   return map;
 }
@@ -1027,7 +1028,7 @@ async function wikiAddComment(iso, body) {
 async function wikiListComments(iso) {
   await ensureSB();
   if (!supabase) return [];
-  const { data, error } = await supabase.from('wiki_comments_view').select('*').eq('iso', iso).order('created_at', { ascending: true });
+  const { data, error } = await supabase.rpc('wiki_comments_for', { p_iso: iso });
   return error ? [] : (data || []);
 }
 async function wikiDeleteComment(id) {

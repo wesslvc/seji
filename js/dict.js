@@ -17,6 +17,31 @@ function wdFlagImg(iso,px,cls){
     +'src="https://flagcdn.com/w'+(px<=40?80:px<=160?160:320)+'/'+iso+'.png" '
     +'onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{className:\'wd-flag\'+(this.className.includes(\'big\')?\' big\':\'\'),textContent:wdFlag(this.dataset.iso)}))">';
 }
+/* 프로필사진(작은 원) — 사진 없으면 이니셜. url 없으면 빈 문자열 */
+function wdAvatar(url,name,px){
+  px=px||18;
+  if(url)return '<img class="wd-av" style="width:'+px+'px;height:'+px+'px" src="'+url+'" alt="" loading="lazy" onerror="this.style.display=\'none\'">';
+  const ch=(name||'?').trim().charAt(0).toUpperCase()||'?';
+  return '<span class="wd-av wd-av-ph" style="width:'+px+'px;height:'+px+'px;font-size:'+(px*0.5)+'px">'+ch+'</span>';
+}
+/* 단어 단위 LCS 기반 diff — 나무위키식으로 바뀐 부분만 취소선/강조로 표시 */
+function wdWordDiff(oldText,newText){
+  const a=(oldText||'').split(/(\s+)/), b=(newText||'').split(/(\s+)/);
+  const n=a.length,m=b.length;
+  const dp=new Array(n+1);
+  for(let i=0;i<=n;i++)dp[i]=new Int32Array(m+1);
+  for(let i=n-1;i>=0;i--)for(let j=m-1;j>=0;j--)
+    dp[i][j]=a[i]===b[j]?dp[i+1][j+1]+1:Math.max(dp[i+1][j],dp[i][j+1]);
+  let i=0,j=0,out='';
+  while(i<n&&j<m){
+    if(a[i]===b[j]){out+=escHtmlWd(a[i]);i++;j++;}
+    else if(dp[i+1][j]>=dp[i][j+1]){out+='<del>'+escHtmlWd(a[i])+'</del>';i++;}
+    else{out+='<ins>'+escHtmlWd(b[j])+'</ins>';j++;}
+  }
+  while(i<n){out+='<del>'+escHtmlWd(a[i])+'</del>';i++;}
+  while(j<m){out+='<ins>'+escHtmlWd(b[j])+'</ins>';j++;}
+  return out;
+}
 /* iso → 대륙 한글명 (CONT: 대륙→iso 목록의 역방향) */
 let _wdContOf=null;
 function wdContOf(iso){
@@ -36,6 +61,7 @@ function wdOpen(){
   const inp=document.getElementById('wd-search');
   if(inp){inp.value='';wdFilter('');}
   wdRefreshAdminBtn();
+  wdRefreshMyBtn();
 }
 function wdClose(){
   const el=document.getElementById('wd-screen');if(el)el.classList.remove('on');
@@ -53,6 +79,11 @@ async function wdRefreshAdminBtn(){
     const list=await SA.wikiPendingList();
     document.getElementById('wd-admin-count').textContent=list.length?'('+list.length+')':'';
   }catch(e){}
+}
+function wdRefreshMyBtn(){
+  const btn=document.getElementById('wd-my-btn');if(!btn)return;
+  const SA=window.SejiAccount;
+  btn.style.display=(SA&&SA.isLoggedIn&&SA.isLoggedIn())?'':'none';
 }
 
 /* ── 국가 목록 (가나다순) + 검색 ── */
@@ -338,12 +369,14 @@ async function wdEnhanceFact(iso){
   try{
     const facts=await SA.wikiApprovedFacts();
     if(_wdCurIso!==iso)return; /* 그 사이 다른 나라로 넘어갔으면 무시 */
-    if(facts[iso]){
+    const rec=facts[iso];
+    if(rec&&rec.fact){
       const box=document.getElementById('wd-fact-text');
-      if(box)box.textContent=facts[iso];
+      if(box)box.textContent=rec.fact;
       const badge=document.getElementById('wd-fact-box');
       if(badge&&!badge.querySelector('.wd-edited-badge')){
-        const b=document.createElement('div');b.className='wd-edited-badge';b.textContent='✓ 커뮤니티 편집 반영됨';
+        const b=document.createElement('div');b.className='wd-edited-badge';
+        b.innerHTML='✓ 커뮤니티 편집 반영됨'+(rec.nickname?' · '+wdAvatar(rec.avatarUrl,rec.nickname,16)+' <span>'+escHtmlWd(rec.nickname)+'</span>':'');
         badge.insertBefore(b,badge.firstChild);
       }
     }
@@ -408,8 +441,9 @@ async function wdLoadComments(iso){
     const list=await SA.wikiListComments(iso);
     if(_wdCurIso!==iso)return;
     box.innerHTML=list.length
-      ?list.map(c=>'<div class="wd-comment"><b>'+escHtmlWd(c.user_nickname||'익명')+'</b><span>'+escHtmlWd(c.body)+'</span>'
-        +'<small>'+new Date(c.created_at).toLocaleDateString('ko-KR')+'</small></div>').join('')
+      ?list.map(c=>'<div class="wd-comment">'+wdAvatar(c.user_avatar,c.user_nickname,22)
+        +'<div class="wd-comment-body"><b>'+escHtmlWd(c.user_nickname||'익명')+'</b><span>'+escHtmlWd(c.body)+'</span>'
+        +'<small>'+new Date(c.created_at).toLocaleDateString('ko-KR')+'</small></div></div>').join('')
       :'<div class="wd-none">아직 댓글이 없어요</div>';
   }catch(e){box.innerHTML='<div class="wd-none">댓글을 불러올 수 없어요</div>';}
 }
@@ -462,9 +496,8 @@ async function wdRenderAdminQueue(){
     const cur=(DICT_DATA[it.iso]||{}).fact||'';
     return '<div class="wd-admin-item" data-id="'+it.id+'">'
       +'<div class="wd-admin-head">'+(c?wdFlagImg(it.iso,20):'')+' <b>'+(c?c.k:it.iso)+'</b>'
-      +'<span class="wd-admin-by">'+escHtmlWd(it.user_nickname||'익명')+' · '+new Date(it.created_at).toLocaleDateString('ko-KR')+'</span></div>'
-      +'<div class="wd-admin-diff"><div class="wd-admin-old"><small>현재</small>'+escHtmlWd(cur)+'</div>'
-      +'<div class="wd-admin-new"><small>제안</small>'+escHtmlWd(it.proposed_fact)+'</div></div>'
+      +'<span class="wd-admin-by">'+wdAvatar(it.user_avatar,it.user_nickname,16)+' '+escHtmlWd(it.user_nickname||'익명')+' · '+new Date(it.created_at).toLocaleDateString('ko-KR')+'</span></div>'
+      +'<div class="wd-diff">'+wdWordDiff(cur,it.proposed_fact)+'</div>'
       +'<div class="wd-admin-acts"><button type="button" class="wd-approve-btn" data-id="'+it.id+'">승인</button>'
       +'<button type="button" class="wd-reject-btn" data-id="'+it.id+'">반려</button></div></div>';
   }).join('');
@@ -476,6 +509,46 @@ async function wdRenderAdminQueue(){
     const note=prompt('반려 사유(선택, 비워도 됨):')||'';
     b.disabled=true;await SA.wikiReject(+b.dataset.id,note);await wdRenderAdminQueue();wdRefreshAdminBtn();
   }));
+}
+
+/* ══════════ 내 기여 목록 ══════════ */
+const WD_STATUS_LABEL={pending:'승인 대기',approved:'승인됨',rejected:'반려됨'};
+let _wdMyModal=null;
+function wdEnsureMyModal(){
+  if(_wdMyModal)return _wdMyModal;
+  const m=document.createElement('div');
+  m.className='acct-ov';m.id='wd-my-modal';
+  m.innerHTML='<div class="acct-card" style="position:relative;width:min(560px,94vw);max-height:82vh;overflow-y:auto">'
+    +'<button class="acct-x" type="button" id="wd-my-close">✕</button>'
+    +'<h2>내 위키 기여</h2>'
+    +'<div class="sub">내가 제안한 설명 수정 목록이에요.</div>'
+    +'<div id="wd-my-list"></div></div>';
+  document.body.appendChild(m);
+  m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('on');});
+  document.getElementById('wd-my-close').addEventListener('click',()=>m.classList.remove('on'));
+  _wdMyModal=m;
+  return m;
+}
+async function wdOpenMyContribs(){
+  const SA=window.SejiAccount;
+  if(!SA||!SA.isLoggedIn||!SA.isLoggedIn()){if(SA&&SA.promptLogin)SA.promptLogin();return;}
+  const m=wdEnsureMyModal();
+  document.querySelectorAll('.acct-ov').forEach(o=>o.classList.remove('on'));
+  m.classList.add('on');
+  const list=document.getElementById('wd-my-list');
+  list.innerHTML='불러오는 중…';
+  const items=await SA.wikiMyEdits();
+  if(!items.length){list.innerHTML='<div class="wd-none">아직 제안한 수정이 없어요</div>';return;}
+  list.innerHTML=items.map(it=>{
+    const c=COUNTRIES[it.iso];
+    const cur=(DICT_DATA[it.iso]||{}).fact||'';
+    return '<div class="wd-admin-item">'
+      +'<div class="wd-admin-head">'+(c?wdFlagImg(it.iso,20):'')+' <b>'+(c?c.k:it.iso)+'</b>'
+      +'<span class="wd-my-badge wd-my-badge-'+it.status+'">'+WD_STATUS_LABEL[it.status]+'</span></div>'
+      +'<div class="wd-diff">'+wdWordDiff(cur,it.proposed_fact)+'</div>'
+      +(it.status==='rejected'&&it.admin_note?'<div class="wd-none">반려 사유: '+escHtmlWd(it.admin_note)+'</div>':'')
+      +'</div>';
+  }).join('');
 }
 
 (function(){

@@ -227,18 +227,48 @@ drop policy if exists "wiki_comments delete own or admin" on public.wiki_comment
 create policy "wiki_comments delete own or admin" on public.wiki_comments
   for delete to authenticated using (auth.uid() = user_id or public.is_admin());
 
--- 닉네임을 붙여 보여주는 조회용 뷰 (관리자 큐 · 댓글 목록에서 사용)
-create or replace view public.wiki_edits_view
-with (security_invoker = on) as
-select we.*, p.nickname as user_nickname
-from public.wiki_edits we
-join public.profiles p on p.id = we.user_id;
+-- 닉네임·프로필사진을 붙여 보여주는 조회 함수들 (관리자 큐 · 댓글 목록 · 위키 반영 표시용).
+-- profiles 테이블 직접 조회는 본인 것만 허용되므로(테이블 덤프 방지), 다른 사람 닉네임/사진이
+-- 필요한 조회는 전부 SECURITY DEFINER 함수로만 제공한다(app_leaderboard()와 같은 패턴).
+drop view if exists public.wiki_edits_view;
+drop view if exists public.wiki_comments_view;
 
-create or replace view public.wiki_comments_view
-with (security_invoker = on) as
-select wc.*, p.nickname as user_nickname
-from public.wiki_comments wc
-join public.profiles p on p.id = wc.user_id;
+-- 국가별 댓글(작성자 닉네임·프로필사진 포함) — 게스트도 조회 가능
+create or replace function public.wiki_comments_for(p_iso text)
+returns table(id bigint, iso text, user_id uuid, body text, created_at timestamptz, user_nickname text, user_avatar text)
+language sql security definer set search_path = public stable as $$
+  select wc.id, wc.iso, wc.user_id, wc.body, wc.created_at, p.nickname, p.avatar_url
+  from public.wiki_comments wc
+  join public.profiles p on p.id = wc.user_id
+  where wc.iso = p_iso
+  order by wc.created_at asc;
+$$;
+revoke all on function public.wiki_comments_for(text) from public;
+grant execute on function public.wiki_comments_for(text) to authenticated, anon;
+
+-- 승인 대기 제안 목록(관리자만 — 관리자가 아니면 빈 목록)
+create or replace function public.wiki_pending_edits()
+returns table(id bigint, iso text, user_id uuid, proposed_fact text, status text, created_at timestamptz, user_nickname text, user_avatar text)
+language sql security definer set search_path = public stable as $$
+  select we.id, we.iso, we.user_id, we.proposed_fact, we.status, we.created_at, p.nickname, p.avatar_url
+  from public.wiki_edits we
+  join public.profiles p on p.id = we.user_id
+  where we.status = 'pending' and public.is_admin()
+  order by we.created_at asc;
+$$;
+revoke all on function public.wiki_pending_edits() from public, anon;
+grant execute on function public.wiki_pending_edits() to authenticated;
+
+-- 지금 위키에 반영 중인 설명 전체(마지막 수정자 닉네임·프로필사진 포함) — 게스트도 조회 가능
+create or replace function public.wiki_facts_all()
+returns table(iso text, fact text, updated_by uuid, updated_at timestamptz, user_nickname text, user_avatar text)
+language sql security definer set search_path = public stable as $$
+  select wf.iso, wf.fact, wf.updated_by, wf.updated_at, p.nickname, p.avatar_url
+  from public.wiki_facts wf
+  left join public.profiles p on p.id = wf.updated_by;
+$$;
+revoke all on function public.wiki_facts_all() from public, anon;
+grant execute on function public.wiki_facts_all() to authenticated, anon;
 
 -- 승인 — 관리자만, 통과되면 wiki_facts에 반영되고 제안은 approved로 표시됨
 create or replace function public.approve_wiki_edit(edit_id bigint)
