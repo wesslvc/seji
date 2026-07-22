@@ -1077,6 +1077,27 @@ async function wikiCommentCounts() {
   _wikiCommentCountsCache = map;
   return map;
 }
+/* 국가 상세 페이지를 열 때마다 호출 — 조회수 +1(게스트 포함, 로그인 여부 무관) */
+async function wikiRecordView(iso) {
+  await ensureSB();
+  if (!supabase) return;
+  const { error } = await supabase.rpc('wiki_record_view', { p_iso: iso });
+  if (error) { console.error('[세지위키] wiki_record_view 실패:', error); return; }
+  _wikiViewCountsCache = null;
+}
+/* iso → 조회수(위키 목록 정렬·상세 페이지 표시용) */
+let _wikiViewCountsCache = null;
+async function wikiViewCounts() {
+  if (_wikiViewCountsCache) return _wikiViewCountsCache;
+  await ensureSB();
+  if (!supabase) return {};
+  const { data, error } = await supabase.rpc('wiki_view_counts_all');
+  if (error) { console.error('[세지위키] wiki_view_counts_all 실패:', error); return {}; }
+  const map = {};
+  (data || []).forEach((r) => { map[r.iso] = Number(r.views); });
+  _wikiViewCountsCache = map;
+  return map;
+}
 /* 프로필사진 클릭 시: 그 사람이 승인받은 기여 목록(국가·내용·개수) */
 async function wikiUserContributions(userId) {
   await ensureSB();
@@ -1117,6 +1138,7 @@ window.SejiAccount = {
   wikiSubmitEdit, wikiMyEdits, wikiPendingList, wikiApprovedFacts, wikiFactHistory,
   wikiApprove, wikiReject, wikiAddComment, wikiListComments, wikiEditComment, wikiDeleteComment,
   wikiCommentCounts, wikiUserContributions,
+  wikiRecordView, wikiViewCounts,
 };
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

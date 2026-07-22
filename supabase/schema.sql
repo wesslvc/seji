@@ -367,3 +367,35 @@ $$;
 revoke all on function public.reject_wiki_edit(bigint, text) from public, anon;
 grant execute on function public.reject_wiki_edit(bigint, text) to authenticated;
 
+-- 국가별 조회수(위키 상세 페이지를 열 때마다 +1) — 목록 화면 정렬(조회수순)·상세 페이지
+-- 표시에 씀. 게스트도 조회수에 반영되고(로그인 안 해도 카운트), 직접 UPDATE/INSERT는
+-- 막아두고 아래 wiki_record_view() 함수로만 늘어나게 한다(음수 조작·비정상 값 방지).
+create table if not exists public.wiki_views (
+  iso   text primary key,
+  views bigint not null default 0
+);
+alter table public.wiki_views enable row level security;
+drop policy if exists "wiki_views read" on public.wiki_views;
+create policy "wiki_views read" on public.wiki_views for select using (true);
+
+drop function if exists public.wiki_record_view(text);
+create or replace function public.wiki_record_view(p_iso text)
+returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  insert into public.wiki_views (iso, views) values (p_iso, 1)
+  on conflict (iso) do update set views = public.wiki_views.views + 1;
+end;
+$$;
+revoke all on function public.wiki_record_view(text) from public, anon;
+grant execute on function public.wiki_record_view(text) to authenticated, anon;
+
+drop function if exists public.wiki_view_counts_all();
+create or replace function public.wiki_view_counts_all()
+returns table(iso text, views bigint)
+language sql security definer set search_path = public stable as $$
+  select iso, views from public.wiki_views;
+$$;
+revoke all on function public.wiki_view_counts_all() from public, anon;
+grant execute on function public.wiki_view_counts_all() to authenticated, anon;
+

@@ -5,17 +5,36 @@
    실제로 반영된다(Supabase wiki_edits/wiki_facts). 그 외 정보(수도·인구·
    접경국 등 CSV/게임 데이터 기반 항목)는 직접 수정 없이 댓글만 가능하다. */
 
-/* iso2 → 국기 이모지 (PNG 로드 실패 시 대체용) */
+/* iso2 → 국기 이모지 (예전 대체용 — 윈도우 등 다수 환경에서 국기 이모지가 'KR' 같은
+   글자 상자로 깨져 보여서 더 이상 안 씀. wdFlagSwatch로 교체됨. 혹시 참조하는 곳
+   있을까봐 남겨둠) */
 function wdFlag(iso){
   if(iso==='xk')return '🏳️';
   const A=0x1F1E6;
   return String.fromCodePoint(A+iso.charCodeAt(0)-97,A+iso.charCodeAt(1)-97);
 }
-/* iso2 → 국기 PNG (flagcdn) — 실패하면 이모지로 대체 */
+/* 국기 PNG(flagcdn)도 못 뜨고 국기 이모지도 깨지는 환경(네트워크 차단, 윈도우 폰트 등)을
+   대비한 최종 대체 표시 — flag-colors-data.js 고정표의 국기 배색 2개로 만든 색상
+   스와치. 네트워크·폰트에 전혀 의존하지 않아 항상 "국기처럼 보이는 무언가"가 뜬다. */
+function wdFlagSwatch(iso,px,cls){
+  px=Math.round(px)||18;
+  const h=Math.max(3,Math.round(px*0.72));
+  const c=(typeof WD_FLAG_COLORS!=='undefined')&&WD_FLAG_COLORS[iso];
+  const bg=c?('linear-gradient(180deg,'+c[0]+' 50%,'+c[1]+' 50%)'):'linear-gradient(180deg,#5a6472,#333c4a)';
+  return '<span class="wd-flag-sw'+(cls?' '+cls:'')+'" style="width:'+px+'px;height:'+h+'px;background:'+bg+'" title="'+iso.toUpperCase()+'"></span>';
+}
+/* <img onerror>에서 호출 — 실패한 <img>를 wdFlagSwatch 결과로 교체한다 */
+function wdFlagFail(el){
+  const iso=el.dataset.iso,px=el.dataset.px,big=(el.className||'').includes('big');
+  const tmp=document.createElement('div');
+  tmp.innerHTML=wdFlagSwatch(iso,px,big?'big':'');
+  el.replaceWith(tmp.firstElementChild);
+}
+/* iso2 → 국기 PNG (flagcdn) — 실패하면 색상 스와치로 대체 */
 function wdFlagImg(iso,px,cls){
-  return '<img class="wd-flag-img'+(cls?' '+cls:'')+'" data-iso="'+iso+'" alt="" loading="lazy" width="'+px+'" '
+  return '<img class="wd-flag-img'+(cls?' '+cls:'')+'" data-iso="'+iso+'" data-px="'+px+'" alt="" loading="lazy" width="'+px+'" '
     +'src="https://flagcdn.com/w'+(px<=40?80:px<=160?160:320)+'/'+iso+'.png" '
-    +'onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{className:\'wd-flag\'+(this.className.includes(\'big\')?\' big\':\'\'),textContent:wdFlag(this.dataset.iso)}))">';
+    +'onerror="wdFlagFail(this)">';
 }
 /* 국가 상세 페이지 틀 색을 그 나라 국기 대표색으로 물들인다 — flag-colors-data.js의
    고정표를 쓴다(예전엔 flagcdn PNG을 캔버스로 읽어 실시간 추출했는데, 네트워크/CORS
@@ -201,6 +220,7 @@ function wdBuildList(){
       +'<span class="wd-row-tx"><b>'+c.k+'</b><small>'+c.e+'</small></span>'
       +'<span class="wd-row-avs" data-iso="'+iso+'"></span>'
       +'<span class="wd-row-cc" data-iso="'+iso+'"></span>'
+      +'<span class="wd-row-vc" data-iso="'+iso+'"></span>'
       +'<span class="wd-row-rg">'+wdContOf(iso)+'</span></button>';
   }).join('');
   box.querySelectorAll('.wd-row').forEach(r=>r.addEventListener('click',()=>wdShow(r.dataset.iso)));
@@ -208,14 +228,16 @@ function wdBuildList(){
 }
 /* 검색하기 전에도 기여된 국가는 작은 프로필사진 원으로 미리 표시 + 업데이트순 정렬용 시각 수집 */
 let _wdUpdatedAt={};
+let _wdViewCounts={};
 async function wdFillListMeta(){
   const SA=window.SejiAccount;
   if(!SA)return;
   try{
-    const [historyMap,facts,commentCounts]=await Promise.all([
+    const [historyMap,facts,commentCounts,viewCounts]=await Promise.all([
       SA.wikiFactHistory?SA.wikiFactHistory():{},
       SA.wikiApprovedFacts?SA.wikiApprovedFacts():{},
       SA.wikiCommentCounts?SA.wikiCommentCounts():{},
+      SA.wikiViewCounts?SA.wikiViewCounts():{},
     ]);
     for(const iso in historyMap){
       const slot=document.querySelector('.wd-row-avs[data-iso="'+iso+'"]');
@@ -225,13 +247,23 @@ async function wdFillListMeta(){
       const cc=document.querySelector('.wd-row-cc[data-iso="'+iso+'"]');
       if(cc&&commentCounts[iso])cc.innerHTML='<span data-ic="comment"></span>'+commentCounts[iso];
     }
+    _wdViewCounts=viewCounts;
+    wdPaintViewCounts();
     injectIcons(document.getElementById('wd-list'));
     _wdUpdatedAt={};
     for(const iso in facts)_wdUpdatedAt[iso]=facts[iso].updatedAt?new Date(facts[iso].updatedAt).getTime():0;
     wdApplySort();
   }catch(e){console.error('[세지위키] 목록 메타 표시 실패:',e);}
 }
-/* 가나다순 / 업데이트순(최근 커뮤니티 수정이 반영된 나라가 위로) 정렬 전환 */
+/* 목록 행에 조회수 표시(_wdViewCounts 갱신될 때마다 다시 그림) */
+function wdPaintViewCounts(){
+  for(const iso in _wdViewCounts){
+    const vc=document.querySelector('.wd-row-vc[data-iso="'+iso+'"]');
+    if(vc&&_wdViewCounts[iso])vc.innerHTML='<span data-ic="eye"></span>'+_wdViewCounts[iso];
+  }
+  injectIcons(document.getElementById('wd-list'));
+}
+/* 가나다순 / 업데이트순(최근 커뮤니티 수정이 반영된 나라가 위로) / 조회수순 정렬 전환 */
 let _wdSort='alpha';
 function wdApplySort(){
   const box=document.getElementById('wd-list');if(!box)return;
@@ -240,6 +272,9 @@ function wdApplySort(){
     if(_wdSort==='updated'){
       const ta=_wdUpdatedAt[a.dataset.iso]||0,tb=_wdUpdatedAt[b.dataset.iso]||0;
       if(ta!==tb)return tb-ta;
+    }else if(_wdSort==='views'){
+      const va=_wdViewCounts[a.dataset.iso]||0,vb=_wdViewCounts[b.dataset.iso]||0;
+      if(va!==vb)return vb-va;
     }
     return COUNTRIES[a.dataset.iso].k.localeCompare(COUNTRIES[b.dataset.iso].k,'ko');
   });
@@ -485,7 +520,7 @@ function wdShow(iso){
     '<button type="button" class="wd-back" id="wd-back-btn"><span data-ic="back"></span>목록으로</button>'
     +'<div class="wd-theme-bar" id="wd-theme-bar"></div>'
     +'<div class="wd-head">'+wdFlagImg(iso,64,'big')
-    +'<div class="wd-head-tx"><h2>'+c.k+'</h2><small>'+c.e+' · '+wdContOf(iso)+'</small></div></div>'
+    +'<div class="wd-head-tx"><h2>'+c.k+'</h2><small>'+c.e+' · '+wdContOf(iso)+'<span id="wd-view-count" class="wd-view-count"></span></small></div></div>'
     +'<div class="wd-fact" id="wd-fact-box"><div id="wd-fact-text">'+(d.fact||'')+'</div>'
       +'<div id="wd-blame-legend" class="wd-blame-legend" style="display:none"></div>'
       +'<div class="wd-fact-actions"><button type="button" class="wd-edit-btn" id="wd-edit-btn">✎ 설명 수정 제안</button>'
@@ -524,6 +559,21 @@ function wdShow(iso){
   wdEnhanceFact(iso);
   wdLoadComments(iso);
   wdApplyFlagTheme(iso);
+  wdLoadViewCount(iso);
+}
+/* 국가 상세 페이지를 열 때 조회수 +1 기록 후, 갱신된 조회수를 헤드에 표시 —
+   목록 화면(조회수순 정렬)도 같이 갱신해서 목록으로 돌아갔을 때 바로 반영되게 함 */
+async function wdLoadViewCount(iso){
+  const SA=window.SejiAccount;if(!SA)return;
+  try{
+    if(SA.wikiRecordView)await SA.wikiRecordView(iso);
+    const counts=SA.wikiViewCounts?await SA.wikiViewCounts():{};
+    _wdViewCounts=counts;
+    wdPaintViewCounts();
+    if(_wdCurIso!==iso)return;
+    const el=document.getElementById('wd-view-count');
+    if(el&&counts[iso]){el.innerHTML=' · <span data-ic="eye"></span>'+counts[iso];injectIcons(el);}
+  }catch(e){console.error('[세지위키] 조회수 처리 실패:',e);}
 }
 /* 기후그래프 카드 내부(그래프 + 캡션 + 도시 설명) */
 let _wdClimateLocs=[];

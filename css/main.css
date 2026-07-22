@@ -86,6 +86,7 @@ body.border-mode #world-svg circle.circlexx{opacity:0!important;pointer-events:a
 .eip-card{background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:1.5rem 1.3rem 1.1rem;text-align:center;width:min(300px,88vw);position:relative}
 .eip-close{position:absolute;top:.55rem;right:.7rem;background:none;border:none;color:var(--tx2);font-size:1.1rem;cursor:pointer;line-height:1}
 .eip-flag{font-size:3rem;line-height:1.1;margin-bottom:.4rem}
+.eip-flag img{height:48px;width:auto;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.3)}
 .eip-kname{font-size:1.25rem;font-weight:700;color:var(--tx);margin-bottom:.2rem}
 .eip-ename{font-size:.82rem;color:var(--tx2);margin-bottom:.6rem}
 .eip-meta{display:flex;justify-content:center;gap:.4rem;flex-wrap:wrap;margin-bottom:.9rem}
@@ -706,6 +707,8 @@ body.cq-mode #cq-pins-ov{display:block}
 .wd-flag.big{font-size:2.6rem}
 .wd-flag-img{border-radius:3px;object-fit:cover;flex-shrink:0;box-shadow:0 0 0 1px rgba(255,255,255,.08);vertical-align:middle}
 .wd-flag-img.big{width:64px;height:auto;border-radius:6px}
+.wd-flag-sw{display:inline-block;border-radius:3px;flex-shrink:0;vertical-align:middle;box-shadow:0 0 0 1px rgba(255,255,255,.08)}
+.wd-flag-sw.big{width:64px!important;height:46px!important;border-radius:6px}
 .wd-row-tx{display:flex;flex-direction:column;gap:.06rem;min-width:0;flex:1}
 .wd-row-tx b{color:var(--tx);font-size:.86rem;font-weight:700}
 .wd-row-tx small{color:var(--tx2);font-size:.66rem}
@@ -715,6 +718,12 @@ body.cq-mode #cq-pins-ov{display:block}
 .wd-row-cc{flex-shrink:0;display:inline-flex;align-items:center;gap:.15rem;color:var(--tx2);font-size:.64rem;font-weight:600}
 .wd-row-cc:empty{display:none}
 .wd-row-cc svg{width:11px;height:11px}
+.wd-row-vc{flex-shrink:0;display:inline-flex;align-items:center;gap:.15rem;color:var(--tx2);font-size:.64rem;font-weight:600}
+.wd-row-vc:empty{display:none}
+.wd-row-vc svg{width:11px;height:11px}
+.wd-view-count{display:inline-flex;align-items:center;gap:.15rem;margin-left:.35rem}
+.wd-view-count svg{width:11px;height:11px;vertical-align:-1px}
+.wd-view-count:empty{margin-left:0}
 .wd-av-stack{display:inline-flex;align-items:center}
 .wd-av-stack .wd-av{margin-left:-6px;box-shadow:0 0 0 2px var(--sf)}
 .wd-av-stack .wd-av:first-child{margin-left:0}
@@ -734,7 +743,7 @@ body.cq-mode #cq-pins-ov{display:block}
    전부 테두리·배경 웜(낮은 투명도)·점 같은 장식 요소에만 써서 실제 글자색은 절대
    안 건드림 — 가독성·대비는 항상 기존 회색/흰색 텍스트 그대로 유지된다. */
 .wd-theme-bar{height:7px;border-radius:4px;margin-bottom:.7rem;background:linear-gradient(90deg,var(--wd-c1,#e2c07a),var(--wd-c2,#e2c07a));box-shadow:0 2px 10px -2px color-mix(in srgb,var(--wd-c1,transparent) 55%,transparent);transition:background .3s,box-shadow .3s}
-.wd-head .wd-flag-img.big{transition:box-shadow .3s;box-shadow:0 0 0 3px var(--wd-c1,#e2c07a),0 0 14px 1px color-mix(in srgb,var(--wd-c1,#e2c07a) 45%,transparent),0 0 0 1px rgba(255,255,255,.08)}
+.wd-head .wd-flag-img.big,.wd-head .wd-flag-sw.big{transition:box-shadow .3s;box-shadow:0 0 0 3px var(--wd-c1,#e2c07a),0 0 14px 1px color-mix(in srgb,var(--wd-c1,#e2c07a) 45%,transparent),0 0 0 1px rgba(255,255,255,.08)}
 .wd-sec-t::before{content:'';position:absolute;left:0;top:.15rem;width:9px;height:9px;border-radius:50%;background:var(--wd-c1,var(--tx2));box-shadow:0 0 6px 0 color-mix(in srgb,var(--wd-c1,transparent) 60%,transparent);transition:background .3s}
 .wd-info{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.4rem;margin-bottom:.4rem}
 .wd-info-it{background:var(--sf);border:1px solid var(--bd);border-left:3px solid var(--wd-c1,#e2c07a);border-radius:10px;padding:.45rem .6rem;display:flex;flex-direction:column;gap:.12rem;transition:border-left-color .3s}
