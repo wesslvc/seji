@@ -1001,7 +1001,7 @@ async function wikiApprovedFacts() {
   const { data, error } = await supabase.rpc('wiki_facts_all');
   if (error) { console.error('[세지위키] wiki_facts_all 실패:', error); return {}; }
   const map = {};
-  (data || []).forEach((r) => { map[r.iso] = { fact: r.fact, nickname: r.user_nickname, avatarUrl: r.user_avatar }; });
+  (data || []).forEach((r) => { map[r.iso] = { fact: r.fact, nickname: r.user_nickname, avatarUrl: r.user_avatar, updatedAt: r.updated_at }; });
   _wikiFactsCache = map;
   return map;
 }

@@ -115,19 +115,45 @@ function wdBuildList(){
       +'<span class="wd-row-rg">'+wdContOf(iso)+'</span></button>';
   }).join('');
   box.querySelectorAll('.wd-row').forEach(r=>r.addEventListener('click',()=>wdShow(r.dataset.iso)));
-  wdFillListContributors();
+  wdFillListMeta();
 }
-/* 검색하기 전에도 기여된 국가는 작은 프로필사진 원으로 미리 표시 */
-async function wdFillListContributors(){
+/* 검색하기 전에도 기여된 국가는 작은 프로필사진 원으로 미리 표시 + 업데이트순 정렬용 시각 수집 */
+let _wdUpdatedAt={};
+async function wdFillListMeta(){
   const SA=window.SejiAccount;
-  if(!SA||!SA.wikiContributors)return;
+  if(!SA)return;
   try{
-    const map=await SA.wikiContributors();
-    for(const iso in map){
+    const [contribMap,facts]=await Promise.all([
+      SA.wikiContributors?SA.wikiContributors():{},
+      SA.wikiApprovedFacts?SA.wikiApprovedFacts():{},
+    ]);
+    for(const iso in contribMap){
       const slot=document.querySelector('.wd-row-avs[data-iso="'+iso+'"]');
-      if(slot)slot.innerHTML=wdAvatarStack(map[iso],14,3);
+      if(slot)slot.innerHTML=wdAvatarStack(contribMap[iso],14,3);
     }
-  }catch(e){console.error('[세지위키] 목록 기여자 표시 실패:',e);}
+    _wdUpdatedAt={};
+    for(const iso in facts)_wdUpdatedAt[iso]=facts[iso].updatedAt?new Date(facts[iso].updatedAt).getTime():0;
+    wdApplySort();
+  }catch(e){console.error('[세지위키] 목록 메타 표시 실패:',e);}
+}
+/* 가나다순 / 업데이트순(최근 커뮤니티 수정이 반영된 나라가 위로) 정렬 전환 */
+let _wdSort='alpha';
+function wdApplySort(){
+  const box=document.getElementById('wd-list');if(!box)return;
+  const rows=[...box.querySelectorAll('.wd-row')];
+  rows.sort((a,b)=>{
+    if(_wdSort==='updated'){
+      const ta=_wdUpdatedAt[a.dataset.iso]||0,tb=_wdUpdatedAt[b.dataset.iso]||0;
+      if(ta!==tb)return tb-ta;
+    }
+    return COUNTRIES[a.dataset.iso].k.localeCompare(COUNTRIES[b.dataset.iso].k,'ko');
+  });
+  rows.forEach(r=>box.appendChild(r));
+}
+function wdSetSort(mode){
+  _wdSort=mode;
+  document.querySelectorAll('.wd-sort-btn').forEach(b=>b.classList.toggle('on',b.dataset.sort===mode));
+  wdApplySort();
 }
 function wdFilter(q){
   q=(q||'').trim().toLowerCase();
