@@ -1,12 +1,21 @@
-/* ══════════ 세계지리 사전 (World Geography Dictionary) ══════════
+/* ══════════ 세지 위키 (World Geography Wiki) ══════════
    게임에 이미 쌓인 데이터(국가·접경국·종교·무역·에너지·기후·하천)와
-   dict-data.js의 기본정보를 한 화면에 모아 국가별 학습 카드로 보여준다. */
+   dict-data.js의 기본정보를 한 화면에 모아 국가별 학습 카드로 보여준다.
+   '특징' 설명문은 로그인한 누구나 수정을 제안할 수 있고, 관리자가 승인해야
+   실제로 반영된다(Supabase wiki_edits/wiki_facts). 그 외 정보(수도·인구·
+   접경국 등 CSV/게임 데이터 기반 항목)는 직접 수정 없이 댓글만 가능하다. */
 
-/* iso2 → 국기 이모지 (코소보 등 이모지 없는 코드는 흰 깃발) */
+/* iso2 → 국기 이모지 (PNG 로드 실패 시 대체용) */
 function wdFlag(iso){
   if(iso==='xk')return '🏳️';
   const A=0x1F1E6;
   return String.fromCodePoint(A+iso.charCodeAt(0)-97,A+iso.charCodeAt(1)-97);
+}
+/* iso2 → 국기 PNG (flagcdn) — 실패하면 이모지로 대체 */
+function wdFlagImg(iso,px,cls){
+  return '<img class="wd-flag-img'+(cls?' '+cls:'')+'" data-iso="'+iso+'" alt="" loading="lazy" width="'+px+'" '
+    +'src="https://flagcdn.com/w'+(px<=40?80:px<=160?160:320)+'/'+iso+'.png" '
+    +'onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{className:\'wd-flag\'+(this.className.includes(\'big\')?\' big\':\'\'),textContent:wdFlag(this.dataset.iso)}))">';
 }
 /* iso → 대륙 한글명 (CONT: 대륙→iso 목록의 역방향) */
 let _wdContOf=null;
@@ -26,6 +35,7 @@ function wdOpen(){
   wdBackToList();
   const inp=document.getElementById('wd-search');
   if(inp){inp.value='';wdFilter('');}
+  wdRefreshAdminBtn();
 }
 function wdClose(){
   const el=document.getElementById('wd-screen');if(el)el.classList.remove('on');
@@ -33,6 +43,16 @@ function wdClose(){
 function wdBackToList(){
   document.getElementById('wd-list-view').style.display='';
   document.getElementById('wd-detail').style.display='none';
+}
+async function wdRefreshAdminBtn(){
+  const btn=document.getElementById('wd-admin-btn');if(!btn)return;
+  const SA=window.SejiAccount;
+  if(!SA||!SA.isAdmin||!SA.isAdmin()){btn.style.display='none';return;}
+  btn.style.display='';
+  try{
+    const list=await SA.wikiPendingList();
+    document.getElementById('wd-admin-count').textContent=list.length?'('+list.length+')':'';
+  }catch(e){}
 }
 
 /* ── 국가 목록 (가나다순) + 검색 ── */
@@ -45,7 +65,7 @@ function wdBuildList(){
   box.innerHTML=isos.map(iso=>{
     const c=COUNTRIES[iso];
     return '<button type="button" class="wd-row" data-iso="'+iso+'">'
-      +'<span class="wd-flag">'+wdFlag(iso)+'</span>'
+      +wdFlagImg(iso,28)
       +'<span class="wd-row-tx"><b>'+c.k+'</b><small>'+c.e+'</small></span>'
       +'<span class="wd-row-rg">'+wdContOf(iso)+'</span></button>';
   }).join('');
@@ -62,8 +82,8 @@ function wdFilter(q){
 }
 
 /* ── 섹션 렌더 도우미 ── */
-function wdSec(title,inner){
-  return inner?'<div class="wd-sec"><div class="wd-sec-t">'+title+'</div>'+inner+'</div>':'';
+function wdSec(title,inner,note){
+  return inner?'<div class="wd-sec"><div class="wd-sec-t">'+title+(note?' <small class="wd-sec-note">'+note+'</small>':'')+'</div>'+inner+'</div>':'';
 }
 function wdBars(rows){ /* rows: [[label,pct,color]] */
   const mx=Math.max(...rows.map(r=>r[1]),1);
@@ -167,15 +187,17 @@ function wdMiniMapSVG(iso){
 }
 
 /* ── 국가 상세 ── */
+let _wdCurIso=null;
 function wdShow(iso){
   const c=COUNTRIES[iso];if(!c)return;
   const d=DICT_DATA[iso]||{};
+  _wdCurIso=iso;
   document.getElementById('wd-list-view').style.display='none';
   const det=document.getElementById('wd-detail');
   det.style.display='';
   det.scrollTop=0;
 
-  /* 기본 정보 그리드 */
+  /* 기본 정보 그리드 — CSV/게임 데이터 기반, 댓글만 가능(직접 수정 불가) */
   const more=(typeof DICT_MORE!=='undefined'&&DICT_MORE[iso])||null; /* [수도 해발, 공용어, 통화] */
   const info=[];
   if(d.cap)info.push(['수도 (해발)',d.cap+(more&&more[0]?' ('+more[0]+')':'')]);
@@ -197,7 +219,7 @@ function wdShow(iso){
   let nbHtml='';
   try{nbHtml+=wdMiniMapSVG(iso);}catch(e){}
   nbHtml+=nb.length
-    ?'<div class="bq-neighbors wd-nbs">'+nb.map(n=>'<button type="button" class="bq-nb wd-nb" data-iso="'+n+'">'+wdFlag(n)+' '+COUNTRIES[n].k
+    ?'<div class="bq-neighbors wd-nbs">'+nb.map(n=>'<button type="button" class="bq-nb wd-nb" data-iso="'+n+'">'+wdFlagImg(n,16)+' '+COUNTRIES[n].k
       +(nbInfo.anno[n]?' <small class="wd-nb-anno">('+nbInfo.anno[n]+')</small>':'')+'</button>').join('')+'</div>'
     :'<div class="wd-none">국경을 맞댄 나라가 없어요 (섬나라 또는 데이터 없음)</div>';
 
@@ -263,17 +285,23 @@ function wdShow(iso){
 
   det.innerHTML=
     '<button type="button" class="wd-back" id="wd-back-btn"><span data-ic="back"></span>목록으로</button>'
-    +'<div class="wd-head"><span class="wd-flag-big">'+wdFlag(iso)+'</span>'
+    +'<div class="wd-head">'+wdFlagImg(iso,64,'big')
     +'<div class="wd-head-tx"><h2>'+c.k+'</h2><small>'+c.e+' · '+wdContOf(iso)+'</small></div></div>'
-    +(d.fact?'<div class="wd-fact">'+d.fact+'</div>':'')
+    +'<div class="wd-fact" id="wd-fact-box"><div id="wd-fact-text">'+(d.fact||'')+'</div>'
+      +'<div class="wd-fact-actions"><button type="button" class="wd-edit-btn" id="wd-edit-btn">✎ 설명 수정 제안</button>'
+      +'<span class="wd-my-status" id="wd-my-status"></span></div></div>'
     +infoHtml
-    +wdSec('접경국',nbHtml)
-    +wdSec('주요 도시',ctHtml)
-    +wdSec('종교 구성',relHtml)
-    +wdSec('수출 구조 (상위 품목)',expHtml)
-    +wdSec('에너지 구성',enHtml)
-    +wdSec('기후 (쾨펜 구분)',clHtml)
-    +wdSec('지나는 주요 하천',rvHtml);
+    +wdSec('접경국',nbHtml,'댓글만 가능')
+    +wdSec('주요 도시',ctHtml,'댓글만 가능')
+    +wdSec('종교 구성',relHtml,'댓글만 가능')
+    +wdSec('수출 구조 (상위 품목)',expHtml,'댓글만 가능')
+    +wdSec('에너지 구성',enHtml,'댓글만 가능')
+    +wdSec('기후 (쾨펜 구분)',clHtml,'댓글만 가능')
+    +wdSec('지나는 주요 하천',rvHtml,'댓글만 가능')
+    +'<div class="wd-sec"><div class="wd-sec-t">댓글 <small class="wd-sec-note">정보 오류 제보나 의견 — 위 정보들은 여기서 직접 수정되지 않아요</small></div>'
+      +'<div id="wd-comments-list" class="wd-comments">불러오는 중…</div>'
+      +'<div class="wd-comment-input"><textarea id="wd-comment-text" rows="2" placeholder="댓글을 남기려면 로그인하세요"></textarea>'
+      +'<button type="button" id="wd-comment-submit">등록</button></div></div>';
   injectIcons(det);
   document.getElementById('wd-back-btn').addEventListener('click',wdBackToList);
   det.querySelectorAll('.wd-nb').forEach(b=>b.addEventListener('click',()=>wdShow(b.dataset.iso)));
@@ -283,6 +311,16 @@ function wdShow(iso){
     const box=document.getElementById('wd-chart-box');
     if(box)box.innerHTML=wdChartInner(l);
   }));
+  document.getElementById('wd-edit-btn').addEventListener('click',()=>wdOpenEditModal(iso));
+  document.getElementById('wd-comment-submit').addEventListener('click',()=>wdSubmitComment(iso));
+  {
+    const SA=window.SejiAccount;
+    const ta=document.getElementById('wd-comment-text');
+    if(ta&&SA&&SA.isLoggedIn&&SA.isLoggedIn())ta.placeholder='이 나라 정보에 대한 의견이나 오류 제보를 남겨주세요';
+  }
+
+  wdEnhanceFact(iso);
+  wdLoadComments(iso);
 }
 /* 기후그래프 카드 내부(그래프 + 캡션 + 도시 설명) */
 let _wdClimateLocs=[];
@@ -292,6 +330,152 @@ function wdChartInner(l){
     +(l.lat>=0?'북위 ':'남위 ')+Math.abs(l.lat).toFixed(1)+'°</div>'
     +cqChartSVG(l)
     +(blurb?'<div class="wd-city-blurb">'+blurb+'</div>':'');
+}
+
+/* ══════════ 위키 편집: 설명(fact) 수정 제안 + 승인 반영 표시 ══════════ */
+async function wdEnhanceFact(iso){
+  const SA=window.SejiAccount;if(!SA)return;
+  try{
+    const facts=await SA.wikiApprovedFacts();
+    if(_wdCurIso!==iso)return; /* 그 사이 다른 나라로 넘어갔으면 무시 */
+    if(facts[iso]){
+      const box=document.getElementById('wd-fact-text');
+      if(box)box.textContent=facts[iso];
+      const badge=document.getElementById('wd-fact-box');
+      if(badge&&!badge.querySelector('.wd-edited-badge')){
+        const b=document.createElement('div');b.className='wd-edited-badge';b.textContent='✓ 커뮤니티 편집 반영됨';
+        badge.insertBefore(b,badge.firstChild);
+      }
+    }
+  }catch(e){}
+  if(!SA.isLoggedIn||!SA.isLoggedIn())return;
+  try{
+    const mine=await SA.wikiMyEdits(iso);
+    if(_wdCurIso!==iso||!mine.length)return;
+    const latest=mine[0];
+    const st=document.getElementById('wd-my-status');
+    if(!st)return;
+    if(latest.status==='pending')st.textContent='내 제안: 승인 대기 중';
+    else if(latest.status==='approved')st.textContent='내 제안: 승인됨';
+    else if(latest.status==='rejected')st.textContent='내 제안: 반려됨'+(latest.admin_note?' ('+latest.admin_note+')':'');
+  }catch(e){}
+}
+let _wdEditModal=null;
+function wdEnsureEditModal(){
+  if(_wdEditModal)return _wdEditModal;
+  const m=document.createElement('div');
+  m.className='acct-ov';m.id='wd-edit-modal';
+  m.innerHTML='<div class="acct-card" style="position:relative;width:min(480px,92vw)">'
+    +'<button class="acct-x" type="button" id="wd-edit-close">✕</button>'
+    +'<h2 id="wd-edit-title">설명 수정 제안</h2>'
+    +'<div class="sub">승인되면 이 나라의 특징 설명이 바뀌어요. 관리자 검토 후 반영됩니다.</div>'
+    +'<textarea id="wd-edit-textarea" rows="7" style="width:100%;background:var(--sf2);border:1px solid var(--bd);border-radius:8px;color:var(--tx);font-family:inherit;font-size:.82rem;padding:.6rem;resize:vertical;margin-bottom:.7rem"></textarea>'
+    +'<button class="acct-btn" type="button" id="wd-edit-submit-btn">제안 제출</button>'
+    +'</div>';
+  document.body.appendChild(m);
+  m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('on');});
+  document.getElementById('wd-edit-close').addEventListener('click',()=>m.classList.remove('on'));
+  _wdEditModal=m;
+  return m;
+}
+function wdOpenEditModal(iso){
+  const SA=window.SejiAccount;
+  if(!SA||!SA.isLoggedIn||!SA.isLoggedIn()){if(SA&&SA.promptLogin)SA.promptLogin();return;}
+  const m=wdEnsureEditModal();
+  document.getElementById('wd-edit-title').textContent='설명 수정 제안 — '+(COUNTRIES[iso]?COUNTRIES[iso].k:iso);
+  const ta=document.getElementById('wd-edit-textarea');
+  ta.value=(document.getElementById('wd-fact-text')||{}).textContent||(DICT_DATA[iso]||{}).fact||'';
+  const btn=document.getElementById('wd-edit-submit-btn');
+  btn.onclick=async()=>{
+    const text=ta.value.trim();
+    if(text.length<5){ta.focus();return;}
+    btn.disabled=true;
+    const ok=await SA.wikiSubmitEdit(iso,text);
+    btn.disabled=false;
+    if(ok){m.classList.remove('on');wdEnhanceFact(iso);}
+  };
+  document.querySelectorAll('.acct-ov').forEach(o=>o.classList.remove('on'));
+  m.classList.add('on');
+}
+
+/* ══════════ 댓글 ══════════ */
+async function wdLoadComments(iso){
+  const SA=window.SejiAccount;
+  const box=document.getElementById('wd-comments-list');
+  if(!box)return;
+  if(!SA){box.innerHTML='<div class="wd-none">댓글을 불러올 수 없어요</div>';return;}
+  try{
+    const list=await SA.wikiListComments(iso);
+    if(_wdCurIso!==iso)return;
+    box.innerHTML=list.length
+      ?list.map(c=>'<div class="wd-comment"><b>'+escHtmlWd(c.user_nickname||'익명')+'</b><span>'+escHtmlWd(c.body)+'</span>'
+        +'<small>'+new Date(c.created_at).toLocaleDateString('ko-KR')+'</small></div>').join('')
+      :'<div class="wd-none">아직 댓글이 없어요</div>';
+  }catch(e){box.innerHTML='<div class="wd-none">댓글을 불러올 수 없어요</div>';}
+}
+function escHtmlWd(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+async function wdSubmitComment(iso){
+  const SA=window.SejiAccount;if(!SA)return;
+  if(!SA.isLoggedIn||!SA.isLoggedIn()){if(SA.promptLogin)SA.promptLogin();return;}
+  const ta=document.getElementById('wd-comment-text');
+  const body=(ta.value||'').trim();
+  if(!body)return;
+  const btn=document.getElementById('wd-comment-submit');
+  btn.disabled=true;
+  const ok=await SA.wikiAddComment(iso,body);
+  btn.disabled=false;
+  if(ok){ta.value='';wdLoadComments(iso);}
+}
+
+/* ══════════ 관리자 승인 큐 ══════════ */
+let _wdAdminModal=null;
+function wdEnsureAdminModal(){
+  if(_wdAdminModal)return _wdAdminModal;
+  const m=document.createElement('div');
+  m.className='acct-ov';m.id='wd-admin-modal';
+  m.innerHTML='<div class="acct-card" style="position:relative;width:min(560px,94vw);max-height:82vh;overflow-y:auto">'
+    +'<button class="acct-x" type="button" id="wd-admin-close">✕</button>'
+    +'<h2>수정 제안 승인 대기</h2>'
+    +'<div class="sub">승인하면 즉시 위키에 반영돼요.</div>'
+    +'<div id="wd-admin-list"></div></div>';
+  document.body.appendChild(m);
+  m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('on');});
+  document.getElementById('wd-admin-close').addEventListener('click',()=>m.classList.remove('on'));
+  _wdAdminModal=m;
+  return m;
+}
+async function wdOpenAdminQueue(){
+  const SA=window.SejiAccount;if(!SA||!SA.isAdmin||!SA.isAdmin())return;
+  const m=wdEnsureAdminModal();
+  document.querySelectorAll('.acct-ov').forEach(o=>o.classList.remove('on'));
+  m.classList.add('on');
+  await wdRenderAdminQueue();
+}
+async function wdRenderAdminQueue(){
+  const list=document.getElementById('wd-admin-list');if(!list)return;
+  list.innerHTML='불러오는 중…';
+  const SA=window.SejiAccount;
+  const items=await SA.wikiPendingList();
+  if(!items.length){list.innerHTML='<div class="wd-none">대기 중인 제안이 없어요</div>';return;}
+  list.innerHTML=items.map(it=>{
+    const c=COUNTRIES[it.iso];
+    const cur=(DICT_DATA[it.iso]||{}).fact||'';
+    return '<div class="wd-admin-item" data-id="'+it.id+'">'
+      +'<div class="wd-admin-head">'+(c?wdFlagImg(it.iso,20):'')+' <b>'+(c?c.k:it.iso)+'</b>'
+      +'<span class="wd-admin-by">'+escHtmlWd(it.user_nickname||'익명')+' · '+new Date(it.created_at).toLocaleDateString('ko-KR')+'</span></div>'
+      +'<div class="wd-admin-diff"><div class="wd-admin-old"><small>현재</small>'+escHtmlWd(cur)+'</div>'
+      +'<div class="wd-admin-new"><small>제안</small>'+escHtmlWd(it.proposed_fact)+'</div></div>'
+      +'<div class="wd-admin-acts"><button type="button" class="wd-approve-btn" data-id="'+it.id+'">승인</button>'
+      +'<button type="button" class="wd-reject-btn" data-id="'+it.id+'">반려</button></div></div>';
+  }).join('');
+  list.querySelectorAll('.wd-approve-btn').forEach(b=>b.addEventListener('click',async()=>{
+    b.disabled=true;await SA.wikiApprove(+b.dataset.id);await wdRenderAdminQueue();wdRefreshAdminBtn();
+    if(_wdCurIso)wdEnhanceFact(_wdCurIso);
+  }));
+  list.querySelectorAll('.wd-reject-btn').forEach(b=>b.addEventListener('click',async()=>{
+    const note=prompt('반려 사유(선택, 비워도 됨):')||'';
+    b.disabled=true;await SA.wikiReject(+b.dataset.id,note);await wdRenderAdminQueue();wdRefreshAdminBtn();
+  }));
 }
 
 (function(){

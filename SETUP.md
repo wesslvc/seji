@@ -56,6 +56,24 @@
 5. Supabase 로 돌아가서 **Authentication → Providers → Google**
    - **Enable** 켜고, 위 Client ID / Secret 붙여넣기 → **Save**
 
+## E-1. 세지 위키 관리자(나) 등록 — 딱 한 번만
+
+**세계지리 사전**이 이제 "세지 위키"로 바뀌어서, 로그인한 사람 누구나 국가 설명에
+**수정을 제안**할 수 있고, **관리자(나)가 승인**해야 실제로 반영됩니다. 나머지 정보
+(수도·인구·접경국 등)는 댓글만 가능하고 직접 수정은 안 됩니다.
+
+1. 먼저 A~C 설정을 마치고 `supabase/schema.sql` 전체를 **다시 한 번** SQL Editor에
+   붙여넣어 **Run** 하세요 (위키 테이블·함수가 새로 추가됨 — 기존 걸 지우지 않고 더하기만
+   해서 안전합니다).
+2. 사이트에서 **본인 계정으로 로그인을 한 번** 하세요(프로필이 생성되어야 다음 단계가 됨).
+3. Supabase **SQL Editor → New query**에 아래를 붙여넣고 이메일만 본인 것으로 바꿔서 실행:
+   ```sql
+   update public.profiles set is_admin = true
+   where id = (select id from auth.users where email = '본인이메일@example.com');
+   ```
+4. "Success" 뜨면 끝 — 다시 로그인(또는 새로고침)하면 위키 화면 상단에 **관리자 승인 큐**
+   버튼이 보입니다. 사람들이 올린 수정 제안을 거기서 승인/반려하면 됩니다.
+
 ## E. 어디서 테스트하나 (호스팅, 클릭만)
 
 로그인은 진짜 주소(https)가 있어야 작동합니다. 명령어 없이 켜는 법:

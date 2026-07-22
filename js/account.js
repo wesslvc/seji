@@ -960,6 +960,82 @@ async function boot() {
   window.addEventListener('pagehide', () => flushPush());
 }
 
+/* ══════════ 세지 위키 (세계지리 사전 커뮤니티 편집) ══════════
+   '특징' 설명만 수정 제안 → 관리자 승인 후 반영. 그 외 정보는 댓글만 가능. */
+function wikiRequireLogin() {
+  if (session) return true;
+  open('acct-login');
+  return false;
+}
+async function wikiSubmitEdit(iso, text) {
+  if (!wikiRequireLogin()) return false;
+  await ensureSB();
+  const { error } = await supabase.from('wiki_edits').insert({ iso, user_id: session.user.id, proposed_fact: text });
+  if (error) { toast('제안 접수 실패: ' + (error.message || '')); return false; }
+  toast('제안이 접수됐어요 — 관리자 승인 후 반영됩니다');
+  return true;
+}
+async function wikiMyEdits(iso) {
+  if (!session) return [];
+  await ensureSB();
+  if (!supabase) return [];
+  let q = supabase.from('wiki_edits').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false });
+  if (iso) q = q.eq('iso', iso);
+  const { data, error } = await q;
+  return error ? [] : (data || []);
+}
+async function wikiPendingList() {
+  await ensureSB();
+  if (!supabase) return [];
+  const { data, error } = await supabase.from('wiki_edits_view').select('*').eq('status', 'pending').order('created_at', { ascending: true });
+  return error ? [] : (data || []);
+}
+let _wikiFactsCache = null;
+async function wikiApprovedFacts() {
+  if (_wikiFactsCache) return _wikiFactsCache;
+  await ensureSB();
+  if (!supabase) return {};
+  const { data, error } = await supabase.from('wiki_facts').select('iso,fact');
+  if (error) return {};
+  const map = {};
+  (data || []).forEach((r) => { map[r.iso] = r.fact; });
+  _wikiFactsCache = map;
+  return map;
+}
+async function wikiApprove(id) {
+  await ensureSB();
+  const { error } = await supabase.rpc('approve_wiki_edit', { edit_id: id });
+  if (error) { toast('승인 실패: ' + (error.message || '')); return false; }
+  _wikiFactsCache = null;
+  toast('승인 완료 — 위키에 반영됐어요');
+  return true;
+}
+async function wikiReject(id, note) {
+  await ensureSB();
+  const { error } = await supabase.rpc('reject_wiki_edit', { edit_id: id, note: note || null });
+  if (error) { toast('반려 실패: ' + (error.message || '')); return false; }
+  toast('반려했어요');
+  return true;
+}
+async function wikiAddComment(iso, body) {
+  if (!wikiRequireLogin()) return false;
+  await ensureSB();
+  const { error } = await supabase.from('wiki_comments').insert({ iso, user_id: session.user.id, body });
+  if (error) { toast('댓글 등록 실패: ' + (error.message || '')); return false; }
+  return true;
+}
+async function wikiListComments(iso) {
+  await ensureSB();
+  if (!supabase) return [];
+  const { data, error } = await supabase.from('wiki_comments_view').select('*').eq('iso', iso).order('created_at', { ascending: true });
+  return error ? [] : (data || []);
+}
+async function wikiDeleteComment(id) {
+  await ensureSB();
+  const { error } = await supabase.from('wiki_comments').delete().eq('id', id);
+  return !error;
+}
+
 /* 자랑하기 카드용: 닉네임·프사·총점·랭킹 */
 async function getShareInfo() {
   if (!session) return null;
@@ -983,7 +1059,13 @@ async function getShareInfo() {
     };
   } catch (e) { return null; }
 }
-window.SejiAccount = { submitScore, isLoggedIn: () => !!session, getShareInfo };
+window.SejiAccount = {
+  submitScore, isLoggedIn: () => !!session, getShareInfo,
+  isAdmin: () => !!(profile && profile.is_admin),
+  promptLogin: () => open('acct-login'),
+  wikiSubmitEdit, wikiMyEdits, wikiPendingList, wikiApprovedFacts,
+  wikiApprove, wikiReject, wikiAddComment, wikiListComments, wikiDeleteComment,
+};
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
 else boot();

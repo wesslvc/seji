@@ -152,3 +152,133 @@ create policy "avatars write" on storage.objects
 drop policy if exists "avatars update" on storage.objects;
 create policy "avatars update" on storage.objects
   for update using (bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text);
+
+-- ════════════════════════════════════════════════════════════
+--  세지 위키 (세계지리 사전 커뮤니티 편집) — 관리자 승인제
+--  · '특징' 설명문만 수정 제안이 가능하고, 그 외 정보(수도·인구·접경국 등
+--    CSV/게임 데이터 기반 항목)는 댓글로만 의견을 남길 수 있다.
+--  · 제안은 관리자가 승인해야 실제로 반영된다(wiki_facts에 기록됨).
+-- ════════════════════════════════════════════════════════════
+
+-- 관리자 플래그
+alter table public.profiles add column if not exists is_admin boolean not null default false;
+
+-- 관리자 여부 확인 (다른 테이블 RLS에서 재사용 — profiles 자기 참조 순환을 피하려고 security definer)
+create or replace function public.is_admin()
+returns boolean
+language sql security definer set search_path = public stable as $$
+  select coalesce((select is_admin from public.profiles where id = auth.uid()), false);
+$$;
+
+-- 승인되어 현재 표시 중인 설명(국가별 1행) — approve_wiki_edit() 함수를 통해서만 쓰기 가능
+create table if not exists public.wiki_facts (
+  iso        text primary key,
+  fact       text not null,
+  updated_by uuid references auth.users,
+  updated_at timestamptz not null default now()
+);
+alter table public.wiki_facts enable row level security;
+drop policy if exists "wiki_facts read" on public.wiki_facts;
+create policy "wiki_facts read" on public.wiki_facts for select using (true);
+
+-- 수정 제안 큐 (게스트 아님 · 로그인 사용자만 제출)
+create table if not exists public.wiki_edits (
+  id            bigint generated always as identity primary key,
+  iso           text not null,
+  user_id       uuid not null references auth.users on delete cascade,
+  proposed_fact text not null,
+  status        text not null default 'pending' check (status in ('pending','approved','rejected')),
+  admin_note    text,
+  reviewed_by   uuid references auth.users,
+  reviewed_at   timestamptz,
+  created_at    timestamptz not null default now()
+);
+alter table public.wiki_edits enable row level security;
+create index if not exists wiki_edits_status_idx on public.wiki_edits(status);
+create index if not exists wiki_edits_iso_idx    on public.wiki_edits(iso);
+
+drop policy if exists "wiki_edits insert own" on public.wiki_edits;
+create policy "wiki_edits insert own" on public.wiki_edits
+  for insert to authenticated
+  with check (auth.uid() = user_id and status = 'pending' and char_length(proposed_fact) between 5 and 800);
+drop policy if exists "wiki_edits read own or admin" on public.wiki_edits;
+create policy "wiki_edits read own or admin" on public.wiki_edits
+  for select to authenticated
+  using (auth.uid() = user_id or public.is_admin());
+-- 상태 변경(승인/반려)은 직접 UPDATE 정책 없이 아래 함수로만 — 유저가 자기 제안을 셀프 승인 못 하게
+
+-- 국가별 댓글(모든 필드 공통 — 실제 데이터 수정은 안 되고 의견/오류 제보만)
+create table if not exists public.wiki_comments (
+  id         bigint generated always as identity primary key,
+  iso        text not null,
+  user_id    uuid not null references auth.users on delete cascade,
+  body       text not null check (char_length(body) between 1 and 500),
+  created_at timestamptz not null default now()
+);
+alter table public.wiki_comments enable row level security;
+create index if not exists wiki_comments_iso_idx on public.wiki_comments(iso);
+
+drop policy if exists "wiki_comments read" on public.wiki_comments;
+create policy "wiki_comments read" on public.wiki_comments for select using (true);
+drop policy if exists "wiki_comments insert own" on public.wiki_comments;
+create policy "wiki_comments insert own" on public.wiki_comments
+  for insert to authenticated with check (auth.uid() = user_id);
+drop policy if exists "wiki_comments delete own or admin" on public.wiki_comments;
+create policy "wiki_comments delete own or admin" on public.wiki_comments
+  for delete to authenticated using (auth.uid() = user_id or public.is_admin());
+
+-- 닉네임을 붙여 보여주는 조회용 뷰 (관리자 큐 · 댓글 목록에서 사용)
+create or replace view public.wiki_edits_view
+with (security_invoker = on) as
+select we.*, p.nickname as user_nickname
+from public.wiki_edits we
+join public.profiles p on p.id = we.user_id;
+
+create or replace view public.wiki_comments_view
+with (security_invoker = on) as
+select wc.*, p.nickname as user_nickname
+from public.wiki_comments wc
+join public.profiles p on p.id = wc.user_id;
+
+-- 승인 — 관리자만, 통과되면 wiki_facts에 반영되고 제안은 approved로 표시됨
+create or replace function public.approve_wiki_edit(edit_id bigint)
+returns void
+language plpgsql security definer set search_path = public as $$
+declare
+  e record;
+begin
+  if not public.is_admin() then
+    raise exception '관리자만 승인할 수 있습니다';
+  end if;
+  select * into e from public.wiki_edits where id = edit_id and status = 'pending';
+  if not found then
+    raise exception '대기 중인 제안을 찾을 수 없습니다';
+  end if;
+  insert into public.wiki_facts (iso, fact, updated_by, updated_at)
+  values (e.iso, e.proposed_fact, auth.uid(), now())
+  on conflict (iso) do update set fact = excluded.fact, updated_by = excluded.updated_by, updated_at = excluded.updated_at;
+  update public.wiki_edits set status = 'approved', reviewed_by = auth.uid(), reviewed_at = now()
+  where id = edit_id;
+end;
+$$;
+revoke all on function public.approve_wiki_edit(bigint) from public, anon;
+grant execute on function public.approve_wiki_edit(bigint) to authenticated;
+
+-- 반려 — 관리자만
+create or replace function public.reject_wiki_edit(edit_id bigint, note text default null)
+returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if not public.is_admin() then
+    raise exception '관리자만 반려할 수 있습니다';
+  end if;
+  update public.wiki_edits
+  set status = 'rejected', admin_note = note, reviewed_by = auth.uid(), reviewed_at = now()
+  where id = edit_id and status = 'pending';
+  if not found then
+    raise exception '대기 중인 제안을 찾을 수 없습니다';
+  end if;
+end;
+$$;
+revoke all on function public.reject_wiki_edit(bigint, text) from public, anon;
+grant execute on function public.reject_wiki_edit(bigint, text) to authenticated;
