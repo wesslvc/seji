@@ -339,18 +339,15 @@ function wdNeighbors(iso){
   return {list:[...base,...extra],anno};
 }
 
-/* 국기 이미지를 나라의 "가장 큰 조각"의 실제 bbox(userSpaceOnUse)에 맞춰 채우는
-   SVG 패턴 — <image>의 width/height를 그 조각의 실제 너비/높이로 주고
-   preserveAspectRatio=xMidYMid slice를 쓰기 때문에, 국기 원본 비율은 그대로 두고
-   (찌그러지지 않고) 가운데 부분만 크기에 맞춰 잘라 채운다(= CSS object-fit:cover).
-   objectBoundingBox(0~1 정규화)로 늘리면 세로로 긴 나라(아르헨티나 등)에서 국기
-   문양(태양 등)이 심하게 눌려 보이는 문제가 있어 이 방식으로 바꿈.
-   flags/ 폴더(같은 origin, flag-icons SVG)라 네트워크 문제로 못 뜰 일이 거의 없다. */
-function wdFlagPatternDef(patId,iso,bbox){
+/* 국기 이미지를 나라의 "가장 큰 조각" 크기에 꽉 채우는 SVG 패턴 — 비율을 유지하며
+   자르면(cover) 세로로 긴 나라 등에서 국기 옆부분이 통째로 잘려 나가 오히려
+   어색해서, 그냥 비율 무시하고(preserveAspectRatio=none) 조각 크기에 맞춰
+   눌러서라도 꽉 채운다. flags/ 폴더(같은 origin, flag-icons SVG)라 네트워크
+   문제로 못 뜰 일이 거의 없다. */
+function wdFlagPatternDef(patId,iso){
   const url='flags/'+iso+'.svg';
-  return '<pattern id="'+patId+'" patternUnits="userSpaceOnUse" patternContentUnits="userSpaceOnUse" '
-    +'x="'+bbox.x+'" y="'+bbox.y+'" width="'+bbox.width+'" height="'+bbox.height+'">'
-    +'<image href="'+url+'" xlink:href="'+url+'" x="0" y="0" width="'+bbox.width+'" height="'+bbox.height+'" preserveAspectRatio="xMidYMid slice"/>'
+  return '<pattern id="'+patId+'" patternUnits="objectBoundingBox" patternContentUnits="objectBoundingBox" width="1" height="1">'
+    +'<image href="'+url+'" xlink:href="'+url+'" x="0" y="0" width="1" height="1" preserveAspectRatio="none"/>'
     +'</pattern>';
 }
 /* 나라 하나가 여러 조각(본토+섬 등)으로 흩어져 있으면, 국기 텍스처는 그 중 가장
@@ -390,7 +387,7 @@ function wdMiniMapAddIso(targetParts,defs,bbs,skip,i,solidFill,forBBox,patternIs
       ||(typeof WD_FLAG_COLORS!=='undefined'&&WD_FLAG_COLORS[patternIso]&&WD_FLAG_COLORS[patternIso][0])||solidFill;
     if(main){
       const patId='wdfp-'+patternIso;
-      defs.push(wdFlagPatternDef(patId,patternIso,main.bbox));
+      defs.push(wdFlagPatternDef(patId,patternIso));
     }
     items.forEach(it=>{
       if(main&&it===main)targetParts.push('<path d="'+it.d+'" fill="url(#wdfp-'+patternIso+')"'+opAttr+'/>');
