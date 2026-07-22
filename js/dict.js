@@ -551,6 +551,42 @@ async function wdOpenMyContribs(){
   }).join('');
 }
 
+/* ══════════ 기여 랭킹 (승인된 수정 제안 수) ══════════ */
+let _wdRankModal=null;
+function wdEnsureRankModal(){
+  if(_wdRankModal)return _wdRankModal;
+  const m=document.createElement('div');
+  m.className='acct-ov';m.id='wd-rank-modal';
+  m.innerHTML='<div class="acct-card" style="position:relative;width:min(440px,92vw);max-height:82vh;overflow-y:auto">'
+    +'<button class="acct-x" type="button" id="wd-rank-close">✕</button>'
+    +'<h2>🏆 기여 랭킹</h2>'
+    +'<div class="sub">승인된 수정 제안 수 기준이에요.</div>'
+    +'<div id="wd-rank-list"></div></div>';
+  document.body.appendChild(m);
+  m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('on');});
+  document.getElementById('wd-rank-close').addEventListener('click',()=>m.classList.remove('on'));
+  _wdRankModal=m;
+  return m;
+}
+async function wdOpenContribRanking(){
+  const SA=window.SejiAccount;
+  const m=wdEnsureRankModal();
+  document.querySelectorAll('.acct-ov').forEach(o=>o.classList.remove('on'));
+  m.classList.add('on');
+  const list=document.getElementById('wd-rank-list');
+  list.innerHTML='불러오는 중…';
+  if(!SA||!SA.wikiContribLeaderboard){list.innerHTML='<div class="wd-none">랭킹을 불러올 수 없어요</div>';return;}
+  const rows=await SA.wikiContribLeaderboard();
+  if(!rows.length){list.innerHTML='<div class="wd-none">아직 승인된 기여가 없어요 — 첫 기여자가 되어보세요!</div>';return;}
+  const medal=i=>i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.';
+  list.innerHTML=rows.map((r,i)=>
+    '<div class="wd-rank-row"><span class="wd-rank-no">'+medal(i)+'</span>'
+    +wdAvatar(r.avatar_url,r.nickname,28)
+    +'<span class="wd-rank-nm">'+escHtmlWd(r.nickname||'익명')+'</span>'
+    +'<span class="wd-rank-ct">'+r.approved_count+'건</span></div>'
+  ).join('');
+}
+
 (function(){
   const inp=document.getElementById('wd-search');
   if(inp)inp.addEventListener('input',()=>wdFilter(inp.value));

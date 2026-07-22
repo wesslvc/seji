@@ -1036,6 +1036,13 @@ async function wikiDeleteComment(id) {
   const { error } = await supabase.from('wiki_comments').delete().eq('id', id);
   return !error;
 }
+/* 기여 랭킹 — 승인된 수정 제안 수 기준 */
+async function wikiContribLeaderboard() {
+  await ensureSB();
+  if (!supabase) return [];
+  const { data, error } = await supabase.rpc('wiki_contrib_leaderboard');
+  return error ? [] : (data || []);
+}
 
 /* 자랑하기 카드용: 닉네임·프사·총점·랭킹 */
 async function getShareInfo() {
@@ -1066,6 +1073,7 @@ window.SejiAccount = {
   promptLogin: () => open('acct-login'),
   wikiSubmitEdit, wikiMyEdits, wikiPendingList, wikiApprovedFacts,
   wikiApprove, wikiReject, wikiAddComment, wikiListComments, wikiDeleteComment,
+  wikiContribLeaderboard,
 };
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

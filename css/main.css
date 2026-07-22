@@ -678,8 +678,13 @@ body.cq-mode #cq-pins-ov{display:block}
    닉네임 길이에 따라 가려질 수 있다 — 항상 새 줄로 내려서 절대 겹치지 않게 한다 */
 .wd-top{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;padding:.55rem .8rem;border-bottom:1px solid var(--bd);background:var(--sf);flex-shrink:0}
 .wd-top-acts{flex:1 0 100%;display:flex;justify-content:flex-end;gap:.5rem}
-.wd-my-btn{background:var(--sf2);border:1px solid var(--bd);color:var(--tx2);font-family:inherit;font-size:.72rem;font-weight:700;border-radius:999px;padding:.3rem .7rem;cursor:pointer}
-.wd-my-btn:hover{color:var(--tx);border-color:var(--tx2)}
+.wd-my-btn,.wd-rank-btn{background:var(--sf2);border:1px solid var(--bd);color:var(--tx2);font-family:inherit;font-size:.72rem;font-weight:700;border-radius:999px;padding:.3rem .7rem;cursor:pointer}
+.wd-my-btn:hover,.wd-rank-btn:hover{color:var(--tx);border-color:var(--tx2)}
+.wd-rank-row{display:flex;align-items:center;gap:.6rem;padding:.5rem .3rem;border-bottom:1px solid var(--bd)}
+.wd-rank-row:last-child{border-bottom:none}
+.wd-rank-no{width:28px;flex-shrink:0;text-align:center;font-size:.9rem;font-weight:800;color:var(--tx2)}
+.wd-rank-nm{flex:1;font-size:.82rem;font-weight:700;color:var(--tx);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wd-rank-ct{font-size:.76rem;font-weight:700;color:var(--ac);flex-shrink:0}
 .wd-title{display:flex;align-items:center;gap:.45rem;font-weight:800;font-size:.95rem;color:var(--tx)}
 .wd-title svg{width:1.05em;height:1.05em;color:#e2c07a}
 .wd-back{display:inline-flex;align-items:center;gap:.3rem;background:var(--sf2);border:1px solid var(--bd);border-radius:999px;color:var(--tx2);font-family:inherit;font-size:.76rem;font-weight:600;padding:.34rem .8rem;cursor:pointer;transition:.15s var(--ease)}

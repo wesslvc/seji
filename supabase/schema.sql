@@ -312,3 +312,17 @@ end;
 $$;
 revoke all on function public.reject_wiki_edit(bigint, text) from public, anon;
 grant execute on function public.reject_wiki_edit(bigint, text) to authenticated;
+
+-- 기여 랭킹 — 승인된 수정 제안 수 기준 (닉네임·프로필사진 포함, 게스트도 조회 가능)
+create or replace function public.wiki_contrib_leaderboard()
+returns table(user_id uuid, nickname text, avatar_url text, approved_count bigint)
+language sql security definer set search_path = public stable as $$
+  select we.user_id, p.nickname, p.avatar_url, count(*) as approved_count
+  from public.wiki_edits we
+  join public.profiles p on p.id = we.user_id
+  where we.status = 'approved'
+  group by we.user_id, p.nickname, p.avatar_url
+  order by approved_count desc, p.nickname asc;
+$$;
+revoke all on function public.wiki_contrib_leaderboard() from public, anon;
+grant execute on function public.wiki_contrib_leaderboard() to authenticated, anon;
