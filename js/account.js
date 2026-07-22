@@ -1063,6 +1063,14 @@ async function wikiContribLeaderboard() {
   if (error) { console.error('[세지위키] wiki_contrib_leaderboard 실패:', error); return []; }
   return data || [];
 }
+/* 프로필사진 클릭 시: 그 사람이 승인받은 기여 목록(국가·내용·개수) */
+async function wikiUserContributions(userId) {
+  await ensureSB();
+  if (!supabase) return [];
+  const { data, error } = await supabase.rpc('wiki_user_contributions', { target_user: userId });
+  if (error) { console.error('[세지위키] wiki_user_contributions 실패:', error); return []; }
+  return data || [];
+}
 
 /* 자랑하기 카드용: 닉네임·프사·총점·랭킹 */
 async function getShareInfo() {
@@ -1093,7 +1101,7 @@ window.SejiAccount = {
   promptLogin: () => open('acct-login'),
   wikiSubmitEdit, wikiMyEdits, wikiPendingList, wikiApprovedFacts, wikiContributors,
   wikiApprove, wikiReject, wikiAddComment, wikiListComments, wikiDeleteComment,
-  wikiContribLeaderboard,
+  wikiContribLeaderboard, wikiUserContributions,
 };
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

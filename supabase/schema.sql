@@ -286,6 +286,19 @@ $$;
 revoke all on function public.wiki_contributors_all() from public, anon;
 grant execute on function public.wiki_contributors_all() to authenticated, anon;
 
+-- 특정 유저가 승인받은 기여 목록(프로필사진 클릭 시 보여줄 용도) — 게스트도 조회 가능
+create or replace function public.wiki_user_contributions(target_user uuid)
+returns table(id bigint, iso text, proposed_fact text, reviewed_at timestamptz, nickname text, avatar_url text)
+language sql security definer set search_path = public stable as $$
+  select we.id, we.iso, we.proposed_fact, we.reviewed_at, p.nickname, p.avatar_url
+  from public.wiki_edits we
+  left join public.profiles p on p.id = we.user_id
+  where we.user_id = target_user and we.status = 'approved'
+  order by we.reviewed_at desc;
+$$;
+revoke all on function public.wiki_user_contributions(uuid) from public, anon;
+grant execute on function public.wiki_user_contributions(uuid) to authenticated, anon;
+
 -- 승인 — 관리자만, 통과되면 wiki_facts에 반영되고 제안은 approved로 표시됨
 create or replace function public.approve_wiki_edit(edit_id bigint)
 returns void

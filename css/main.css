@@ -779,8 +779,15 @@ body.cq-mode #cq-pins-ov{display:block}
 .wd-admin-by{margin-left:auto;display:inline-flex;align-items:center;gap:.3rem;color:var(--tx2);font-size:.64rem;font-weight:400}
 /* 나무위키식 인라인 diff — 한 문단 안에서 바뀐 부분만 표시 */
 .wd-diff{font-size:.76rem;line-height:1.7;color:var(--tx);background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:.55rem .65rem;margin-bottom:.5rem}
-.wd-diff del{color:var(--wr);text-decoration:line-through;background:rgba(242,139,130,.12);border-radius:3px;padding:0 1px}
-.wd-diff ins{color:#81c995;text-decoration:none;background:rgba(129,201,149,.16);border-radius:3px;padding:0 1px}
+.wd-diff del,#wd-fact-text del{color:var(--wr);text-decoration:line-through;background:rgba(242,139,130,.12);border-radius:3px;padding:0 1px}
+.wd-diff ins,#wd-fact-text ins{color:#81c995;text-decoration:none;background:rgba(129,201,149,.16);border-radius:3px;padding:0 1px}
+.wd-diff-toggle{margin-left:auto;display:inline-flex;align-items:center;gap:.25rem;font-size:.62rem;color:var(--tx2);font-weight:600;cursor:pointer}
+.wd-diff-toggle input{cursor:pointer}
+.wd-av-clickable{cursor:pointer}
+.wd-user-head{display:flex;align-items:center;gap:.6rem;margin-bottom:.8rem}
+.wd-user-tx{display:flex;flex-direction:column;gap:.15rem}
+.wd-user-tx b{color:var(--tx);font-size:.95rem}
+.wd-user-tx span{color:var(--tx2);font-size:.72rem}
 .wd-my-badge{margin-left:auto;font-size:.62rem;font-weight:700;border-radius:999px;padding:.15rem .55rem}
 .wd-my-badge-pending{background:rgba(253,214,99,.14);color:var(--gd)}
 .wd-my-badge-approved{background:rgba(129,201,149,.14);color:#81c995}

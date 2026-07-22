@@ -17,20 +17,23 @@ function wdFlagImg(iso,px,cls){
     +'src="https://flagcdn.com/w'+(px<=40?80:px<=160?160:320)+'/'+iso+'.png" '
     +'onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{className:\'wd-flag\'+(this.className.includes(\'big\')?\' big\':\'\'),textContent:wdFlag(this.dataset.iso)}))">';
 }
-/* 프로필사진(작은 원) — 사진 없으면 이니셜. 닉네임은 화면엔 안 보이고 title(호버)로만 */
-function wdAvatar(url,name,px){
+/* 프로필사진(작은 원) — 사진 없으면 이니셜. 닉네임은 화면엔 안 보이고 title(호버)로만.
+   uid를 주면 클릭 가능(그 사람의 기여 목록 팝업)하게 표시한다. */
+function wdAvatar(url,name,px,uid){
   px=px||18;
-  const t=' title="'+escHtmlWd(name||'익명')+'"';
-  if(url)return '<img class="wd-av"'+t+' style="width:'+px+'px;height:'+px+'px" src="'+url+'" alt="" loading="lazy" onerror="this.style.display=\'none\'">';
+  const cls='wd-av'+(uid?' wd-av-clickable':'');
+  const attrs=' title="'+escHtmlWd(name||'익명')+'"'
+    +(uid?' data-wd-uid="'+escHtmlWd(uid)+'" data-wd-name="'+escHtmlWd(name||'')+'" data-wd-avatar="'+escHtmlWd(url||'')+'"':'');
+  if(url)return '<img class="'+cls+'"'+attrs+' style="width:'+px+'px;height:'+px+'px" src="'+url+'" alt="" loading="lazy" onerror="this.style.display=\'none\'">';
   const ch=(name||'?').trim().charAt(0).toUpperCase()||'?';
-  return '<span class="wd-av wd-av-ph"'+t+' style="width:'+px+'px;height:'+px+'px;font-size:'+(px*0.5)+'px">'+ch+'</span>';
+  return '<span class="'+cls+' wd-av-ph"'+attrs+' style="width:'+px+'px;height:'+px+'px;font-size:'+(px*0.5)+'px">'+ch+'</span>';
 }
 /* 기여자 여러 명을 겹친 원 스택으로 — list는 최근 기여 순(가나다 아님)으로 이미 정렬돼 옴 */
 function wdAvatarStack(list,px,max){
   if(!list||!list.length)return '';
   max=max||6;
   const shown=list.slice(0,max);
-  let html='<span class="wd-av-stack">'+shown.map(u=>wdAvatar(u.avatarUrl,u.nickname,px)).join('');
+  let html='<span class="wd-av-stack">'+shown.map(u=>wdAvatar(u.avatarUrl,u.nickname,px,u.userId)).join('');
   if(list.length>max)html+='<span class="wd-av wd-av-more" style="width:'+px+'px;height:'+px+'px;font-size:'+(px*0.42)+'px">+'+(list.length-max)+'</span>';
   return html+'</span>';
 }
@@ -396,14 +399,24 @@ async function wdEnhanceFact(iso){
     const rec=facts[iso];
     if(rec&&rec.fact){
       const box=document.getElementById('wd-fact-text');
-      if(box)box.textContent=rec.fact;
+      const orig=(DICT_DATA[iso]||{}).fact||'';
+      const changed=rec.fact!==orig;
+      const render=highlight=>{
+        if(!box)return;
+        if(highlight&&changed)box.innerHTML=wdWordDiff(orig,rec.fact);
+        else box.textContent=rec.fact;
+      };
+      render(false);
       const badge=document.getElementById('wd-fact-box');
       if(badge&&!badge.querySelector('.wd-edited-badge')){
         const contribs=(SA.wikiContributors?(await SA.wikiContributors())[iso]:null)||[];
         if(_wdCurIso!==iso)return;
         const b=document.createElement('div');b.className='wd-edited-badge';
-        b.innerHTML='✓ 커뮤니티 편집 반영됨'+wdAvatarStack(contribs,16);
+        b.innerHTML='✓ 커뮤니티 편집 반영됨'+wdAvatarStack(contribs,16)
+          +(changed?'<label class="wd-diff-toggle"><input type="checkbox" id="wd-diff-chk">커뮤니티 수정내용 보기</label>':'');
         badge.insertBefore(b,badge.firstChild);
+        const chk=document.getElementById('wd-diff-chk');
+        if(chk)chk.addEventListener('change',()=>render(chk.checked));
       }
     }
   }catch(e){console.error('[세지위키] 설명 반영 조회 실패:',e);}
@@ -467,7 +480,7 @@ async function wdLoadComments(iso){
     const list=await SA.wikiListComments(iso);
     if(_wdCurIso!==iso)return;
     box.innerHTML=list.length
-      ?list.map(c=>'<div class="wd-comment">'+wdAvatar(c.user_avatar,c.user_nickname,22)
+      ?list.map(c=>'<div class="wd-comment">'+wdAvatar(c.user_avatar,c.user_nickname,22,c.user_id)
         +'<div class="wd-comment-body"><b>'+escHtmlWd(c.user_nickname||'익명')+'</b><span>'+escHtmlWd(c.body)+'</span>'
         +'<small>'+new Date(c.created_at).toLocaleDateString('ko-KR')+'</small></div></div>').join('')
       :'<div class="wd-none">아직 댓글이 없어요</div>';
@@ -522,7 +535,7 @@ async function wdRenderAdminQueue(){
     const cur=(DICT_DATA[it.iso]||{}).fact||'';
     return '<div class="wd-admin-item" data-id="'+it.id+'">'
       +'<div class="wd-admin-head">'+(c?wdFlagImg(it.iso,20):'')+' <b>'+(c?c.k:it.iso)+'</b>'
-      +'<span class="wd-admin-by">'+wdAvatar(it.user_avatar,it.user_nickname,16)+' '+escHtmlWd(it.user_nickname||'익명')+' · '+new Date(it.created_at).toLocaleDateString('ko-KR')+'</span></div>'
+      +'<span class="wd-admin-by">'+wdAvatar(it.user_avatar,it.user_nickname,16,it.user_id)+' '+escHtmlWd(it.user_nickname||'익명')+' · '+new Date(it.created_at).toLocaleDateString('ko-KR')+'</span></div>'
       +'<div class="wd-diff">'+wdWordDiff(cur,it.proposed_fact)+'</div>'
       +'<div class="wd-admin-acts"><button type="button" class="wd-approve-btn" data-id="'+it.id+'">승인</button>'
       +'<button type="button" class="wd-reject-btn" data-id="'+it.id+'">반려</button></div></div>';
@@ -607,11 +620,60 @@ async function wdOpenContribRanking(){
   const medal=i=>i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.';
   list.innerHTML=rows.map((r,i)=>
     '<div class="wd-rank-row"><span class="wd-rank-no">'+medal(i)+'</span>'
-    +wdAvatar(r.avatar_url,r.nickname,28)
+    +wdAvatar(r.avatar_url,r.nickname,28,r.user_id)
     +'<span class="wd-rank-nm">'+escHtmlWd(r.nickname||'익명')+'</span>'
     +'<span class="wd-rank-ct">'+r.approved_count+'건</span></div>'
   ).join('');
 }
+
+/* ══════════ 프로필사진 클릭 → 그 사람의 기여 목록 ══════════ */
+let _wdUserModal=null;
+function wdEnsureUserModal(){
+  if(_wdUserModal)return _wdUserModal;
+  const m=document.createElement('div');
+  m.className='acct-ov';m.id='wd-user-modal';
+  m.innerHTML='<div class="acct-card" style="position:relative;width:min(560px,94vw);max-height:82vh;overflow-y:auto">'
+    +'<button class="acct-x" type="button" id="wd-user-close">✕</button>'
+    +'<div class="wd-user-head" id="wd-user-head"></div>'
+    +'<div id="wd-user-list"></div></div>';
+  document.body.appendChild(m);
+  m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('on');});
+  document.getElementById('wd-user-close').addEventListener('click',()=>m.classList.remove('on'));
+  _wdUserModal=m;
+  return m;
+}
+async function wdOpenUserProfile(uid,nickname,avatarUrl){
+  const SA=window.SejiAccount;
+  if(!SA||!SA.wikiUserContributions)return;
+  const m=wdEnsureUserModal();
+  document.querySelectorAll('.acct-ov').forEach(o=>o.classList.remove('on'));
+  m.classList.add('on');
+  document.getElementById('wd-user-head').innerHTML=wdAvatar(avatarUrl,nickname,40)
+    +'<div class="wd-user-tx"><b>'+escHtmlWd(nickname||'익명')+'</b><span id="wd-user-count">불러오는 중…</span></div>';
+  const list=document.getElementById('wd-user-list');
+  list.innerHTML='불러오는 중…';
+  const items=await SA.wikiUserContributions(uid);
+  const cnt=document.getElementById('wd-user-count');
+  if(cnt)cnt.textContent=items.length+'건 기여 (승인 기준)';
+  if(!items.length){list.innerHTML='<div class="wd-none">아직 승인된 기여가 없어요</div>';return;}
+  list.innerHTML=items.map(it=>{
+    const c=COUNTRIES[it.iso];
+    const cur=(DICT_DATA[it.iso]||{}).fact||'';
+    return '<div class="wd-admin-item">'
+      +'<div class="wd-admin-head">'+(c?wdFlagImg(it.iso,20):'')+' <b>'+(c?c.k:it.iso)+'</b>'
+      +'<span class="wd-admin-by">'+new Date(it.reviewed_at).toLocaleDateString('ko-KR')+'</span></div>'
+      +'<div class="wd-diff">'+wdWordDiff(cur,it.proposed_fact)+'</div></div>';
+  }).join('');
+}
+/* 프로필사진(.wd-av-clickable)은 어디서든 클릭하면 기여 목록 팝업 — capture 단계에서
+   가로채 부모(목록 행 버튼 등)의 클릭(예: 국가 상세로 이동)이 같이 발생하지 않게 한다 */
+document.addEventListener('click',e=>{
+  const av=e.target.closest('.wd-av-clickable');
+  if(!av)return;
+  e.stopPropagation();e.preventDefault();
+  const uid=av.dataset.wdUid;if(!uid)return;
+  wdOpenUserProfile(uid,av.dataset.wdName||'',av.dataset.wdAvatar||'');
+},true);
 
 (function(){
   const inp=document.getElementById('wd-search');
