@@ -339,31 +339,25 @@ function wdNeighbors(iso){
   return {list:[...base,...extra],anno};
 }
 
-/* 국기 이미지를 나라의 "가장 큰 조각 하나"의 실제 bbox(userSpaceOnUse)에 정확히
-   맞춰 채우는 SVG 패턴 — patternUnits/patternContentUnits을 objectBoundingBox(0~1
-   정규화)로 하면 조각의 실제 가로세로 비율이 반영 안 돼 국기가 조각 모양대로
-   눌리거나 늘어나 보인다. 여기서는 <image>의 width/height를 그 조각의 실제
-   너비/높이로 주고 preserveAspectRatio=slice를 쓰기 때문에, 국기 원본 비율은
-   그대로 두고 가운데 부분만 크기에 맞춰 잘라 채운다(= CSS object-fit:cover와 같음).
+/* 국기 이미지를 나라 영토 모양에 맞춰 채우는 SVG 패턴 — patternUnits/patternContentUnits
+   둘 다 objectBoundingBox(0~1 정규화)를 써서, 조각(섬 등)의 실제 가로세로 비율에
+   상관없이 국기를 그 조각 크기에 맞춰 채운다. preserveAspectRatio=none이라 국기
+   원본 비율은 무시하고 조각 안을 여백 없이 꽉 채운다(빈 곳이 안 생김).
    flags/ 폴더(같은 origin, flag-icons SVG)라 네트워크 문제로 못 뜰 일이 거의 없다. */
-function wdFlagPatternDefFit(patId,iso,bbox){
+function wdFlagPatternDef(iso){
   const url='flags/'+iso+'.svg';
-  return '<pattern id="'+patId+'" patternUnits="userSpaceOnUse" patternContentUnits="userSpaceOnUse" '
-    +'x="'+bbox.x+'" y="'+bbox.y+'" width="'+bbox.width+'" height="'+bbox.height+'">'
-    +'<image href="'+url+'" xlink:href="'+url+'" x="0" y="0" width="'+bbox.width+'" height="'+bbox.height+'" preserveAspectRatio="xMidYMid slice"/>'
+  return '<pattern id="wdfp-'+iso+'" patternUnits="objectBoundingBox" patternContentUnits="objectBoundingBox" width="1" height="1">'
+    +'<image href="'+url+'" xlink:href="'+url+'" x="0" y="0" width="1" height="1" preserveAspectRatio="none"/>'
     +'</pattern>';
 }
-/* 나라 하나가 여러 조각(본토+섬 등)으로 흩어져 있어도, 국기 텍스처는 그 중 가장 큰
-   조각 하나에만 입힌다(조각마다 따로 넣으면 작은 섬에서 국기가 알아보기 힘들게
-   눌려 보임). 나머지 작은 조각들은 그 나라 국기의 대표색(WD_FLAG_COLORS 첫 번째
-   색)으로 단색만 칠해 자연스럽게 이어지게 한다. */
-function wdMiniMapAddIso(parts,defs,bbs,skip,i,solidFill,forBBox,patternIso,patternOpacity){
+/* 나라의 각 조각(섬·본토 등)을 국기 텍스처로 채운다 — 배경색은 안 깔고(투명 유지)
+   국기 무늬만 그려서, 나라 구분은 오직 테두리(검정, 본국 굵게·접경국 얇게)로만
+   한다. patternIso가 없으면(맥락용 회색) 그냥 단색만 칠한다. */
+function wdMiniMapAddIso(targetParts,defs,bbs,skip,i,solidFill,forBBox,patternIso){
   const items=[];
   const seenD=new Set(); /* 세계지도 원본이 같은 땅덩이를 다른 용도(호버 타깃 등)로
     똑같은 좌표로 두 번 넣어둔 경우가 있어(예: 프랑스 본토가 frx·France_mainland
-    두 path로 중복) — d 속성이 완전히 같으면 같은 땅이므로 한 번만 그린다. 안 그러면
-    "가장 큰 조각" 판정이 첫 번째 것만 고르고, 완전히 겹치는 중복 조각이 나머지
-    취급을 받아 그 위에 단색으로 덮어써서 국기 무늬가 안 보이게 된다. */
+    두 path로 중복) — d 속성이 완전히 같으면 같은 땅이므로 한 번만 그린다. */
   els4iso(i).forEach(el=>{
     if(skip(i,el))return;
     if((el.getAttribute('class')||'').includes('circlexx'))return;
@@ -382,27 +376,17 @@ function wdMiniMapAddIso(parts,defs,bbs,skip,i,solidFill,forBBox,patternIso,patt
   });
   if(!items.length)return;
   if(patternIso){
-    const withBBox=items.filter(it=>it.bbox&&(it.bbox.width||it.bbox.height));
-    const main=withBBox.length?withBBox.reduce((a,b)=>(b.bbox.width*b.bbox.height>a.bbox.width*a.bbox.height?b:a)):null;
-    const bgColor=(typeof WD_FLAG_COLORS!=='undefined'&&WD_FLAG_COLORS[patternIso]&&WD_FLAG_COLORS[patternIso][0])||solidFill;
-    items.forEach(it=>{
-      if(main&&it===main){
-        const patId='wdfp-'+patternIso;
-        defs.push(wdFlagPatternDefFit(patId,patternIso,it.bbox));
-        parts.push('<path d="'+it.d+'" fill="url(#'+patId+')"'+(patternOpacity!=null?' opacity="'+patternOpacity+'"':'')+'/>');
-      }else{
-        parts.push('<path d="'+it.d+'" fill="'+bgColor+'"'+(patternOpacity!=null?' opacity="'+patternOpacity+'"':'')+'/>');
-      }
-    });
+    defs.push(wdFlagPatternDef(patternIso));
+    items.forEach(it=>targetParts.push('<path d="'+it.d+'" fill="url(#wdfp-'+patternIso+')"/>'));
   }else{
-    items.forEach(it=>parts.push('<path d="'+it.d+'" fill="'+solidFill+'"/>'));
+    items.forEach(it=>targetParts.push('<path d="'+it.d+'" fill="'+solidFill+'"/>'));
   }
 }
 /* ── 접경국 미니 지도 ──
-   이 나라와 접경국을 각자의 국기로 채워서(가장 큰 조각 하나만 텍스처, 나머지는
-   그 나라 국기 대표색 단색) 그린다 — 접경국은 투명도를 낮춰 본국과 시각적으로
-   구분한다. 세계지도(world-svg)에서 해당 나라들의 패스를 복제해 상세 페이지 안에
-   작게 그린다. 주변 맥락용으로 접경국의 접경국까지 회색으로 깔아준다. */
+   이 나라와 접경국을 각자의 국기로 채운다(배경 없이 투명, 국기 무늬만). 나라
+   구분은 검정 테두리로만 하는데, 본국은 굵게·접경국은 얇게 그려서 구별한다.
+   세계지도(world-svg)에서 해당 나라들의 패스를 복제해 상세 페이지 안에 작게
+   그린다. 주변 맥락용으로 접경국의 접경국까지 회색으로 깔아준다. */
 function wdMiniMapSVG(iso){
   if(typeof els4iso==='undefined')return '';
   const nbs=wdNeighbors(iso).list;
@@ -417,14 +401,13 @@ function wdMiniMapSVG(iso){
     if(i==='ru'){try{const b=el.getBBox();if(b.x>2400)return true;}catch(e){}}
     return false;
   };
-  const parts=[];
+  const ringParts=[],nbParts=[],homeParts=[];
   const bbs=[];
   const defs=[];
-  const addIso=(i,solidFill,forBBox,patternIso,patternOpacity)=>wdMiniMapAddIso(parts,defs,bbs,skip,i,solidFill,forBBox,patternIso,patternOpacity);
   /* 화면 맞춤은 본국 기준 — 접경국은 잘려도 본국이 크게 보이는 쪽을 우선한다 */
-  [...ring].forEach(i=>addIso(i,'#2b3442',false)); /* 맥락: 회색 */
-  nbs.forEach(i=>addIso(i,COLOR_MAP.c2,false,i,0.55)); /* 접경국: 큰 조각엔 국기, 나머지는 그 나라 대표색 */
-  addIso(iso,COLOR_MAP.c1,true,iso,1);               /* 이 나라: 큰 조각엔 국기(여기에 화면 맞춤), 나머지는 대표색 */
+  [...ring].forEach(i=>wdMiniMapAddIso(ringParts,defs,bbs,skip,i,'#2b3442',false)); /* 맥락: 회색 단색 */
+  nbs.forEach(i=>wdMiniMapAddIso(nbParts,defs,bbs,skip,i,COLOR_MAP.c2,false,i));    /* 접경국: 국기, 얇은 테두리 */
+  wdMiniMapAddIso(homeParts,defs,bbs,skip,iso,COLOR_MAP.c1,true,iso);               /* 이 나라: 국기, 굵은 테두리 (여기에 화면 맞춤) */
   if(bbs.length){
     /* 본토(가장 큰 조각)에서 멀리 떨어진 해외영토·섬은 화면 맞춤에서 자동 제외
        (네덜란드 카리브 섬들, 노르웨이 스발바르 등) */
@@ -436,18 +419,21 @@ function wdMiniMapSVG(iso){
       minX=Math.min(minX,b.x);minY=Math.min(minY,b.y);maxX=Math.max(maxX,b.x+b.width);maxY=Math.max(maxY,b.y+b.height);
     });
   }
-  if(minX>1e8||!parts.length)return '';
+  if(minX>1e8||!(ringParts.length+nbParts.length+homeParts.length))return '';
   const w=maxX-minX,h=maxY-minY;
   /* 소국은 최소 시야(약 100km 폭)를 보장해 주변 해안·이웃이 살짝 보이게 확대 */
   const pad=Math.max(Math.max(w,h)*0.45,4);
   const vx=minX-pad,vy=minY-pad,vw=w+pad*2,vh=h+pad*2;
-  const sw=(Math.max(vw,vh)/300).toFixed(3); /* 화면상 약 1px 국경선 유지 */
+  const sw=Math.max(vw,vh)/300; /* 화면상 약 1px 국경선 기준 단위 */
   const legend=nbs.length
-    ?'<div class="wd-map-lg"><span><i style="background:'+COLOR_MAP.c1+'"></i>'+COUNTRIES[iso].k+'</span><span><i style="background:'+COLOR_MAP.c2+';opacity:.55"></i>접경국</span></div>'
-    :'<div class="wd-map-lg"><span><i style="background:'+COLOR_MAP.c1+'"></i>'+COUNTRIES[iso].k+'</span></div>';
+    ?'<div class="wd-map-lg"><span><i class="wd-map-lg-ln" style="border-top-width:3px"></i>'+COUNTRIES[iso].k+'</span><span><i class="wd-map-lg-ln" style="border-top-width:1.4px"></i>접경국</span></div>'
+    :'<div class="wd-map-lg"><span><i class="wd-map-lg-ln" style="border-top-width:3px"></i>'+COUNTRIES[iso].k+'</span></div>';
   return '<div class="wd-map"><svg viewBox="'+vx.toFixed(2)+' '+vy.toFixed(2)+' '+vw.toFixed(2)+' '+vh.toFixed(2)+'" preserveAspectRatio="xMidYMid meet" xmlns:xlink="http://www.w3.org/1999/xlink">'
     +'<defs>'+defs.join('')+'</defs>'
-    +'<g stroke="#161e2b" stroke-width="'+sw+'">'+parts.join('')+'</g></svg>'+legend+'</div>';
+    +'<g stroke="#161e2b" stroke-width="'+sw.toFixed(3)+'">'+ringParts.join('')+'</g>'
+    +'<g stroke="#000" stroke-width="'+(sw*1.3).toFixed(3)+'" stroke-linejoin="round">'+nbParts.join('')+'</g>'
+    +'<g stroke="#000" stroke-width="'+(sw*2.6).toFixed(3)+'" stroke-linejoin="round">'+homeParts.join('')+'</g>'
+    +'</svg>'+legend+'</div>';
 }
 
 /* ── 국가 상세 ── */

@@ -770,6 +770,7 @@ body.cq-mode #cq-pins-ov{display:block}
 .wd-map-lg{display:flex;gap:.9rem;justify-content:center;padding:.35rem 0 .1rem;font-size:.66rem;color:var(--tx2)}
 .wd-map-lg span{display:inline-flex;align-items:center;gap:.3rem}
 .wd-map-lg i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.wd-map-lg i.wd-map-lg-ln{width:16px;height:0;border-radius:0;background:none;border-top:3px solid #000}
 .wd-cl-chip{cursor:pointer;font-family:inherit;transition:border-color .15s var(--ease)}
 .wd-cl-chip:hover{border-color:var(--tx2)}
 .wd-cl-chip.on{border-color:var(--ac);color:var(--ac);background:var(--ac2)}
