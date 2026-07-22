@@ -98,8 +98,10 @@ function wdBlameStep(prevTokens,prevOwners,newFact,owner){
   while(j<m){tokens.push(b[j]);owners.push(owner);j++;}
   return {tokens,owners};
 }
-function wdComputeBlame(historyArr){
-  let tokens=[],owners=[];
+/* origText(처음부터 있던 기본 설명)는 소유자 없음(null)으로 시작 — 아무도 안 고친
+   부분은 밑줄 없이 그대로 둔다. 이후 승인 이력을 순서대로 겹쳐 쓰며 소유자를 갱신. */
+function wdComputeBlame(historyArr,origText){
+  let tokens=(origText||'').split(/(\s+)/),owners=tokens.map(()=>null);
   (historyArr||[]).forEach(h=>{
     const r=wdBlameStep(tokens,owners,h.fact,{userId:h.userId,nickname:h.nickname,avatarUrl:h.avatarUrl});
     tokens=r.tokens;owners=r.owners;
@@ -107,9 +109,10 @@ function wdComputeBlame(historyArr){
   return {tokens,owners};
 }
 const WD_BLAME_COLORS=['#8ab4f8','#81c995','#fdd663','#f28b82','#c58af9','#78d9ec','#ff8bcb','#ffab70'];
-/* 여러 명이 고친 국가의 현재 설명을, 어느 부분이 누구 글인지 밑줄 색으로 표시 + 범례 */
-function wdRenderBlame(historyArr){
-  const {tokens,owners}=wdComputeBlame(historyArr);
+/* 여러 명이 고친 국가의 현재 설명을, 어느 부분이 누구 글인지 밑줄 색으로 표시 + 범례.
+   처음부터 있던(아무도 안 고친) 부분은 밑줄 없이 그대로 표시된다. */
+function wdRenderBlame(historyArr,origText){
+  const {tokens,owners}=wdComputeBlame(historyArr,origText);
   const colorOf={};const ownerList=[];let ci=0;
   owners.forEach(o=>{if(o&&!colorOf[o.userId]){colorOf[o.userId]=WD_BLAME_COLORS[ci%WD_BLAME_COLORS.length];ci++;ownerList.push(o);}});
   let html='',buf='',curKey=undefined;
@@ -508,7 +511,7 @@ async function wdEnhanceFact(iso){
       const render=highlight=>{
         if(!box)return;
         if(highlight&&history.length){
-          const {html,legendHtml}=wdRenderBlame(history);
+          const {html,legendHtml}=wdRenderBlame(history,(DICT_DATA[iso]||{}).fact||'');
           box.innerHTML=html;
           if(legendBox){legendBox.innerHTML=legendHtml;legendBox.style.display=legendHtml?'':'none';}
         }else{
