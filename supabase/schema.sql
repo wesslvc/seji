@@ -242,6 +242,7 @@ drop view if exists public.wiki_comments_view;
 
 -- 국가별 댓글(작성자 닉네임·프로필사진 포함) — 게스트도 조회 가능.
 -- profiles 행이 아직 없는 사용자(가입 직후 등)의 글도 사라지지 않도록 LEFT JOIN.
+drop function if exists public.wiki_comments_for(text);
 create or replace function public.wiki_comments_for(p_iso text)
 returns table(id bigint, iso text, user_id uuid, body text, created_at timestamptz, updated_at timestamptz, user_nickname text, user_avatar text)
 language sql security definer set search_path = public stable as $$
