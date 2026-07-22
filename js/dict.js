@@ -17,6 +17,62 @@ function wdFlagImg(iso,px,cls){
     +'src="https://flagcdn.com/w'+(px<=40?80:px<=160?160:320)+'/'+iso+'.png" '
     +'onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{className:\'wd-flag\'+(this.className.includes(\'big\')?\' big\':\'\'),textContent:wdFlag(this.dataset.iso)}))">';
 }
+/* 국기 대표색 2개 추출 — flagcdn PNG을 작은 캔버스에 그려 색상 히스토그램에서
+   채도 높은 상위 2색을 뽑아 그 나라 페이지 테마(틀 색)로 쓴다. CORS 등으로
+   실패하면 null을 돌려주고, 호출부는 조용히 기본 색(호박색)으로 남는다. */
+const _wdFlagColorCache={};
+function wdExtractFlagColors(iso){
+  if(_wdFlagColorCache[iso]!==undefined)return Promise.resolve(_wdFlagColorCache[iso]);
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.crossOrigin='anonymous';
+    img.onload=()=>{
+      try{
+        const W=48,H=30;
+        const cv=document.createElement('canvas');cv.width=W;cv.height=H;
+        const ctx=cv.getContext('2d');
+        ctx.drawImage(img,0,0,W,H);
+        const data=ctx.getImageData(0,0,W,H).data;
+        const buckets={};
+        for(let p=0;p<data.length;p+=4*3){ /* 3픽셀씩 건너뛰며 샘플링 */
+          const r=data[p],g=data[p+1],b=data[p+2],a=data[p+3];
+          if(a<200)continue;
+          const rq=Math.round(r/24)*24,gq=Math.round(g/24)*24,bq=Math.round(b/24)*24;
+          const key=rq+','+gq+','+bq;
+          const mx=Math.max(r,g,b),mn=Math.min(r,g,b);
+          const sat=mx===0?0:(mx-mn)/mx;
+          const weight=0.25+sat*1.2+(mx/255)*0.15; /* 채도 높은 색 우대(흰/검은 낮게) */
+          buckets[key]=(buckets[key]||0)+weight;
+        }
+        const sorted=Object.entries(buckets).sort((x,y)=>y[1]-x[1]);
+        const picked=[];
+        for(const [key] of sorted){
+          const [r,g,b]=key.split(',').map(Number);
+          if(picked.some(p=>Math.abs(p[0]-r)+Math.abs(p[1]-g)+Math.abs(p[2]-b)<70))continue;
+          picked.push([r,g,b]);
+          if(picked.length>=2)break;
+        }
+        if(!picked.length)throw new Error('no colors');
+        const toHex=([r,g,b])=>'#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');
+        const result={c1:toHex(picked[0]),c2:toHex(picked[1]||picked[0])};
+        _wdFlagColorCache[iso]=result;
+        resolve(result);
+      }catch(e){_wdFlagColorCache[iso]=null;resolve(null);}
+    };
+    img.onerror=()=>{_wdFlagColorCache[iso]=null;resolve(null);};
+    img.src='https://flagcdn.com/w80/'+iso+'.png';
+  });
+}
+/* 국가 상세 페이지 틀 색을 그 나라 국기 대표색으로 물들인다 */
+function wdApplyFlagTheme(iso){
+  wdExtractFlagColors(iso).then(colors=>{
+    if(_wdCurIso!==iso)return;
+    const det=document.getElementById('wd-detail');
+    if(!det)return;
+    if(colors){det.style.setProperty('--wd-c1',colors.c1);det.style.setProperty('--wd-c2',colors.c2);}
+    else{det.style.removeProperty('--wd-c1');det.style.removeProperty('--wd-c2');}
+  });
+}
 /* 프로필사진(작은 원) — 사진 없으면 이니셜. 닉네임은 화면엔 안 보이고 title(호버)로만.
    uid를 주면 클릭 가능(그 사람의 기여 목록 팝업)하게 표시한다. */
 function wdAvatar(url,name,px,uid){
@@ -444,8 +500,10 @@ function wdShow(iso){
     if(cand.length)ctHtml='<div class="wd-cities">'+cand.slice(0,7).map(n=>'<div class="wd-city-row"><b>'+n+'</b><span>'+DICT_CITY[n]+'</span></div>').join('')+'</div>';
   }
 
+  det.style.removeProperty('--wd-c1');det.style.removeProperty('--wd-c2'); /* 이전 나라 테마색 잔상 방지 */
   det.innerHTML=
     '<button type="button" class="wd-back" id="wd-back-btn"><span data-ic="back"></span>목록으로</button>'
+    +'<div class="wd-theme-bar" id="wd-theme-bar"></div>'
     +'<div class="wd-head">'+wdFlagImg(iso,64,'big')
     +'<div class="wd-head-tx"><h2>'+c.k+'</h2><small>'+c.e+' · '+wdContOf(iso)+'</small></div></div>'
     +'<div class="wd-fact" id="wd-fact-box"><div id="wd-fact-text">'+(d.fact||'')+'</div>'
@@ -483,6 +541,7 @@ function wdShow(iso){
 
   wdEnhanceFact(iso);
   wdLoadComments(iso);
+  wdApplyFlagTheme(iso);
 }
 /* 기후그래프 카드 내부(그래프 + 캡션 + 도시 설명) */
 let _wdClimateLocs=[];

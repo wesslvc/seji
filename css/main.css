@@ -720,13 +720,17 @@ body.cq-mode #cq-pins-ov{display:block}
 .wd-head{display:flex;align-items:center;gap:.8rem;margin:.7rem 0 .5rem}
 .wd-head-tx h2{font-size:1.35rem;font-weight:800;color:var(--tx);line-height:1.2}
 .wd-head-tx small{color:var(--tx2);font-size:.74rem}
-.wd-fact{background:var(--sf);border:1px solid var(--bd);border-left:3px solid #e2c07a;border-radius:12px;padding:.7rem .85rem;font-size:.8rem;color:var(--tx);line-height:1.65;margin-bottom:.7rem}
+.wd-fact{background:var(--sf);border:1px solid var(--bd);border-left:3px solid var(--wd-c1,#e2c07a);border-radius:12px;padding:.7rem .85rem;font-size:.8rem;color:var(--tx);line-height:1.65;margin-bottom:.7rem;transition:border-left-color .3s}
+/* 국기 대표색으로 물들이는 상세 페이지 틀 장식 — 색 추출 실패 시 기본 호박색으로 대체 */
+.wd-theme-bar{height:5px;border-radius:3px;margin-bottom:.7rem;background:linear-gradient(90deg,var(--wd-c1,#e2c07a),var(--wd-c2,#e2c07a));transition:background .3s}
+.wd-head .wd-flag-img.big{transition:box-shadow .3s;box-shadow:0 0 0 3px var(--wd-c1,transparent),0 0 0 1px rgba(255,255,255,.08)}
+.wd-sec-t::before{content:'';position:absolute;left:0;top:.15rem;width:8px;height:8px;border-radius:50%;background:var(--wd-c1,var(--tx2));transition:background .3s}
 .wd-info{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.4rem;margin-bottom:.4rem}
 .wd-info-it{background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:.45rem .6rem;display:flex;flex-direction:column;gap:.12rem}
 .wd-info-it small{font-size:.6rem;color:var(--tx2)}
 .wd-info-it b{font-size:.76rem;color:var(--tx);font-weight:700;line-height:1.35;word-break:keep-all}
 .wd-sec{margin-top:.85rem}
-.wd-sec-t{font-size:.72rem;font-weight:800;color:var(--tx2);letter-spacing:.04em;margin-bottom:.4rem}
+.wd-sec-t{font-size:.72rem;font-weight:800;color:var(--tx2);letter-spacing:.04em;margin-bottom:.4rem;position:relative;padding-left:.85rem}
 .wd-nbs{margin:0}
 .wd-nb{cursor:pointer;font-family:inherit;transition:border-color .15s var(--ease)}
 .wd-nb:hover{border-color:var(--tx2)}
