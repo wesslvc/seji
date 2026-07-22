@@ -339,21 +339,24 @@ function wdNeighbors(iso){
   return {list:[...base,...extra],anno};
 }
 
-/* 국기 이미지를 나라 영토 모양에 맞춰 채우는 SVG 패턴 — patternUnits/patternContentUnits
-   둘 다 objectBoundingBox(0~1 정규화)를 써서, 조각(섬 등)의 실제 가로세로 비율에
-   상관없이 국기를 그 조각 크기에 맞춰 채운다. preserveAspectRatio=none이라 국기
-   원본 비율은 무시하고 조각 안을 여백 없이 꽉 채운다(빈 곳이 안 생김).
+/* 국기 이미지를 나라의 "가장 큰 조각"의 실제 bbox(userSpaceOnUse)에 맞춰 채우는
+   SVG 패턴 — <image>의 width/height를 그 조각의 실제 너비/높이로 주고
+   preserveAspectRatio=xMidYMid slice를 쓰기 때문에, 국기 원본 비율은 그대로 두고
+   (찌그러지지 않고) 가운데 부분만 크기에 맞춰 잘라 채운다(= CSS object-fit:cover).
+   objectBoundingBox(0~1 정규화)로 늘리면 세로로 긴 나라(아르헨티나 등)에서 국기
+   문양(태양 등)이 심하게 눌려 보이는 문제가 있어 이 방식으로 바꿈.
    flags/ 폴더(같은 origin, flag-icons SVG)라 네트워크 문제로 못 뜰 일이 거의 없다. */
-function wdFlagPatternDef(iso){
+function wdFlagPatternDef(patId,iso,bbox){
   const url='flags/'+iso+'.svg';
-  return '<pattern id="wdfp-'+iso+'" patternUnits="objectBoundingBox" patternContentUnits="objectBoundingBox" width="1" height="1">'
-    +'<image href="'+url+'" xlink:href="'+url+'" x="0" y="0" width="1" height="1" preserveAspectRatio="none"/>'
+  return '<pattern id="'+patId+'" patternUnits="userSpaceOnUse" patternContentUnits="userSpaceOnUse" '
+    +'x="'+bbox.x+'" y="'+bbox.y+'" width="'+bbox.width+'" height="'+bbox.height+'">'
+    +'<image href="'+url+'" xlink:href="'+url+'" x="0" y="0" width="'+bbox.width+'" height="'+bbox.height+'" preserveAspectRatio="xMidYMid slice"/>'
     +'</pattern>';
 }
 /* 나라 하나가 여러 조각(본토+섬 등)으로 흩어져 있으면, 국기 텍스처는 그 중 가장
-   큰 조각 하나에만 입힌다(비율 무시하고 그 조각 크기에 꽉 채움) — 작은 섬마다
-   따로 국기를 끼워넣으면 알아보기 힘들고 지도가 산만해지므로, 작은 조각들은 그
-   나라 국기의 대표색(WD_FLAG_COLORS 첫 번째 색)으로 단색만 칠해 큰 조각과
+   큰 조각 하나에만(비율 그대로) 입힌다 — 작은 섬마다 따로 국기를 끼워넣으면
+   알아보기 힘들고 지도가 산만해지므로, 작은 조각들은 그 나라 국기의 배경색
+   (WD_FLAG_BG — 문양이 아니라 바탕색, 예: 일본은 흰색)으로 단색만 칠해 큰 조각과
    자연스럽게 이어져 보이게 한다. 배경 레이어는 안 깔고(투명 유지) 이 두 종류의
    채우기만 하고, 나라 구분은 테두리(검정, 본국 굵게·접경국 얇게)와 불투명도
    (접경국은 살짝 낮춤)로 한다. patternIso가 없으면(맥락용 회색) 그냥 단색만 칠한다. */
@@ -383,8 +386,12 @@ function wdMiniMapAddIso(targetParts,defs,bbs,skip,i,solidFill,forBBox,patternIs
   if(patternIso){
     const withBBox=items.filter(it=>it.bbox&&(it.bbox.width||it.bbox.height));
     const main=withBBox.length?withBBox.reduce((a,b)=>(b.bbox.width*b.bbox.height>a.bbox.width*a.bbox.height?b:a)):null;
-    const bgColor=(typeof WD_FLAG_COLORS!=='undefined'&&WD_FLAG_COLORS[patternIso]&&WD_FLAG_COLORS[patternIso][0])||solidFill;
-    if(main)defs.push(wdFlagPatternDef(patternIso));
+    const bgColor=(typeof WD_FLAG_BG!=='undefined'&&WD_FLAG_BG[patternIso])
+      ||(typeof WD_FLAG_COLORS!=='undefined'&&WD_FLAG_COLORS[patternIso]&&WD_FLAG_COLORS[patternIso][0])||solidFill;
+    if(main){
+      const patId='wdfp-'+patternIso;
+      defs.push(wdFlagPatternDef(patId,patternIso,main.bbox));
+    }
     items.forEach(it=>{
       if(main&&it===main)targetParts.push('<path d="'+it.d+'" fill="url(#wdfp-'+patternIso+')"'+opAttr+'/>');
       else targetParts.push('<path d="'+it.d+'" fill="'+bgColor+'"'+opAttr+'/>');
@@ -427,14 +434,17 @@ function wdMiniMapSVG(iso){
     const diag=Math.hypot(main.width,main.height);
     const cx=main.x+main.width/2,cy=main.y+main.height/2;
     bbs.forEach(b=>{
-      if(Math.hypot(b.x+b.width/2-cx,b.y+b.height/2-cy)>Math.max(diag*1.2,30))return;
+      /* 일본 남서제도·미국 알류샨 열도처럼 본토에서 멀리 흩어진 부속도서까지
+         다 담으려고 화면을 너무 축소하지 않도록, 포함 반경을 좁게 잡는다
+         (멀리 있는 작은 섬은 화면 맞춤 계산에서 빠져 잘려도 어쩔 수 없음) */
+      if(Math.hypot(b.x+b.width/2-cx,b.y+b.height/2-cy)>Math.max(diag*0.5,20))return;
       minX=Math.min(minX,b.x);minY=Math.min(minY,b.y);maxX=Math.max(maxX,b.x+b.width);maxY=Math.max(maxY,b.y+b.height);
     });
   }
   if(minX>1e8||!(ringParts.length+nbParts.length+homeParts.length))return '';
   const w=maxX-minX,h=maxY-minY;
-  /* 소국은 최소 시야(약 100km 폭)를 보장해 주변 해안·이웃이 살짝 보이게 확대 */
-  const pad=Math.max(Math.max(w,h)*0.45,4);
+  /* 화면을 최대한 꽉 채우도록 여백을 최소화(예전엔 0.45라 너무 축소돼 보였음) */
+  const pad=Math.max(Math.max(w,h)*0.12,3);
   const vx=minX-pad,vy=minY-pad,vw=w+pad*2,vh=h+pad*2;
   const sw=Math.max(vw,vh)/300; /* 화면상 약 1px 국경선 기준 단위 */
   const legend=nbs.length
