@@ -17,68 +17,16 @@ function wdFlagImg(iso,px,cls){
     +'src="https://flagcdn.com/w'+(px<=40?80:px<=160?160:320)+'/'+iso+'.png" '
     +'onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{className:\'wd-flag\'+(this.className.includes(\'big\')?\' big\':\'\'),textContent:wdFlag(this.dataset.iso)}))">';
 }
-/* 국기 대표색 2개 추출 — flagcdn PNG을 작은 캔버스에 그려 색상 히스토그램에서
-   채도 높은 상위 2색을 뽑아 그 나라 페이지 테마(틀 색)로 쓴다. CORS/네트워크 등으로
-   실패하면 null을 돌려주고, 호출부는 조용히 기본 색(호박색)으로 남는다.
-   중요: 실패는 캐시하지 않는다 — 한 번 일시적으로 실패했다고 그 나라를 세션 내내
-   "색 없음"으로 영구히 박제해버리면 안 되므로, 다시 그 나라 페이지를 열면 재시도한다.
-   실패 시 1회 자동 재시도도 해서 일회성 네트워크 hiccup에 덜 취약하게 함. */
-const _wdFlagColorCache={};
-function wdExtractFlagColors(iso,_retried){
-  if(_wdFlagColorCache[iso]!==undefined)return Promise.resolve(_wdFlagColorCache[iso]);
-  return new Promise(resolve=>{
-    const img=new Image();
-    img.crossOrigin='anonymous';
-    const fail=()=>{
-      if(!_retried){wdExtractFlagColors(iso,true).then(resolve);return;}
-      resolve(null); /* 캐시에 안 남김 — 다음 방문 때 다시 시도 */
-    };
-    img.onload=()=>{
-      try{
-        const W=48,H=30;
-        const cv=document.createElement('canvas');cv.width=W;cv.height=H;
-        const ctx=cv.getContext('2d');
-        ctx.drawImage(img,0,0,W,H);
-        const data=ctx.getImageData(0,0,W,H).data;
-        const buckets={};
-        for(let p=0;p<data.length;p+=4*3){ /* 3픽셀씩 건너뛰며 샘플링 */
-          const r=data[p],g=data[p+1],b=data[p+2],a=data[p+3];
-          if(a<200)continue;
-          const rq=Math.round(r/24)*24,gq=Math.round(g/24)*24,bq=Math.round(b/24)*24;
-          const key=rq+','+gq+','+bq;
-          const mx=Math.max(r,g,b),mn=Math.min(r,g,b);
-          const sat=mx===0?0:(mx-mn)/mx;
-          const weight=0.25+sat*1.2+(mx/255)*0.15; /* 채도 높은 색 우대(흰/검은 낮게) */
-          buckets[key]=(buckets[key]||0)+weight;
-        }
-        const sorted=Object.entries(buckets).sort((x,y)=>y[1]-x[1]);
-        const picked=[];
-        for(const [key] of sorted){
-          const [r,g,b]=key.split(',').map(Number);
-          if(picked.some(p=>Math.abs(p[0]-r)+Math.abs(p[1]-g)+Math.abs(p[2]-b)<70))continue;
-          picked.push([r,g,b]);
-          if(picked.length>=2)break;
-        }
-        if(!picked.length)throw new Error('no colors');
-        const toHex=([r,g,b])=>'#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');
-        const result={c1:toHex(picked[0]),c2:toHex(picked[1]||picked[0])};
-        _wdFlagColorCache[iso]=result;
-        resolve(result);
-      }catch(e){fail();}
-    };
-    img.onerror=fail;
-    img.src='https://flagcdn.com/w80/'+iso+'.png'+(_retried?'?r=1':'');
-  });
-}
-/* 국가 상세 페이지 틀 색을 그 나라 국기 대표색으로 물들인다 */
+/* 국가 상세 페이지 틀 색을 그 나라 국기 대표색으로 물들인다 — flag-colors-data.js의
+   고정표를 쓴다(예전엔 flagcdn PNG을 캔버스로 읽어 실시간 추출했는데, 네트워크/CORS
+   문제로 일부 국가에서 간헐적으로 실패해 카드 디자인이 나라마다 들쭉날쭉해졌음).
+   고정표라 실행마다 항상 즉시·동일하게 나오고 실패할 일이 없다. */
 function wdApplyFlagTheme(iso){
-  wdExtractFlagColors(iso).then(colors=>{
-    if(_wdCurIso!==iso)return;
-    const det=document.getElementById('wd-detail');
-    if(!det)return;
-    if(colors){det.style.setProperty('--wd-c1',colors.c1);det.style.setProperty('--wd-c2',colors.c2);}
-    else{det.style.removeProperty('--wd-c1');det.style.removeProperty('--wd-c2');}
-  });
+  const det=document.getElementById('wd-detail');
+  if(!det)return;
+  const colors=(typeof WD_FLAG_COLORS!=='undefined')&&WD_FLAG_COLORS[iso];
+  if(colors){det.style.setProperty('--wd-c1',colors[0]);det.style.setProperty('--wd-c2',colors[1]);}
+  else{det.style.removeProperty('--wd-c1');det.style.removeProperty('--wd-c2');}
 }
 /* 프로필사진(작은 원) — 사진 없으면 이니셜. 닉네임은 화면엔 안 보이고 title(호버)로만.
    uid를 주면 클릭 가능(그 사람의 기여 목록 팝업)하게 표시한다. */
@@ -356,15 +304,36 @@ function wdNeighbors(iso){
 
 /* 국기 이미지를 그 나라 영토 모양에 맞춰 클리핑해 채우는 SVG 패턴 —
    patternUnits=objectBoundingBox라 패스(조각)마다 국기가 그 조각의 테두리에 맞춰
-   다시 스케일되어 채워진다(작은 섬도 국기가 잘리지 않고 꽉 차 보임). */
+   다시 스케일되어 채워진다(작은 섬도 국기가 잘리지 않고 꽉 차 보임).
+   href·xlink:href를 둘 다 써서 구형 렌더러(xlink:href만 인식하는 경우)도 대응. */
 function wdFlagPatternDef(iso){
+  const url='https://flagcdn.com/w160/'+iso+'.png';
   return '<pattern id="wdfp-'+iso+'" patternUnits="objectBoundingBox" width="1" height="1">'
-    +'<image href="https://flagcdn.com/w160/'+iso+'.png" x="0" y="0" width="1" height="1" preserveAspectRatio="xMidYMid slice"/>'
+    +'<image href="'+url+'" xlink:href="'+url+'" x="0" y="0" width="1" height="1" preserveAspectRatio="xMidYMid slice"/>'
     +'</pattern>';
+}
+/* 국기 패턴 이미지가 못 뜨면(네트워크 문제 등) 그 자리가 투명해져 지도가 뻥 뚫려
+   보이는 걸 막기 위해, 항상 먼저 단색(파랑/초록)을 깔고 그 위에 국기 패턴을 겹쳐
+   그린다 — 패턴이 뜨면 단색을 완전히 덮고, 패턴이 안 뜨면 단색이 그대로 보인다. */
+function wdMiniMapAddIso(parts,bbs,skip,i,solidFill,forBBox,patternIso,patternOpacity){
+  els4iso(i).forEach(el=>{
+    if(skip(i,el))return;
+    if((el.getAttribute('class')||'').includes('circlexx'))return;
+    const paths=el.tagName==='path'?[el]:[...el.querySelectorAll('path')];
+    paths.forEach(p=>{
+      const d=p.getAttribute('d');if(!d)return;
+      parts.push('<path d="'+d+'" fill="'+solidFill+'"/>');
+      if(patternIso)parts.push('<path d="'+d+'" fill="url(#wdfp-'+patternIso+')"'+(patternOpacity!=null?' opacity="'+patternOpacity+'"':'')+'/>');
+      /* 화면 맞춤용 조각은 그룹(g)이 아닌 개별 패스 단위로 — 그룹 bbox는 흩어진
+         섬 전체를 덮어 태평양 국가(키리바시 등)에서 지도가 무한정 넓어진다 */
+      if(forBBox&&!skip(i,p)){try{const b=p.getBBox();if(b.width||b.height)bbs.push(b);}catch(e){}}
+    });
+  });
 }
 /* ── 접경국 미니 지도 ──
    이 나라와 접경국을 각자의 국기로 채워서(영토 모양에 맞게 클리핑) 그린다 —
-   접경국은 투명도를 낮춰 본국과 시각적으로 구분한다. 세계지도(world-svg)에서
+   접경국은 투명도를 낮춰 본국과 시각적으로 구분한다. 국기 이미지가 안 뜨는 경우를
+   대비해 밑에 항상 파랑(본국)/초록(접경국) 단색을 깔아둔다. 세계지도(world-svg)에서
    해당 나라들의 패스를 복제해 상세 페이지 안에 작게 그린다. 주변 맥락용으로
    접경국의 접경국까지 회색으로 깔아준다. */
 function wdMiniMapSVG(iso){
@@ -383,26 +352,12 @@ function wdMiniMapSVG(iso){
   };
   const parts=[];
   const bbs=[];
-  /* 원형 마커(circlexx)는 쓰지 않고 실제 국경 패스만 그린다 — 소국도 확대해서 실제 모양으로 */
-  const addIso=(i,fill,forBBox,opacity)=>{
-    els4iso(i).forEach(el=>{
-      if(skip(i,el))return;
-      if((el.getAttribute('class')||'').includes('circlexx'))return;
-      const paths=el.tagName==='path'?[el]:[...el.querySelectorAll('path')];
-      paths.forEach(p=>{
-        const d=p.getAttribute('d');if(!d)return;
-        parts.push('<path d="'+d+'" fill="'+fill+'"'+(opacity!=null?' opacity="'+opacity+'"':'')+'/>');
-        /* 화면 맞춤용 조각은 그룹(g)이 아닌 개별 패스 단위로 — 그룹 bbox는 흩어진
-           섬 전체를 덮어 태평양 국가(키리바시 등)에서 지도가 무한정 넓어진다 */
-        if(forBBox&&!skip(i,p)){try{const b=p.getBBox();if(b.width||b.height)bbs.push(b);}catch(e){}}
-      });
-    });
-  };
+  const addIso=(i,solidFill,forBBox,patternIso,patternOpacity)=>wdMiniMapAddIso(parts,bbs,skip,i,solidFill,forBBox,patternIso,patternOpacity);
   const defs=[wdFlagPatternDef(iso)];
   /* 화면 맞춤은 본국 기준 — 접경국은 잘려도 본국이 크게 보이는 쪽을 우선한다 */
   [...ring].forEach(i=>addIso(i,'#2b3442',false)); /* 맥락: 회색 */
-  nbs.forEach(i=>{defs.push(wdFlagPatternDef(i));addIso(i,'url(#wdfp-'+i+')',false,0.55);}); /* 접경국: 국기, 반투명 */
-  addIso(iso,'url(#wdfp-'+iso+')',true,1);          /* 이 나라: 국기, 불투명 (여기에 맞춤) */
+  nbs.forEach(i=>{defs.push(wdFlagPatternDef(i));addIso(i,COLOR_MAP.c2,false,i,0.55);}); /* 접경국: 국기(반투명), 실패시 초록 */
+  addIso(iso,COLOR_MAP.c1,true,iso,1);               /* 이 나라: 국기, 실패시 파랑 (여기에 맞춤) */
   if(bbs.length){
     /* 본토(가장 큰 조각)에서 멀리 떨어진 해외영토·섬은 화면 맞춤에서 자동 제외
        (네덜란드 카리브 섬들, 노르웨이 스발바르 등) */
@@ -423,7 +378,7 @@ function wdMiniMapSVG(iso){
   const legend=nbs.length
     ?'<div class="wd-map-lg"><span><i style="background:'+COLOR_MAP.c1+'"></i>'+COUNTRIES[iso].k+'</span><span><i style="background:'+COLOR_MAP.c2+';opacity:.55"></i>접경국</span></div>'
     :'<div class="wd-map-lg"><span><i style="background:'+COLOR_MAP.c1+'"></i>'+COUNTRIES[iso].k+'</span></div>';
-  return '<div class="wd-map"><svg viewBox="'+vx.toFixed(2)+' '+vy.toFixed(2)+' '+vw.toFixed(2)+' '+vh.toFixed(2)+'" preserveAspectRatio="xMidYMid meet">'
+  return '<div class="wd-map"><svg viewBox="'+vx.toFixed(2)+' '+vy.toFixed(2)+' '+vw.toFixed(2)+' '+vh.toFixed(2)+'" preserveAspectRatio="xMidYMid meet" xmlns:xlink="http://www.w3.org/1999/xlink">'
     +'<defs>'+defs.join('')+'</defs>'
     +'<g stroke="#161e2b" stroke-width="'+sw+'">'+parts.join('')+'</g></svg>'+legend+'</div>';
 }

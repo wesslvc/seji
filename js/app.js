@@ -696,7 +696,8 @@ function bqHandleClick(iso){
       if(BQ.noMap){ /* 지도 없는 모드: 색칠된 지도로 접경 관계 확인 */
         const nbs=[...new Set(grp.flatMap(g=>BORDERS[g]||[]))];
         const nm=grp.map(g=>COUNTRIES[g]?COUNTRIES[g].k:g).join(', ');
-        setTimeout(()=>borderReview({blue:grp,green:nbs,title:'정답! <b>'+nm+'</b> — 초록이 접경국이에요'},bqShowCurrent),700);
+        const grpFlags=grp.map(g=>typeof wdFlagImg==='function'?wdFlagImg(g,20):'').join('');
+        setTimeout(()=>borderReview({blue:grp,green:nbs,title:'정답! '+grpFlags+' <b>'+nm+'</b> — 초록이 접경국이에요'},bqShowCurrent),700);
       }else setTimeout(bqShowCurrent,1500); /* 지도로 패닝(500ms)한 뒤 정답을 볼 시간을 충분히 줌 */
     }else{
       /* 그룹 내 일부 남음 */
@@ -720,7 +721,8 @@ function bqHandleClick(iso){
       BQ.queue.shift();bqSave();bqStats();
       if(BQ.noMap){
         const nbs=[...new Set(revISOs.flatMap(g=>BORDERS[g]||[]))];
-        setTimeout(()=>borderReview({blue:revISOs,green:nbs,title:'정답은 <b>'+revNames.join(', ')+'</b> — 초록이 접경국이에요'},bqShowCurrent),1000);
+        const revFlags=revISOs.map(i=>typeof wdFlagImg==='function'?wdFlagImg(i,20):'').join('');
+        setTimeout(()=>borderReview({blue:revISOs,green:nbs,title:'정답은 '+revFlags+' <b>'+revNames.join(', ')+'</b> — 초록이 접경국이에요'},bqShowCurrent),1000);
       }else setTimeout(bqShowCurrent,1900);
     }else{
       const nm=COUNTRIES[iso]?COUNTRIES[iso].k:'?';
@@ -859,7 +861,7 @@ function rbqHandleClick(iso){
       if(fb){fb.textContent='모두 정답! +9점';fb.className='bq-fb ok';}
       const tgt2=RBQ.target,nbs2=(BORDERS[tgt2]||[]).slice();
       RBQ.queue.shift();rbqSave();rbqStats();
-      setTimeout(()=>borderReview({blue:[tgt2],green:nbs2,title:'완벽! <b>'+(COUNTRIES[tgt2]?COUNTRIES[tgt2].k:tgt2)+'</b>의 접경국 — 초록으로 확인하세요'},rbqShowCurrent),700);
+      setTimeout(()=>borderReview({blue:[tgt2],green:nbs2,title:'완벽! '+(typeof wdFlagImg==='function'?wdFlagImg(tgt2,20):'')+' <b>'+(COUNTRIES[tgt2]?COUNTRIES[tgt2].k:tgt2)+'</b>의 접경국 — 초록으로 확인하세요'},rbqShowCurrent),700);
     }
   }else if(iso===RBQ.target){
     if(fb){fb.textContent='이 나라가 출제 중인 나라예요!';fb.className='bq-fb ng';}
@@ -881,7 +883,7 @@ function rbqHandleClick(iso){
       const missed3=(BORDERS[tgt3]||[]).filter(i=>revNames.includes(COUNTRIES[i]?COUNTRIES[i].k:i));
       const found3=(BORDERS[tgt3]||[]).filter(i=>!missed3.includes(i));
       RBQ.queue.shift();rbqSave();rbqStats();
-      setTimeout(()=>borderReview({blue:[tgt3],green:found3,red:missed3,title:'<b>'+(COUNTRIES[tgt3]?COUNTRIES[tgt3].k:tgt3)+'</b>의 접경국 — 빨강이 놓친 나라예요'},rbqShowCurrent),1000);
+      setTimeout(()=>borderReview({blue:[tgt3],green:found3,red:missed3,title:(typeof wdFlagImg==='function'?wdFlagImg(tgt3,20):'')+' <b>'+(COUNTRIES[tgt3]?COUNTRIES[tgt3].k:tgt3)+'</b>의 접경국 — 빨강이 놓친 나라예요'},rbqShowCurrent),1000);
     }else{
       if(fb){fb.textContent=nm+' — 다시 (기회 '+(3-RBQ.curWrong)+')';fb.className='bq-fb ng';}
       bqFlash(nm+' — 아님','bfng');
