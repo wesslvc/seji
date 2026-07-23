@@ -426,12 +426,19 @@ function wdMiniMapSVG(iso){
     if(i==='cn'&&el.closest('#tw'))return true;
     return false;
   };
-  const ringParts=[],nbParts=[],homeParts=[];
+  /* 코소보·팔레스타인은 세계지도 원본에서 "주장국"(세르비아·이스라엘) 자체의
+     path가 이 지역까지 구멍 없이 통째로 칠해져 있어서 — 세르비아/이스라엘이
+     본국으로 보일 때(맨 위에 그려짐) 밑에 접경국으로 깔린 코소보/팔레스타인을
+     덮어버리는 문제가 있었다(실측: 코소보 69%, 팔레스타인 50% 면적이 가려짐).
+     독립국으로 취급해 항상 맨 위(본국보다도 위)에 그려서 절대 안 가려지게 한다.
+     대만은 이미 위 skip()에서 중국과 아예 분리했지만 혹시 몰라 여기도 포함. */
+  const WD_DISPUTED_ON_TOP=new Set(['xk','ps','tw']);
+  const ringParts=[],nbParts=[],homeParts=[],topParts=[];
   const bbs=[];
   const defs=[];
   /* 화면 맞춤은 본국 기준 — 접경국은 잘려도 본국이 크게 보이는 쪽을 우선한다 */
-  [...ring].forEach(i=>wdMiniMapAddIso(ringParts,defs,bbs,skip,i,'#2b3442',false)); /* 맥락: 회색 단색 */
-  nbs.forEach(i=>wdMiniMapAddIso(nbParts,defs,bbs,skip,i,COLOR_MAP.c2,false,i,0.6));/* 접경국: 큰 조각엔 국기(살짝 반투명), 얇은 테두리 */
+  [...ring].forEach(i=>wdMiniMapAddIso((WD_DISPUTED_ON_TOP.has(i)&&i!==iso)?topParts:ringParts,defs,bbs,skip,i,'#2b3442',false)); /* 맥락: 회색 단색 */
+  nbs.forEach(i=>wdMiniMapAddIso((WD_DISPUTED_ON_TOP.has(i)&&i!==iso)?topParts:nbParts,defs,bbs,skip,i,COLOR_MAP.c2,false,i,0.6));/* 접경국: 큰 조각엔 국기(살짝 반투명), 얇은 테두리 */
   wdMiniMapAddIso(homeParts,defs,bbs,skip,iso,COLOR_MAP.c1,true,iso,1);             /* 이 나라: 큰 조각엔 국기(완전 불투명), 굵은 테두리 (여기에 화면 맞춤) */
   if(bbs.length){
     /* 본토(가장 큰 조각)에서 멀리 떨어진 해외영토·섬은 화면 맞춤에서 자동 제외
@@ -447,7 +454,7 @@ function wdMiniMapSVG(iso){
       minX=Math.min(minX,b.x);minY=Math.min(minY,b.y);maxX=Math.max(maxX,b.x+b.width);maxY=Math.max(maxY,b.y+b.height);
     });
   }
-  if(minX>1e8||!(ringParts.length+nbParts.length+homeParts.length))return '';
+  if(minX>1e8||!(ringParts.length+nbParts.length+homeParts.length+topParts.length))return '';
   const w=maxX-minX,h=maxY-minY;
   /* 화면을 최대한 꽉 채우도록 여백을 최소화(예전엔 0.45라 너무 축소돼 보였음) */
   const pad=Math.max(Math.max(w,h)*0.12,3);
@@ -461,6 +468,7 @@ function wdMiniMapSVG(iso){
     +'<g stroke="#161e2b" stroke-width="'+sw.toFixed(3)+'">'+ringParts.join('')+'</g>'
     +'<g stroke="#000" stroke-width="'+(sw*1.3).toFixed(3)+'" stroke-linejoin="round">'+nbParts.join('')+'</g>'
     +'<g stroke="#000" stroke-width="'+(sw*2.6).toFixed(3)+'" stroke-linejoin="round">'+homeParts.join('')+'</g>'
+    +'<g stroke="#000" stroke-width="'+(sw*1.3).toFixed(3)+'" stroke-linejoin="round">'+topParts.join('')+'</g>'
     +'</svg>'+legend+'</div>';
 }
 
