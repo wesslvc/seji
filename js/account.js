@@ -137,21 +137,21 @@ async function restoreUserData() {
 function injectStyle() {
   const css = `
   #acct-chip{position:fixed;top:.5rem;right:.6rem;z-index:9200;display:flex;align-items:center;gap:.4rem;
-    background:rgba(32,33,36,.92);border:1px solid var(--bd,#3c4043);border-radius:999px;padding:.25rem .55rem .25rem .3rem;
+    background:color-mix(in srgb,var(--sf) 92%,transparent);border:1px solid var(--bd,#3c4043);border-radius:999px;padding:.25rem .55rem .25rem .3rem;
     cursor:pointer;backdrop-filter:blur(8px);transition:border-color .2s,transform .2s;font-family:'Pretendard','Noto Sans KR',sans-serif}
-  #acct-chip:hover{border-color:#9aa0a6}
-  #acct-chip img,#acct-chip .acct-ph{width:26px;height:26px;border-radius:50%;object-fit:cover;background:#3c4043;flex-shrink:0;
-    display:flex;align-items:center;justify-content:center;font-size:.8rem;color:#9aa0a6;font-weight:600}
-  #acct-chip .acct-nm{font-size:.78rem;color:#e8eaed;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #acct-chip:hover{border-color:var(--tx2)}
+  #acct-chip img,#acct-chip .acct-ph{width:26px;height:26px;border-radius:50%;object-fit:cover;background:var(--sf2);flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;font-size:.8rem;color:var(--tx2);font-weight:600}
+  #acct-chip .acct-nm{font-size:.78rem;color:var(--tx);max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   /* 인세션 중엔 칩을 아바타만 — 상단 바(42px) 세로 중앙에 맞춰 '처음으로' 버튼과 정렬 */
   body.in-session #acct-chip{top:0;height:42px;right:.5rem;padding:0;gap:0;background:transparent;border:none;backdrop-filter:none}
   body.in-session #acct-chip:hover{border:none}
   body.in-session #acct-chip .acct-nm{display:none}
   body.in-session #acct-chip img,body.in-session #acct-chip .acct-ph{width:28px;height:28px}
   body.in-session #act-tabs{padding-right:46px}
-  #ld-guest-note{margin-top:.7rem;font-size:.72rem;color:#fdd663;text-align:center;line-height:1.45;
-    background:rgba(253,214,99,.08);border:1px solid rgba(253,214,99,.25);border-radius:6px;padding:.5rem .6rem}
-  #ld-guest-note b{color:#fdd663}
+  #ld-guest-note{margin-top:.7rem;font-size:.72rem;color:var(--gd);text-align:center;line-height:1.45;
+    background:color-mix(in srgb,var(--gd) 8%,transparent);border:1px solid color-mix(in srgb,var(--gd) 25%,transparent);border-radius:6px;padding:.5rem .6rem}
+  #ld-guest-note b{color:var(--gd)}
   .acct-ov{position:fixed;inset:0;z-index:9300;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.65)}
   .acct-ov.on{display:flex}
   .acct-card{background:#202124;box-shadow:0 8px 24px rgba(0,0,0,.5);border:1px solid #3c4043;border-radius:10px;padding:1.4rem 1.3rem 1.2rem;width:min(380px,92vw);
