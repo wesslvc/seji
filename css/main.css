@@ -40,15 +40,19 @@ body.mob-mode main{padding-bottom:72px}
 #world-svg circle{opacity:0!important;pointer-events:none!important}
 /* 지도에서 나라를 직접 클릭해야 하는 모드(나라이름·접경국·하천·기후)에서는, 실제
    땅 크기가 너무 작아 정확히 클릭하기 힘든 섬나라·소국도 쉽게 누를 수 있게 마커
-   원(circlexx)을 투명한 채로 더 넓은 클릭 영역으로만 쓴다(모양은 안 바뀜) — 화면에
-   보이는 후광(glow)은 그 나라의 실제 영토 모양(.landxx) 자체에 씌워서, 모양은
-   그대로 유지하면서 위치만 한눈에 띄게 한다(jetpunk의 "how many countries"
-   퀴즈처럼). 정답을 맞히면 paint()가 다른 나라와 똑같이 색을 칠해준다. */
+   원(circlexx)을 투명한 채로 더 넓은 클릭 영역으로만 쓴다(모양은 안 바뀜) — 위치
+   강조는 그 나라의 실제 영토 모양(.landxx) 테두리를 굵고 밝게 반짝이는 것으로
+   한다(jetpunk의 "how many countries" 퀴즈처럼). filter:drop-shadow는 지도가
+   확대·축소 트랜스폼으로 크기가 바뀔 때 그 작은 도형을 래스터화(비트맵으로
+   구워냄)해서 화질이 뭉개지는 문제가 있어 — 순수 벡터 테두리(stroke) 애니메이션
+   으로 바꿈. vector-effect:non-scaling-stroke라 지도를 얼마나 확대/축소하든
+   테두리 두께가 항상 일정한 화면 픽셀로 유지되고 흐려지지 않는다. 정답을 맞히면
+   paint()가 다른 나라와 똑같이 색을 칠해준다. */
 body.circ-on #world-svg circle.circlexx{opacity:0!important;pointer-events:all!important;cursor:pointer!important}
-body.circ-on #world-svg .circ-glow{animation:circGlow 1.7s ease-in-out infinite}
-@keyframes circGlow{
-  0%,100%{filter:drop-shadow(0 0 5px rgba(255,255,255,.9)) drop-shadow(0 0 10px var(--ac))}
-  50%{filter:drop-shadow(0 0 7px #fff) drop-shadow(0 0 15px var(--ac))}
+body.circ-on #world-svg .circ-glow{vector-effect:non-scaling-stroke;stroke:var(--ac)!important;animation:circPulse 1.4s ease-in-out infinite}
+@keyframes circPulse{
+  0%,100%{stroke-width:1.4;stroke-opacity:.65}
+  50%{stroke-width:3.2;stroke-opacity:1}
 }
 #world-svg .xk.limitxx,#world-svg .xz.limitxx{fill:var(--land);stroke:#161e2b;stroke-width:.5;pointer-events:all;opacity:1}
 #world-svg .eh.landxx{fill:var(--land);pointer-events:all;cursor:pointer}
