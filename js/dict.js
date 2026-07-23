@@ -350,13 +350,17 @@ function wdFlagPatternDef(patId,iso){
     +'<image href="'+url+'" xlink:href="'+url+'" x="0" y="0" width="1" height="1" preserveAspectRatio="none"/>'
     +'</pattern>';
 }
-/* 나라 하나가 여러 조각(본토+섬 등)으로 흩어져 있으면, 국기 텍스처는 그 중 가장
-   큰 조각 하나에만(비율 그대로) 입힌다 — 작은 섬마다 따로 국기를 끼워넣으면
-   알아보기 힘들고 지도가 산만해지므로, 작은 조각들은 그 나라 국기의 배경색
-   (WD_FLAG_BG — 문양이 아니라 바탕색, 예: 일본은 흰색)으로 단색만 칠해 큰 조각과
-   자연스럽게 이어져 보이게 한다. 배경 레이어는 안 깔고(투명 유지) 이 두 종류의
+/* 나라 하나가 여러 조각으로 흩어져 있을 때, 진짜 작은 섬(제주도·훗카이도 등)까지
+   전부 국기를 욱여넣으면 알아보기 힘들어지지만, 서사하라(모로코 실효지배 지역 /
+   폴리사리오 "자유지대"로 지도가 반반 정도로 쪼개진 경우)처럼 조각들이 비슷한
+   크기로 나뉜 경우는 둘 다 국기로 덮여야 자연스럽다. 그래서 "가장 큰 조각 하나만"
+   이 아니라, 가장 큰 조각 면적의 일정 비율(WD_MAP_MIN_FRAG_RATIO) 이상인 조각은
+   전부 국기 텍스처를 입히고, 그보다 확연히 작은(진짜 부속 섬 수준의) 조각만 국기
+   배경색(WD_FLAG_BG — 문양이 아니라 바탕색, 예: 일본은 흰색)으로 단색 처리해
+   자연스럽게 이어지게 한다. 배경 레이어는 안 깔고(투명 유지) 이 두 종류의
    채우기만 하고, 나라 구분은 테두리(검정, 본국 굵게·접경국 얇게)와 불투명도
    (접경국은 살짝 낮춤)로 한다. patternIso가 없으면(맥락용 회색) 그냥 단색만 칠한다. */
+const WD_MAP_MIN_FRAG_RATIO=0.2;
 function wdMiniMapAddIso(targetParts,defs,bbs,skip,i,solidFill,forBBox,patternIso,opacity){
   const items=[];
   const seenD=new Set(); /* 세계지도 원본이 같은 땅덩이를 다른 용도(호버 타깃 등)로
@@ -386,7 +390,9 @@ function wdMiniMapAddIso(targetParts,defs,bbs,skip,i,solidFill,forBBox,patternIs
   const opAttr=opacity!=null?' opacity="'+opacity+'"':'';
   if(patternIso){
     const withBBox=items.filter(it=>it.bbox&&(it.bbox.width||it.bbox.height));
-    const main=withBBox.length?withBBox.reduce((a,b)=>(b.bbox.width*b.bbox.height>a.bbox.width*a.bbox.height?b:a)):null;
+    const areaOf=it=>it.bbox.width*it.bbox.height;
+    const main=withBBox.length?withBBox.reduce((a,b)=>(areaOf(b)>areaOf(a)?b:a)):null;
+    const mainArea=main?areaOf(main):0;
     const bgColor=(typeof WD_FLAG_BG!=='undefined'&&WD_FLAG_BG[patternIso])
       ||(typeof WD_FLAG_COLORS!=='undefined'&&WD_FLAG_COLORS[patternIso]&&WD_FLAG_COLORS[patternIso][0])||solidFill;
     if(main){
@@ -394,7 +400,8 @@ function wdMiniMapAddIso(targetParts,defs,bbs,skip,i,solidFill,forBBox,patternIs
       defs.push(wdFlagPatternDef(patId,patternIso));
     }
     items.forEach(it=>{
-      if(main&&it===main)targetParts.push('<path d="'+it.d+'" fill="url(#wdfp-'+patternIso+')"'+opAttr+'/>');
+      const isBigEnough=it.bbox&&mainArea>0&&(areaOf(it)/mainArea)>=WD_MAP_MIN_FRAG_RATIO;
+      if(main&&(it===main||isBigEnough))targetParts.push('<path d="'+it.d+'" fill="url(#wdfp-'+patternIso+')"'+opAttr+'/>');
       else targetParts.push('<path d="'+it.d+'" fill="'+bgColor+'"'+opAttr+'/>');
     });
   }else{
