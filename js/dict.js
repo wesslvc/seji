@@ -166,12 +166,16 @@ function wdRenderBlame(historyArr,origText){
 }
 /* iso → 대륙 한글명 (CONT: 대륙→iso 목록의 역방향) */
 let _wdContOf=null;
+/* 속령(자치령)은 CONT에서 기본 제외돼 있어(대륙별 출제 필터용) wdContOf가 빈 값을
+   주는데, 위키 대륙별 정렬에서는 그래도 실제 위치한 대륙으로 묶여야 자연스럽다 */
+const WD_TERR_CONT={aw:'na',cw:'na',gf:'sa',gg:'eu',gp:'na',gu:'oc',hk:'as',mo:'as',
+  mq:'na',nc:'oc',pf:'oc',pr:'na',re:'af',vi:'na',yt:'af'};
 function wdContOf(iso){
   if(!_wdContOf){
     _wdContOf={};
     for(const c in CONT)CONT[c].forEach(i=>_wdContOf[i]=c);
   }
-  const c=_wdContOf[iso];
+  const c=_wdContOf[iso]||WD_TERR_CONT[iso];
   return c?(CONT_NAME[c]||c):'';
 }
 
@@ -265,27 +269,70 @@ function wdPaintViewCounts(){
   }
   injectIcons(document.getElementById('wd-list'));
 }
-/* 가나다순 / 업데이트순(최근 커뮤니티 수정이 반영된 나라가 위로) / 조회수순 정렬 전환 */
+/* '5168.5만'/'1.4억'/'921'(단위 없음) 같은 인구 표기를 실제 숫자로 변환 */
+function wdParseCount(s){
+  if(!s)return 0;
+  const m=String(s).trim().match(/^([\d,.]+)\s*(억|만)?/);
+  if(!m)return 0;
+  let n=parseFloat(m[1].replace(/,/g,''))||0;
+  if(m[2]==='억')n*=1e8;else if(m[2]==='만')n*=1e4;
+  return n;
+}
+/* '98,480km²' 같은 면적 표기를 숫자로 변환 */
+function wdParseArea(s){
+  const m=String(s||'').replace(/,/g,'').match(/[\d.]+/);
+  return m?parseFloat(m[0]):0;
+}
+const WD_CONT_ORDER=['아시아','유럽','아프리카','북아메리카','남아메리카','오세아니아'];
+/* 가나다순 / 업데이트순(최근 커뮤니티 수정이 반영된 나라가 위로) / 조회수순 /
+   대륙별 / 인구순 / 면적순 정렬 전환 */
 let _wdSort='alpha';
 function wdApplySort(){
   const box=document.getElementById('wd-list');if(!box)return;
+  box.querySelectorAll('.wd-cont-header').forEach(h=>h.remove()); /* 대륙별 정렬 재실행 대비 이전 헤더 제거 */
   const rows=[...box.querySelectorAll('.wd-row')];
   rows.sort((a,b)=>{
+    const isoA=a.dataset.iso,isoB=b.dataset.iso;
     if(_wdSort==='updated'){
-      const ta=_wdUpdatedAt[a.dataset.iso]||0,tb=_wdUpdatedAt[b.dataset.iso]||0;
+      const ta=_wdUpdatedAt[isoA]||0,tb=_wdUpdatedAt[isoB]||0;
       if(ta!==tb)return tb-ta;
     }else if(_wdSort==='views'){
-      const va=_wdViewCounts[a.dataset.iso]||0,vb=_wdViewCounts[b.dataset.iso]||0;
+      const va=_wdViewCounts[isoA]||0,vb=_wdViewCounts[isoB]||0;
       if(va!==vb)return vb-va;
+    }else if(_wdSort==='pop'){
+      const pa=wdParseCount((DICT_DATA[isoA]||{}).pop),pb=wdParseCount((DICT_DATA[isoB]||{}).pop);
+      if(pa!==pb)return pb-pa;
+    }else if(_wdSort==='area'){
+      const aa=wdParseArea((DICT_DATA[isoA]||{}).area),ab=wdParseArea((DICT_DATA[isoB]||{}).area);
+      if(aa!==ab)return ab-aa;
+    }else if(_wdSort==='continent'){
+      const oa=WD_CONT_ORDER.indexOf(wdContOf(isoA)),ob=WD_CONT_ORDER.indexOf(wdContOf(isoB));
+      if(oa!==ob)return oa-ob;
     }
-    return COUNTRIES[a.dataset.iso].k.localeCompare(COUNTRIES[b.dataset.iso].k,'ko');
+    return COUNTRIES[isoA].k.localeCompare(COUNTRIES[isoB].k,'ko');
   });
-  rows.forEach(r=>box.appendChild(r));
+  if(_wdSort==='continent'){
+    /* 대륙 이름표를 행 사이에 끼워 넣는다(그리드 레이아웃에서도 한 줄 전체를 차지) */
+    const frag=document.createDocumentFragment();
+    let lastCont=null;
+    rows.forEach(r=>{
+      const c=wdContOf(r.dataset.iso);
+      if(c!==lastCont){
+        const h=document.createElement('div');h.className='wd-cont-header';h.textContent=c;
+        frag.appendChild(h);lastCont=c;
+      }
+      frag.appendChild(r);
+    });
+    box.appendChild(frag);
+  }else{
+    rows.forEach(r=>box.appendChild(r));
+  }
 }
 function wdSetSort(mode){
   _wdSort=mode;
   document.querySelectorAll('.wd-sort-btn').forEach(b=>b.classList.toggle('on',b.dataset.sort===mode));
   wdApplySort();
+  wdFilter((document.getElementById('wd-search')||{}).value||'');
 }
 function wdFilter(q){
   q=(q||'').trim().toLowerCase();
@@ -294,6 +341,15 @@ function wdFilter(q){
     const iso=r.dataset.iso,c=COUNTRIES[iso];
     const hay=[c.k,c.e.toLowerCase(),iso,...(c.x||[])].join(' ').toLowerCase();
     r.style.display=hay.includes(q)?'':'none';
+  });
+  /* 대륙별 정렬 중 검색으로 그 대륙 나라가 전부 가려지면 이름표도 같이 숨김 */
+  document.querySelectorAll('#wd-list .wd-cont-header').forEach(h=>{
+    let sib=h.nextElementSibling,anyVisible=false;
+    while(sib&&!sib.classList.contains('wd-cont-header')){
+      if(sib.style.display!=='none'){anyVisible=true;break;}
+      sib=sib.nextElementSibling;
+    }
+    h.style.display=anyVisible?'':'none';
   });
 }
 

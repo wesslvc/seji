@@ -26,7 +26,10 @@ const ICON={
   trade:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h13M13 4l3.5 4L13 12"/><path d="M21 16H8M11 20l-3.5-4L11 12"/></svg>',
   dict:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5c-2-1.3-4.5-1.6-7-1v14c2.5-.6 5-.3 7 1 2-1.3 4.5-1.6 7-1V4c-2.5-.6-5-.3-7 1z"/><path d="M12 5v14"/></svg>',
   comment:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8A2.5 2.5 0 0 1 17.5 16H10l-4.5 4v-4H6.5A2.5 2.5 0 0 1 4 13.5z"/></svg>',
-  eye:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.6"/></svg>'
+  eye:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.6"/></svg>',
+  clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>',
+  sun:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.6M12 18.9v2.6M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M2.5 12h2.6M18.9 12h2.6M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/></svg>',
+  moon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.3A8.5 8.5 0 1 1 9.7 4a7 7 0 0 0 10.3 10.3z"/></svg>'
 };
 function ic(name){return ICON[name]||'';}
 function injectIcons(root){(root||document).querySelectorAll('[data-ic]').forEach(e=>{if(!e.dataset.icDone){e.innerHTML=ICON[e.dataset.ic]||'';e.dataset.icDone='1';}});}
@@ -37,6 +40,36 @@ let isMobile=localStorage.getItem(MODE_KEY)==='mobile'||(localStorage.getItem(MO
 /* ══════════ 세션 컨트롤러 (체크리스트 랜딩 + 탭 전환) ══════════ */
 const SESSION={cat:null,acts:[],filterKey:'all',cur:null};
 let mapMode='name'; /* 'name' | 'border' */
+/* 퀴즈 경과 시간 — 세션 시작~끝날 때까지 쭉 흐름(탭 전환해도 안 멈춤) */
+const QT={startTs:0,intervalId:0};
+function qtFmt(sec){const m=Math.floor(sec/60),s=sec%60;return m+':'+String(s).padStart(2,'0');}
+function qtTick(){
+  const el=document.getElementById('qt-time');if(!el)return;
+  el.textContent=qtFmt(Math.floor((Date.now()-QT.startTs)/1000));
+}
+function qtStart(){
+  QT.startTs=Date.now();
+  clearInterval(QT.intervalId);
+  QT.intervalId=setInterval(qtTick,1000);
+  qtTick();
+}
+function qtStop(){clearInterval(QT.intervalId);QT.intervalId=0;}
+
+/* ══════════ 다크모드 / 라이트모드 ══════════
+   실제 테마 적용은 <head>의 인라인 스크립트가 첫 페인트 전에 이미 해둔다(깜빡임
+   방지) — 여기서는 버튼 아이콘 동기화와 전환만 담당 */
+function applyTheme(mode){
+  document.documentElement.dataset.theme=mode;
+  try{localStorage.setItem('seji_theme',mode);}catch(e){}
+  const btn=document.getElementById('theme-toggle');
+  if(btn){
+    btn.innerHTML='<span data-ic="'+(mode==='light'?'moon':'sun')+'"></span>';
+    delete btn.firstElementChild.dataset.icDone;
+    injectIcons(btn);
+  }
+}
+function toggleTheme(){applyTheme(document.documentElement.dataset.theme==='light'?'dark':'light');}
+applyTheme(document.documentElement.dataset.theme||'dark'); /* 버튼 아이콘을 head 인라인 스크립트가 정한 테마와 동기화 */
 const TAB_META={
   name:{label:'나라 이름',ic:'globe'},
   border:{label:'접경국',ic:'border'},
@@ -58,16 +91,16 @@ function setMode(mob){
 /* ══════════ Geogl3 랜딩 — 캐러셀 모드 선택 ══════════ */
 /* 3×3 그리드: 한국지리(korea)를 정중앙(5번째 항목)에 놓고 세계지리 항목들이 둘러싼다 */
 const LD_SLIDES=[
- {act:'name',  ic:'globe', mc:'#7cc4ff', tt:'나라 이름 맞추기', ds:'지도에서 나라를 클릭하고 이름을 맞혀요. 3번 안에 맞히면 색이 칠해져요.', pts:'국가당 1점'},
+ {act:'name',  ic:'globe', mc:'#7cc4ff', tt:'나라 이름 맞히기', ds:'지도에서 나라를 클릭하고 이름을 맞혀요. 3번 안에 맞히면 색이 칠해져요.', pts:'국가당 1점'},
  {act:'border', ic:'border',mc:'#81c995', tt:'접경국 퀴즈', ds:'국경을 맞댄 이웃 나라로 추리하는 퀴즈. 난이도에 따라 방식이 달라져요.', pts:'1 · 3 · 9점', diff:'bdiff',
   dd:{L:'하 · 지도에서 클릭해 맞히기 (1점)',M:'중 · 지도 없이 이름 입력 (3점)',H:'상 · 접한 나라 모두 쓰기 (비율별 2·5·9점)'}},
  {act:'religion',ic:'book', mc:'#fdd663', tt:'종교 구성', ds:'원그래프를 보고 나라별 종교 구성을 맞혀요.', pts:'1 · 2 · 3점', diff:'rdiff',
   dd:{L:'하 · 상위 종교 70%+ 국가만 (1점)',M:'중 · 모든 국가 · 힌트 있음 (2점)',H:'상 · 3번 틀려야 공개 (3점)'}},
- {act:'river', ic:'wave',  mc:'#8ab4f8', tt:'하천 맞추기', ds:'세계 주요 하천 60개를 경로·통과국으로 맞혀요.', pts:'3~10점', diff:'vdiff',
+ {act:'river', ic:'wave',  mc:'#8ab4f8', tt:'하천 맞히기', ds:'세계 주요 하천 60개를 경로·통과국으로 맞혀요.', pts:'3~10점', diff:'vdiff',
   dd:{L:'하 · 물줄기 모양 보고 이름 맞히기 (3점)',M:'중 · 지나는 나라 모두 클릭 (5점 만점)',H:'상 · 세계지도에 경로 그리기 (일치도×10점)'}},
  {act:'korea', ic:'pin',   mc:'#5eead4', tt:'한국지리', ds:'대한민국 행정구역 위치를 지도에서 맞혀요.', pts:'1점', diff:'kdiff', levels:['L','M'],
   dd:{L:'하 · 도·특별시·광역시 단위 (시·도 17개)',M:'중 · 전국 시·군 단위 전체'}},
- {act:'climate', ic:'climate', mc:'#c58af9', tt:'기후 맞추기', ds:'기후 그래프 10개와 지도 위 지점 10개를 연결해요. 온대·냉한대·열대·전기후 라운드로 구성돼요.', pts:'2~8점', diff:'cldiff', levels:['L','M','H'],
+ {act:'climate', ic:'climate', mc:'#c58af9', tt:'기후 맞히기', ds:'기후 그래프 10개와 지도 위 지점 10개를 연결해요. 온대·냉한대·열대·전기후 라운드로 구성돼요.', pts:'2~8점', diff:'cldiff', levels:['L','M','H'],
   dd:{L:'하 · 지도 위 지점의 쾨펜 기후 기호 맞히기 (2점)',M:'중 · 17년간 평가원 출제 지역 (4점)',H:'상 · 전 세계 1000+ 지점 (8점)'}},
  {act:'trade',  ic:'trade', mc:'#8b9dff', tt:'무역 구조', ds:'수출·수입 품목 트리맵을 보고 어느 나라인지 맞혀요.', pts:'2~9점', diff:'tdiff', tkind:true},
  {act:'tenergy',ic:'power', mc:'#ffb37a', tt:'에너지 구성', ds:'발전·에너지 믹스를 보고 나라를 맞혀요. 유형 필터도 고를 수 있어요.', pts:'2 · 4 · 6점', diff:'ediff',
@@ -144,7 +177,7 @@ function ldRenderDetail(){
     rows+='<div class="ld-dt-row" data-esub><span class="ld-dt-lb">유형</span>'
       +['all','ff','re'].map(v=>'<button type="button" class="ld-chip'+(LD.esub===v?' on':'')+'" data-v="'+v+'">'+LD_ESUB_LABEL[v]+'</button>').join('')+'</div>';
   }
-  /* 상(H) 기후 맞추기는 한 게임 100지점이지만 여러 게임에 걸쳐 전체 풀을 누적으로 다 돈다 —
+  /* 상(H) 기후 맞히기는 한 게임 100지점이지만 여러 게임에 걸쳐 전체 풀을 누적으로 다 돈다 —
      지금까지 얼마나 누적됐는지 미리보기 + 누적 자체를 초기화하는 버튼 */
   const climateCov=(sl.act==='climate'&&LD.cldiff==='H');
   if(climateCov){
@@ -159,7 +192,7 @@ function ldRenderDetail(){
     ldSave();ldRenderDetail(); /* 기후는 난이도(상)에 따라 누적 진행 표시가 붙었다 빠졌다 하므로 전체 다시 렌더 */
   }));
   box.querySelectorAll('[data-cov-reset]').forEach(ch=>ch.addEventListener('click',()=>{
-    if(!confirm('기후 맞추기(상) 누적 진행을 초기화할까요?'))return;
+    if(!confirm('기후 맞히기(상) 누적 진행을 초기화할까요?'))return;
     cqCoveredReset();ldRenderDetail();
   }));
   box.querySelectorAll('[data-tkind] .ld-chip').forEach(ch=>ch.addEventListener('click',()=>{
@@ -281,7 +314,7 @@ function startFromLanding(){
   if((acts.includes('border')&&borderDiff==='M')||acts.includes('rborder'))key+='_nomap';
   if(acts.includes('climate')&&cqEstimateRounds(key)<1){
     const warn=document.getElementById('ld-warn');
-    if(warn)warn.textContent='선택한 대륙에는 기후 맞추기를 진행할 지점이 부족해요. 대륙을 더 선택해 주세요.';
+    if(warn)warn.textContent='선택한 대륙에는 기후 맞히기를 진행할 지점이 부족해요. 대륙을 더 선택해 주세요.';
     return;
   }
   ldSave();
@@ -293,7 +326,7 @@ function startSession(cat,acts,filterKey,rqContKey){
   if(cat==='korea'){
     const md=(filterKey==='L')?'L':'M';
     TAB_META.korea.label=md==='L'?'시·도':'시·군';
-    const kt=document.getElementById('kr-title');if(kt)kt.textContent=md==='L'?'시·도 맞추기':'시·군 맞추기';
+    const kt=document.getElementById('kr-title');if(kt)kt.textContent=md==='L'?'시·도 맞히기':'시·군 맞히기';
     if(KR.mode!==md||!KR.inited){
       KR.mode=md;KQ_SAVE_KEY=md==='L'?'kq_prov_v1':'kq_state_v1';
       KR.inited=false;KR.units={};KR.status={};KR.wrong={};KR.correct=0;KR.revealed=0;KR.cur=null;KR.recorded=false;
@@ -303,6 +336,7 @@ function startSession(cat,acts,filterKey,rqContKey){
   }
   document.getElementById('landing-overlay').style.display='none';
   document.body.classList.add('in-session');
+  qtStart();
   if(cat==='world'){
     if(acts.includes('name')||acts.includes('border')||acts.includes('rborder')){initActiveSet(filterKey);}
     if(acts.includes('name')){
@@ -357,6 +391,8 @@ function switchTab(key){
   if(!rvDraw)rvdStop();
   if(!climateOn)cqPinsStop();
   document.body.classList.toggle('border-mode',key==='border'||key==='rborder'||rvMap||rvDraw||climateOn);
+  /* 소국 마커 원 표시 — border-mode보다 범위가 넓음(나라이름 모드도 포함) */
+  document.body.classList.toggle('circ-on',key==='name'||key==='border'||key==='rborder'||rvMap||rvDraw||climateOn);
   document.body.classList.toggle('cq-mode',climateOn);
   const listBtn=document.getElementById('ui-list-btn');
   if(listBtn)listBtn.style.display=(rvMap||rvDraw||climateOn)?'none':'';
@@ -378,6 +414,7 @@ function switchTab(key){
   try{applyModeUI();}catch(e){}
 }
 function endSession(){
+  qtStop();
   runPendingReset();
   try{saveGame();}catch(e){}
   try{saveRQ();}catch(e){}
@@ -388,6 +425,7 @@ function endSession(){
   document.body.classList.remove('in-session');
   document.body.classList.remove('bq-nomap');
   document.body.classList.remove('border-mode');
+  document.body.classList.remove('circ-on');
   document.body.classList.remove('cq-mode');
   document.getElementById('rq-screen').classList.remove('on');
   document.getElementById('kr-screen').classList.remove('on');
@@ -600,7 +638,7 @@ function toggleMode(){setMode(!isMobile);}
 function toggleMenu(){}
 function closeMenu(){}
 
-/* ══════════ 접경국 맞추기 퀴즈 (BQ) ══════════ */
+/* ══════════ 접경국 맞히기 퀴즈 (BQ) ══════════ */
 const BQ={activeSet:null,total:0,queue:[],status:{},correct:0,wrong:0,curWrong:0,target:null,remaining:null,currentGroup:[],wrongCounts:{},saveKey:'bq_all',recorded:false,isRetry:false};
 function bqPool(){
   let base=S.activeSet?[...S.activeSet]:Object.keys(COUNTRIES);
@@ -661,8 +699,11 @@ function bqShowCurrent(){
   BORDERS[grp[0]].forEach(n=>{if(!COUNTRIES[n])return;const s=document.createElement('span');s.className='bq-nb';s.textContent=COUNTRIES[n].k;nb.appendChild(s);});
   const qEl=document.getElementById('bq-q-text');
   const how=BQ.noMap?'이름을 입력하세요':'지도에서 클릭하세요';
-  if(grp.length>1){qEl.innerHTML='아래 나라들과 <b>모두 접한</b> 나라 <b>'+grp.length+'개</b>의 '+how;}
-  else{qEl.innerHTML='아래 나라들과 <b>모두 접한</b> 나라의 '+how;}
+  /* 지도 클릭 모드는 "나라를 클릭"(목적격 조사), 이름 입력 모드는 "나라의 이름을"(관형격
+     조사, 뒤에 오는 '이름을'의 꾸밈말) — noMap 여부에 따라 조사가 달라야 함 */
+  const particle=BQ.noMap?'의':'를';
+  if(grp.length>1){qEl.innerHTML='아래 나라들과 <b>모두 접한</b> 나라 <b>'+grp.length+'개</b>'+particle+' '+how;}
+  else{qEl.innerHTML='아래 나라들과 <b>모두 접한</b> 나라'+particle+' '+how;}
   const tp=document.getElementById('bq-type'); if(tp)tp.style.display=BQ.noMap?'flex':'none';
   document.body.classList.toggle('bq-nomap',!!BQ.noMap);
   if(BQ.noMap){const gi=document.getElementById('bq-gi');if(gi){gi.value='';setTimeout(()=>{try{if(!document.getElementById('bq-end').classList.contains('on'))gi.focus();}catch(e){}},50);}}
@@ -942,7 +983,7 @@ function openRBQList(){
 }
 
 
-/* ══════════ 하천 맞추기 (RV) ══════════
+/* ══════════ 하천 맞히기 (RV) ══════════
    하 L: 물줄기 모양 → 이름 입력 (3점)
    중 M: 하천 이름 → 지나는 나라 클릭 (5점 만점, 비례)
    상 H: 하천 이름 → 경로 그리기 (일치도 10% 단위 × 10점) */
@@ -1000,7 +1041,7 @@ function rvStats(){
   ids.forEach((id,i)=>{const e=document.getElementById(id);if(e)e.textContent=vals[i];});
   const pf=document.getElementById('rv-pf');if(pf)pf.style.width=(total?done/total*100:0)+'%';
   const t=document.getElementById('rv-title');
-  if(t)t.textContent=RV.diff==='H'?'하천 그리기':RV.diff==='M'?'하천 통과국':'하천 이름 맞추기';
+  if(t)t.textContent=RV.diff==='H'?'하천 그리기':RV.diff==='M'?'하천 통과국':'하천 이름 맞히기';
 }
 /* ── 하천 캔버스 (하/상 — rv-screen) ── */
 function rvSetTool(t){
@@ -1356,7 +1397,7 @@ function rvEnd(){
   document.getElementById('rv-e1').textContent=RV.cor;
   document.getElementById('rv-e2').textContent=RV.wr;
   el.classList.add('on');
-  const ttl=RV.diff==='H'?'하천 그리기':RV.diff==='M'?'하천 통과국':'하천 이름 맞추기';
+  const ttl=RV.diff==='H'?'하천 그리기':RV.diff==='M'?'하천 통과국':'하천 이름 맞히기';
   window._lastResult={title:ttl,score:RV.pts+'점',
     rows:[['정답',RV.cor,'#81c995'],['오답',RV.wr,'#f28b82'],['진행',answered,'#9aa0a6']]};
   if(!RV.recorded&&answered){RV.recorded=true;try{rvSave();}catch(e){}
@@ -1365,7 +1406,7 @@ function rvEnd(){
   window._pendingReset=()=>rvReset(true);
 }
 function rvReset(skipConfirm){
-  if(skipConfirm!==true&&!confirm('하천 맞추기 진행 상황을 초기화할까요?'))return;
+  if(skipConfirm!==true&&!confirm('하천 맞히기 진행 상황을 초기화할까요?'))return;
   localStorage.removeItem(RV.saveKey);
   RV.status={};RV.pts=0;RV.cor=0;RV.wr=0;RV.recorded=false;RV._reveal=false;
   const por=1; /* 표본 재추첨 */
@@ -1537,7 +1578,7 @@ function _applyPortion(arr,key,minN){
   return _rnSample(arr,n); /* 매번 랜덤 (시작할 때마다 다른 나라) */
 }
 
-/* ── 육지 접경(인접국) 데이터 — 접경국 맞추기 퀴즈용 ── */
+/* ── 육지 접경(인접국) 데이터 — 접경국 맞히기 퀴즈용 ── */
 const BORDERS={
   dz:['ma','eh','mr','ml','ne','ly','tn'],ao:['cd','cg','zm','na'],bj:['tg','bf','ne','ng'],bw:['na','zm','zw','za'],
   bf:['ml','ne','bj','tg','gh','ci'],bi:['cd','rw','tz'],cm:['ng','td','cf','gq','ga','cg'],cf:['td','sd','ss','cd','cg','cm'],
@@ -1967,7 +2008,7 @@ function endScreen(){
   oq.style.display=saved.length?'block':'none';
   if(saved.length)oq.textContent='오답 노트 퀴즈 ('+saved.length+'개)';
   document.getElementById('ui-end').style.display='flex';
-  window._lastResult={title:'나라 이름 맞추기',score:Math.round(S.correct/(done||1)*100)+'%',
+  window._lastResult={title:'나라 이름 맞히기',score:Math.round(S.correct/(done||1)*100)+'%',
     rows:[['정답',S.correct,'#81c995'],['공개됨',S.revealed,'#f28b82'],['진행',done,'#9aa0a6']]};
   /* 자동 리셋 전에 오답 스냅샷 보존 → 결과창의 '틀린 것만 다시하기'/'오답 노트' 정상 동작 */
   S._endStatus=Object.assign({},S.status);S._endWrong=Object.assign({},S.wrong);
@@ -2802,6 +2843,11 @@ function initMap(){
   const mw=document.getElementById('ui-map');
   const svg=document.getElementById('world-svg');
   assignOwnership();
+  /* 화면에서 거의 안 보이는 소국·섬나라(CIRCLE_POS)는 실제 영토 모양(.landxx)에
+     circ-glow 클래스를 달아둔다 — circ-on 모드일 때만 후광이 켜짐(css) */
+  CIRCLE_ISOS.forEach(iso=>{
+    document.querySelectorAll('#world-svg .landxx.'+iso).forEach(el=>el.classList.add('circ-glow'));
+  });
   _s=Math.min(mw.clientWidth/SW,mw.clientHeight/SH);
   _x=(mw.clientWidth-SW*_s)/2;_y=(mw.clientHeight-SH*_s)/2;
   applyT();
@@ -2826,7 +2872,7 @@ function initMap(){
     if(!cel){tip.style.display='none';return;}
     const iso=iso4el(cel);if(!iso){tip.style.display='none';return;}
     const s=S.status[iso];
-    tip.textContent=s==='cr'?'클릭하면 정답':s?COUNTRIES[iso].k:'클릭하여 맞추기';
+    tip.textContent=s==='cr'?'클릭하면 정답':s?COUNTRIES[iso].k:'클릭하여 맞히기';
     tip.style.display='block';
   });
   svg.addEventListener('mousemove',e=>{tip.style.left=(e.clientX+12)+'px';tip.style.top=(e.clientY-24)+'px';});
@@ -2944,7 +2990,7 @@ function initMap(){
               else if(mapMode==='rborder'){rbqHandleClick(iso);}
               else if(mapMode==='rvc'){rvcHandleClick(iso);}
               else if(mapMode==='rvd'){/* 그리기는 draw-ov 포인터 이벤트로 처리, 지도 탭은 무시 */}
-              else if(mapMode!=='name'){/* 알 수 없는 모드 — 이름맞추기로 새지 않게 무시 */}
+              else if(mapMode!=='name'){/* 알 수 없는 모드 — 이름맞히기로 새지 않게 무시 */}
               else if(S.status[iso]==='cr')showAnswer(iso,touch.clientX,touch.clientY-10);else if(!done(iso)){openModal(iso);centerCountry(iso);}}}
             }
           }
@@ -3679,8 +3725,8 @@ function tqHeader(){
   const isE=TQ.mode==='e';
   const sub=isE?(TQ.eSub||'all'):null;
   let pair;
-  if(isE)pair=sub==='ff'?['화석연료 구성 맞추기','Fossil fuels']:sub==='re'?['신재생에너지 맞추기','Renewables']:['에너지 구성 맞추기','Energy mix'];
-  else pair={x:['수출구조 맞추기','Export structure'],m:['수입구조 맞추기','Import structure'],r:['국가별 종교 맞추기','Religion composition']}[TQ.mode]||['',''];
+  if(isE)pair=sub==='ff'?['화석연료 구성 맞히기','Fossil fuels']:sub==='re'?['신재생에너지 맞히기','Renewables']:['에너지 구성 맞히기','Energy mix'];
+  else pair={x:['수출구조 맞히기','Export structure'],m:['수입구조 맞히기','Import structure'],r:['국가별 종교 맞히기','Religion composition']}[TQ.mode]||['',''];
   document.getElementById('tq-title').textContent=pair[0];
   document.getElementById('tq-sub').textContent=pair[1];
   const ht=document.getElementById('tq-hint-txt');

@@ -1,5 +1,21 @@
 :root{color-scheme:dark;--bg:#17181b;--sf:#202124;--sf2:#2a2b2f;--bd:#3c4043;--tx:#e8eaed;--tx2:#9aa0a6;--ac:#8ab4f8;--ac2:rgba(138,180,248,.14);--btn:#1a73e8;--wr:#f28b82;--gd:#fdd663;--land:#313e52;--c1:#4285f4;--c2:#34a853;--c3:#fbbc04;--g-blue:#4285f4;--g-red:#ea4335;--g-yellow:#fbbc05;--g-green:#34a853;--shadow:0 1px 2px rgba(0,0,0,.5),0 2px 6px 2px rgba(0,0,0,.3);--shadow2:0 4px 12px rgba(0,0,0,.45),0 12px 32px rgba(0,0,0,.35);}
+/* 라이트 모드 — html의 data-theme 속성으로 전환(<head> 인라인 스크립트가 첫 페인트 전에
+   미리 세팅해 깜빡임 방지). 지도 색(--c1~c3)·구글 브랜드색은 밝은 배경에서도 잘
+   보이는 채도라 그대로 두고, 배경·표면·글자·그림자만 라이트용으로 바꾼다. */
+:root[data-theme="light"]{color-scheme:light;--bg:#f4f5f7;--sf:#ffffff;--sf2:#edeef1;--bd:#d5d8dc;--tx:#1a1a1e;--tx2:#5f6368;--ac:#1a73e8;--ac2:rgba(26,115,232,.08);--btn:#1a73e8;--wr:#c5221f;--gd:#b8860b;--land:#c9ced7;--shadow:0 1px 2px rgba(0,0,0,.08),0 2px 6px 2px rgba(0,0,0,.06);--shadow2:0 4px 12px rgba(0,0,0,.1),0 12px 32px rgba(0,0,0,.08);}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+#theme-toggle{position:fixed;top:.5rem;left:.6rem;z-index:9200;width:34px;height:34px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;background:var(--sf);border:1px solid var(--bd);
+  color:var(--tx2);cursor:pointer;box-shadow:var(--shadow);transition:.15s var(--ease)}
+#theme-toggle:hover{color:var(--tx);border-color:var(--tx2)}
+#theme-toggle svg{width:18px;height:18px}
+body.in-session #theme-toggle{display:none}
+/* 전체 텍스트는 rem 단위라 html의 기준 font-size를 키우면 앱 전체(제목·본문·버튼 등)가
+   비율 그대로 커진다 — 모바일 화면은 원래 크기 그대로 두고, PC/넓은 화면에서만 키운다
+   (isMobile 판정과 같은 900px 기준). 화면이 더 넓을수록 시야 거리도 멀어지는 경향이
+   있어 1400px 이상에서 한 단계 더 키움 */
+@media (min-width:900px){html{font-size:18px}}
+@media (min-width:1400px){html{font-size:19px}}
 body{font-family:'Pretendard','Noto Sans KR',sans-serif;background:var(--bg);color:var(--tx);height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden;-webkit-font-smoothing:antialiased}
 header{padding:.55rem 1.2rem;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;background:var(--sf);flex-shrink:0;gap:.8rem}
 .logo{font-family:'Space Grotesk','Pretendard',sans-serif;font-size:.95rem;font-weight:600;color:var(--tx);letter-spacing:.01em}
@@ -22,8 +38,18 @@ body.mob-mode main{padding-bottom:72px}
 #world-svg .limitxx{fill:transparent;stroke:none;pointer-events:none}
 #world-svg .circlexx,#world-svg .subxx,#world-svg .noxx,#world-svg .unxx{opacity:0;pointer-events:none}
 #world-svg circle{opacity:0!important;pointer-events:none!important}
-/* 접경국 모드: 소국 마커 원은 보이지 않게(투명) 두되, 실제 작은 위치를 터치할 수 있게 클릭만 허용 */
-body.border-mode #world-svg circle.circlexx{opacity:0!important;pointer-events:all!important;cursor:pointer!important}
+/* 지도에서 나라를 직접 클릭해야 하는 모드(나라이름·접경국·하천·기후)에서는, 실제
+   땅 크기가 너무 작아 정확히 클릭하기 힘든 섬나라·소국도 쉽게 누를 수 있게 마커
+   원(circlexx)을 투명한 채로 더 넓은 클릭 영역으로만 쓴다(모양은 안 바뀜) — 화면에
+   보이는 후광(glow)은 그 나라의 실제 영토 모양(.landxx) 자체에 씌워서, 모양은
+   그대로 유지하면서 위치만 한눈에 띄게 한다(jetpunk의 "how many countries"
+   퀴즈처럼). 정답을 맞히면 paint()가 다른 나라와 똑같이 색을 칠해준다. */
+body.circ-on #world-svg circle.circlexx{opacity:0!important;pointer-events:all!important;cursor:pointer!important}
+body.circ-on #world-svg .circ-glow{animation:circGlow 1.7s ease-in-out infinite}
+@keyframes circGlow{
+  0%,100%{filter:drop-shadow(0 0 5px rgba(255,255,255,.9)) drop-shadow(0 0 10px var(--ac))}
+  50%{filter:drop-shadow(0 0 7px #fff) drop-shadow(0 0 15px var(--ac))}
+}
 #world-svg .xk.limitxx,#world-svg .xz.limitxx{fill:var(--land);stroke:#161e2b;stroke-width:.5;pointer-events:all;opacity:1}
 #world-svg .eh.landxx{fill:var(--land);pointer-events:all;cursor:pointer}
 #world-svg .landxx:hover,#world-svg .xk.limitxx:hover,#world-svg .xz.limitxx:hover,#world-svg .eh.landxx:hover{fill:#46587a}
@@ -350,6 +376,7 @@ body.in-session #rq-screen,body.in-session #kr-screen,body.in-session #tq-screen
 .act-tab svg{width:1.05em;height:1.05em}
 .act-tab.active{background:var(--ac2);color:var(--ac);border-color:transparent}
 .act-home{display:inline-flex;align-items:center;gap:.35rem;padding:.4rem .75rem;background:transparent;border:1px solid var(--bd);border-radius:999px;color:var(--tx2);font-family:'Pretendard','Noto Sans KR',sans-serif;font-size:.74rem;cursor:pointer;flex-shrink:0}
+#qt-badge{cursor:default;font-variant-numeric:tabular-nums}
 .act-home svg{width:1em;height:1em}
 .act-home:hover{color:var(--tx);border-color:var(--tx2)}
 .hicon{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;background:transparent;border:1px solid var(--bd);border-radius:50%;color:var(--tx2);cursor:pointer;flex-shrink:0;transition:.2s var(--ease)}
@@ -567,7 +594,7 @@ sup.wcr{background:rgba(242,139,130,.15);color:var(--wr)}
 ::-webkit-scrollbar-thumb:hover{background:#5f6368;border:2px solid transparent;background-clip:content-box}
 ::-webkit-scrollbar-track{background:transparent}
 
-/* ── 하천 맞추기 ── */
+/* ── 하천 맞히기 ── */
 #rv-screen{position:fixed;inset:0;background:var(--bg);z-index:700;display:none;flex-direction:column}
 #rv-screen.on{display:flex}
 body.in-session #rv-screen{top:42px}
@@ -619,7 +646,7 @@ body.in-session #rv-screen{top:42px}
 body.br-review #ui-map{display:block!important}
 body.br-review #bq-box,body.br-review #rbq-box,body.br-review #bq-flash{display:none!important}
 
-/* ── 기후 맞추기 ── */
+/* ── 기후 맞히기 ── */
 /* 실제 위경도로 정확히 투영한 전용 배경 지도 (world-svg는 근사 지도라 핀과 어긋남) */
 #cq-world-svg{display:none;position:absolute;top:0;left:0;width:2754px;height:1398px;z-index:2;pointer-events:none;transform-origin:0 0}
 #cq-world-svg.on{display:block}
@@ -696,7 +723,9 @@ body.cq-mode #cq-pins-ov{display:block}
 #wd-list-view{flex:1;display:flex;flex-direction:column;min-height:0;padding:.7rem .8rem;gap:.6rem;max-width:720px;width:100%;margin:0 auto}
 #wd-search{width:100%;background:var(--sf);border:1.5px solid var(--bd);border-radius:12px;color:var(--tx);font-family:inherit;font-size:.9rem;padding:.6rem .9rem;outline:none;flex-shrink:0}
 #wd-search:focus{border-color:var(--ac)}
-.wd-sort-tabs{display:flex;gap:.4rem;flex-shrink:0}
+.wd-sort-tabs{display:flex;gap:.4rem;flex-shrink:0;flex-wrap:wrap}
+.wd-cont-header{width:100%;grid-column:1/-1;font-size:.72rem;font-weight:700;color:var(--tx2);padding:.6rem .2rem .2rem;border-bottom:1px solid var(--bd);margin-bottom:.1rem}
+.wd-cont-header:first-child{padding-top:.1rem}
 .wd-sort-btn{background:var(--sf);border:1px solid var(--bd);color:var(--tx2);font-family:inherit;font-size:.72rem;font-weight:600;border-radius:999px;padding:.3rem .75rem;cursor:pointer;transition:.15s var(--ease)}
 .wd-sort-btn:hover{color:var(--tx);border-color:var(--tx2)}
 .wd-sort-btn.on{background:var(--ac2);border-color:var(--ac);color:var(--ac)}

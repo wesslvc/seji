@@ -42,7 +42,7 @@ function scopeContinents(scope) {
   return base.split('+');
 }
 function scopeLabel(scope) {
-  if(/^river_[LMH]$/.test(scope||''))return {L:'모양 맞추기',M:'통과국 클릭',H:'경로 그리기'}[scope.slice(-1)];
+  if(/^river_[LMH]$/.test(scope||''))return {L:'모양 맞히기',M:'통과국 클릭',H:'경로 그리기'}[scope.slice(-1)];
   if(/^climate_[LMH]$/.test(scope||''))return {L:'하 · 기후 기호',M:'중 · 출제지',H:'상 · 전 지점'}[scope.slice(-1)];
   if (!scope) return '전체';
   if (scope === 'korea') return '한국';

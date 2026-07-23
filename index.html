@@ -14,9 +14,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
 </noscript>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%235eead4%27 stroke-width=%272%27 stroke-linecap=%27round%27%3E%3Ccircle cx=%2712%27 cy=%2712%27 r=%279%27/%3E%3Cellipse cx=%2712%27 cy=%2712%27 rx=%274%27 ry=%279%27/%3E%3Cpath d=%27M3.5 9h17M3.5 15h17%27/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/main.css?v=20260722y">
+<script>(function(){try{var m=localStorage.getItem('seji_theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');document.documentElement.dataset.theme=m;}catch(e){}})();</script>
+<link rel="stylesheet" href="css/main.css?v=20260723a">
 </head>
 <body>
+<button id="theme-toggle" type="button" title="화면 밝기 전환" onclick="toggleTheme()"></button>
 <div id="landing-overlay">
   <div class="ld-stage">
     <div class="g3-logo" aria-label="Geogl3">Ge<span class="g3-globe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9.2"/><ellipse cx="12" cy="12" rx="4.1" ry="9.2"/><path d="M3.4 9.2h17.2M3.4 14.8h17.2"/></svg></span>gl3</div>
@@ -83,10 +85,10 @@
     </div>
   </div>
 </div>
-<!-- ══════════ 하천 맞추기 ══════════ -->
+<!-- ══════════ 하천 맞히기 ══════════ -->
 <div id="rv-screen">
   <div class="kr-header">
-    <div class="kr-title" id="rv-title">하천 맞추기</div>
+    <div class="kr-title" id="rv-title">하천 맞히기</div>
     <div class="stats">
       <div class="stat"><div class="sv" style="color:#81c995" id="rv-cor">0</div><div class="sl">정답</div></div>
       <div class="stat"><div class="sv" style="color:var(--wr)" id="rv-wr">0</div><div class="sl">오답</div></div>
@@ -154,14 +156,14 @@
     <button class="bq-skip" onclick="rvSkip()">건너뛰기</button>
   </div>
 </div>
-<!-- 기후 맞추기: 하단 그래프 카드 독 (배경 지도·핀 오버레이는 #ui-map 안에 있음 —
+<!-- 기후 맞히기: 하단 그래프 카드 독 (배경 지도·핀 오버레이는 #ui-map 안에 있음 —
      main의 overflow 클리핑을 받아야 지도가 헤더·메뉴 위로 흘러넘치지 않고,
      ui-map 기준 좌표계와 일치해야 핀 중앙 정렬이 화면에서도 정확히 가운데가 된다) -->
 <div id="cq-box">
   <div class="cq-head">
     <div id="cq-round-title">0 / 10지점</div>
     <div class="cq-stats"><span>정답 <b id="cq-cor">0</b></span><span>오답 <b id="cq-wr">0</b></span><span>점수 <b id="cq-pts">0</b></span></div>
-    <button class="tq-hbtn danger" type="button" title="기후 맞추기 초기화" onclick="cqReset()"><span data-ic="reset"></span></button>
+    <button class="tq-hbtn danger" type="button" title="기후 맞히기 초기화" onclick="cqReset()"><span data-ic="reset"></span></button>
   </div>
   <div class="cq-progress"><div class="cq-pf" id="cq-pf"></div></div>
   <div class="bq-dots" id="cq-chance-dots">
@@ -200,15 +202,18 @@
       <button type="button" class="wd-sort-btn on" data-sort="alpha" onclick="wdSetSort('alpha')">가나다순</button>
       <button type="button" class="wd-sort-btn" data-sort="updated" onclick="wdSetSort('updated')">업데이트순</button>
       <button type="button" class="wd-sort-btn" data-sort="views" onclick="wdSetSort('views')">조회수순</button>
+      <button type="button" class="wd-sort-btn" data-sort="continent" onclick="wdSetSort('continent')">대륙별</button>
+      <button type="button" class="wd-sort-btn" data-sort="pop" onclick="wdSetSort('pop')">인구순</button>
+      <button type="button" class="wd-sort-btn" data-sort="area" onclick="wdSetSort('area')">면적순</button>
     </div>
     <div id="wd-list"></div>
   </div>
   <div id="wd-detail" style="display:none"></div>
 </div>
-<!-- 기후 맞추기 완료 -->
+<!-- 기후 맞히기 완료 -->
 <div id="cq-end">
   <div class="rq-end-card">
-    <h1>기후 맞추기 완료!</h1>
+    <h1>기후 맞히기 완료!</h1>
     <div class="esc" id="cq-escore">0점</div>
     <div class="eg" style="grid-template-columns:1fr 1fr">
       <div class="est"><div class="esv" style="color:#81c995" id="cq-e1">0</div><div class="esl">정답</div></div>
@@ -221,7 +226,7 @@
 <!-- 하천 완료 -->
 <div id="rv-end">
   <div class="rq-end-card">
-    <h1>하천 맞추기 완료!</h1>
+    <h1>하천 맞히기 완료!</h1>
     <div class="esc" id="rv-escore">0점</div>
     <div class="eg" style="grid-template-columns:1fr 1fr">
       <div class="est"><div class="esv" style="color:#81c995" id="rv-e1">0</div><div class="esl">정답</div></div>
@@ -238,6 +243,7 @@
 </div>
 <div id="act-tabs">
   <div class="act-tabs-scroll" id="act-tabs-list"></div>
+  <div class="act-home" id="qt-badge" title="경과 시간"><span data-ic="clock"></span><span id="qt-time">0:00</span></div>
   <button class="act-home" id="act-home" onclick="endSession()"><span data-ic="back"></span>처음으로</button>
 </div>
 <header>
@@ -3505,7 +3511,7 @@
 <!-- ═══ Korea Quiz Screen ═══ -->
 <div id="kr-screen">
   <div class="kr-header">
-    <div class="kr-title" id="kr-title">시·군 맞추기</div>
+    <div class="kr-title" id="kr-title">시·군 맞히기</div>
     <div class="kr-stats">
       <div><div class="sv" style="color:#81c995" id="kr-cor">0</div><div class="sl">정답</div></div>
       <div><div class="sv" style="color:var(--wr)" id="kr-rev">0</div><div class="sl">오답</div></div>
@@ -4599,7 +4605,7 @@
 <div id="tq-screen">
   <div class="tq-top">
     <div class="tq-th">
-      <span id="tq-title">수출구조 맞추기</span><span id="tq-sub">Export structure</span>
+      <span id="tq-title">수출구조 맞히기</span><span id="tq-sub">Export structure</span>
       <button class="tq-hbtn" id="tq-finish" title="여기서 끝내기" onclick="tqFinishNow()"><span data-ic="flag"></span></button>
       <button class="tq-hbtn" id="tq-shuffle" title="재배치 (연결 지우고 다시 배치)" onclick="tqRearrange()"><span data-ic="shuffle"></span></button>
       <button class="tq-hbtn danger" id="tq-reset" title="초기화 (처음부터 다시)" onclick="tqResetConfirm()"><span data-ic="reset"></span></button>
@@ -4815,20 +4821,20 @@
     <button class="reb secondary" onclick="runPendingReset();document.getElementById('rbq-end').classList.remove('on')">다시 시작</button>
   </div>
 </div>
-<script src="js/data.js?v=20260722y"></script>
-<script src="js/rivers-data.js?v=20260722y"></script>
-<script src="js/climate-data.js?v=20260722y"></script>
-<script src="js/climate-map-data.js?v=20260722y"></script>
-<script src="js/app.js?v=20260722y"></script>
-<script src="js/climate.js?v=20260722y"></script>
-<script src="js/dict-data.js?v=20260722y"></script>
-<script src="js/flag-colors-data.js?v=20260722y"></script>
-<script src="js/flag-bg-data.js?v=20260722y"></script>
-<script src="js/dict.js?v=20260722y"></script>
+<script src="js/data.js?v=20260723a"></script>
+<script src="js/rivers-data.js?v=20260723a"></script>
+<script src="js/climate-data.js?v=20260723a"></script>
+<script src="js/climate-map-data.js?v=20260723a"></script>
+<script src="js/app.js?v=20260723a"></script>
+<script src="js/climate.js?v=20260723a"></script>
+<script src="js/dict-data.js?v=20260723a"></script>
+<script src="js/flag-colors-data.js?v=20260723a"></script>
+<script src="js/flag-bg-data.js?v=20260723a"></script>
+<script src="js/dict.js?v=20260723a"></script>
 <!-- ════════════════════════════════════════════════════════════
      계정 · 소셜로그인 · 랭킹 (Supabase) — 빌드/명령어 불필요, 이 파일만으로 동작
      ▼▼▼ 여기 두 줄만 본인 Supabase 값으로 바꾸면 끝 ▼▼▼ -->
-<script type="module" src="js/account.js?v=20260722y"></script>
+<script type="module" src="js/account.js?v=20260723a"></script>
 
 </body>
 </html>

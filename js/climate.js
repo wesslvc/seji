@@ -1,4 +1,4 @@
-/* ══════════ 기후 맞추기 (Climate Quiz) ══════════
+/* ══════════ 기후 맞히기 (Climate Quiz) ══════════
    데이터: CLIMATE (climate-data.js) — [id,city,ko,cc,cont,lat,lon,grp,ex,tmin[12],tmax[12],prec[12],kop]
    grp: A=열대 B=건조 C=온대 D=냉대 E=한대(쾨펜 기후 대분류) / kop: 쾨펜 세부 기호("Dfa","BWh" 등, Köppen-Geiger
    Map v2 World 1991–2020 래스터에서 위경도로 직접 조회한 실측값) / ex: 1=17년 평가원 출제지(중·하 난이도 풀)
@@ -244,7 +244,7 @@ function cqLoad(){
   }catch(e){}
 }
 function cqReset(skipConfirm){
-  if(skipConfirm!==true&&!confirm('기후 맞추기 진행 상황을 초기화할까요?'))return;
+  if(skipConfirm!==true&&!confirm('기후 맞히기 진행 상황을 초기화할까요?'))return;
   localStorage.removeItem(CQ.saveKey);
   const por=_portion(SESSION.filterKey);
   CQ.pool=cqPoolForGame(SESSION.filterKey,CQ.diff);
@@ -641,7 +641,7 @@ function cqEnd(){
   document.getElementById('cq-e1').textContent=CQ.cor;
   document.getElementById('cq-e2').textContent=CQ.wr;
   el.classList.add('on');
-  const ttl='기후 맞추기 · '+({L:'하',M:'중',H:'상'}[CQ.diff]||'중');
+  const ttl='기후 맞히기 · '+({L:'하',M:'중',H:'상'}[CQ.diff]||'중');
   window._lastResult={title:ttl,score:CQ.pts+'점',
     rows:[['정답',CQ.cor,'#81c995'],['오답',CQ.wr,'#f28b82'],['진행',done,'#9aa0a6']]};
   if(!CQ.recorded&&done){CQ.recorded=true;cqSaveState();
