@@ -9,6 +9,13 @@
    전부 다크 전용 하드코딩이라 라이트모드에서 지도 위에 시커먼 덩어리가 떠
    있는 것처럼 보였던 문제를 같이 고친다. */
 :root[data-theme="light"]{color-scheme:light;--bg:#f4f5f7;--sf:#ffffff;--sf2:#edeef1;--bd:#d5d8dc;--tx:#202124;--tx2:#5f6368;--ac:#1a73e8;--ac2:rgba(26,115,232,.08);--btn:#1a73e8;--wr:#c5221f;--gd:#b8860b;--land:#c9ced7;--map-line:#98a1ad;--map-hover:#aab4c2;--map-mask-fill:#e7e9ec;--map-mask-line:#cfd3d8;--map-active-fill:#b7c0cc;--map-ant:#dde1e6;--shadow:0 1px 2px rgba(0,0,0,.08),0 2px 6px 2px rgba(0,0,0,.06);--shadow2:0 4px 12px rgba(0,0,0,.1),0 12px 32px rgba(0,0,0,.08);}
+/* 홈 화면 배경 방사형 그라데이션(#landing-overlay)과 로고 파스텔 그라데이션 글자
+   (.g3-logo)는 어두운 배경을 전제로 만든 효과라, 라이트모드에서 그대로 두면
+   흰 화면 한가운데 어두운 얼룩이 뜨고 그 위에 밝은 파스텔 글자가 겹쳐 대비가
+   과해져 눈이 부시다("눈뽕"). 라이트모드에서는 얼룩을 없애고 로고도 단색
+   검정 계열 글자로 바꿔 흰 바탕 + 검정 글씨로 깔끔하게 정리한다. */
+:root[data-theme="light"] #landing-overlay{background:var(--bg)}
+:root[data-theme="light"] .g3-logo{background:none;-webkit-background-clip:initial;background-clip:initial;color:var(--tx);filter:none}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 #theme-toggle{position:fixed;top:.5rem;left:.6rem;z-index:9200;width:34px;height:34px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;background:var(--sf);border:1px solid var(--bd);
