@@ -854,6 +854,83 @@ async function wdSubmitComment(iso){
   if(ok){ta.value='';wdLoadComments(iso);}
 }
 
+/* ══════════ 피드백 게시판 ══════════
+   나라별 댓글과 같은 wiki_comments 테이블을 그대로 재사용한다 — iso 컬럼이
+   그냥 text라 국가 코드가 아닌 값도 자유롭게 넣을 수 있고(FK 제약 없음),
+   RLS 정책도 국가 무관하게 동작해서 새 테이블·마이그레이션 없이 바로 쓸 수
+   있다. 전용 sentinel 값(FB_ISO)으로 구분. */
+const FB_ISO='__feedback__';
+function fbOpen(){
+  const el=document.getElementById('fb-screen');if(!el)return;
+  document.querySelectorAll('.acct-ov').forEach(o=>o.classList.remove('on'));
+  el.classList.add('on');
+  fbLoad();
+  const SA=window.SejiAccount;
+  const ta=document.getElementById('fb-text');
+  if(ta&&SA&&SA.isLoggedIn&&SA.isLoggedIn())ta.placeholder='버그 제보나 아이디어를 자유롭게 남겨주세요';
+}
+function fbClose(){
+  const el=document.getElementById('fb-screen');if(el)el.classList.remove('on');
+}
+async function fbLoad(){
+  const SA=window.SejiAccount;
+  const box=document.getElementById('fb-list');
+  if(!box)return;
+  if(!SA){box.innerHTML='<div class="wd-none">불러올 수 없어요</div>';return;}
+  try{
+    const list=await SA.wikiListComments(FB_ISO);
+    const myId=SA.myUserId?SA.myUserId():null;
+    const isAdmin=SA.isAdmin&&SA.isAdmin();
+    const ordered=list.slice().reverse(); /* 최신 글이 위로 오게 */
+    box.innerHTML=ordered.length
+      ?ordered.map(c=>{
+        const mine=!!(myId&&c.user_id===myId);
+        const canDel=mine||isAdmin;
+        return '<div class="wd-comment">'+wdAvatar(c.user_avatar,c.user_nickname,22,c.user_id)
+          +'<div class="wd-comment-body"><b>'+escHtmlWd(c.user_nickname||'익명')+'</b><span>'+escHtmlWd(c.body)+'</span>'
+          +'<small>'+new Date(c.created_at).toLocaleDateString('ko-KR')+(c.updated_at?' · 수정됨':'')+'</small>'
+          +((mine||canDel)?'<div class="wd-comment-acts">'
+            +(mine?'<button type="button" class="fb-edit-btn" data-id="'+c.id+'">수정</button>':'')
+            +(canDel?'<button type="button" class="fb-del-btn" data-id="'+c.id+'">삭제</button>':'')
+            +'</div>':'')
+          +'</div></div>';
+      }).join('')
+      :'<div class="wd-none">아직 남겨진 피드백이 없어요 — 첫 의견을 남겨보세요!</div>';
+    box.querySelectorAll('.fb-edit-btn').forEach(b=>b.addEventListener('click',()=>{
+      const c=ordered.find(x=>String(x.id)===b.dataset.id);
+      if(c)fbEditComment(c.id,c.body);
+    }));
+    box.querySelectorAll('.fb-del-btn').forEach(b=>b.addEventListener('click',()=>fbDeleteComment(+b.dataset.id)));
+  }catch(e){box.innerHTML='<div class="wd-none">불러올 수 없어요</div>';}
+}
+async function fbEditComment(id,curBody){
+  const SA=window.SejiAccount;if(!SA)return;
+  const next=prompt('피드백 수정:',curBody);
+  if(next===null)return;
+  const body=next.trim();
+  if(!body)return;
+  const ok=await SA.wikiEditComment(id,body);
+  if(ok)fbLoad();
+}
+async function fbDeleteComment(id){
+  const SA=window.SejiAccount;if(!SA)return;
+  if(!confirm('삭제할까요?'))return;
+  const ok=await SA.wikiDeleteComment(id);
+  if(ok)fbLoad();
+}
+async function fbSubmit(){
+  const SA=window.SejiAccount;if(!SA)return;
+  if(!SA.isLoggedIn||!SA.isLoggedIn()){if(SA.promptLogin)SA.promptLogin();return;}
+  const ta=document.getElementById('fb-text');
+  const body=(ta.value||'').trim();
+  if(!body)return;
+  const btn=document.getElementById('fb-submit');
+  btn.disabled=true;
+  const ok=await SA.wikiAddComment(FB_ISO,body);
+  btn.disabled=false;
+  if(ok){ta.value='';fbLoad();}
+}
+
 /* ══════════ 관리자 승인 큐 ══════════ */
 let _wdAdminModal=null;
 function wdEnsureAdminModal(){

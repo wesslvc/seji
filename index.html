@@ -15,10 +15,11 @@
 </noscript>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%235eead4%27 stroke-width=%272%27 stroke-linecap=%27round%27%3E%3Ccircle cx=%2712%27 cy=%2712%27 r=%279%27/%3E%3Cellipse cx=%2712%27 cy=%2712%27 rx=%274%27 ry=%279%27/%3E%3Cpath d=%27M3.5 9h17M3.5 15h17%27/%3E%3C/svg%3E">
 <script>(function(){try{var m=localStorage.getItem('seji_theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');document.documentElement.dataset.theme=m;}catch(e){}})();</script>
-<link rel="stylesheet" href="css/main.css?v=20260724b">
+<link rel="stylesheet" href="css/main.css?v=20260724c">
 </head>
 <body>
 <button id="theme-toggle" type="button" title="화면 밝기 전환" onclick="toggleTheme()"></button>
+<button id="fb-toggle" type="button" title="피드백 게시판" onclick="fbOpen()"><span data-ic="comment"></span></button>
 <div id="landing-overlay">
   <div class="ld-stage">
     <div class="g3-logo" aria-label="Geogl3">Ge<span class="g3-globe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9.2"/><ellipse cx="12" cy="12" rx="4.1" ry="9.2"/><path d="M3.4 9.2h17.2M3.4 14.8h17.2"/></svg></span>gl3</div>
@@ -209,6 +210,19 @@
     <div id="wd-list"></div>
   </div>
   <div id="wd-detail" style="display:none"></div>
+</div>
+<!-- 피드백 게시판 -->
+<div id="fb-screen">
+  <div class="wd-top">
+    <button type="button" class="wd-back" onclick="fbClose()"><span data-ic="back"></span>처음으로</button>
+    <div class="wd-title"><span data-ic="comment"></span>피드백 게시판</div>
+  </div>
+  <div id="fb-body">
+    <p class="fb-desc">버그 제보, 개선 아이디어, 하고 싶은 말을 자유롭게 남겨주세요.</p>
+    <div id="fb-list" class="wd-comments">불러오는 중…</div>
+    <div class="wd-comment-input"><textarea id="fb-text" rows="3" placeholder="피드백을 남기려면 로그인하세요"></textarea>
+      <button type="button" id="fb-submit" onclick="fbSubmit()">등록</button></div>
+  </div>
 </div>
 <!-- 기후 맞히기 완료 -->
 <div id="cq-end">
@@ -4822,20 +4836,20 @@
     <button class="reb secondary" onclick="runPendingReset();document.getElementById('rbq-end').classList.remove('on')">다시 시작</button>
   </div>
 </div>
-<script src="js/data.js?v=20260724b"></script>
-<script src="js/rivers-data.js?v=20260724b"></script>
-<script src="js/climate-data.js?v=20260724b"></script>
-<script src="js/climate-map-data.js?v=20260724b"></script>
-<script src="js/app.js?v=20260724b"></script>
-<script src="js/climate.js?v=20260724b"></script>
-<script src="js/dict-data.js?v=20260724b"></script>
-<script src="js/flag-colors-data.js?v=20260724b"></script>
-<script src="js/flag-bg-data.js?v=20260724b"></script>
-<script src="js/dict.js?v=20260724b"></script>
+<script src="js/data.js?v=20260724c"></script>
+<script src="js/rivers-data.js?v=20260724c"></script>
+<script src="js/climate-data.js?v=20260724c"></script>
+<script src="js/climate-map-data.js?v=20260724c"></script>
+<script src="js/app.js?v=20260724c"></script>
+<script src="js/climate.js?v=20260724c"></script>
+<script src="js/dict-data.js?v=20260724c"></script>
+<script src="js/flag-colors-data.js?v=20260724c"></script>
+<script src="js/flag-bg-data.js?v=20260724c"></script>
+<script src="js/dict.js?v=20260724c"></script>
 <!-- ════════════════════════════════════════════════════════════
      계정 · 소셜로그인 · 랭킹 (Supabase) — 빌드/명령어 불필요, 이 파일만으로 동작
      ▼▼▼ 여기 두 줄만 본인 Supabase 값으로 바꾸면 끝 ▼▼▼ -->
-<script type="module" src="js/account.js?v=20260724b"></script>
+<script type="module" src="js/account.js?v=20260724c"></script>
 
 </body>
 </html>
