@@ -1037,10 +1037,12 @@ async function wikiReject(id, note) {
   toast('반려했어요');
   return true;
 }
-async function wikiAddComment(iso, body) {
+async function wikiAddComment(iso, body, parentId) {
   if (!wikiRequireLogin()) return false;
   await ensureSB();
-  const { error } = await supabase.from('wiki_comments').insert({ iso, user_id: session.user.id, body });
+  const payload = { iso, user_id: session.user.id, body };
+  if (parentId) payload.parent_id = parentId; // 답글 — DB RLS가 관리자만 허용
+  const { error } = await supabase.from('wiki_comments').insert(payload);
   if (error) { toast('댓글 등록 실패: ' + (error.message || '')); return false; }
   _wikiCommentCountsCache = null;
   return true;

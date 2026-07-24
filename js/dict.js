@@ -872,6 +872,40 @@ function fbOpen(){
 function fbClose(){
   const el=document.getElementById('fb-screen');if(el)el.classList.remove('on');
 }
+/* 최상위 글 하나 + 그 답글(들) 렌더 — 답글 작성은 관리자만(isAdmin), 나머지는
+   나라별 댓글과 동일한 수정/삭제(본인 또는 관리자) 규칙을 그대로 따른다 */
+function fbRenderPost(c,replies,myId,isAdmin){
+  const mine=!!(myId&&c.user_id===myId);
+  const canDel=mine||isAdmin;
+  const actsHtml=(mine||canDel||isAdmin)?'<div class="wd-comment-acts">'
+    +(mine?'<button type="button" class="fb-edit-btn" data-id="'+c.id+'">수정</button>':'')
+    +(canDel?'<button type="button" class="fb-del-btn" data-id="'+c.id+'">삭제</button>':'')
+    +(isAdmin?'<button type="button" class="fb-reply-toggle" data-pid="'+c.id+'">답글 달기</button>':'')
+    +'</div>':'';
+  const repliesHtml=replies.map(r=>{
+    const rMine=!!(myId&&r.user_id===myId);
+    const rCanDel=rMine||isAdmin;
+    return '<div class="fb-reply">'+wdAvatar(r.user_avatar,r.user_nickname,20,r.user_id)
+      +'<div class="wd-comment-body"><b>'+escHtmlWd(r.user_nickname||'관리자')+'</b> <span class="fb-admin-badge">관리자</span>'
+      +'<span>'+escHtmlWd(r.body)+'</span>'
+      +'<small>'+new Date(r.created_at).toLocaleDateString('ko-KR')+(r.updated_at?' · 수정됨':'')+'</small>'
+      +((rMine||rCanDel)?'<div class="wd-comment-acts">'
+        +(rMine?'<button type="button" class="fb-edit-btn" data-id="'+r.id+'">수정</button>':'')
+        +(rCanDel?'<button type="button" class="fb-del-btn" data-id="'+r.id+'">삭제</button>':'')
+        +'</div>':'')
+      +'</div></div>';
+  }).join('');
+  const replyForm=isAdmin?'<div class="fb-reply-form" data-pid="'+c.id+'" style="display:none">'
+    +'<textarea class="fb-reply-text" rows="2" placeholder="답글을 입력하세요"></textarea>'
+    +'<button type="button" class="fb-reply-submit" data-pid="'+c.id+'">답글 등록</button></div>':'';
+  return '<div class="wd-comment fb-post">'+wdAvatar(c.user_avatar,c.user_nickname,22,c.user_id)
+    +'<div class="wd-comment-body"><b>'+escHtmlWd(c.user_nickname||'익명')+'</b><span>'+escHtmlWd(c.body)+'</span>'
+    +'<small>'+new Date(c.created_at).toLocaleDateString('ko-KR')+(c.updated_at?' · 수정됨':'')+'</small>'
+    +actsHtml
+    +(repliesHtml?'<div class="fb-replies">'+repliesHtml+'</div>':'')
+    +replyForm
+    +'</div></div>';
+}
 async function fbLoad(){
   const SA=window.SejiAccount;
   const box=document.getElementById('fb-list');
@@ -880,32 +914,38 @@ async function fbLoad(){
   try{
     const list=await SA.wikiListComments(FB_ISO);
     const myId=SA.myUserId?SA.myUserId():null;
-    const isAdmin=SA.isAdmin&&SA.isAdmin();
-    const ordered=list.slice().reverse(); /* 최신 글이 위로 오게 */
-    box.innerHTML=ordered.length
-      ?ordered.map(c=>{
-        const mine=!!(myId&&c.user_id===myId);
-        const canDel=mine||isAdmin;
-        return '<div class="wd-comment">'+wdAvatar(c.user_avatar,c.user_nickname,22,c.user_id)
-          +'<div class="wd-comment-body"><b>'+escHtmlWd(c.user_nickname||'익명')+'</b><span>'+escHtmlWd(c.body)+'</span>'
-          +'<small>'+new Date(c.created_at).toLocaleDateString('ko-KR')+(c.updated_at?' · 수정됨':'')+'</small>'
-          +((mine||canDel)?'<div class="wd-comment-acts">'
-            +(mine?'<button type="button" class="fb-edit-btn" data-id="'+c.id+'">수정</button>':'')
-            +(canDel?'<button type="button" class="fb-del-btn" data-id="'+c.id+'">삭제</button>':'')
-            +'</div>':'')
-          +'</div></div>';
-      }).join('')
-      :'<div class="wd-none">아직 남겨진 피드백이 없어요 — 첫 의견을 남겨보세요!</div>';
+    const isAdmin=!!(SA.isAdmin&&SA.isAdmin());
+    const top=list.filter(c=>!c.parent_id).slice().reverse(); /* 최신 글이 위로 오게 */
+    const repliesOf=pid=>list.filter(c=>c.parent_id===pid);
+    box.innerHTML=top.length
+      ?top.map(c=>fbRenderPost(c,repliesOf(c.id),myId,isAdmin)).join('')
+      :'<div class="wd-none">아직 남겨진 의견이 없어요 — 첫 의견을 남겨보세요!</div>';
     box.querySelectorAll('.fb-edit-btn').forEach(b=>b.addEventListener('click',()=>{
-      const c=ordered.find(x=>String(x.id)===b.dataset.id);
+      const c=list.find(x=>String(x.id)===b.dataset.id);
       if(c)fbEditComment(c.id,c.body);
     }));
     box.querySelectorAll('.fb-del-btn').forEach(b=>b.addEventListener('click',()=>fbDeleteComment(+b.dataset.id)));
+    box.querySelectorAll('.fb-reply-toggle').forEach(b=>b.addEventListener('click',()=>{
+      const form=box.querySelector('.fb-reply-form[data-pid="'+b.dataset.pid+'"]');
+      if(form)form.style.display=form.style.display==='none'?'':'none';
+    }));
+    box.querySelectorAll('.fb-reply-submit').forEach(b=>b.addEventListener('click',()=>fbSubmitReply(+b.dataset.pid,b)));
   }catch(e){box.innerHTML='<div class="wd-none">불러올 수 없어요</div>';}
+}
+async function fbSubmitReply(pid,btn){
+  const SA=window.SejiAccount;if(!SA)return;
+  const form=btn.closest('.fb-reply-form');
+  const ta=form.querySelector('.fb-reply-text');
+  const body=(ta.value||'').trim();
+  if(!body)return;
+  btn.disabled=true;
+  const ok=await SA.wikiAddComment(FB_ISO,body,pid);
+  btn.disabled=false;
+  if(ok)fbLoad();
 }
 async function fbEditComment(id,curBody){
   const SA=window.SejiAccount;if(!SA)return;
-  const next=prompt('피드백 수정:',curBody);
+  const next=prompt('내용 수정:',curBody);
   if(next===null)return;
   const body=next.trim();
   if(!body)return;

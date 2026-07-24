@@ -208,23 +208,30 @@ create policy "wiki_edits read own or admin" on public.wiki_edits
 -- 상태 변경(승인/반려)은 직접 UPDATE 정책 없이 아래 함수로만 — 유저가 자기 제안을 셀프 승인 못 하게
 
 -- 국가별 댓글(모든 필드 공통 — 실제 데이터 수정은 안 되고 의견/오류 제보만)
+-- parent_id: 답글(현재는 관리자 전용 — 피드백 게시판에서 관리자가 글에 답할 때 씀).
+-- 최상위 글(parent_id null)은 누구나, 답글(parent_id 있음)은 관리자만 쓸 수 있다.
 create table if not exists public.wiki_comments (
   id         bigint generated always as identity primary key,
   iso        text not null,
   user_id    uuid not null references auth.users on delete cascade,
   body       text not null check (char_length(body) between 1 and 500),
   created_at timestamptz not null default now(),
-  updated_at timestamptz
+  updated_at timestamptz,
+  parent_id  bigint references public.wiki_comments(id) on delete cascade
 );
 alter table public.wiki_comments add column if not exists updated_at timestamptz;
+alter table public.wiki_comments add column if not exists parent_id bigint references public.wiki_comments(id) on delete cascade;
 alter table public.wiki_comments enable row level security;
 create index if not exists wiki_comments_iso_idx on public.wiki_comments(iso);
+create index if not exists wiki_comments_parent_idx on public.wiki_comments(parent_id);
 
 drop policy if exists "wiki_comments read" on public.wiki_comments;
 create policy "wiki_comments read" on public.wiki_comments for select using (true);
 drop policy if exists "wiki_comments insert own" on public.wiki_comments;
 create policy "wiki_comments insert own" on public.wiki_comments
-  for insert to authenticated with check (auth.uid() = user_id);
+  for insert to authenticated with check (
+    auth.uid() = user_id and (parent_id is null or public.is_admin())
+  );
 drop policy if exists "wiki_comments update own" on public.wiki_comments;
 create policy "wiki_comments update own" on public.wiki_comments
   for update to authenticated
@@ -244,9 +251,9 @@ drop view if exists public.wiki_comments_view;
 -- profiles 행이 아직 없는 사용자(가입 직후 등)의 글도 사라지지 않도록 LEFT JOIN.
 drop function if exists public.wiki_comments_for(text);
 create or replace function public.wiki_comments_for(p_iso text)
-returns table(id bigint, iso text, user_id uuid, body text, created_at timestamptz, updated_at timestamptz, user_nickname text, user_avatar text)
+returns table(id bigint, iso text, user_id uuid, body text, created_at timestamptz, updated_at timestamptz, parent_id bigint, user_nickname text, user_avatar text)
 language sql security definer set search_path = public stable as $$
-  select wc.id, wc.iso, wc.user_id, wc.body, wc.created_at, wc.updated_at, p.nickname, p.avatar_url
+  select wc.id, wc.iso, wc.user_id, wc.body, wc.created_at, wc.updated_at, wc.parent_id, p.nickname, p.avatar_url
   from public.wiki_comments wc
   left join public.profiles p on p.id = wc.user_id
   where wc.iso = p_iso
@@ -255,12 +262,13 @@ $$;
 revoke all on function public.wiki_comments_for(text) from public;
 grant execute on function public.wiki_comments_for(text) to authenticated, anon;
 
--- 국가별 댓글 개수(위키 목록 화면에 국가 옆에 표시) — 게스트도 조회 가능
+-- 국가별 댓글 개수(위키 목록 화면에 국가 옆에 표시) — 게스트도 조회 가능. 답글은 별도
+-- 글이 아니라 원글에 딸린 답변이라 개수에서 제외(parent_id is null).
 drop function if exists public.wiki_comment_counts_all();
 create or replace function public.wiki_comment_counts_all()
 returns table(iso text, cnt bigint)
 language sql security definer set search_path = public stable as $$
-  select iso, count(*) as cnt from public.wiki_comments group by iso;
+  select iso, count(*) as cnt from public.wiki_comments where parent_id is null group by iso;
 $$;
 revoke all on function public.wiki_comment_counts_all() from public, anon;
 grant execute on function public.wiki_comment_counts_all() to authenticated, anon;
