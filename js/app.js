@@ -1418,7 +1418,8 @@ function rvReset(skipConfirm){
 function rvFinishNow(){if(!confirm(FINISH_MSG))return;_blurActive();rvEnd();}
 
 const MOBILE=false;
-const CIRCLE_POS={"ad":{"cx":1317.9,"cy":330.8},"ag":{"cx":840.7,"cy":543.9},"bb":{"cx":851.8,"cy":585.0},"bh":{"cx":1675.6,"cy":470.5},"bn":{"cx":2175.7,"cy":660.0},"bs":{"cx":732.9,"cy":495.2},"cv":{"cx":1118.7,"cy":559.5},"dm":{"cx":842.7,"cy":564.2},"fj":{"cx":2640.1,"cy":840.0},"fm":{"cx":2508.0,"cy":635.0},"gd":{"cx":830.5,"cy":594.9},"gm":{"cx":1184.4,"cy":582.5},"jm":{"cx":720.4,"cy":541.5},"ki":{"cx":2627.5,"cy":682.2},"km":{"cx":1633.8,"cy":801.8},"kn":{"cx":820.2,"cy":555.7},"kw":{"cx":1653.3,"cy":444.1},"lb":{"cx":1563.8,"cy":405.0},"lc":{"cx":834.1,"cy":576.6},"li":{"cx":1373.2,"cy":291.9},"mc":{"cx":1357.2,"cy":320.3},"me":{"cx":1440.7,"cy":329.2},"mh":{"cx":2604.1,"cy":639.7},"mu":{"cx":1730.8,"cy":872.4},"mv":{"cx":1844.2,"cy":669.4},"nr":{"cx":2562.7,"cy":680.5},"ps":{"cx":1564.3,"cy":422.4},"pw":{"cx":2322.4,"cy":630.1},"qa":{"cx":1682.5,"cy":481.0},"sc":{"cx":1725.2,"cy":734.0},"sg":{"cx":2095.1,"cy":687.1},"sm":{"cx":1394.4,"cy":319.7},"st":{"cx":1353.0,"cy":690.6},"sz":{"cx":1536.8,"cy":928.4},"tl":{"cx":2260.8,"cy":775.7},"to":{"cx":2687.3,"cy":881.4},"tt":{"cx":834.5,"cy":607.2},"tv":{"cx":2658.6,"cy":769.5},"va":{"cx":1394.5,"cy":337.1},"vc":{"cx":840.2,"cy":587.7},"vu":{"cx":2568.4,"cy":840.7},"ws":{"cx":2724.5,"cy":816.0}};
+const CIRCLE_POS={"ad":{"cx":1317.9,"cy":330.8},"ag":{"cx":840.7,"cy":543.9},"aw":{"cx":767.1,"cy":586.1},"bb":{"cx":851.8,"cy":585.0},"bh":{"cx":1675.6,"cy":470.5},"bn":{"cx":2175.7,"cy":660.0},"bs":{"cx":732.9,"cy":495.2},"cv":{"cx":1118.7,"cy":559.5},"cw":{"cx":779.1,"cy":587.8},"dm":{"cx":842.7,"cy":564.2},"fj":{"cx":2640.1,"cy":840.0},"fm":{"cx":2508.0,"cy":635.0},"gd":{"cx":830.5,"cy":594.9},"gf":{"cx":894.7,"cy":664.5},"gg":{"cx":1288.5,"cy":271.1},"gm":{"cx":1184.4,"cy":582.5},"gp":{"cx":839.4,"cy":554.2},"gu":{"cx":2397.8,"cy":581.1},"hk":{"cx":2156.9,"cy":505.9},"jm":{"cx":720.4,"cy":541.5},"ki":{"cx":2627.5,"cy":682.2},"km":{"cx":1633.8,"cy":801.8},"kn":{"cx":820.2,"cy":555.7},"kw":{"cx":1653.3,"cy":444.1},"lb":{"cx":1563.8,"cy":405.0},"lc":{"cx":834.1,"cy":576.6},"li":{"cx":1373.2,"cy":291.9},"mc":{"cx":1357.2,"cy":320.3},"me":{"cx":1440.7,"cy":329.2},"mh":{"cx":2604.1,"cy":639.7},"mo":{"cx":2148.7,"cy":508.5},"mq":{"cx":843.6,"cy":574.4},"mu":{"cx":1730.8,"cy":872.4},"mv":{"cx":1844.2,"cy":669.4},"nc":{"cx":2542.7,"cy":881.9},"nr":{"cx":2562.7,"cy":680.5},"pf":{"cx":175.0,"cy":850.0},"pr":{"cx":799.0,"cy":539.9},"ps":{"cx":1564.3,"cy":422.4},"pw":{"cx":2322.4,"cy":630.1},"qa":{"cx":1682.5,"cy":481.0},"re":{"cx":1718.2,"cy":880.8},"sc":{"cx":1725.2,"cy":734.0},"sg":{"cx":2095.1,"cy":687.1},"sm":{"cx":1394.4,"cy":319.7},"st":{"cx":1353.0,"cy":690.6},"sz":{"cx":1536.8,"cy":928.4},"tl":{"cx":2260.8,"cy":775.7},"to":{"cx":2687.3,"cy":881.4},"tt":{"cx":834.5,"cy":607.2},"tv":{"cx":2658.6,"cy":769.5},"va":{"cx":1394.5,"cy":337.1},"vc":{"cx":840.2,"cy":587.7},"vi":{"cx":808.4,"cy":547.8},"vu":{"cx":2568.4,"cy":840.7},"ws":{"cx":2724.5,"cy":816.0},"yt":{"cx":1644.6,"cy":811.2},
+"as":{"cx":2732.6,"cy":826.0},"ai":{"cx":820.6,"cy":531.2},"bm":{"cx":831.7,"cy":417.6},"bq":{"cx":784.9,"cy":596.4},"ky":{"cx":692.3,"cy":530.7},"cx":{"cx":2102.0,"cy":789.0},"cc":{"cx":2039.0,"cy":801.0},"ck":{"cx":101.0,"cy":883.0},"fk":{"cx":921.3,"cy":1144.2},"fo":{"cx":1275.1,"cy":171.0},"gi":{"cx":1266.3,"cy":386.5},"im":{"cx":1282.4,"cy":233.5},"je":{"cx":1298.2,"cy":277.9},"ms":{"cx":831.4,"cy":560.7},"nu":{"cx":31.0,"cy":867.0},"nf":{"cx":2549.0,"cy":933.0},"mp":{"cx":2400.2,"cy":566.1},"pn":{"cx":329.0,"cy":917.0},"bl":{"cx":830.0,"cy":548.9},"sh":{"cx":1250.8,"cy":844.2},"mf":{"cx":830.5,"cy":537.1},"pm":{"cx":926.5,"cy":293.3},"sx":{"cx":819.6,"cy":543.1},"tk":{"cx":2738.5,"cy":779.6},"tc":{"cx":765.6,"cy":507.1},"vg":{"cx":809.9,"cy":535.5},"wf":{"cx":2701.2,"cy":814.7}};
 
 /* ── 종교 이름 (크리스트교로 변경) ── */
 const REL_KO={Muslims:'이슬람교',Christians:'크리스트교',Buddhists:'불교',Hindus:'힌두교',Jews:'유대교',Other_religions:'기타종교'};
@@ -1497,12 +1498,15 @@ function assignOwnership(){
          (그 외 마커 원은 그대로 숨김 유지) */
       if(el.classList.contains('circlexx')){
         for(const cc of el.classList)if(COUNTRIES[cc]){el.dataset.iso=cc;break;}
+      }else if(el.classList.contains('landxx')){
+        /* 너무 작아 원(circle)으로만 그려진 실제 영토(예: 크리스마스섬) — 경로(path)와
+           동일하게 마지막 국가 클래스를 소유자로 부여해야 정답 시 색이 칠해진다 */
+        let o=null;for(const cc of el.classList)if(COUNTRIES[cc])o=cc;
+        if(o)el.dataset.iso=o;
       }
       return;
     }
     let owner=null;
-    /* 그린란드는 덴마크 영토로 취급 */
-    if(el.classList.contains('gl'))owner='dk';
     for(const cc of el.classList)if(COUNTRIES[cc])owner=cc;
     if(owner){
       el.dataset.iso=owner;
@@ -1549,10 +1553,39 @@ const TERR_COUNTRIES={
   re:{k:'레위니옹',e:'Reunion',x:['reunion','réunion','레위니옹섬']},
   vi:{k:'미국령 버진아일랜드',e:'U.S. Virgin Islands',x:['virgin islands','버진아일랜드','미국령버진아일랜드']},
   yt:{k:'마요트',e:'Mayotte',x:['mayotte']},
+  as:{k:'아메리칸사모아',e:'American Samoa',x:['american samoa','아메리칸 사모아']},
+  ai:{k:'앵귈라',e:'Anguilla',x:['anguilla']},
+  bm:{k:'버뮤다',e:'Bermuda',x:['bermuda']},
+  bq:{k:'카리브 네덜란드',e:'Caribbean Netherlands',x:['caribbean netherlands','bonaire','보네르']},
+  ky:{k:'케이맨 제도',e:'Cayman Islands',x:['cayman islands','케이맨제도']},
+  cx:{k:'크리스마스섬',e:'Christmas Island',x:['christmas island']},
+  cc:{k:'코코스 제도',e:'Cocos Islands',x:['cocos islands','keeling islands','코코스제도']},
+  ck:{k:'쿡 제도',e:'Cook Islands',x:['cook islands','쿡제도']},
+  fk:{k:'포클랜드 제도',e:'Falkland Islands',x:['falkland islands','말비나스','포클랜드제도']},
+  fo:{k:'페로 제도',e:'Faroe Islands',x:['faroe islands','페로제도']},
+  gi:{k:'지브롤터',e:'Gibraltar',x:['gibraltar']},
+  gl:{k:'그린란드',e:'Greenland',x:['greenland']},
+  im:{k:'맨섬',e:'Isle of Man',x:['isle of man']},
+  je:{k:'저지',e:'Jersey',x:['jersey']},
+  ms:{k:'몬트세랫',e:'Montserrat',x:['montserrat']},
+  nu:{k:'니우에',e:'Niue',x:['niue']},
+  nf:{k:'노퍽섬',e:'Norfolk Island',x:['norfolk island']},
+  mp:{k:'북마리아나 제도',e:'Northern Mariana Islands',x:['northern mariana islands','북마리아나제도']},
+  pn:{k:'핏케언 제도',e:'Pitcairn Islands',x:['pitcairn islands','핏케언제도']},
+  bl:{k:'생바르텔레미',e:'Saint Barthélemy',x:['saint barthelemy','st barts','생바르텔레미섬']},
+  sh:{k:'세인트헬레나',e:'Saint Helena',x:['saint helena','어센션','트리스탄다쿠냐']},
+  mf:{k:'생마르탱',e:'Saint Martin',x:['saint martin']},
+  pm:{k:'생피에르 미클롱',e:'Saint Pierre and Miquelon',x:['saint pierre and miquelon','생피에르미클롱']},
+  sx:{k:'신트마르턴',e:'Sint Maarten',x:['sint maarten']},
+  tk:{k:'토켈라우',e:'Tokelau',x:['tokelau']},
+  tc:{k:'터크스 케이커스 제도',e:'Turks and Caicos Islands',x:['turks and caicos islands','터크스케이커스제도']},
+  vg:{k:'영국령 버진아일랜드',e:'British Virgin Islands',x:['british virgin islands','bvi','영국령버진아일랜드']},
+  wf:{k:'왈리스 푸투나',e:'Wallis and Futuna',x:['wallis and futuna','왈리스푸투나']},
 };
 try{Object.assign(COUNTRIES,TERR_COUNTRIES);}catch(e){}
 const TERRITORIES=new Set(Object.keys(TERR_COUNTRIES));
-const TERR_CONT={aw:'na',cw:'na',gf:'sa',gg:'eu',gp:'na',gu:'oc',hk:'as',mo:'as',mq:'na',nc:'oc',pf:'oc',pr:'na',re:'af',vi:'na',yt:'af'};
+const TERR_CONT={aw:'na',cw:'na',gf:'sa',gg:'eu',gp:'na',gu:'oc',hk:'as',mo:'as',mq:'na',nc:'oc',pf:'oc',pr:'na',re:'af',vi:'na',yt:'af',
+  as:'oc',ai:'na',bm:'na',bq:'na',ky:'na',cx:'as',cc:'as',ck:'oc',fk:'sa',fo:'eu',gi:'eu',gl:'na',im:'eu',je:'eu',ms:'na',nu:'oc',nf:'oc',mp:'oc',pn:'oc',bl:'na',sh:'af',mf:'na',pm:'na',sx:'na',tk:'oc',tc:'na',vg:'na',wf:'oc'};
 
 /* ── 출제 비율(부분 출제) ── 필터키에 _pNNN (NNN=비율*1000) 토큰으로 인코딩.
    같은 설정이면 항상 같은 부분집합이 나오도록 키 해시 시드로 결정적 샘플링한다. */
@@ -1691,9 +1724,9 @@ function paintMask(){
   if(!S.activeSet||S.activeSet.size>=Object.keys(COUNTRIES).length){dynMask.textContent='';return;}
   const actSels=[...S.activeSet].map(selCSS).join(',');
   const hov=[...S.activeSet].map(i=>selCSS(i)+':hover').join(',');
-  dynMask.textContent='#world-svg [data-iso]{fill:#1c2330!important;stroke:#141a24!important;cursor:default!important;pointer-events:none!important}'
-    +actSels+'{fill:#38455a!important;stroke:#161e2b!important;cursor:pointer!important;pointer-events:all!important}'
-    +hov+'{fill:#46587a!important}';
+  dynMask.textContent='#world-svg [data-iso]{fill:var(--map-mask-fill)!important;stroke:var(--map-mask-line)!important;cursor:default!important;pointer-events:none!important}'
+    +actSels+'{fill:var(--map-active-fill)!important;stroke:var(--map-line)!important;cursor:pointer!important;pointer-events:all!important}'
+    +hov+'{fill:var(--map-hover)!important}';
 }
 const colors={};
 function paint(){

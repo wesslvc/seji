@@ -169,7 +169,8 @@ let _wdContOf=null;
 /* 속령(자치령)은 CONT에서 기본 제외돼 있어(대륙별 출제 필터용) wdContOf가 빈 값을
    주는데, 위키 대륙별 정렬에서는 그래도 실제 위치한 대륙으로 묶여야 자연스럽다 */
 const WD_TERR_CONT={aw:'na',cw:'na',gf:'sa',gg:'eu',gp:'na',gu:'oc',hk:'as',mo:'as',
-  mq:'na',nc:'oc',pf:'oc',pr:'na',re:'af',vi:'na',yt:'af'};
+  mq:'na',nc:'oc',pf:'oc',pr:'na',re:'af',vi:'na',yt:'af',
+  as:'oc',ai:'na',bm:'na',bq:'na',ky:'na',cx:'as',cc:'as',ck:'oc',fk:'sa',fo:'eu',gi:'eu',gl:'na',im:'eu',je:'eu',ms:'na',nu:'oc',nf:'oc',mp:'oc',pn:'oc',bl:'na',sh:'af',mf:'na',pm:'na',sx:'na',tk:'oc',tc:'na',vg:'na',wf:'oc'};
 function wdContOf(iso){
   if(!_wdContOf){
     _wdContOf={};
