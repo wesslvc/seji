@@ -466,6 +466,7 @@ function switchTab(key){
   else if(key==='tenergy'){tqEnter('e');}
   else if(key==='korea'){openKoreaTab();}
   document.body.classList.toggle('bq-nomap',(key==='border'&&!!BQ.noMap)||(key==='rborder'&&!!RBQ.noMap));
+  try{refreshCircActive();}catch(e){} /* 모드마다 출제 집합이 달라 소국 강조·클릭 범위를 다시 맞춘다 */
   try{applyModeUI();}catch(e){}
 }
 function endSession(){
@@ -1785,6 +1786,26 @@ function paintMask(){
   dynMask.textContent='#world-svg [data-iso]{fill:var(--map-mask-fill)!important;stroke:var(--map-mask-line)!important;cursor:default!important;pointer-events:none!important}'
     +actSels+'{fill:var(--map-active-fill)!important;stroke:var(--map-line)!important;cursor:pointer!important;pointer-events:all!important}'
     +hov+'{fill:var(--map-hover)!important}';
+  refreshCircActive();
+}
+/* 지금 모드에서 이 나라가 실제로 출제 대상인지 — 소국 강조(반짝임)와 마커 원의
+   클릭 허용 여부를 정하는 기준. 모드마다 출제 집합이 달라서 따로 본다. */
+function circIsActive(iso){
+  if(mapMode==='border')return !!(BQ.activeSet&&BQ.activeSet.has(iso));
+  if(mapMode==='rborder')return !!(RBQ.activeSet&&RBQ.activeSet.has(iso));
+  return inActive(iso);
+}
+/* 대륙 필터·소국 제외·속령 제외 등으로 출제에서 빠진 소국은 반짝이지도 않고
+   클릭도 안 되게 한다. paintMask의 [data-iso] 마스크 규칙만으로는 막을 수 없는데,
+   circ-on 규칙이 클래스를 하나 더 갖고 있어 우선순위에서 이기기 때문 —
+   그래서 클래스로 직접 끈다. */
+function refreshCircActive(){
+  if(!document.getElementById('world-svg'))return;
+  CIRCLE_ISOS.forEach(iso=>{
+    const on=circIsActive(iso);
+    document.querySelectorAll('#world-svg .landxx.'+iso).forEach(el=>el.classList.toggle('circ-glow',on));
+    document.querySelectorAll('#world-svg circle.circlexx.'+iso).forEach(el=>el.classList.toggle('circ-off',!on));
+  });
 }
 const colors={};
 function paint(){
@@ -2187,6 +2208,7 @@ let _svgEl=null,_tQueued=false,_commitT=null;
 function _flushT(){
   _tQueued=false;
   if(!_svgEl){_svgEl=document.getElementById('world-svg');if(!_svgEl)return;}
+  _svgEl.classList.add('map-moving'); /* 이동 중엔 GPU 합성(저해상도라도 부드럽게) */
   _svgEl.style.width=SW+'px';_svgEl.style.height=SH+'px';
   _svgEl.style.transform='translate3d('+_x+'px,'+_y+'px,0) scale('+_s+')';
   /* 멈추면 실제 크기로 다시 그려 선명하게 (재래스터는 1회만) */
@@ -2201,6 +2223,9 @@ function _commitRes(){
   _svgEl.style.width=(SW*r)+'px';_svgEl.style.height=(SH*r)+'px';
   const extra=_s/r;
   _svgEl.style.transform=extra===1?('translate('+_x+'px,'+_y+'px)'):('translate('+_x+'px,'+_y+'px) scale('+extra+')');
+  /* 합성 레이어 고정을 풀어 현재 배율로 벡터를 다시 그리게 한다 — 확대 상태에서
+     비트맵을 늘려 쓰던 저해상도 문제를 없앰. 이동이 다시 시작되면 _flushT가 되켠다. */
+  _svgEl.classList.remove('map-moving');
 }
 function applyT(){
   if(_tQueued)return;
@@ -2477,6 +2502,7 @@ let _kSvgEl=null,_ktQueued=false,_kCommitT=null;
 function _flushKT(){
   _ktQueued=false;
   if(!_kSvgEl){_kSvgEl=document.getElementById('korea-svg');if(!_kSvgEl)return;}
+  _kSvgEl.classList.add('map-moving');
   _kSvgEl.style.width=KSW+'px';_kSvgEl.style.height=KSH+'px';
   _kSvgEl.style.transform='translate3d('+k_x+'px,'+k_y+'px,0) scale('+k_s+')';
   clearTimeout(_kCommitT);_kCommitT=setTimeout(_commitKRes,170);
@@ -2487,6 +2513,7 @@ function _commitKRes(){
   _kSvgEl.style.width=(KSW*r)+'px';_kSvgEl.style.height=(KSH*r)+'px';
   const extra=k_s/r;
   _kSvgEl.style.transform=extra===1?('translate('+k_x+'px,'+k_y+'px)'):('translate('+k_x+'px,'+k_y+'px) scale('+extra+')');
+  _kSvgEl.classList.remove('map-moving');
 }
 function applyKT(){
   if(_ktQueued)return;
@@ -2941,10 +2968,9 @@ function initMap(){
   const svg=document.getElementById('world-svg');
   assignOwnership();
   /* 화면에서 거의 안 보이는 소국·섬나라(CIRCLE_POS)는 실제 영토 모양(.landxx)에
-     circ-glow 클래스를 달아둔다 — circ-on 모드일 때만 후광이 켜짐(css) */
-  CIRCLE_ISOS.forEach(iso=>{
-    document.querySelectorAll('#world-svg .landxx.'+iso).forEach(el=>el.classList.add('circ-glow'));
-  });
+     circ-glow 클래스를 달아 강조한다 — circ-on 모드일 때만 후광이 켜짐(css).
+     출제 대상인 나라에만 붙이며, 필터·모드가 바뀔 때마다 refreshCircActive가 갱신 */
+  refreshCircActive();
   _s=Math.min(mw.clientWidth/SW,mw.clientHeight/SH);
   _x=(mw.clientWidth-SW*_s)/2;_y=(mw.clientHeight-SH*_s)/2;
   applyT();
