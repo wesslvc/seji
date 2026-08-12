@@ -3155,7 +3155,7 @@ function listSaves(){
       const total=Array.isArray(d.active)&&d.active.length?d.active.filter(x=>BORDERS[x]&&!CIRCLE_ISOS.has(x)).length:[..._countSetForFilter(fk)].filter(x=>BORDERS[x]&&!CIRCLE_ISOS.has(x)).length;
       if(!total||!Object.keys(st).length)continue;
       const wrong=Object.keys(st).filter(x=>st[x]==='cr').length;
-      out.push({type:'border',key:k,scope:fk,done:Object.keys(st).length,total,wrong});
+      out.push({type:'border',key:k,scope:fk,done:Object.keys(st).length,total,wrong,recorded:!!d.recorded});
     }else if(k.startsWith('rbq_')&&!k.startsWith('rbq__')){
       if(!d.status||typeof d.status!=='object')continue;
       const fk=k.slice(4);const st=d.status;
@@ -3163,29 +3163,29 @@ function listSaves(){
       const total=active.length;
       if(!total||!Object.keys(st).length)continue;
       const wrong=Object.keys(st).filter(x=>st[x]==='cr').length;
-      out.push({type:'rborder',key:k,scope:fk,done:Object.keys(st).length,total,wrong});
+      out.push({type:'rborder',key:k,scope:fk,done:Object.keys(st).length,total,wrong,recorded:!!d.recorded});
     }else if(k.startsWith('wq_')&&k!=='wq_mode'&&k!=='wq_oops_note'&&!k.startsWith('wq__')){
       if(!d.status||typeof d.status!=='object'||!Object.keys(d.status).length)continue;
       const fk=k.slice(3);const st=d.status;const wr=d.wrong||{};
       const total=Array.isArray(d.active)&&d.active.length?d.active.length:_countSetForFilter(fk).size;if(!total)continue;
       const wset=new Set(Object.keys(st).filter(x=>st[x]==='cr'));Object.keys(wr).forEach(x=>{if(wr[x]>0)wset.add(x);});
-      out.push({type:'name',key:k,scope:fk,done:Object.keys(st).length,total,wrong:wset.size});
+      out.push({type:'name',key:k,scope:fk,done:Object.keys(st).length,total,wrong:wset.size,recorded:!!d.recorded});
     }else if(k.startsWith('rv_')&&!k.includes('__')){
       if(!d.status||typeof d.status!=='object')continue;
       const done=Object.keys(d.status).length;if(!done)continue;
       const total=Array.isArray(d.ids)?d.ids.length:0;if(!total)continue;
       const wrong=Object.values(d.status).filter(x=>!x.ok).length;
-      out.push({type:'river',key:k,scope:k.slice(3),done,total,wrong});
+      out.push({type:'river',key:k,scope:k.slice(3),done,total,wrong,recorded:!!d.recorded});
     }else if(k==='kq_state_v1'||k==='kq_prov_v1'){
       if(!d.status||!Object.keys(d.status).length)continue;
       const st=d.status||{};const wr=d.wrong||{};
       const wset=new Set(Object.keys(st).filter(x=>st[x]==='cr'));Object.keys(wr).forEach(x=>{if(wr[x]>0)wset.add(x);});
-      out.push({type:'korea',key:k,scope:k==='kq_prov_v1'?'korea_prov':'korea',done:Object.keys(st).length,total:d.total||0,wrong:wset.size});
+      out.push({type:'korea',key:k,scope:k==='kq_prov_v1'?'korea_prov':'korea',done:Object.keys(st).length,total:d.total||0,wrong:wset.size,recorded:!!d.recorded});
     }else if((k.startsWith('tq_x_')||k.startsWith('tq_m_')||k.startsWith('tq_r_')||k.startsWith('tq_e_'))&&!k.includes('__')){
       const done=(d.done||[]).length;if(!done)continue; /* 시작만 한 건 제외 */
       const ty=k.startsWith('tq_x_')?'texp':k.startsWith('tq_m_')?'timp':k.startsWith('tq_e_')?'tenergy':'religion';
       out.push({type:ty,key:k,scope:d.filterKey||k.slice(5),
-        done,total:d.totalCountries||0,wrong:(d.wrong||[]).length});
+        done,total:d.totalCountries||0,wrong:(d.wrong||[]).length,recorded:!!d.recorded});
     }else if(k.startsWith('cq_')&&!k.includes('__')){
       if(!d.attempted)continue; /* 시작만 한 건 제외 */
       const m=k.match(/^cq_([LMH])_(.+)$/);if(!m)continue;
@@ -3193,11 +3193,16 @@ function listSaves(){
       let total=0;
       try{total=cqBuildPlan(cqPoolFor(fk,diff),_portion(fk),diff).length*10;}catch(e){}
       if(!total)continue;
-      out.push({type:'climate',key:k,scope:fk,done:Math.min(d.attempted,total),total,wrong:d.wr||0});
+      out.push({type:'climate',key:k,scope:fk,done:Math.min(d.attempted,total),total,wrong:d.wr||0,recorded:!!d.recorded});
     }
   }
-  // 진행 중(미완료) 먼저, 그다음 완료
-  out.forEach(o=>{o.remaining=Math.max(o.total-o.done,0);o.inProgress=o.total>0&&o.done<o.total;});
+  /* 진행 중(미완료) 먼저, 그다음 완료.
+     recorded=true는 결과창이 떠서 점수가 이미 기록된 판(끝까지 풀었거나 '여기서
+     끝내기'로 중도완료한 판)이라 남은 문제가 있어도 '이어하기' 대상이 아니다 —
+     원래는 결과창을 닫을 때 _pendingReset이 저장을 지우지만, 결과창을 띄운 채
+     새로고침하면 그 정리가 실행되지 않아 중도완료한 판이 계속 이어하기로
+     남아있던 문제를 막는다. */
+  out.forEach(o=>{o.remaining=Math.max(o.total-o.done,0);o.inProgress=o.total>0&&o.done<o.total&&!o.recorded;});
   out.sort((a,b)=>(b.inProgress-a.inProgress)||(b.done-a.done));
   return out;
 }
