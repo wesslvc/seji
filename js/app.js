@@ -29,7 +29,9 @@ const ICON={
   eye:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.6"/></svg>',
   clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>',
   sun:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.6M12 18.9v2.6M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M2.5 12h2.6M18.9 12h2.6M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/></svg>',
-  moon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.3A8.5 8.5 0 1 1 9.7 4a7 7 0 0 0 10.3 10.3z"/></svg>'
+  moon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.3A8.5 8.5 0 1 1 9.7 4a7 7 0 0 0 10.3 10.3z"/></svg>',
+  volume:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 8.5a5 5 0 0 1 0 7"/><path d="M19.5 6a8.5 8.5 0 0 1 0 12"/></svg>',
+  mute:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 9.5l5 5M21.5 9.5l-5 5"/></svg>'
 };
 function ic(name){return ICON[name]||'';}
 function injectIcons(root){(root||document).querySelectorAll('[data-ic]').forEach(e=>{if(!e.dataset.icDone){e.innerHTML=ICON[e.dataset.ic]||'';e.dataset.icDone='1';}});}
@@ -70,6 +72,42 @@ function applyTheme(mode){
 }
 function toggleTheme(){applyTheme(document.documentElement.dataset.theme==='light'?'dark':'light');}
 applyTheme(document.documentElement.dataset.theme||'dark'); /* 버튼 아이콘을 head 인라인 스크립트가 정한 테마와 동기화 */
+
+/* ── 정답 효과음 (Web Audio로 합성 — 외부 음원 파일 불필요) ── */
+const SFX_KEY='seji_sfx';
+let sfxOn=localStorage.getItem(SFX_KEY)!=='0'; /* 기본 켜짐 */
+let _sfxCtx=null;
+function playCorrectSound(){
+  if(!sfxOn)return;
+  try{
+    if(!_sfxCtx)_sfxCtx=new (window.AudioContext||window.webkitAudioContext)();
+    if(_sfxCtx.state==='suspended')_sfxCtx.resume();
+    const now=_sfxCtx.currentTime;
+    [[880,0,.09],[1318.5,.08,.16]].forEach(([freq,delay,dur])=>{
+      const osc=_sfxCtx.createOscillator(),gain=_sfxCtx.createGain();
+      osc.type='sine';osc.frequency.value=freq;
+      gain.gain.setValueAtTime(0,now+delay);
+      gain.gain.linearRampToValueAtTime(.18,now+delay+.015);
+      gain.gain.exponentialRampToValueAtTime(.001,now+delay+dur);
+      osc.connect(gain);gain.connect(_sfxCtx.destination);
+      osc.start(now+delay);osc.stop(now+delay+dur+.02);
+    });
+  }catch(e){}
+}
+function updateSfxBtn(){
+  const btn=document.getElementById('sfx-toggle');if(!btn)return;
+  btn.innerHTML='<span data-ic="'+(sfxOn?'volume':'mute')+'"></span>';
+  delete btn.firstElementChild.dataset.icDone;
+  injectIcons(btn);
+  btn.title=sfxOn?'정답 효과음 끄기':'정답 효과음 켜기';
+}
+function toggleSfx(){
+  sfxOn=!sfxOn;
+  try{localStorage.setItem(SFX_KEY,sfxOn?'1':'0');}catch(e){}
+  updateSfxBtn();
+  if(sfxOn)playCorrectSound();
+}
+updateSfxBtn();
 const TAB_META={
   name:{label:'나라 이름',ic:'globe'},
   border:{label:'접경국',ic:'border'},
@@ -1298,7 +1336,7 @@ function rvResolve(ok,pts,band){
   RV._reveal=true;
   const r=RV.cur;
   RV.status[r.id]={p:pts,ok:!!ok};
-  RV.pts+=pts;if(ok)RV.cor++;else RV.wr++;
+  RV.pts+=pts;if(ok){RV.cor++;playCorrectSound();}else RV.wr++;
   RV.queue.shift();rvSave();rvStats();
   /* 정답 공개: 하천 SVG에 실제 경로 (+상: 사용자가 그린 궤적) */
   rvSvg();
@@ -1768,6 +1806,7 @@ function stopJsBlink(iso){
 function setColor(iso,cls){
   colors[iso]=cls;
   if(cls==='blink')startJsBlink(iso);else stopJsBlink(iso);
+  if(cls==='c1'||cls==='c2'||cls==='c3')playCorrectSound();
   paint();
 }
 function clearBlink(iso){
@@ -2529,6 +2568,7 @@ function stopKBlink(kid){
 function setKColor(kid,cls){
   kColors[kid]=cls;
   if(cls==='blink')startKBlink(kid);else stopKBlink(kid);
+  if(cls==='c1'||cls==='c2'||cls==='c3')playCorrectSound();
   paintK();
 }
 function clearKBlink(kid){
@@ -2954,6 +2994,7 @@ function initMap(){
   }
   document.addEventListener('keydown',function(e){
     if(!document.body.classList.contains('in-session'))return; /* 랜딩에선 캐러셀 키만 동작 */
+    if(e.key==='Enter'&&document.body.classList.contains('br-review')){e.preventDefault();borderReviewDone();return;} /* 접경국 정답확인 지도에서 엔터로 다음 문제 */
     const rqOn=document.getElementById('rq-screen').classList.contains('on');
     const krOn=document.getElementById('kr-screen').classList.contains('on');
     if(e.key==='Enter'&&krOn&&!krModalOpen){krRandom();return;}
@@ -3993,6 +4034,7 @@ function tqSubmit(){
 }
 function tqReveal(allCorrect){
   TQ.revealed=true;
+  if(allCorrect)playCorrectSound();
   TQ.round.forEach(iso=>{
     TQ.doneSet.add(iso);
     if(TQ.matches[iso]===iso){TQ.correctCountries++; TQ.wrongSet.delete(iso);}
