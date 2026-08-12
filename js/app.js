@@ -94,6 +94,23 @@ function playCorrectSound(){
     });
   }catch(e){}
 }
+function playWrongSound(){
+  if(!sfxOn)return;
+  try{
+    if(!_sfxCtx)_sfxCtx=new (window.AudioContext||window.webkitAudioContext)();
+    if(_sfxCtx.state==='suspended')_sfxCtx.resume();
+    const now=_sfxCtx.currentTime;
+    const osc=_sfxCtx.createOscillator(),gain=_sfxCtx.createGain();
+    osc.type='sine';
+    osc.frequency.setValueAtTime(370,now);
+    osc.frequency.exponentialRampToValueAtTime(190,now+.18);
+    gain.gain.setValueAtTime(0,now);
+    gain.gain.linearRampToValueAtTime(.16,now+.015);
+    gain.gain.exponentialRampToValueAtTime(.001,now+.22);
+    osc.connect(gain);gain.connect(_sfxCtx.destination);
+    osc.start(now);osc.stop(now+.24);
+  }catch(e){}
+}
 function updateSfxBtn(){
   const btn=document.getElementById('sfx-toggle');if(!btn)return;
   btn.innerHTML='<span data-ic="'+(sfxOn?'volume':'mute')+'"></span>';
@@ -805,6 +822,7 @@ function bqHandleClick(iso){
         setTimeout(()=>borderReview({blue:revISOs,green:nbs,title:'정답은 '+revFlags+' <b>'+revNames.join(', ')+'</b> — 초록이 접경국이에요'},bqShowCurrent),1000);
       }else setTimeout(bqShowCurrent,1900);
     }else{
+      playWrongSound();
       const nm=COUNTRIES[iso]?COUNTRIES[iso].k:'?';
       fb.textContent=nm+' — 다시 (기회 '+(3-BQ.curWrong)+')';fb.className='bq-fb ng';
       bqFlash(nm+' — 아님','bfng');
@@ -821,7 +839,7 @@ function bqTypeSubmit(){
   if(iso){ bqHandleClick(iso); return; }
   const any=Object.keys(COUNTRIES).find(i=>check(t,i));
   if(any){ bqHandleClick(any); }
-  else { bqFlash('그런 나라가 없어요','bfng'); inp.classList.add('shake'); setTimeout(()=>inp.classList.remove('shake'),360); }
+  else { playWrongSound(); bqFlash('그런 나라가 없어요','bfng'); inp.classList.add('shake'); setTimeout(()=>inp.classList.remove('shake'),360); }
   try{inp.focus();}catch(e){}
 }
 function resetBorderQuiz(skipConfirm){
@@ -929,7 +947,7 @@ function rbqHandleClick(iso){
   if(!RBQ.remaining||!RBQ.remaining.size)return;
   const fb=document.getElementById('rbq-fb');
   if(RBQ.remaining.has(iso)){
-    RBQ.remaining.delete(iso);RBQ.correct++;
+    RBQ.remaining.delete(iso);RBQ.correct++;playCorrectSound();
     const found=document.getElementById('rbq-found');
     if(found){const s=document.createElement('span');s.className='bq-nb rbq-found-tag';s.textContent=COUNTRIES[iso]?COUNTRIES[iso].k:iso;found.appendChild(s);}
     const total=(BORDERS[RBQ.target]||[]).length,found_count=total-RBQ.remaining.size;
@@ -944,11 +962,13 @@ function rbqHandleClick(iso){
       setTimeout(()=>borderReview({blue:[tgt2],green:nbs2,title:'완벽! '+(typeof wdFlagImg==='function'?wdFlagImg(tgt2,20):'')+' <b>'+(COUNTRIES[tgt2]?COUNTRIES[tgt2].k:tgt2)+'</b>의 접경국 — 초록으로 확인하세요'},rbqShowCurrent),700);
     }
   }else if(iso===RBQ.target){
+    playWrongSound();
     if(fb){fb.textContent='이 나라가 출제 중인 나라예요!';fb.className='bq-fb ng';}
   }else{
     RBQ.curWrong++;rbqSetDots(RBQ.curWrong);
     const box=document.getElementById('rbq-box');if(box){box.classList.add('shake');setTimeout(()=>box.classList.remove('shake'),360);}
     const nm=COUNTRIES[iso]?COUNTRIES[iso].k:iso;
+    playWrongSound();
     if(RBQ.curWrong>=3){
       const revNames=[...RBQ.remaining].map(i=>COUNTRIES[i]?COUNTRIES[i].k:i);
       const total=(BORDERS[RBQ.target]||[]).length,found_count=total-RBQ.remaining.size;
@@ -978,7 +998,7 @@ function rbqTypeSubmit(){
   if(iso){rbqHandleClick(iso);try{inp.focus();}catch(e){}return;}
   const any=Object.keys(COUNTRIES).find(i=>check(t,i));
   if(any){rbqHandleClick(any);}
-  else{bqFlash('그런 나라가 없어요','bfng');inp.classList.add('shake');setTimeout(()=>inp.classList.remove('shake'),360);}
+  else{playWrongSound();bqFlash('그런 나라가 없어요','bfng');inp.classList.add('shake');setTimeout(()=>inp.classList.remove('shake'),360);}
   try{inp.focus();}catch(e){}
 }
 function rbqSkip(){if(RBQ.queue&&RBQ.queue.length>1){const g=RBQ.queue.shift();RBQ.queue.push(g);rbqShowCurrent();}}
@@ -1336,7 +1356,7 @@ function rvResolve(ok,pts,band){
   RV._reveal=true;
   const r=RV.cur;
   RV.status[r.id]={p:pts,ok:!!ok};
-  RV.pts+=pts;if(ok){RV.cor++;playCorrectSound();}else RV.wr++;
+  RV.pts+=pts;if(ok){RV.cor++;playCorrectSound();}else{RV.wr++;playWrongSound();}
   RV.queue.shift();rvSave();rvStats();
   /* 정답 공개: 하천 SVG에 실제 경로 (+상: 사용자가 그린 궤적) */
   rvSvg();
@@ -1392,7 +1412,7 @@ function rvcHandleClick(iso){
   if(RV._reveal||!RV.c_remaining)return;
   const r=RV.cur;const fb=document.getElementById('rvc-fb');
   if(RV.c_remaining.has(iso)){
-    RV.c_remaining.delete(iso);RV.c_found++;
+    RV.c_remaining.delete(iso);RV.c_found++;playCorrectSound();
     colors[iso]='c2';paint();
     const fd=document.getElementById('rvc-found');
     if(fd){const sp=document.createElement('span');sp.className='bq-nb rbq-found-tag';sp.textContent=COUNTRIES[iso]?COUNTRIES[iso].k:iso;fd.appendChild(sp);}
@@ -1406,7 +1426,7 @@ function rvcHandleClick(iso){
     for(let i=0;i<3;i++){const d=document.getElementById('rvc-d'+i);if(d)d.className='bq-dot'+(i<RV.c_wrong?' ng':'');}
     const nm=COUNTRIES[iso]?COUNTRIES[iso].k:iso;
     if(RV.c_wrong>=3){rvcResolve();}
-    else if(fb){fb.textContent=nm+' — 아니에요 (기회 '+(3-RV.c_wrong)+')';fb.className='bq-fb ng';}
+    else{playWrongSound();if(fb){fb.textContent=nm+' — 아니에요 (기회 '+(3-RV.c_wrong)+')';fb.className='bq-fb ng';}}
   }
 }
 function rvcResolve(){
@@ -1416,7 +1436,7 @@ function rvcResolve(){
   const pts=Math.round(5*found/total);
   const ok=found===total;
   RV.status[r.id]={p:pts,ok};
-  RV.pts+=pts;if(ok)RV.cor++;else RV.wr++;
+  RV.pts+=pts;if(ok)RV.cor++;else{RV.wr++;playWrongSound();}
   RV.queue.shift();rvSave();rvStats();
   /* 놓친 나라 빨강으로 공개 — 지도로 학습 */
   [...RV.c_remaining].forEach(i=>{colors[i]='cr';});
@@ -1807,6 +1827,7 @@ function setColor(iso,cls){
   colors[iso]=cls;
   if(cls==='blink')startJsBlink(iso);else stopJsBlink(iso);
   if(cls==='c1'||cls==='c2'||cls==='c3')playCorrectSound();
+  else if(cls==='cr')playWrongSound();
   paint();
 }
 function clearBlink(iso){
@@ -1901,6 +1922,7 @@ function submit(){
     gi.classList.add('shake');setTimeout(()=>gi.classList.remove('shake'),400);
     document.getElementById('ui-fb').textContent='틀렸습니다';document.getElementById('ui-fb').className='fb ng';
     if(w<2){
+      playWrongSound();
       for(let i=0;i<3;i++)document.getElementById('ui-d'+i).className='dot'+((i<w+1)?' ng':'');
     }else{
       clearBlink(iso);
@@ -2569,6 +2591,7 @@ function setKColor(kid,cls){
   kColors[kid]=cls;
   if(cls==='blink')startKBlink(kid);else stopKBlink(kid);
   if(cls==='c1'||cls==='c2'||cls==='c3')playCorrectSound();
+  else if(cls==='cr')playWrongSound();
   paintK();
 }
 function clearKBlink(kid){
@@ -2673,6 +2696,7 @@ function krSubmit(){
     gi.classList.add('shake');setTimeout(()=>gi.classList.remove('shake'),400);
     document.getElementById('kr-fb').textContent='틀렸습니다';document.getElementById('kr-fb').className='fb ng';
     if(w<2){
+      playWrongSound();
       for(let i=0;i<3;i++)document.getElementById('kr-d'+i).className='dot'+((i<w+1)?' ng':'');
     }else{
       clearKBlink(kid);
@@ -4014,6 +4038,7 @@ function tqSubmit(){
   const allCorrect=TQ.round.every(iso=>TQ.matches[iso]===iso);
   if(allCorrect||TQ.tries>=3){ tqReveal(allCorrect); }
   else {
+    playWrongSound();
     const diff=tqDiff(TQ.mode,TQ.filterKey);
     const tradeHinted=(TQ.mode!=='r'&&TQ.mode!=='e'&&(diff==='M'||diff==='L'));
     const pieHinted=(TQ.mode==='r'||TQ.mode==='e')&&diff!=='H';
@@ -4034,7 +4059,7 @@ function tqSubmit(){
 }
 function tqReveal(allCorrect){
   TQ.revealed=true;
-  if(allCorrect)playCorrectSound();
+  if(allCorrect)playCorrectSound();else playWrongSound();
   TQ.round.forEach(iso=>{
     TQ.doneSet.add(iso);
     if(TQ.matches[iso]===iso){TQ.correctCountries++; TQ.wrongSet.delete(iso);}

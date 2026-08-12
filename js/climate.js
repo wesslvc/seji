@@ -415,7 +415,7 @@ function cqResolveGraph(gi,ok,li){
   CQ.cur.selectedGraph=null;
   CQ.attempted++;
   const pts=ok?cqPer():0;
-  CQ.pts+=pts;if(ok){CQ.cor++;if(typeof playCorrectSound==='function')playCorrectSound();}else CQ.wr++;
+  CQ.pts+=pts;if(ok){CQ.cor++;if(typeof playCorrectSound==='function')playCorrectSound();}else{CQ.wr++;if(typeof playWrongSound==='function')playWrongSound();}
   const card=document.querySelector('#cq-cards .cq-card[data-gi="'+gi+'"]');
   if(card){const lbl=card.querySelector('.cq-card-lbl');if(lbl)lbl.innerHTML=cqLocLabel(loc)+(ok?' <b>+'+pts+'점</b>':' <span class="wr">0점</span>');}
   const pinEl=document.querySelector('#cq-pins-ov .cq-pin[data-li="'+li+'"]');
@@ -533,7 +533,7 @@ function cqLResolve(gi,ok){
   CQ.cur.resolvedSet.add(gi);
   CQ.attempted++;
   const pts=ok?cqPer():0;
-  CQ.pts+=pts;if(ok){CQ.cor++;if(typeof playCorrectSound==='function')playCorrectSound();}else CQ.wr++;
+  CQ.pts+=pts;if(ok){CQ.cor++;if(typeof playCorrectSound==='function')playCorrectSound();}else{CQ.wr++;if(typeof playWrongSound==='function')playWrongSound();}
   const pinEl=document.querySelector('#cq-pins-ov .cq-pin[data-li="'+gi+'"]');
   if(pinEl){
     pinEl.classList.remove('active');pinEl.classList.add(ok?'ok':'ng');
