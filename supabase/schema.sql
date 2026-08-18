@@ -86,15 +86,21 @@ create policy "profiles insert" on public.profiles for insert to authenticated w
 create policy "profiles update" on public.profiles for update to authenticated using (auth.uid() = id);
 
 -- 점수: 직접 조회는 '본인 것만', 본인 것만(합리적 값) 추가. 수정/삭제 불가
-drop policy if exists "scores read"   on public.scores;
-drop policy if exists "scores insert" on public.scores;
+-- category 목록은 앱이 submitScore로 보내는 값 전부와 일치해야 한다. 빠진 게 있으면
+-- 그 퀴즈 점수만 조용히 저장 실패한다(에러가 눈에 안 띔) — 새 퀴즈를 추가하면 여기도 같이 추가할 것.
+-- 또한 INSERT 정책을 여기 하나로만 유지해야 한다. permissive 정책은 OR로 합쳐지므로
+-- 느슨한 정책이 하나라도 더 붙으면 아래 검증이 통째로 무력화된다.
+drop policy if exists "scores read"       on public.scores;
+drop policy if exists "scores insert"     on public.scores;
+drop policy if exists "scores_insert_own" on public.scores; -- 과거에 잘못 추가된 중복 정책 제거
 create policy "scores read"   on public.scores for select to authenticated using (auth.uid() = user_id);
 create policy "scores insert" on public.scores for insert to authenticated
   with check (
     auth.uid() = user_id
     and total > 0 and correct >= 0 and correct <= total
     and accuracy >= 0 and accuracy <= 100
-    and category in ('name','border','religion','texp','timp','tenergy','korea')
+    and category in ('name','border','rborder','religion',
+                     'texp','timp','tenergy','river','climate','korea')
   );
 
 -- 랭킹용 집계 데이터만 노출하는 보안 함수 (테이블 직접 접근 대신 이걸로만 제공)
