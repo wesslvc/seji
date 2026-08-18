@@ -776,6 +776,14 @@ function bqFlash(text,cls){
 function bqHandleClick(iso){
   if(!BQ.remaining||!BQ.remaining.size)return;
   const fb=document.getElementById('bq-fb');
+  /* 이번 문제에서 이미 맞힌 나라를 또 입력한 경우 — 오답이 아니라 안내만 하고
+     기회도 깎지 않는다(여러 개를 차례로 입력하는 문제라 중복 입력이 자연스러움) */
+  if(BQ.currentGroup&&BQ.currentGroup.includes(iso)&&!BQ.remaining.has(iso)){
+    const dn=COUNTRIES[iso]?COUNTRIES[iso].k:iso;
+    fb.textContent=dn+' — 이미 입력했어요';fb.className='bq-fb';
+    bqFlash(dn+' — 이미 입력','bfng');
+    return;
+  }
   if(BQ.remaining.has(iso)){
     /* 정답 클릭 */
     BQ.remaining.delete(iso);
@@ -947,6 +955,13 @@ function rbqCountryPts(found,total){
 function rbqHandleClick(iso){
   if(!RBQ.remaining||!RBQ.remaining.size)return;
   const fb=document.getElementById('rbq-fb');
+  /* 이미 찾은 접경국을 또 입력 — 오답 처리하지 않고 안내만 (기회 유지) */
+  if((BORDERS[RBQ.target]||[]).includes(iso)&&!RBQ.remaining.has(iso)){
+    const dn=COUNTRIES[iso]?COUNTRIES[iso].k:iso;
+    if(fb){fb.textContent=dn+' — 이미 입력했어요';fb.className='bq-fb';}
+    bqFlash(dn+' — 이미 입력','bfng');
+    return;
+  }
   if(RBQ.remaining.has(iso)){
     RBQ.remaining.delete(iso);RBQ.correct++;playCorrectSound();
     const found=document.getElementById('rbq-found');
@@ -2990,12 +3005,21 @@ function initMap(){
   });
   const tip=document.getElementById('ui-tip');
   svg.addEventListener('mouseover',function(e){
-    if(mapMode!=='name'){tip.style.display='none';return;}
+    /* 하천 그리기·기후는 나라를 고르는 화면이 아니라 툴팁을 띄우지 않는다 */
+    if(mapMode==='rvd'||mapMode==='climate'){tip.style.display='none';return;}
     const cel=findCountryEl(e.target);
     if(!cel){tip.style.display='none';return;}
-    const iso=iso4el(cel);if(!iso){tip.style.display='none';return;}
-    const s=S.status[iso];
-    tip.textContent=s==='cr'?'클릭하면 정답':s?COUNTRIES[iso].k:'클릭하여 맞히기';
+    const iso=iso4el(cel);
+    if(!iso||!COUNTRIES[iso]){tip.style.display='none';return;}
+    if(mapMode==='name'){
+      /* 나라 이름 맞히기는 이름 자체가 정답이라 맞히기 전엔 안 보여준다 */
+      const s=S.status[iso];
+      tip.textContent=s==='cr'?'클릭하면 정답':s?COUNTRIES[iso].k:'클릭하여 맞히기';
+    }else{
+      /* 접경국·접경국 쓰기·하천은 '이 나라가 어디냐'가 아니라 나라 사이의 관계를
+         묻는 퀴즈라 이름을 바로 띄워도 정답이 새지 않는다 */
+      tip.textContent=COUNTRIES[iso].k;
+    }
     tip.style.display='block';
   });
   svg.addEventListener('mousemove',e=>{tip.style.left=(e.clientX+12)+'px';tip.style.top=(e.clientY-24)+'px';});
