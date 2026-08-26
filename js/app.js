@@ -1606,6 +1606,13 @@ const CONT={
 };
 /* 섬나라 (완전히 섬으로 이루어진 나라) */
 const ISLE=new Set(['ag','au','bs','bb','cv','cu','cy','dm','fj','fm','gd','ht','id','jp','ki','km','kn','lc','lk','mh','mt','mu','mv','nr','nz','pw','pg','ph','sb','sc','sg','st','to','tt','tv','tw','tl','vc','vu','ws']);
+/* '섬나라 제외'를 켜도 남겨두는 주요 섬나라 — 인구 500만 이상 기준.
+   이 옵션의 취지는 지도에서 찾기 힘든 작은 섬나라를 빼는 것이지 일본·인도네시아
+   같은 주요국까지 빼려는 게 아니다. 인구순으로 뉴질랜드(533만)와 동티모르(142만)
+   사이가 3.7배나 벌어져 경계가 뚜렷해서 500만으로 끊었다. */
+const ISLE_MAJOR=new Set(['id','jp','ph','au','tw','lk','ht','cu','pg','sg','nz']);
+/* 섬나라 제외 옵션에서 실제로 빼야 하는 나라인지 */
+function isleExcluded(iso){return ISLE.has(iso)&&!ISLE_MAJOR.has(iso);}
 /* 인구 40만 미만 소국 */
 const SMALL=new Set(['ad','ag','bb','dm','fm','gd','ki','kn','lc','li','mc','mh','nr','pw','sc','sm','st','to','tv','va','vc','vu','ws']);
 
@@ -1746,7 +1753,7 @@ function initActiveSet(key){
     if(!wantTerr)base=base.filter(i=>!TERRITORIES.has(i));
   }
   if(parts.includes('big'))base=base.filter(i=>!SMALL.has(i));
-  if(parts.includes('noisle'))base=base.filter(i=>!ISLE.has(i));
+  if(parts.includes('noisle'))base=base.filter(i=>!isleExcluded(i));
   base=_applyPortion(base,key,1);
   S.activeSet=new Set(base);
   S.total=S.activeSet.size;
@@ -2306,7 +2313,7 @@ function buildRQList(filterKey){
   }
   if(!wantTerr)isos=isos.filter(iso=>!TERRITORIES.has(iso)); /* 자치령 분리 해제 시 자치령 제외 */
   if(parts.includes('big'))isos=isos.filter(iso=>!SMALL.has(iso));
-  if(parts.includes('noisle'))isos=isos.filter(iso=>!ISLE.has(iso));
+  if(parts.includes('noisle'))isos=isos.filter(iso=>!isleExcluded(iso));
   isos=_applyPortion(isos,key,1);
   RQ.list=isos.sort(()=>Math.random()-.5);
   RQ.idx=0;RQ.correct=0;RQ.errors=0;RQ.skipped=0;RQ.wrongItems=[];RQ.wrongCounts={};
@@ -3188,7 +3195,7 @@ function _countSetForFilter(filterKey){
     if(!wantTerr)base=base.filter(i=>!TERRITORIES.has(i));
   }
   if(parts.includes('big'))base=base.filter(i=>!SMALL.has(i));
-  if(parts.includes('noisle'))base=base.filter(i=>!ISLE.has(i));
+  if(parts.includes('noisle'))base=base.filter(i=>!isleExcluded(i));
   return new Set(base);
 }
 function listSaves(){
