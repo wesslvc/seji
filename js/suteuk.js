@@ -27,317 +27,146 @@ function sqAccepts(q,ans){
   return list;
 }
 
-/* ══════════ 문항 생성기 — 앱 데이터로 매번 새 문제를 만든다 ══════════ */
-
-/* 수특 1~4강에 실제로 등장하는 나라들. 생성 문항이 엉뚱한 소국으로 새지 않도록
-   출제 풀을 여기로 묶는다. */
-const SQ_CORE=['kr','jp','cn','in','id','vn','th','ph','mm','bd','pk','np','bt','lk','mv','af',
-'tr','ir','iq','sa','ae','qa','kw','om','ye','il','sy','jo','lb','az','ge','am','uz','kz','tm','kg','tj','mn',
-'gb','fr','de','it','es','pt','nl','be','ch','at','no','se','fi','dk','is','ie','pl','cz','sk','hu','ro','bg','gr','ua','ru','by','rs','hr','si','ba','al','xk','mk','me','lt','lv','ee','md','lu',
-'eg','ly','tn','dz','ma','sd','ss','et','er','so','ke','tz','ug','rw','bi','cd','cg','ga','cm','ng','gh','ci','sn','ml','bf','ne','td','mr','za','zw','zm','mw','mz','ao','na','bw','ls','sz','mg','gn','lr','sl','tg','bj','cf','dj',
-'us','ca','mx','gt','hn','sv','ni','cr','pa','cu','ht','do','jm','tt',
-'br','ar','cl','pe','co','ve','ec','bo','py','uy','gy','sr',
-'au','nz','pg','fj','sb','vu','ws','to'];
-const SQ_CORE_SET=new Set(SQ_CORE);
+/* ══════════ 자료 문항 생성 — 수특에 언급된 지점의 기후 그래프 ══════════
+   수능특강/특강 자료에 실제로 등장하는 지점만 쓴다. 앱이 가진 관측 기후 자료
+   (CLIMATE)로 그래프를 그려 주고 기후 구분을 묻는다. 그래프를 읽는 연습은
+   자료에서 반복해 강조하는 부분이라 여기만 자동 생성으로 남겼다. */
 
 /* 쾨펜 세부 기호 → 한국어 기후 이름 */
 const SQ_KOP_KO={
  Af:'열대 우림',Am:'열대 몬순',Aw:'사바나',As:'사바나',
  BWh:'열대 사막',BWk:'냉대 사막',BSh:'열대 스텝',BSk:'냉대 스텝',
  Cfa:'온난 습윤',Cfb:'서안 해양성',Cfc:'서안 해양성',
- Cwa:'온대 동계 건조',Cwb:'온대 동계 건조(고지)',Cwc:'온대 동계 건조(고지)',
- Csa:'지중해성',Csb:'지중해성(서늘)',Csc:'지중해성(서늘)',
- Dfa:'냉대 습윤',Dfb:'냉대 습윤',Dfc:'냉대 습윤(아북극)',Dfd:'냉대 습윤(극한)',
- Dwa:'냉대 동계 건조',Dwb:'냉대 동계 건조',Dwc:'냉대 동계 건조(아북극)',Dwd:'냉대 동계 건조(극한)',
+ Cwa:'온대 동계 건조',Cwb:'온대 동계 건조',Cwc:'온대 동계 건조',
+ Csa:'지중해성',Csb:'지중해성',Csc:'지중해성',
+ Dfa:'냉대 습윤',Dfb:'냉대 습윤',Dfc:'냉대 습윤',Dfd:'냉대 습윤',
+ Dwa:'냉대 동계 건조',Dwb:'냉대 동계 건조',Dwc:'냉대 동계 건조',Dwd:'냉대 동계 건조',
  Dsa:'냉대 하계 건조',Dsb:'냉대 하계 건조',Dsc:'냉대 하계 건조',
  ET:'툰드라',EF:'빙설'
 };
-/* 쾨펜 대분류(A~E) 한국어 */
-const SQ_GRP_KO={A:'열대',B:'건조',C:'온대',D:'냉대',E:'한대'};
-
-/* 수특·평가원에서 자주 나오는 기후 대표 지점 — 그래프 문항의 1순위 풀 */
-const SQ_CLIM_STAR=['프리토리아','마이애미','콜롬보','싱가포르','자카르타','뭄바이','방콕','카이로','리마','키토',
-'라파스','로마','아테네','이스탄불','런던','파리','베를린','모스크바','서울','도쿄','베이징','상하이','시드니','퍼스',
-'케이프타운','나이로비','라고스','다카르','부에노스아이레스','산티아고','밴쿠버','샌프란시스코','로스앤젤레스','뉴올리언스',
-'우수아이아','레이캬비크','헬싱키','앵커리지','야쿠츠크','베르호얀스크','체라푼지','아타카마 사막','다윈','웰링턴',
-'울란바토르','타슈켄트','테헤란','리야드','두바이','마나우스','벨렘','포르투알레그리','하노이','양곤','다낭','카트만두','라싸'];
+/* 수특·특강 자료에 이름이 나오는 지점만 쓴다.
+   주의: 앱의 쾨펜 기호는 관측 래스터에서 읽은 값이라 수특이 가르치는 분류와
+   어긋나는 곳이 있다(키토 Csb, 라파스 ET, 체라푼지 Cwb 등). 그래서 쾨펜
+   기호를 정답으로 삼는 문항은 둘이 일치하는 지점(kop:1)에서만 만들고,
+   열대 고산·최다우지처럼 수특이 다른 이름으로 가르치는 곳은 그 이름을 묻는다. */
+const SQ_CLIM_SPEC=[
+ {ko:'프리토리아', kop:1, why:'특강 01 — 사바나 기후 주변에 분포하는 온대 동계 건조(Cw)의 대표 사례. 남위 26°지만 해발 약 1,300m의 남아프리카 고원이라 온대가 나타난다.'},
+ {ko:'콜롬보',     kop:1, why:'특강 01 — 스리랑카 남부의 열대 우림. 최소우월 강수량 조건을 만족해 연중 습윤(f)으로 분류된다.'},
+ {ko:'마이애미',   kop:1, why:'1강 — 1월 20℃·7월 28℃, 1월 강수 46mm·7월 강수 188mm의 열대 몬순(Am).'},
+ {ko:'자카르타',   kop:1, why:'특강 01 — 몬순 아시아에서 열대 우림 기후의 대표 사례로 언급된 인도네시아.'},
+ {ko:'쿠알라룸푸르',kop:1, why:'특강 01 — 몬순 아시아 열대 우림의 또 다른 대표 사례인 말레이시아.'},
+ {ko:'키토',       highland:1, cc:'에콰도르'},
+ {ko:'보고타',     highland:1, cc:'콜롬비아'},
+ {ko:'쿠스코',     highland:1, cc:'페루'},
+ {ko:'라파스',     highland:1, cc:'볼리비아'},
+ {ko:'멕시코시티', highland:1, cc:'멕시코'},
+ {ko:'아디스아바바',highland:1, cc:'에티오피아'},
+ {ko:'체라푼지',   wettest:1}
+];
 
 let _SQ_LOC=null;
 function sqLocs(){
   if(_SQ_LOC)return _SQ_LOC;
-  /* climate.js가 만들어 둔 CLIMATE_LOC를 그대로 쓴다 */
   _SQ_LOC=(typeof CLIMATE_LOC!=='undefined'?CLIMATE_LOC:[]).filter(l=>l.ko&&l.kop&&SQ_KOP_KO[l.kop]);
   return _SQ_LOC;
 }
 function sqLocByName(n){return sqLocs().find(l=>l.ko===n);}
-function sqStarLocs(){
-  const out=[];
-  SQ_CLIM_STAR.forEach(n=>{const l=sqLocByName(n);if(l)out.push(l);});
-  return out;
-}
-/* 나라 이름을 단답으로 받을 때 허용할 표기들 (COUNTRIES의 별칭 + 영문명) */
-function sqIsoAlt(iso){
-  const c=COUNTRIES[iso];if(!c)return [];
-  return (c.x||[]).concat(c.e?[c.e]:[]);
-}
 function sqLocLabel(l){
   const cn=(typeof COUNTRIES!=='undefined'&&COUNTRIES[l.cc])?COUNTRIES[l.cc].k:l.cc.toUpperCase();
   return l.ko+' · '+cn;
 }
-/* 연 강수량 / 기온 연교차 — 그래프 비교 문항의 채점 근거 */
 function sqAnnPrec(l){return l.prec.reduce((s,v)=>s+v,0);}
 function sqAnnRange(l){
   const avg=l.tmin.map((v,i)=>(v+l.tmax[i])/2);
   return Math.max(...avg)-Math.min(...avg);
 }
-
-/* ① 기후 그래프 → 기후 구분 맞히기 */
-function sqGenClimateKop(n){
-  const pool=shuffle(sqStarLocs().concat(_rnSample(sqLocs().filter(l=>SQ_CORE_SET.has(l.cc)),120)));
-  const seen=new Set(),out=[];
-  for(const l of pool){
-    if(out.length>=n)break;
-    if(seen.has(l.ko))continue;seen.add(l.ko);
-    const right=SQ_KOP_KO[l.kop];
-    const others=shuffle([...new Set(Object.values(SQ_KOP_KO))].filter(v=>v!==right)).slice(0,3);
-    out.push({ch:'그래프',t:'mc',tag:'기후 그래프',gen:1,chart:l.id,
-      q:sqLocLabel(l)+'의 기후 그래프다. 이 지점의 기후 구분은?',
-      opts:shuffle(others.concat([right])),a:right,
-      saAlt:[l.kop,right.replace(/\([^)]*\)/,'').trim()],
-      saHint:'기후 이름이나 쾨펜 기호로',
-      exp:sqLocLabel(l)+' — 쾨펜 기호 '+l.kop+'('+right+'). 최난월 '+Math.round(Math.max(...l.tmax))+'℃ · 최한월 '+Math.round(Math.min(...l.tmin))+'℃ · 연 강수량 약 '+Math.round(sqAnnPrec(l))+'mm.'});
-  }
-  return out;
+/* 수특 지점 목록 → 실제 기후 자료가 있는 것만 */
+/* 받침 유무로 조사를 고른다 (‘쿠알라룸푸르와(과)’ 같은 표기를 피한다) */
+function sqJosa(word,withBatchim,noBatchim){
+  const c=String(word||'').trim().slice(-1).charCodeAt(0);
+  const has=(c>=0xAC00&&c<=0xD7A3)?((c-0xAC00)%28!==0):false;
+  return has?withBatchim:noBatchim;
 }
-/* ② 기후 그래프 → 어느 도시인지 맞히기 (기후 대분류가 다른 보기로 구성) */
-function sqGenClimateCity(n){
-  const stars=shuffle(sqStarLocs());
+function sqSpecLocs(){
   const out=[];
-  for(const l of stars){
-    if(out.length>=n)break;
-    const others=shuffle(sqLocs().filter(x=>x.grp!==l.grp&&x.ko!==l.ko&&SQ_CORE_SET.has(x.cc)&&SQ_CLIM_STAR.includes(x.ko))).slice(0,3);
-    if(others.length<3)continue;
-    out.push({ch:'그래프',t:'mc',tag:'기후 그래프',gen:1,chart:l.id,hideLabel:1,keepMc:true,
-      q:'다음 기후 그래프에 해당하는 지점은?',
-      opts:shuffle(others.map(sqLocLabel).concat([sqLocLabel(l)])),a:sqLocLabel(l),
-      saAlt:[l.ko,l.city],saHint:'지점 이름만 써도 됩니다',
-      exp:sqLocLabel(l)+'는 '+SQ_KOP_KO[l.kop]+'('+l.kop+') 기후다. 연 강수량 약 '+Math.round(sqAnnPrec(l))+'mm, 기온의 연교차 약 '+sqAnnRange(l).toFixed(1)+'℃.'});
-  }
+  SQ_CLIM_SPEC.forEach(s=>{
+    const l=sqLocByName(s.ko);if(!l)return;
+    out.push(Object.assign({},l,{
+      why:s.why||'',kop_ask:!!s.kop,highland:!!s.highland,wettest:!!s.wettest,
+      ccKo:s.cc||((typeof COUNTRIES!=='undefined'&&COUNTRIES[l.cc])?COUNTRIES[l.cc].k:l.cc.toUpperCase())
+    }));
+  });
   return out;
 }
-/* ③ 그래프 두 개 비교 — 연 강수량 / 연교차 / 최한월 기온 */
+/* ① 수특 지점의 기후 그래프 문항 */
+const SQ_KOP_OPTS=['열대 우림','열대 몬순','사바나','온대 동계 건조','지중해성','서안 해양성','열대 고산'];
+function sqGenClimateKop(){
+  const out=[];
+  const spec=sqSpecLocs();
+  const hlCountries=[...new Set(spec.filter(x=>x.highland).map(x=>x.ccKo))];
+  const hl=spec.filter(x=>x.highland);
+  const hlOne=hl.length?hl[Math.floor(Math.random()*hl.length)].ko:null;
+  spec.forEach(l=>{
+    const stat=' 최난월 '+Math.round(Math.max(...l.tmax))+'℃ · 최한월 '+Math.round(Math.min(...l.tmin))
+      +'℃ · 연 강수량 약 '+Math.round(sqAnnPrec(l))+'mm · 기온의 연교차 약 '+sqAnnRange(l).toFixed(1)+'℃.';
+    if(l.kop_ask){
+      const right=SQ_KOP_KO[l.kop];
+      out.push({ch:'그래프',t:'mc',tag:'기후 그래프',gen:1,chart:l.id,
+        q:sqLocLabel(l)+'의 기후 그래프다. 이 지점의 기후 구분은?',
+        opts:shuffle(SQ_KOP_OPTS.filter(v=>v!==right).slice(0,3).concat([right])),a:right,
+        saAlt:[l.kop],saHint:'기후 이름이나 쾨펜 기호로',
+        exp:sqLocLabel(l)+' — 쾨펜 '+l.kop+'('+right+').'+stat+' '+l.why});
+    }else if(l.highland){
+      /* 그래프만 보면 답이 뻔한 ‘이 기후는?’은 한 판에 한 번만 낸다 */
+      if(l.ko===hlOne){
+        out.push({ch:'그래프',t:'mc',tag:'열대 고산',gen:1,chart:l.id,hideLabel:1,
+          q:'다음 기후 그래프는 저위도인데도 연중 서늘하고 기온의 연교차가 거의 없다. 이 기후는?',
+          opts:shuffle(['열대 우림','사바나','온대 동계 건조','열대 고산']),a:'열대 고산',
+          saAlt:['열대고산','열대 고산 기후','고산 기후'],saHint:'기후 이름으로',
+          exp:l.ko+'('+l.ccKo+') — 특강 01의 열대 고산 기후 암기법 ‘키보드로 쿠라치는 멕시코 아저씨’(키토·보고타·쿠스코·라파스·멕시코시티·아디스아바바) 중 하나다.'+stat});
+      }
+      /* 나머지는 그래프를 곁들여 ‘어느 나라의 고산 도시인지’를 확인한다 */
+      out.push({ch:'그래프',t:'mc',tag:'열대 고산',gen:1,chart:l.id,hideLabel:1,
+        q:'열대 고산 기후 암기법 ‘키보드로 쿠라치는 멕시코 아저씨’의 여섯 도시 중 하나인 '+l.ko+sqJosa(l.ko,'이','가')+' 속한 국가는?',
+        opts:shuffle(hlCountries.filter(c=>c!==l.ccKo).slice(0,3).concat([l.ccKo])),a:l.ccKo,
+        exp:l.ko+' — '+l.ccKo+'. 여섯 도시는 키토(에콰도르)·보고타(콜롬비아)·쿠스코(페루)·라파스(볼리비아)·멕시코시티(멕시코)·아디스아바바(에티오피아)다.'});
+    }else if(l.wettest){
+      out.push({ch:'그래프',t:'txt',tag:'기후 그래프',gen:1,chart:l.id,hideLabel:1,
+        q:'다음 기후 그래프는 여름 남서 계절풍이 히말라야에 부딪혀 막대한 지형성 강수를 쏟는 세계 최다우지의 것이다. 이곳은 어디인가?',
+        a:'체라푼지',alt:{'체라푼지':['체라푼지 인근','Cherrapunji','마우신람']},saHint:'지점 이름으로',
+        exp:'체라푼지(인도) — 4강에서 세계 최다우지로 언급된다.'+stat});
+    }
+  });
+  return out;
+}
+/* ② 수특 지점 두 곳의 그래프 비교 — 연 강수량 · 기온의 연교차
+   특강 01이 프리토리아·콜롬보를 나란히 놓고 비교하게 한 것과 같은 형태다.
+   쾨펜 분류가 수특과 일치하는 지점끼리만 비교한다. */
 function sqGenClimateCompare(n){
-  const stars=sqStarLocs();
-  const out=[];
+  const spec=sqSpecLocs().filter(l=>l.kop_ask||l.wettest);
   const kinds=[
-    {k:'prec',q:'두 지점의 기후 그래프다. 연 강수량이 더 많은 곳은?',f:sqAnnPrec,u:'mm',nm:'연 강수량'},
-    {k:'rng', q:'두 지점의 기후 그래프다. 기온의 연교차가 더 큰 곳은?',f:sqAnnRange,u:'℃',nm:'기온의 연교차'},
-    {k:'cold',q:'두 지점의 기후 그래프다. 최한월 평균 기온이 더 낮은 곳은?',f:l=>-Math.min(...l.tmin),u:'℃',nm:'최한월이 낮은 정도'}
+    {lb:'연 강수량이 더 많은 곳은?',f:sqAnnPrec,u:'mm',gap:400},
+    {lb:'기온의 연교차가 더 큰 곳은?',f:sqAnnRange,u:'℃',gap:3}
   ];
-  for(let i=0;i<n*3&&out.length<n;i++){
-    const kind=kinds[i%kinds.length];
-    const [a,b]=_rnSample(stars,2);
-    if(!a||!b||a.ko===b.ko)continue;
-    const va=kind.f(a),vb=kind.f(b);
-    if(Math.abs(va-vb)<(kind.k==='prec'?200:4))continue;   /* 눈으로 구분 안 되는 건 안 낸다 */
-    const win=va>vb?a:b;
-    out.push({ch:'그래프',t:'mc',tag:'기후 비교',gen:1,chart2:[a.id,b.id],
-      q:kind.q,opts:[sqLocLabel(a),sqLocLabel(b)],a:sqLocLabel(win),
-      saAlt:[win.ko,win.city],saHint:'그래프 아래 이름 중에서',
-      exp:sqLocLabel(a)+' = '+(kind.k==='cold'?(-va).toFixed(1):va.toFixed(0))+kind.u+' / '+sqLocLabel(b)+' = '+(kind.k==='cold'?(-vb).toFixed(1):vb.toFixed(0))+kind.u+'.'});
+  const out=[],seen=new Set();
+  for(let ki=0;ki<kinds.length;ki++){
+    const kind=kinds[ki];
+    for(let i=0;i<spec.length;i++)for(let j=i+1;j<spec.length;j++){
+      const a=spec[i],b=spec[j];
+      const key=kind.u+a.ko+b.ko;
+      if(seen.has(key))continue;
+      const va=kind.f(a),vb=kind.f(b);
+      if(Math.abs(va-vb)<kind.gap)continue;   /* 눈으로 구분 안 되면 안 낸다 */
+      seen.add(key);
+      const win=va>vb?a:b;
+      out.push({ch:'그래프',t:'mc',tag:'기후 비교',gen:1,chart2:[a.id,b.id],
+        q:a.ko+sqJosa(a.ko,'과',' 와').trim()+' '+b.ko+'의 기후 그래프다. '+kind.lb,
+        opts:[sqLocLabel(a),sqLocLabel(b)],a:sqLocLabel(win),
+        saAlt:[win.ko],saHint:'두 지점 이름 중에서',
+        exp:sqLocLabel(a)+' = '+va.toFixed(0)+kind.u+' / '+sqLocLabel(b)+' = '+vb.toFixed(0)+kind.u+'.'});
+    }
   }
-  return out;
-}
-/* ④ 종교 구성 원그래프 → 나라 맞히기 */
-function sqGenReligionPie(n){
-  if(typeof RELIG2_DATA==='undefined')return [];
-  const isos=Object.keys(RELIG2_DATA).filter(i=>SQ_CORE_SET.has(i)&&COUNTRIES[i]&&(RELIG2_DATA[i]||[]).length);
-  const out=[];
-  for(const iso of _rnSample(isos,n*2)){
-    if(out.length>=n)break;
-    const cells=RELIG2_DATA[iso];
-    const top=cells.slice().sort((a,b)=>b[1]-a[1])[0];
-    /* 1위 종교가 다른 나라를 오답으로 → 그래프만 봐도 풀리는 문제를 막는다 */
-    const others=shuffle(isos.filter(i=>{
-      const c=(RELIG2_DATA[i]||[]).slice().sort((a,b)=>b[1]-a[1])[0];
-      return i!==iso&&c&&c[0]===top[0];
-    })).slice(0,3);
-    if(others.length<3)continue;
-    out.push({ch:'자료',t:'mc',tag:'종교 구성',gen:1,keepMc:true,pie:{cells:cells,kind:'r'},
-      q:'다음 종교 구성을 가진 국가는?',
-      opts:shuffle(others.concat([iso]).map(i=>COUNTRIES[i].k)),a:COUNTRIES[iso].k,saAlt:sqIsoAlt(iso),
-      exp:COUNTRIES[iso].k+' — '+cells.slice(0,3).map(c=>RELIG2_NAME[c[0]]+' '+c[1]+'%').join(' · ')+'.'});
-  }
-  return out;
-}
-/* ⑤ 에너지 구성 원그래프 → 나라 맞히기 */
-function sqGenEnergyPie(n){
-  if(typeof ENERGY_DATA==='undefined')return [];
-  const isos=Object.keys(ENERGY_DATA).filter(i=>SQ_CORE_SET.has(i)&&COUNTRIES[i]&&(ENERGY_DATA[i]||[]).length>=3);
-  const out=[];
-  for(const iso of _rnSample(isos,n*2)){
-    if(out.length>=n)break;
-    const cells=ENERGY_DATA[iso];
-    const others=shuffle(isos.filter(i=>i!==iso)).slice(0,3);
-    out.push({ch:'자료',t:'mc',tag:'에너지 구성',gen:1,keepMc:true,pie:{cells:cells,kind:'e'},
-      q:'다음 1차 에너지 소비 구조를 가진 국가는?',
-      opts:shuffle(others.concat([iso]).map(i=>COUNTRIES[i].k)),a:COUNTRIES[iso].k,saAlt:sqIsoAlt(iso),
-      exp:COUNTRIES[iso].k+' — '+cells.slice(0,4).map(c=>ENERGY_NAME[c[0]]+' '+c[1]+'%').join(' · ')+'.'
-        +((typeof ENERGY_STORY!=='undefined'&&ENERGY_STORY[iso])?' '+ENERGY_STORY[iso]:'')});
-  }
-  return out;
-}
-/* ⑥ 에너지 구성 → 최대 에너지원 맞히기 (그래프를 읽는 연습) */
-function sqGenEnergyTop(n){
-  if(typeof ENERGY_DATA==='undefined')return [];
-  const isos=Object.keys(ENERGY_DATA).filter(i=>SQ_CORE_SET.has(i)&&COUNTRIES[i]&&(ENERGY_DATA[i]||[]).length>=3);
-  const out=[];
-  for(const iso of _rnSample(isos,n*2)){
-    if(out.length>=n)break;
-    const cells=ENERGY_DATA[iso].slice().sort((a,b)=>b[1]-a[1]);
-    if(cells.length<4||cells[0][1]-cells[1][1]<6)continue;
-    const right=ENERGY_NAME[cells[0][0]];
-    const others=shuffle(cells.slice(1).map(c=>ENERGY_NAME[c[0]])).slice(0,3);
-    if(others.length<3)continue;
-    out.push({ch:'자료',t:'mc',tag:'에너지 구성',gen:1,
-      q:COUNTRIES[iso].k+'의 1차 에너지 소비에서 비중이 가장 큰 에너지원은? (석탄·가스·석유·원자력·수력·태양광·풍력 중)',
-      opts:shuffle(others.concat([right])),a:right,
-      exp:COUNTRIES[iso].k+' — '+cells.slice(0,4).map(c=>ENERGY_NAME[c[0]]+' '+c[1]+'%').join(' · ')+'.'});
-  }
-  return out;
-}
-/* ⑥-2 종교 원그래프를 읽어 1·2위 종교를 직접 쓰기 (보기 없이도 답이 하나로 정해진다) */
-function sqGenReligionRead(n){
-  if(typeof RELIG2_DATA==='undefined')return [];
-  const isos=Object.keys(RELIG2_DATA).filter(i=>SQ_CORE_SET.has(i)&&COUNTRIES[i]&&(RELIG2_DATA[i]||[]).length>=2);
-  const out=[];
-  for(const iso of _rnSample(isos,n*2)){
-    if(out.length>=n)break;
-    const cells=RELIG2_DATA[iso].slice().sort((a,b)=>b[1]-a[1]);
-    if(cells.length<2||cells[0][1]-cells[1][1]<5)continue;
-    const second=cells[1][1]>=3;   /* 2위가 너무 작으면 그래프에서 읽기 어렵다 */
-    const kind=second&&Math.random()<.5?1:0;
-    const right=RELIG2_NAME[cells[kind][0]];
-    out.push({ch:'자료',t:'txt',tag:'종교 구성',gen:1,pie:{cells:RELIG2_DATA[iso],kind:'r'},
-      q:COUNTRIES[iso].k+'의 종교 구성이다. 신자 비율 '+(kind?'2위':'1위')+'인 종교는?',
-      a:right,saHint:'기독교·이슬람교·불교·힌두교·유대교 중',
-      exp:COUNTRIES[iso].k+' — '+cells.slice(0,3).map(c=>RELIG2_NAME[c[0]]+' '+c[1]+'%').join(' · ')+'.'});
-  }
-  return out;
-}
-/* ⑦ 무역 구조 → 수출 1위 품목 맞히기 */
-function sqGenTradeTop(n){
-  if(typeof TRADE_DATA==='undefined'||typeof HS2_KO==='undefined')return [];
-  const isos=Object.keys(TRADE_DATA).filter(i=>SQ_CORE_SET.has(i)&&COUNTRIES[i]&&(TRADE_DATA[i].x||[]).length>=4);
-  const out=[];
-  for(const iso of _rnSample(isos,n*2)){
-    if(out.length>=n)break;
-    const x=TRADE_DATA[iso].x;
-    if(x[0][1]<20)continue;      /* 1위가 뚜렷한 나라만 */
-    const right=HS2_KO[x[0][0]];if(!right)continue;
-    const others=shuffle(x.slice(1).map(c=>HS2_KO[c[0]]).filter(Boolean)).slice(0,3);
-    if(others.length<3)continue;
-    out.push({ch:'자료',t:'mc',tag:'무역 구조',gen:1,keepMc:true,
-      q:COUNTRIES[iso].k+'의 수출액에서 비중이 가장 큰 품목은?',
-      opts:shuffle(others.concat([right])),a:right,
-      exp:COUNTRIES[iso].k+' 수출 상위 — '+x.slice(0,4).map(c=>(HS2_KO[c[0]]||'?')+' '+c[1]+'%').join(' · ')+'.'});
-  }
-  return out;
-}
-/* ⑧ 지도 클릭 — 설명을 읽고 해당 국가를 지도에서 찾기 */
-function sqGenLocate(n){
-  if(typeof DICT_DATA==='undefined')return [];
-  const isos=SQ_CORE.filter(i=>COUNTRIES[i]&&DICT_DATA[i]);
-  const out=[];
-  for(const iso of _rnSample(isos,n*2)){
-    if(out.length>=n)break;
-    const d=DICT_DATA[iso];
-    if(!d.cap)continue;
-    out.push({ch:'지도',t:'map',tag:'위치',gen:1,iso:iso,
-      q:'수도가 '+d.cap+'인 국가를 지도에서 클릭하시오.',
-      exp:COUNTRIES[iso].k+' — 수도 '+d.cap+(d.pop?' · 인구 '+d.pop:'')+(d.area?' · 면적 '+d.area:'')+'.'});
-  }
-  return out;
-}
-/* ⑨ 지도 클릭 — 접경국 관계로 위치 찾기 */
-function sqGenBorderMap(n){
-  if(typeof BORDERS==='undefined')return [];
-  const isos=SQ_CORE.filter(i=>COUNTRIES[i]&&(BORDERS[i]||[]).length>=3);
-  const out=[];
-  for(const iso of _rnSample(isos,n*2)){
-    if(out.length>=n)break;
-    const nb=(BORDERS[iso]||[]).filter(b=>COUNTRIES[b]);
-    if(nb.length<3)continue;
-    out.push({ch:'지도',t:'map',tag:'접경',gen:1,iso:iso,
-      q:_rnSample(nb,3).map(b=>COUNTRIES[b].k).join(' · ')+' 등과 국경을 맞대고 있는 국가를 지도에서 클릭하시오.',
-      exp:COUNTRIES[iso].k+'의 접경국 — '+nb.map(b=>COUNTRIES[b].k).join(' · ')+'.'});
-  }
-  return out;
-}
-/* ⑩ 지도 클릭 — 하천이 지나는 나라 */
-function sqGenRiverMap(n){
-  if(typeof RIVERS==='undefined')return [];
-  const rs=RIVERS.filter(r=>(r.c||[]).some(c=>COUNTRIES[c]));
-  const out=[];
-  for(const r of _rnSample(rs,n*2)){
-    if(out.length>=n)break;
-    const cs=r.c.filter(c=>COUNTRIES[c]);
-    const target=cs[cs.length-1];  /* 하구 쪽 나라 */
-    out.push({ch:'지도',t:'map',tag:'하천',gen:1,iso:target,accept:cs,
-      q:r.ko+'이(가) 흐르는 국가를 지도에서 클릭하시오.',
-      exp:r.ko+'은(는) '+cs.map(c=>COUNTRIES[c].k).join(' · ')+'을(를) 지난다.'});
-  }
-  return out;
-}
-/* ⑪ 인구 순서 배열 */
-function sqGenPopOrder(n){
-  if(typeof DICT_DATA==='undefined')return [];
-  const parse=s=>{
-    if(!s)return null;
-    const m=String(s).match(/^([\d.]+)\s*(억|만)?/);if(!m)return null;
-    const v=parseFloat(m[1]);return m[2]==='억'?v*10000:m[2]==='만'?v:v/10000;
-  };
-  const pool=SQ_CORE.map(i=>({iso:i,v:parse(DICT_DATA[i]&&DICT_DATA[i].pop)})).filter(o=>o.v&&COUNTRIES[o.iso]);
-  const out=[];
-  for(let k=0;k<n*3&&out.length<n;k++){
-    const pick=_rnSample(pool,4);
-    const sorted=pick.slice().sort((a,b)=>b.v-a.v);
-    /* 값이 너무 붙어 있으면 순서를 외우는 게 아니라 찍는 문제가 된다 */
-    let ok=true;for(let i=0;i<sorted.length-1;i++)if(sorted[i].v/sorted[i+1].v<1.35)ok=false;
-    if(!ok)continue;
-    out.push({ch:'자료',t:'order',tag:'인구',gen:1,
-      q:'인구가 많은 순서대로 나열하시오.',
-      opts:shuffle(pick.map(o=>COUNTRIES[o.iso].k)),a:sorted.map(o=>COUNTRIES[o.iso].k),
-      exp:sorted.map(o=>COUNTRIES[o.iso].k+' '+DICT_DATA[o.iso].pop).join(' > ')+'.'});
-  }
-  return out;
-}
-/* ⑫ 1인당 GDP 비교 — 산업 구조 문항의 근거가 되는 지표 */
-function sqGenGdpOrder(n){
-  if(typeof DICT_DATA==='undefined')return [];
-  const parse=s=>{if(!s)return null;const m=String(s).match(/^([\d.]+)\s*(만)?/);if(!m)return null;
-    const v=parseFloat(m[1]);return m[2]==='만'?v*10000:v;};
-  const pool=SQ_CORE.map(i=>({iso:i,v:parse(DICT_DATA[i]&&DICT_DATA[i].pc)})).filter(o=>o.v&&COUNTRIES[o.iso]);
-  const out=[];
-  for(let k=0;k<n*3&&out.length<n;k++){
-    const pick=_rnSample(pool,3);
-    const sorted=pick.slice().sort((a,b)=>b.v-a.v);
-    let ok=true;for(let i=0;i<sorted.length-1;i++)if(sorted[i].v/sorted[i+1].v<1.8)ok=false;
-    if(!ok)continue;
-    out.push({ch:'자료',t:'order',tag:'경제',gen:1,
-      q:'1인당 국내 총생산이 많은 순서대로 나열하시오. (1차 산업 비중은 그 반대 순서다)',
-      opts:shuffle(pick.map(o=>COUNTRIES[o.iso].k)),a:sorted.map(o=>COUNTRIES[o.iso].k),
-      exp:sorted.map(o=>COUNTRIES[o.iso].k+' '+DICT_DATA[o.iso].pc).join(' > ')+'. 1인당 GDP가 높을수록 1차 산업 비중은 낮아진다.'});
-  }
-  return out;
-}
-/* ⑬ 수도 단답 */
-function sqGenCapital(n){
-  if(typeof DICT_DATA==='undefined')return [];
-  const isos=SQ_CORE.filter(i=>COUNTRIES[i]&&DICT_DATA[i]&&DICT_DATA[i].cap);
-  return _rnSample(isos,n).map(iso=>({ch:'자료',t:'txt',tag:'수도',gen:1,
-    q:COUNTRIES[iso].k+'의 수도는?',a:DICT_DATA[iso].cap,
-    exp:COUNTRIES[iso].k+' — 수도 '+DICT_DATA[iso].cap+(DICT_DATA[iso].big?' · 최대 도시 '+DICT_DATA[iso].big:'')+'.'}));
+  return shuffle(out).slice(0,n||out.length);
 }
 
 /* ══════════ 게임 상태 ══════════
@@ -347,7 +176,9 @@ const SQ={diff:'M',plan:[],idx:0,cor:0,wr:0,pts:0,maxPts:0,wrongLog:[],
   recorded:false,inited:false,answered:false,isRetry:false,saveKey:'sq_M',
   sel:null,ord:[],tries:0};
 const SQ_PER={L:2,M:3,H:4};
-const SQ_QUOTA={L:{bank:35,gen:25},M:{bank:60,gen:40},H:{bank:85,gen:65}};
+/* 난이도 = 한 판에 낼 문항 수. 문항 풀 자체는 수특 두 자료가 전부라 난이도가
+   올라가면 더 넓게, 그리고 보기 없이 물어본다(상). */
+const SQ_COUNT={L:60,M:100,H:9999};
 
 function sqDiffOf(filterKey){
   const p=(filterKey||'').split('_').find(x=>/^sq[LMH]$/.test(x));
@@ -355,30 +186,12 @@ function sqDiffOf(filterKey){
 }
 function sqPer(){return SQ_PER[SQ.diff]||3;}
 
-/* 생성 문항 묶음 — 난이도별 총량에 맞춰 종류별로 고르게 뽑는다 */
-function sqBuildGenerated(total){
-  const gens=[
-    [sqGenClimateKop,   .16],
-    [sqGenClimateCity,  .10],
-    [sqGenClimateCompare,.09],
-    [sqGenReligionPie,  .05],
-    [sqGenReligionRead, .05],
-    [sqGenEnergyPie,    .05],
-    [sqGenEnergyTop,    .08],
-    [sqGenTradeTop,     .08],
-    [sqGenLocate,       .09],
-    [sqGenBorderMap,    .09],
-    [sqGenRiverMap,     .06],
-    [sqGenPopOrder,     .05],
-    [sqGenGdpOrder,     .03],
-    [sqGenCapital,      .02]
-  ];
+/* 기후 그래프 문항 — 수특에 나온 지점 수만큼만 만들어진다 */
+function sqBuildGenerated(){
   let out=[];
-  gens.forEach(([fn,w])=>{
-    const n=Math.max(1,Math.round(total*w));
-    try{out=out.concat(fn(n)||[]);}catch(e){}
-  });
-  return shuffle(out).slice(0,total);
+  try{out=out.concat(sqGenClimateKop()||[]);}catch(e){}
+  try{out=out.concat(sqGenClimateCompare(6)||[]);}catch(e){}
+  return shuffle(out);
 }
 /* ── 객관식 → 단답 변환 ──
    상(H) 난이도는 보기를 지우고 직접 쓰게 한다. 보기를 없애면 무엇을 묻는지
@@ -394,14 +207,18 @@ function sqToSA(q){
   if(q.saHint)out.saHint=q.saHint;
   return out;
 }
+/* 전체 문항 풀 = 수능특강 1~4강 + 특강 자료 01~25 + 수특 지점 기후 그래프 */
+function sqPool(){
+  const a=(typeof SUTEUK_BANK!=='undefined'?SUTEUK_BANK:[]);
+  const b=(typeof SUTEUK_B!=='undefined'?SUTEUK_B:[]);
+  return a.concat(b).concat(sqBuildGenerated());
+}
 function sqBuildPlan(){
-  const q=SQ_QUOTA[SQ.diff]||SQ_QUOTA.M;
-  const bank=shuffle((typeof SUTEUK_BANK!=='undefined'?SUTEUK_BANK:[]).slice()).slice(0,q.bank);
-  const gen=sqBuildGenerated(q.gen);
-  let all=bank.concat(gen);
+  let all=shuffle(sqPool());
+  const n=Math.min(SQ_COUNT[SQ.diff]||100,all.length);
+  all=all.slice(0,n);
   if(SQ.diff==='H')all=all.map(sqToSA);
-  /* 고정 문항과 생성 문항이 뭉치지 않게 섞는다 */
-  return shuffle(all).map((x,i)=>Object.assign({},x,{qid:(x.gen?'g':'b')+i}));
+  return all.map((x,i)=>Object.assign({},x,{qid:(x.gen?'g':'b')+i}));
 }
 
 /* ══════════ 저장 / 복원 ══════════ */
@@ -787,6 +604,12 @@ function sqEnd(){
   try{window._lastResult={title:'9모대비 수특퀴즈',score:SQ.pts+'점',detail:SQ.cor+'/'+done+' ('+pct+'%)'};}catch(e){}
 }
 /* 결과 화면 안의 오답 목록 */
+/* 오답노트 정렬용 — 1강~4강 → 특강 01~25 → 그래프 순 */
+function sqChOrder(ch){
+  const m=String(ch||'').match(/^(\d)강$/);          if(m)return 100+ +m[1];
+  const t=String(ch||'').match(/^특강\s*(\d+)$/);    if(t)return 200+ +t[1];
+  return 300;
+}
 function sqRenderNote(){
   const wrap=document.getElementById('sq-note');if(!wrap)return;
   if(!SQ.wrongLog.length){
@@ -795,8 +618,9 @@ function sqRenderNote(){
     return;
   }
   const b=document.getElementById('sq-note-pdf');if(b)b.style.display='';
+  const sorted=SQ.wrongLog.slice().sort((a,b)=>sqChOrder(a.ch)-sqChOrder(b.ch));
   wrap.innerHTML='<div class="sq-note-h">오답노트 · '+SQ.wrongLog.length+'문항</div>'
-    +SQ.wrongLog.map((w,i)=>'<div class="sq-note-item">'
+    +sorted.map((w,i)=>'<div class="sq-note-item">'
       +'<div class="sq-note-top"><span class="sq-ch">'+sqEsc(w.ch)+'</span><span class="sq-tag">'+sqEsc(w.tag)+'</span></div>'
       +'<div class="sq-note-q">'+(i+1)+'. '+sqEsc(w.q)+'</div>'
       +(w.fig?'<div class="sq-note-fig">자료: '+sqEsc(w.fig)+'</div>':'')
@@ -814,7 +638,7 @@ function sqPrintNote(){
   const byCh={};
   SQ.wrongLog.forEach(w=>{(byCh[w.ch]=byCh[w.ch]||[]).push(w);});
   let n=0;
-  const body=Object.keys(byCh).map(ch=>'<h2>'+sqEsc(ch)+'</h2>'+byCh[ch].map(w=>{
+  const body=Object.keys(byCh).sort((a,b)=>sqChOrder(a)-sqChOrder(b)).map(ch=>'<h2>'+sqEsc(ch)+'</h2>'+byCh[ch].map(w=>{
     n++;
     return '<div class="pn-item">'
       +'<div class="pn-q"><b>'+n+'.</b> '+sqEsc(w.q)+(w.tag?' <span class="pn-tag">'+sqEsc(w.tag)+'</span>':'')+'</div>'

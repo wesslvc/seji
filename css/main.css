@@ -941,9 +941,11 @@ body.in-session #sq-screen{top:42px}
 .sq-tag{background:var(--sf2);color:var(--tx2);border:1px solid var(--bd)}
 .sq-q{font-size:.95rem;line-height:1.65;font-weight:600;color:var(--tx);word-break:keep-all}
 .sq-fig:empty{display:none}
-.sq-charts{display:flex;gap:.7rem;justify-content:center;flex-wrap:wrap;padding:.5rem 0}
+.sq-charts{display:flex;gap:.7rem;justify-content:center;align-items:flex-start;flex-wrap:wrap;padding:.5rem 0}
+/* 두 지점을 비교할 땐 지점 이름이 나란히 보이도록 캡션을 그래프 위로 올린다 */
+.sq-chart{display:flex;flex-direction:column-reverse}
 .sq-chart{flex:0 1 210px;max-width:250px;min-width:170px}
-.sq-chart-cap{margin-top:.25rem;font-size:.66rem;color:var(--tx2);text-align:center;line-height:1.35}
+.sq-chart-cap{margin-bottom:.3rem;font-size:.66rem;color:var(--tx2);text-align:center;line-height:1.35}
 .sq-pie-wrap{display:flex;align-items:center;justify-content:center;gap:1rem;flex-wrap:wrap;padding:.4rem 0}
 .sq-pie{width:130px;height:130px;flex:0 0 auto}
 .sq-legend{display:flex;flex-direction:column;gap:.18rem;min-width:150px}
