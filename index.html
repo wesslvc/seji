@@ -15,7 +15,7 @@
 </noscript>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%235eead4%27 stroke-width=%272%27 stroke-linecap=%27round%27%3E%3Ccircle cx=%2712%27 cy=%2712%27 r=%279%27/%3E%3Cellipse cx=%2712%27 cy=%2712%27 rx=%274%27 ry=%279%27/%3E%3Cpath d=%27M3.5 9h17M3.5 15h17%27/%3E%3C/svg%3E">
 <script>(function(){try{var m=localStorage.getItem('seji_theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');document.documentElement.dataset.theme=m;}catch(e){}})();</script>
-<link rel="stylesheet" href="css/main.css?v=20260828c">
+<link rel="stylesheet" href="css/main.css?v=20260828e">
 </head>
 <body>
 <button id="theme-toggle" type="button" title="화면 밝기 전환" onclick="toggleTheme()"></button>
@@ -249,6 +249,7 @@
       <div class="est"><div class="esv" style="color:var(--wr)" id="sq-e2">0</div><div class="esl">오답</div></div>
       <div class="est"><div class="esv" style="color:var(--gd)" id="sq-e3">0%</div><div class="esl">정답률</div></div>
     </div>
+    <div class="sq-hintused" id="sq-hintused"></div>
     <div class="sq-note" id="sq-note"></div>
     <button class="reb" id="sq-note-pdf" onclick="sqPrintNote()">오답노트 PDF로 저장</button>
     <button class="reb" onclick="shareLastResult()">결과 자랑하기</button>
@@ -4668,11 +4669,21 @@
   <div id="sq-card">
     <div class="sq-meta" id="sq-meta"></div>
     <div class="sq-q" id="sq-q"></div>
+    <!-- 지점 위치를 찍어 주는 작은 세계지도 (기후 지도와 같은 등장방형 투영) -->
+    <div class="sq-mapfig" id="sq-mapfig" style="display:none">
+      <svg viewBox="0 0 2754 1398" preserveAspectRatio="xMidYMid meet">
+        <path id="sq-mm-land"></path>
+        <circle id="sq-mm-halo" r="70"></circle>
+        <circle id="sq-mm-dot" r="26"></circle>
+      </svg>
+    </div>
     <div class="sq-fig" id="sq-fig"></div>
     <div class="sq-ans" id="sq-ans"></div>
     <div class="sq-fb" id="sq-fb"></div>
+    <div class="sq-hint-box" id="sq-hint-box"></div>
     <div class="sq-exp" id="sq-exp"></div>
     <div class="sq-foot">
+      <button class="tq-btn ghost" type="button" id="sq-hint-btn" style="display:none" onclick="sqShowHint()">💡 암기법 힌트</button>
       <button class="tq-btn ghost" type="button" id="sq-giveup" onclick="sqGiveUp()">모르겠어요</button>
       <button class="tq-btn" type="button" id="sq-ok" onclick="sqSubmit()">확인</button>
       <button class="tq-btn" type="button" id="sq-next" onclick="sqNext()" style="display:none">다음 →</button>
@@ -4901,22 +4912,22 @@
     <button class="reb secondary" onclick="runPendingReset();document.getElementById('rbq-end').classList.remove('on')">다시 시작</button>
   </div>
 </div>
-<script src="js/data.js?v=20260828c"></script>
-<script src="js/rivers-data.js?v=20260828c"></script>
-<script src="js/climate-data.js?v=20260828c"></script>
-<script src="js/climate-map-data.js?v=20260828c"></script>
-<script src="js/app.js?v=20260828c"></script>
-<script src="js/climate.js?v=20260828c"></script>
-<script src="js/dict-data.js?v=20260828c"></script>
-<script src="js/flag-colors-data.js?v=20260828c"></script>
-<script src="js/flag-bg-data.js?v=20260828c"></script>
-<script src="js/dict.js?v=20260828c"></script>
-<script src="js/suteuk-data.js?v=20260828c"></script>
-<script src="js/suteuk.js?v=20260828c"></script>
+<script src="js/data.js?v=20260828e"></script>
+<script src="js/rivers-data.js?v=20260828e"></script>
+<script src="js/climate-data.js?v=20260828e"></script>
+<script src="js/climate-map-data.js?v=20260828e"></script>
+<script src="js/app.js?v=20260828e"></script>
+<script src="js/climate.js?v=20260828e"></script>
+<script src="js/dict-data.js?v=20260828e"></script>
+<script src="js/flag-colors-data.js?v=20260828e"></script>
+<script src="js/flag-bg-data.js?v=20260828e"></script>
+<script src="js/dict.js?v=20260828e"></script>
+<script src="js/suteuk-data.js?v=20260828e"></script>
+<script src="js/suteuk.js?v=20260828e"></script>
 <!-- ════════════════════════════════════════════════════════════
      계정 · 소셜로그인 · 랭킹 (Supabase) — 빌드/명령어 불필요, 이 파일만으로 동작
      ▼▼▼ 여기 두 줄만 본인 Supabase 값으로 바꾸면 끝 ▼▼▼ -->
-<script type="module" src="js/account.js?v=20260828c"></script>
+<script type="module" src="js/account.js?v=20260828e"></script>
 
 </body>
 </html>

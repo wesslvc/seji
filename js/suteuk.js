@@ -139,42 +139,58 @@ function sqGenClimateKop(){
   });
   return out;
 }
-/* ② 수특 지점 두 곳의 그래프 비교 — 연 강수량 · 기온의 연교차
-   특강 01이 프리토리아·콜롬보를 나란히 놓고 비교하게 한 것과 같은 형태다.
-   쾨펜 분류가 수특과 일치하는 지점끼리만 비교한다. */
-function sqGenClimateCompare(n){
-  const spec=sqSpecLocs().filter(l=>l.kop_ask||l.wettest);
-  const kinds=[
-    {lb:'연 강수량이 더 많은 곳은?',f:sqAnnPrec,u:'mm',gap:400},
-    {lb:'기온의 연교차가 더 큰 곳은?',f:sqAnnRange,u:'℃',gap:3}
-  ];
-  const out=[],seen=new Set();
-  for(let ki=0;ki<kinds.length;ki++){
-    const kind=kinds[ki];
-    for(let i=0;i<spec.length;i++)for(let j=i+1;j<spec.length;j++){
-      const a=spec[i],b=spec[j];
-      const key=kind.u+a.ko+b.ko;
-      if(seen.has(key))continue;
-      const va=kind.f(a),vb=kind.f(b);
-      if(Math.abs(va-vb)<kind.gap)continue;   /* 눈으로 구분 안 되면 안 낸다 */
-      seen.add(key);
-      const win=va>vb?a:b;
-      out.push({ch:'그래프',t:'mc',tag:'기후 비교',gen:1,chart2:[a.id,b.id],
-        q:a.ko+sqJosa(a.ko,'과',' 와').trim()+' '+b.ko+'의 기후 그래프다. '+kind.lb,
-        opts:[sqLocLabel(a),sqLocLabel(b)],a:sqLocLabel(win),
-        saAlt:[win.ko],saHint:'두 지점 이름 중에서',
-        exp:sqLocLabel(a)+' = '+va.toFixed(0)+kind.u+' / '+sqLocLabel(b)+' = '+vb.toFixed(0)+kind.u+'.'});
-    }
-  }
-  return shuffle(out).slice(0,n||out.length);
+/* ② 지도에 점을 찍고 그 지점의 기후 그래프를 고르게 한다
+   (특강 자료가 프리토리아·콜롬보·달랏의 위치와 그래프를 함께 놓고 물었던 형태.)
+   보기는 그래프 자체라 위치와 기후를 함께 외워야만 풀린다. */
+function sqGenClimateMap(){
+  const spec=sqSpecLocs();
+  if(spec.length<4)return [];
+  return shuffle(spec).map(l=>{
+    /* 오답 그래프는 정답과 눈에 띄게 달라야 문제가 성립한다 —
+       연 강수량·기온의 연교차 차이가 큰 지점부터 고른다. */
+    const pa=sqAnnPrec(l),ra=sqAnnRange(l);
+    const ranked=spec.filter(x=>x.id!==l.id).map(x=>({
+      x:x, d:Math.max(Math.abs(sqAnnPrec(x)-pa)/500, Math.abs(sqAnnRange(x)-ra)/5)
+    })).sort((u,v)=>v.d-u.d);
+    const others=shuffle(ranked.slice(0,6).map(o=>o.x)).slice(0,3);
+    return {ch:'그래프',t:'mc',tag:'위치와 기후',gen:1,keepMc:true,
+      climap:l.id,optCharts:1,
+      q:'세계지도에 표시된 지점의 기후 그래프로 옳은 것은?',
+      opts:shuffle(others.concat([l]).map(x=>x.id)),a:l.id,
+      exp:sqLocLabel(l)+' — '+(l.highland?'열대 고산':l.wettest?'세계 최다우지':SQ_KOP_KO[l.kop])
+        +'. 연 강수량 약 '+Math.round(sqAnnPrec(l))+'mm · 기온의 연교차 약 '+sqAnnRange(l).toFixed(1)+'℃.'
+        +(l.why?' '+l.why:'')};
+  });
+}
+/* 카드 안에 띄우는 작은 세계지도 — 기후 지도(CQ_MAP_D)와 같은 등장방형 투영이라
+   위경도를 그대로 찍으면 실제 위치에 정확히 표시된다. */
+let _sqMMReady=false;
+function sqMiniMapInit(){
+  if(_sqMMReady)return true;
+  const path=document.getElementById('sq-mm-land');
+  if(!path||typeof CQ_MAP_D==='undefined')return false;
+  path.setAttribute('d',CQ_MAP_D);
+  _sqMMReady=true;return true;
+}
+function sqShowMiniMap(locId){
+  const box=document.getElementById('sq-mapfig');
+  if(!box)return;
+  const l=sqLocs().find(x=>x.id===locId);
+  if(!l||!sqMiniMapInit()){box.style.display='none';return;}
+  const [x,y]=cqLonLatToMain(l.lon,l.lat);
+  ['sq-mm-halo','sq-mm-dot'].forEach(id=>{
+    const c=document.getElementById(id);
+    if(c){c.setAttribute('cx',x.toFixed(1));c.setAttribute('cy',y.toFixed(1));}
+  });
+  box.style.display='';
 }
 
 /* ══════════ 게임 상태 ══════════
    plan: 이번 판에 낼 문항 배열. 고정 문항(SUTEUK_BANK)과 생성 문항을 섞어 만든다.
    wrongLog: 틀린 문항 + 내가 쓴 답 + 정답 + 해설 — 오답노트/PDF의 원본. */
-const SQ={diff:'M',plan:[],idx:0,cor:0,wr:0,pts:0,maxPts:0,wrongLog:[],
+const SQ={diff:'M',plan:[],idx:0,cor:0,wr:0,pts:0,maxPts:0,wrongLog:[],hintUsed:0,
   recorded:false,inited:false,answered:false,isRetry:false,saveKey:'sq_M',
-  sel:null,ord:[],tries:0};
+  sel:null,ord:[],tries:0,hinted:false};
 const SQ_PER={L:2,M:3,H:4};
 /* 난이도 = 한 판에 낼 문항 수. 문항 풀 자체는 수특 두 자료가 전부라 난이도가
    올라가면 더 넓게, 그리고 보기 없이 물어본다(상). */
@@ -190,7 +206,7 @@ function sqPer(){return SQ_PER[SQ.diff]||3;}
 function sqBuildGenerated(){
   let out=[];
   try{out=out.concat(sqGenClimateKop()||[]);}catch(e){}
-  try{out=out.concat(sqGenClimateCompare(6)||[]);}catch(e){}
+  try{out=out.concat(sqGenClimateMap()||[]);}catch(e){}
   return shuffle(out);
 }
 /* ── 객관식 → 단답 변환 ──
@@ -204,7 +220,14 @@ function sqToSA(q){
   if(extra.length)alt[q.a]=(alt[q.a]||[]).concat(extra);
   const out=Object.assign({},q,{t:'txt',alt:alt,sa:1});
   delete out.opts;delete out.saAlt;
-  if(q.saHint)out.saHint=q.saHint;
+  return out;
+}
+/* 순서 배열 → 보기 없이 1번부터 차례로 입력. 보기를 보고 고르면 순서만 맞히면 되지만
+   직접 쓰게 하면 항목과 순서를 둘 다 외워야 한다. */
+function sqToOrdTxt(q){
+  if(q.t!=='order')return q;
+  const out=Object.assign({},q,{t:'ordtxt'});
+  delete out.opts;
   return out;
 }
 /* 전체 문항 풀 = 수능특강 1~4강 + 특강 자료 01~25 + 수특 지점 기후 그래프 */
@@ -217,7 +240,11 @@ function sqBuildPlan(){
   let all=shuffle(sqPool());
   const n=Math.min(SQ_COUNT[SQ.diff]||100,all.length);
   all=all.slice(0,n);
-  if(SQ.diff==='H')all=all.map(sqToSA);
+  if(SQ.diff==='H')all=all.map(q=>sqToOrdTxt(sqToSA(q)));
+  else if(SQ.diff==='M'){
+    /* 중은 객관식의 3분의 2를 단답으로 돌린다 — 보기를 보고 찍는 비중을 줄인다 */
+    all=all.map(q=>(q.t==='mc'&&!q.keepMc&&Math.random()<0.66)?sqToSA(q):q);
+  }
   return all.map((x,i)=>Object.assign({},x,{qid:(x.gen?'g':'b')+i}));
 }
 
@@ -225,7 +252,7 @@ function sqBuildPlan(){
 function sqSave(){
   try{
     localStorage.setItem(SQ.saveKey,JSON.stringify({
-      diff:SQ.diff,idx:SQ.idx,cor:SQ.cor,wr:SQ.wr,pts:SQ.pts,maxPts:SQ.maxPts,
+      diff:SQ.diff,idx:SQ.idx,cor:SQ.cor,wr:SQ.wr,pts:SQ.pts,maxPts:SQ.maxPts,hintUsed:SQ.hintUsed,
       plan:SQ.plan,wrong:SQ.wrongLog,recorded:SQ.recorded,total:SQ.plan.length
     }));
   }catch(e){}
@@ -235,23 +262,23 @@ function sqLoad(){
   if(!d||!Array.isArray(d.plan)||!d.plan.length)return false;
   SQ.plan=d.plan;SQ.idx=Math.min(d.idx||0,d.plan.length);
   SQ.cor=d.cor||0;SQ.wr=d.wr||0;SQ.pts=d.pts||0;SQ.maxPts=d.maxPts||0;
-  SQ.wrongLog=Array.isArray(d.wrong)?d.wrong:[];SQ.recorded=!!d.recorded;
+  SQ.wrongLog=Array.isArray(d.wrong)?d.wrong:[];SQ.recorded=!!d.recorded;SQ.hintUsed=d.hintUsed||0;
   return true;
 }
 function sqInit(filterKey){
   SQ.diff=sqDiffOf(filterKey);
   SQ.saveKey='sq_'+SQ.diff;
-  SQ.answered=false;SQ.sel=null;SQ.ord=[];SQ.tries=0;SQ.isRetry=false;
+  SQ.answered=false;SQ.sel=null;SQ.ord=[];SQ.tries=0;SQ.isRetry=false;SQ.hinted=false;
   if(!sqLoad()||SQ.idx>=SQ.plan.length){
     SQ.plan=sqBuildPlan();SQ.idx=0;SQ.cor=0;SQ.wr=0;SQ.pts=0;SQ.maxPts=0;
-    SQ.wrongLog=[];SQ.recorded=false;
+    SQ.wrongLog=[];SQ.recorded=false;SQ.hintUsed=0;
     sqSave();
   }
   SQ.inited=true;
 }
 function sqReset(){
   SQ.plan=sqBuildPlan();SQ.idx=0;SQ.cor=0;SQ.wr=0;SQ.pts=0;SQ.maxPts=0;
-  SQ.wrongLog=[];SQ.recorded=false;SQ.answered=false;SQ.sel=null;SQ.ord=[];
+  SQ.wrongLog=[];SQ.recorded=false;SQ.hintUsed=0;SQ.answered=false;SQ.sel=null;SQ.ord=[];
   sqSave();sqShow();
 }
 function sqResetConfirm(){if(confirm('수특퀴즈를 처음부터 다시 풀까요? 지금까지의 오답노트도 지워집니다.'))sqReset();}
@@ -309,6 +336,7 @@ function sqStats(){
 
 /* 그림 영역 — 기후 그래프 1개/2개, 원그래프 */
 function sqFigHTML(q){
+  if(q.optCharts)return '';   /* 보기 자체가 그래프라 위쪽 그림은 없다 */
   if(q.chart){
     const l=sqLocs().find(x=>x.id===q.chart);
     if(!l)return '';
@@ -351,9 +379,21 @@ function sqEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g
 
 /* 답 입력 영역 */
 function sqAnsHTML(q){
+  if(q.t==='mc'&&q.optCharts){
+    /* 보기 하나하나가 기후 그래프 */
+    return '<div class="sq-opts sq-opts-chart">'+q.opts.map((id,i)=>{
+      const l=sqLocs().find(x=>x.id===id);
+      return '<button type="button" class="sq-opt sq-opt-chart" data-i="'+i+'">'
+        +'<span class="sq-opt-n">'+(i+1)+'</span>'+(l?cqChartSVG(l):'')+'</button>';
+    }).join('')+'</div>';
+  }
   if(q.t==='mc'){
     return '<div class="sq-opts">'+q.opts.map((o,i)=>'<button type="button" class="sq-opt" data-i="'+i+'">'
       +'<span class="sq-opt-n">'+(i+1)+'</span>'+sqEsc(o)+'</button>').join('')+'</div>';
+  }
+  if(q.t==='ordtxt'){
+    return '<div class="sq-type"><input type="text" id="sq-input" autocomplete="off" placeholder="1번부터 차례로 입력 (모두 '+q.a.length+'개)"/></div>'
+      +'<div class="sq-chips" id="sq-got"></div>';
   }
   if(q.t==='txt'){
     /* 힌트는 입력을 시작해도 사라지지 않게 입력창 아래에 따로 둔다 */
@@ -374,7 +414,7 @@ function sqAnsHTML(q){
 function sqShow(){
   const q=sqCur();
   if(!q){sqEnd();return;}
-  SQ.answered=false;SQ.sel=null;SQ.ord=[];SQ.got=[];SQ.tries=0;
+  SQ.answered=false;SQ.sel=null;SQ.ord=[];SQ.got=[];SQ.tries=0;SQ.hinted=false;
   sqApplyView();
   sqStats();
   if(q.t==='map'){
@@ -389,7 +429,14 @@ function sqShow(){
   const card=document.getElementById('sq-card');if(!card)return;
   document.getElementById('sq-meta').innerHTML='<span class="sq-ch">'+sqEsc(q.ch)+'</span><span class="sq-tag">'+sqEsc(q.tag||'')+'</span>';
   document.getElementById('sq-q').textContent=q.q;
+  /* 지도에 점 찍는 문항 */
+  const mf=document.getElementById('sq-mapfig');
+  if(q.climap)sqShowMiniMap(q.climap); else if(mf)mf.style.display='none';
   document.getElementById('sq-fig').innerHTML=sqFigHTML(q);
+  /* 암기법 힌트 — 눌러야 보인다 */
+  const hb=document.getElementById('sq-hint-btn'),hx=document.getElementById('sq-hint-box');
+  if(hx){hx.textContent='';hx.classList.remove('on');}
+  if(hb)hb.style.display=q.mnem?'':'none';
   document.getElementById('sq-ans').innerHTML=sqAnsHTML(q);
   const fb=document.getElementById('sq-fb');fb.textContent='';fb.className='sq-fb';
   const ex=document.getElementById('sq-exp');ex.innerHTML='';ex.classList.remove('on');
@@ -419,12 +466,22 @@ function sqBindAns(q){
   }else{
     const inp=document.getElementById('sq-input');
     if(inp){
+      inp.disabled=false;
       inp.addEventListener('keydown',e=>{
         if(e.key==='Enter'&&!e.isComposing){e.preventDefault();sqSubmit();}
       });
       setTimeout(()=>{try{if(!isMobile)inp.focus();}catch(e){}},60);
     }
   }
+}
+/* 암기법 힌트 — 열어 보면 그 문항의 배점이 절반이 된다 */
+function sqShowHint(){
+  const q=sqCur();if(!q||!q.mnem||SQ.answered||SQ.hinted)return;
+  SQ.hinted=true;SQ.hintUsed++;
+  const hx=document.getElementById('sq-hint-box');
+  if(hx){hx.textContent='💡 '+q.mnem+'  (힌트를 봐서 이 문항은 '+Math.max(1,Math.floor(sqPer()/2))+'점)';hx.classList.add('on');}
+  const hb=document.getElementById('sq-hint-btn');if(hb)hb.disabled=true;
+  sqSave();
 }
 function sqRenderOrder(q){
   const p=document.getElementById('sq-ord-picked');
@@ -436,18 +493,22 @@ function sqRenderOrder(q){
 /* ══════════ 채점 ══════════ */
 function sqGiveAnswerText(q){
   if(q.t==='map')return (COUNTRIES[q.iso]&&COUNTRIES[q.iso].k)||q.iso;
+  if(q.optCharts){const l=sqLocs().find(x=>x.id===q.a);return l?sqLocLabel(l):String(q.a);}
+  if(q.t==='ordtxt')return q.a.join(' → ');
   if(q.t==='multi'||q.t==='order')return q.a.join(q.t==='order'?' → ':' · ');
   /* 단답은 여러 표기를 허용하지만 보여줄 땐 대표 표기 하나만 */
   return Array.isArray(q.a)?String(q.a[0]):String(q.a);
 }
 function sqLogWrong(q,mine){
   SQ.wrongLog.push({ch:q.ch,tag:q.tag||'',q:q.q,a:sqGiveAnswerText(q),mine:mine||'(무응답)',exp:q.exp||'',
-    fig:q.chart?('기후 그래프 · '+(()=>{const l=sqLocs().find(x=>x.id===q.chart);return l?sqLocLabel(l):'';})()):
-        q.chart2?('기후 그래프 비교'):q.pie?(q.pie.kind==='e'?'에너지 구성 원그래프':'종교 구성 원그래프'):''});
+    mnem:q.mnem||'',
+    fig:q.climap?('세계지도에 표시된 지점 + 기후 그래프 보기'):
+        q.chart?('기후 그래프 · '+(()=>{const l=sqLocs().find(x=>x.id===q.chart);return l?sqLocLabel(l):'';})()):''});
 }
 function sqAward(ok,q,mine){
+  const per=SQ.hinted?Math.max(1,Math.floor(sqPer()/2)):sqPer();
   SQ.maxPts+=sqPer();
-  if(ok){SQ.cor++;SQ.pts+=sqPer();try{playCorrectSound();}catch(e){}}
+  if(ok){SQ.cor++;SQ.pts+=per;try{playCorrectSound();}catch(e){}}
   else{SQ.wr++;sqLogWrong(q,mine);try{playWrongSound();}catch(e){}}
   SQ.answered=true;
   sqSave();sqStats();
@@ -469,12 +530,17 @@ function sqFeedback(ok,q){
       b.disabled=true;
     });
   }
+  if(q.t==='ordtxt'){
+    const g=document.getElementById('sq-got');
+    if(g&&!ok)g.innerHTML=q.a.map((v,i)=>'<span class="sq-chip'+(SQ.got&&SQ.got[i]&&sqSame(SQ.got[i],v)?' ok':'')+'">'+(i+1)+'. '+sqEsc(v)+'</span>').join('');
+  }
   if(q.t==='order'){
     const p=document.getElementById('sq-ord-picked');
     if(p&&!ok)p.innerHTML+='<div class="sq-ord-right">정답: '+sqEsc(q.a.join(' → '))+'</div>';
     document.querySelectorAll('#sq-ans .sq-opt').forEach(b=>b.disabled=true);
   }
   const inp=document.getElementById('sq-input');if(inp)inp.disabled=true;
+  const hb2=document.getElementById('sq-hint-btn');if(hb2)hb2.style.display='none';
   document.getElementById('sq-ok').style.display='none';
   const gu=document.getElementById('sq-giveup');if(gu)gu.style.display='none';
   const nx=document.getElementById('sq-next');
@@ -508,6 +574,28 @@ function sqSubmit(){
     }
     sqAward(ok,q,raw);sqFeedback(ok,q);return;
   }
+  if(q.t==='ordtxt'){
+    if(!raw)return;
+    SQ.got=SQ.got||[];
+    const want=q.a[SQ.got.length];
+    const okOne=sqAccepts(q,want).some(v=>sqSame(v,raw));
+    if(okOne){
+      SQ.got.push(want);inp.value='';
+      const g=document.getElementById('sq-got');
+      if(g)g.innerHTML=SQ.got.map((v,i)=>'<span class="sq-chip ok">'+(i+1)+'. '+sqEsc(v)+'</span>').join('');
+      const fb=document.getElementById('sq-fb');
+      if(SQ.got.length>=q.a.length){sqAward(true,q,SQ.got.join(' → '));sqFeedback(true,q);}
+      else{fb.textContent=SQ.got.length+'번까지 맞았어요. 다음 순서를 입력하세요.';fb.className='sq-fb ok';}
+      return;
+    }
+    SQ.tries++;
+    if(SQ.tries<2){
+      const fb=document.getElementById('sq-fb');
+      fb.textContent=(SQ.got.length+1)+'번이 아니에요. 다시 생각해 보세요.';fb.className='sq-fb no';
+      inp.select();return;
+    }
+    sqAward(false,q,SQ.got.length?SQ.got.join(' → '):raw);sqFeedback(false,q);return;
+  }
   if(q.t==='multi'){
     if(!raw)return;
     SQ.got=SQ.got||[];
@@ -535,7 +623,8 @@ function sqSubmit(){
 function sqGiveUp(){
   const q=sqCur();if(!q||SQ.answered)return;
   const inp=document.getElementById('sq-input');
-  sqAward(false,q,(inp&&inp.value.trim())||(SQ.got&&SQ.got.length?SQ.got.join(' · '):'(모르겠어요)'));
+  const sep=(q.t==='ordtxt')?' → ':' · ';
+  sqAward(false,q,(SQ.got&&SQ.got.length)?SQ.got.join(sep):((inp&&inp.value.trim())||'(모르겠어요)'));
   sqFeedback(false,q);
 }
 function sqNext(){
@@ -592,6 +681,8 @@ function sqEnd(){
   const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
   set('sq-escore',SQ.pts+'점');
   set('sq-e1',SQ.cor);set('sq-e2',SQ.wr);set('sq-e3',pct+'%');
+  const hu=document.getElementById('sq-hintused');
+  if(hu)hu.textContent=SQ.hintUsed?('암기법 힌트 '+SQ.hintUsed+'번 사용 — 그 문항은 배점이 절반이었어요'):'';
   sqRenderNote();
   const box=document.getElementById('sq-box');if(box)box.classList.remove('on');
   const scr=document.getElementById('sq-screen');if(scr)scr.classList.remove('on');
@@ -625,6 +716,7 @@ function sqRenderNote(){
       +'<div class="sq-note-q">'+(i+1)+'. '+sqEsc(w.q)+'</div>'
       +(w.fig?'<div class="sq-note-fig">자료: '+sqEsc(w.fig)+'</div>':'')
       +'<div class="sq-note-a"><span class="mine">내 답 '+sqEsc(w.mine)+'</span><span class="right">정답 '+sqEsc(w.a)+'</span></div>'
+      +(w.mnem?'<div class="sq-note-x">💡 '+sqEsc(w.mnem)+'</div>':'')
       +(w.exp?'<div class="sq-note-x">'+sqEsc(w.exp)+'</div>':'')
       +'</div>').join('');
 }
@@ -645,6 +737,7 @@ function sqPrintNote(){
       +(w.fig?'<div class="pn-fig">자료 — '+sqEsc(w.fig)+'</div>':'')
       +'<div class="pn-a"><span class="pn-mine">내가 쓴 답: '+sqEsc(w.mine)+'</span>'
       +'<span class="pn-right">정답: '+sqEsc(w.a)+'</span></div>'
+      +(w.mnem?'<div class="pn-x"><b>암기법</b> '+sqEsc(w.mnem)+'</div>':'')
       +(w.exp?'<div class="pn-x">'+sqEsc(w.exp)+'</div>':'')
       +'<div class="pn-blank"></div></div>';
   }).join('')).join('');
