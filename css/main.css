@@ -1058,3 +1058,5 @@ body.sq-map #world-svg .circ-glow{animation:none;stroke-opacity:.42}
 .sq-hintused{font-size:.72rem;color:var(--tx2);text-align:center;margin-top:.35rem}
 .sq-hintused:empty{display:none}
 .tq-btn.ghost:disabled{opacity:.45;cursor:default}
+/* 수특퀴즈 유형 선택 — 칩이 여러 줄로 접히도록 */
+.ld-dt-row[data-sqcat],.ld-dt-row[data-sqfmt]{flex-wrap:wrap;row-gap:.3rem}

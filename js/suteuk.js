@@ -185,10 +185,53 @@ function sqShowMiniMap(locId){
   box.style.display='';
 }
 
+/* ══════════ 유형별 학습 ══════════
+   주제(무엇을 묻는가)와 형식(어떻게 묻는가)으로 출제 범위를 좁힐 수 있다.
+   아무것도 고르지 않으면 전체. */
+const SQ_CATS=[
+ {k:'nat',lb:'기후·자연',tags:['생소한 기후','대륙별 기후','기후 요인','열대 기후','기후 구분','서안 해양성','지중해성 기후','대기 대순환','해류','열대 작물','열대 고산','건조 지형','외래 하천','하천','한대 지형','카르스트','해안 지형','조산대','화산','판 경계','산맥','지형','기후 그래프','기후 비교','위치와 기후']},
+ {k:'pop',lb:'인구·도시',tags:['인구 밀도','인구 이동','인구 지표','인구 변화','인구 구조','도시','난민','이민']},
+ {k:'cul',lb:'문화·분쟁·기구',tags:['종교','대륙별 종교','분쟁','민족 분쟁','국제기구','NGO','경제블록','경제 블록','환경 협약']},
+ {k:'ene',lb:'자원·에너지',tags:['에너지','신재생','발전 에너지','에너지 소비','자원','자원 수출','자원 분포','아프리카 자원','아메리카 자원']},
+ {k:'ind',lb:'농업·무역·산업',tags:['식량','목축','농업','건조 아시아 농업','무역','산업 구조','공업 도시']},
+ {k:'geo',lb:'위치·지역 구분',tags:['대륙 경계','국경','지역화 전략','고지도','지리 정보','위치']}
+];
+const SQ_FMTS=[
+ {k:'map',lb:'지도 클릭'},
+ {k:'graph',lb:'기후 그래프'},
+ {k:'order',lb:'순서 배열'},
+ {k:'text',lb:'단답·객관식'}
+];
+let _SQ_TAGCAT=null;
+function sqCatOf(q){
+  if(!_SQ_TAGCAT){_SQ_TAGCAT={};SQ_CATS.forEach(c=>c.tags.forEach(t=>_SQ_TAGCAT[t]=c.k));}
+  return _SQ_TAGCAT[q.tag]||'geo';
+}
+function sqFmtOf(q){
+  if(q.chart||q.climap)return 'graph';
+  if(q.t==='map')return 'map';
+  if(q.t==='order')return 'order';
+  return 'text';
+}
+/* filterKey에서 선택 범위를 읽는다: _sqcNAT+POP · _sqfMAP */
+function sqSetFromKey(filterKey,prefix){
+  const p=(filterKey||'').split('_').find(x=>x.startsWith(prefix));
+  if(!p)return null;
+  const v=p.slice(prefix.length);
+  return v?new Set(v.split('+').filter(Boolean)):null;
+}
+function sqFilterPool(pool,cats,fmts){
+  return pool.filter(q=>(!cats||cats.has(sqCatOf(q)))&&(!fmts||fmts.has(sqFmtOf(q))));
+}
+/* 랜딩에서 "이 범위엔 몇 문항" 미리보기 */
+function sqCountFor(cats,fmts){
+  try{return sqFilterPool(sqPool(true),cats&&cats.size?cats:null,fmts&&fmts.size?fmts:null).length;}catch(e){return 0;}
+}
+
 /* ══════════ 게임 상태 ══════════
    plan: 이번 판에 낼 문항 배열. 고정 문항(SUTEUK_BANK)과 생성 문항을 섞어 만든다.
    wrongLog: 틀린 문항 + 내가 쓴 답 + 정답 + 해설 — 오답노트/PDF의 원본. */
-const SQ={diff:'M',plan:[],idx:0,cor:0,wr:0,pts:0,maxPts:0,wrongLog:[],hintUsed:0,
+const SQ={diff:'M',cats:null,fmts:null,plan:[],idx:0,cor:0,wr:0,pts:0,maxPts:0,wrongLog:[],hintUsed:0,
   recorded:false,inited:false,answered:false,isRetry:false,saveKey:'sq_M',
   sel:null,ord:[],tries:0,hinted:false};
 const SQ_PER={L:2,M:3,H:4};
@@ -251,7 +294,7 @@ function sqPool(){
   return a.concat(b).concat(sqBuildGenerated());
 }
 function sqBuildPlan(){
-  let all=shuffle(sqPool());
+  let all=shuffle(sqFilterPool(sqPool(),SQ.cats,SQ.fmts));
   const n=Math.min(SQ_COUNT[SQ.diff]||100,all.length);
   all=all.slice(0,n);
   if(SQ.diff==='H')all=all.map(q=>sqToOrdTxt(sqToSA(q)));
@@ -266,7 +309,7 @@ function sqBuildPlan(){
 function sqSave(){
   try{
     localStorage.setItem(SQ.saveKey,JSON.stringify({
-      diff:SQ.diff,idx:SQ.idx,cor:SQ.cor,wr:SQ.wr,pts:SQ.pts,maxPts:SQ.maxPts,hintUsed:SQ.hintUsed,
+      diff:SQ.diff,fk:SQ.fk||'',idx:SQ.idx,cor:SQ.cor,wr:SQ.wr,pts:SQ.pts,maxPts:SQ.maxPts,hintUsed:SQ.hintUsed,
       plan:SQ.plan,wrong:SQ.wrongLog,recorded:SQ.recorded,total:SQ.plan.length
     }));
   }catch(e){}
@@ -281,7 +324,13 @@ function sqLoad(){
 }
 function sqInit(filterKey){
   SQ.diff=sqDiffOf(filterKey);
-  SQ.saveKey='sq_'+SQ.diff;
+  SQ.fk=filterKey||'';
+  SQ.cats=sqSetFromKey(filterKey,'sqc');
+  SQ.fmts=sqSetFromKey(filterKey,'sqf');
+  /* 범위를 다르게 고르면 다른 판으로 저장한다 */
+  SQ.saveKey='sq_'+SQ.diff
+    +(SQ.cats?'_c'+[...SQ.cats].sort().join(''):'')
+    +(SQ.fmts?'_f'+[...SQ.fmts].sort().join(''):'');
   SQ.answered=false;SQ.sel=null;SQ.ord=[];SQ.tries=0;SQ.isRetry=false;SQ.hinted=false;
   if(!sqLoad()||SQ.idx>=SQ.plan.length){
     SQ.plan=sqBuildPlan();SQ.idx=0;SQ.cor=0;SQ.wr=0;SQ.pts=0;SQ.maxPts=0;
