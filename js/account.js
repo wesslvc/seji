@@ -32,7 +32,7 @@ function hasStoredSession() {
  * 게임 종료 시 window.SejiAccount.submitScore(...) 로 점수를 전송한다.
  */
 
-const CAT_NAME = { name: '나라이름', border: '접경국', rborder: '접경국쓰기', religion: '종교', texp: '수출구조', timp: '수입구조', tenergy: '에너지', korea: '한국지리', river: '하천', climate: '기후' };
+const CAT_NAME = { name: '나라이름', border: '접경국', rborder: '접경국쓰기', religion: '종교', texp: '수출구조', timp: '수입구조', tenergy: '에너지', korea: '한국지리', river: '하천', climate: '기후', suteuk: '수특퀴즈' };
 const CONT_KO = { as: '아시아', eu: '유럽', af: '아프리카', na: '북아메리카', sa: '남아메리카', oc: '오세아니아' };
 function scopeContinents(scope) {
   if (scope === 'korea') return [];
@@ -44,6 +44,7 @@ function scopeContinents(scope) {
 function scopeLabel(scope) {
   if(/^river_[LMH]$/.test(scope||''))return {L:'모양 맞히기',M:'통과국 클릭',H:'경로 그리기'}[scope.slice(-1)];
   if(/^climate_[LMH]$/.test(scope||''))return {L:'하 · 기후 기호',M:'중 · 출제지',H:'상 · 전 지점'}[scope.slice(-1)];
+  if(/^suteuk_[LMH]$/.test(scope||''))return {L:'하 · 60문항',M:'중 · 100문항',H:'상 · 150문항'}[scope.slice(-1)];
   if (!scope) return '전체';
   if (scope === 'korea') return '한국';
   const parts = scope.split('_');
@@ -602,7 +603,7 @@ async function openMenuData() {
   // 유형별
   const catBox = document.getElementById('acct-cat-stats');
   catBox.innerHTML = '';
-  const cats = ['name', 'border', 'rborder', 'religion', 'texp', 'timp', 'tenergy', 'river', 'climate', 'korea'];
+  const cats = ['name', 'border', 'rborder', 'religion', 'texp', 'timp', 'tenergy', 'river', 'climate', 'korea', 'suteuk'];
   const has = cats.filter((c) => graded.some((r) => r.category === c));
   if (!has.length) catBox.innerHTML = `<div style="font-size:.78rem;color:var(--tx2)">아직 기록이 없습니다.</div>`;
   has.forEach((c) => {

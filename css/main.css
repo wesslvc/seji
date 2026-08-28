@@ -319,6 +319,12 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 .ld-cell.sel{border-color:var(--ac);background:var(--ac2)}
 .ld-cell.disabled{cursor:default;opacity:.55}
 .ld-cell.disabled:hover{border-color:var(--bd);transform:none}
+/* 9모대비 수특퀴즈 — 3×3 아래에 가로로 긴 한 칸 */
+.ld-cell.wide{grid-column:1/-1;flex-direction:row;align-items:center;justify-content:flex-start;gap:.75rem;padding:.75rem .9rem;text-align:left}
+.ld-cell.wide .ld-cell-ic{flex:0 0 auto}
+.ld-cell.wide .ld-cell-tt{font-size:.86rem}
+.ld-cell.wide .ld-cell-txt{display:flex;flex-direction:column;gap:.12rem}
+.ld-cell.wide .ld-cell-pt{margin-left:auto;flex:0 0 auto;padding-left:.5rem}
 .ld-cell-ic{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--mc) 15%,transparent);color:var(--mc)}
 .ld-cell-ic svg{width:20px;height:20px}
 .ld-cell-tt{font-size:.78rem;font-weight:700;color:var(--tx);line-height:1.25;word-break:keep-all}
@@ -922,3 +928,112 @@ body.cq-mode #cq-pins-ov{display:block}
   .wd-sections-2col .wd-sec{break-inside:avoid;margin-top:0;margin-bottom:.85rem}
   .wd-sections-2col .wd-sec:first-child{margin-top:.85rem}
 }
+
+/* ══════════ 9모대비 수특퀴즈 ══════════ */
+#sq-screen{position:fixed;inset:0;background:var(--bg);z-index:700;display:none;flex-direction:column}
+#sq-screen.on{display:flex}
+body.in-session #sq-screen{top:42px}
+#sq-pf{height:100%;width:0;background:var(--ac);transition:width .4s var(--ease)}
+#sq-card{flex:1;display:flex;flex-direction:column;min-height:0;overflow-y:auto;padding:.7rem .9rem 1rem;gap:.55rem;max-width:720px;width:100%;margin:0 auto}
+.sq-meta{display:flex;gap:.35rem;align-items:center;flex-wrap:wrap}
+.sq-ch,.sq-tag{font-size:.6rem;font-weight:700;letter-spacing:.03em;padding:.16rem .48rem;border-radius:999px}
+.sq-ch{background:var(--ac2);color:var(--ac);border:1px solid color-mix(in srgb,var(--ac) 32%,transparent)}
+.sq-tag{background:var(--sf2);color:var(--tx2);border:1px solid var(--bd)}
+.sq-q{font-size:.95rem;line-height:1.65;font-weight:600;color:var(--tx);word-break:keep-all}
+.sq-fig:empty{display:none}
+.sq-charts{display:flex;gap:.7rem;justify-content:center;flex-wrap:wrap;padding:.5rem 0}
+.sq-chart{flex:0 1 210px;max-width:250px;min-width:170px}
+.sq-chart-cap{margin-top:.25rem;font-size:.66rem;color:var(--tx2);text-align:center;line-height:1.35}
+.sq-pie-wrap{display:flex;align-items:center;justify-content:center;gap:1rem;flex-wrap:wrap;padding:.4rem 0}
+.sq-pie{width:130px;height:130px;flex:0 0 auto}
+.sq-legend{display:flex;flex-direction:column;gap:.18rem;min-width:150px}
+.sq-lg-row{display:flex;align-items:center;gap:.4rem;font-size:.7rem;color:var(--tx2)}
+.sq-lg-sw{width:9px;height:9px;border-radius:2px;flex:0 0 auto}
+.sq-lg-nm{flex:1;color:var(--tx)}
+.sq-lg-pct{font-variant-numeric:tabular-nums}
+.sq-opts{display:grid;grid-template-columns:1fr;gap:.4rem}
+@media (min-width:560px){.sq-opts{grid-template-columns:1fr 1fr}}
+.sq-opt{display:flex;align-items:center;gap:.5rem;text-align:left;padding:.62rem .8rem;border-radius:10px;border:1.5px solid var(--bd);background:var(--sf);color:var(--tx);font-family:inherit;font-size:.84rem;line-height:1.45;cursor:pointer;transition:.15s var(--ease);word-break:keep-all}
+.sq-opt:hover:not(:disabled){border-color:var(--ac);background:var(--ac2)}
+.sq-opt.on{border-color:var(--ac)}
+.sq-opt.right{border-color:#81c995;background:color-mix(in srgb,#81c995 14%,transparent);font-weight:700}
+.sq-opt.wrong{border-color:var(--wr);background:color-mix(in srgb,var(--wr) 14%,transparent)}
+.sq-opt.used{opacity:.35;pointer-events:none}
+.sq-opt:disabled{cursor:default}
+.sq-opt-n{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;flex:0 0 auto;border-radius:50%;background:var(--sf2);color:var(--tx2);font-size:.66rem;font-weight:700}
+.sq-ord{grid-template-columns:1fr 1fr}
+.sq-order-picked{min-height:1.8rem;display:flex;flex-wrap:wrap;align-items:center;gap:.3rem;font-size:.78rem}
+.sq-ord-chip{padding:.25rem .6rem;border-radius:999px;background:var(--ac2);color:var(--ac);font-weight:700}
+.sq-ord-arrow{color:var(--tx2);font-size:.7rem}
+.sq-ord-ph{color:var(--tx2);font-size:.72rem}
+.sq-ord-right{width:100%;margin-top:.35rem;font-size:.74rem;color:#81c995;font-weight:600}
+.sq-type{display:flex;gap:.4rem}
+.sq-type input{flex:1;padding:.65rem .85rem;border-radius:10px;border:1.5px solid var(--bd);background:var(--sf2);color:var(--tx);font-family:inherit;font-size:.9rem}
+.sq-type input:focus{outline:none;border-color:var(--ac)}
+.sq-type input:disabled{opacity:.7}
+.sq-chips{display:flex;flex-wrap:wrap;gap:.3rem}
+.sq-chip{padding:.24rem .6rem;border-radius:999px;font-size:.74rem;background:var(--sf2);color:var(--tx2);border:1px solid var(--bd)}
+.sq-chip.ok{color:#81c995;border-color:color-mix(in srgb,#81c995 45%,transparent)}
+.sq-fb{min-height:1.1rem;font-size:.8rem;font-weight:600}
+.sq-fb.ok{color:#81c995}.sq-fb.no{color:var(--wr)}
+.sq-exp{display:none;font-size:.78rem;line-height:1.7;color:var(--tx2);background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:.6rem .75rem;word-break:keep-all}
+.sq-exp.on{display:block}
+.sq-exp b{color:var(--tx);margin-right:.35rem}
+.sq-foot{display:flex;gap:.5rem;justify-content:flex-end;align-items:center;padding-top:.2rem;margin-top:auto}
+.tq-btn.ghost{background:transparent;color:var(--tx2);border:1.5px solid var(--bd);font-weight:600;padding:.55rem 1.1rem}
+.tq-btn.ghost:hover{color:var(--tx);border-color:var(--tx2)}
+/* 지도 문항 바 */
+#sq-box{position:absolute;left:0;right:0;bottom:0;z-index:14;display:none;flex-direction:column;gap:.4rem;background:var(--sf);border-top:1px solid var(--bd);backdrop-filter:blur(10px);box-shadow:0 -4px 18px rgba(0,0,0,.28);padding:.6rem .8rem .75rem;max-height:44vh;max-height:44dvh;overflow-y:auto}
+#sq-box.on{display:flex;animation:fadeUp .3s var(--ease)}
+#sq-m-pos{font-size:.78rem;font-weight:700;color:var(--tx)}
+#sq-m-q{font-size:.86rem;color:var(--tx);text-align:left;line-height:1.6;word-break:keep-all;margin:0}
+#sq-m-fb{text-align:left;line-height:1.55}
+.sq-m-btns{display:flex;gap:.5rem}
+/* 결과 · 오답노트 */
+#sq-end{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:800;display:none;align-items:center;justify-content:center}
+#sq-end.on{display:flex}
+.sq-end-card{max-width:640px;text-align:left}
+.sq-end-card h1,.sq-end-card .esc,.sq-end-card .eg{text-align:center}
+.sq-note{max-height:44vh;overflow-y:auto;margin:.9rem 0;display:flex;flex-direction:column;gap:.5rem}
+.sq-note-h{font-size:.74rem;font-weight:700;color:var(--tx2);letter-spacing:.04em}
+.sq-note-empty{font-size:.8rem;color:var(--tx2);text-align:center;padding:.8rem}
+.sq-note-item{border:1px solid var(--bd);border-radius:10px;padding:.6rem .7rem;background:var(--sf2)}
+.sq-note-top{display:flex;gap:.3rem;margin-bottom:.3rem}
+.sq-note-q{font-size:.8rem;line-height:1.55;color:var(--tx);word-break:keep-all}
+.sq-note-fig{margin-top:.25rem;font-size:.68rem;color:var(--tx2)}
+.sq-note-a{display:flex;gap:.7rem;flex-wrap:wrap;margin-top:.35rem;font-size:.74rem}
+.sq-note-a .mine{color:var(--wr)}
+.sq-note-a .right{color:#81c995;font-weight:700}
+.sq-note-x{margin-top:.35rem;font-size:.72rem;line-height:1.65;color:var(--tx2);word-break:keep-all}
+/* 인쇄(PDF 저장) — 화면에선 숨기고 인쇄할 때만 오답노트만 뽑는다 */
+#sq-print{display:none}
+@media print{
+  body.sq-printing>*{display:none!important}
+  body.sq-printing #sq-print{display:block!important;position:static;color:#000;background:#fff;font-family:'Pretendard','Noto Sans KR',sans-serif}
+  body.sq-printing{background:#fff!important}
+  #sq-print .pn-head{border-bottom:2px solid #000;padding-bottom:.4rem;margin-bottom:1rem}
+  #sq-print h1{font-size:17pt;margin:0}
+  #sq-print .pn-sub{font-size:9pt;color:#444;margin-top:.25rem}
+  #sq-print h2{font-size:12pt;margin:1.1rem 0 .5rem;padding-left:.35rem;border-left:4px solid #000}
+  #sq-print .pn-item{margin-bottom:.85rem;page-break-inside:avoid;break-inside:avoid}
+  #sq-print .pn-q{font-size:10.5pt;line-height:1.6;word-break:keep-all}
+  #sq-print .pn-tag{font-size:8pt;color:#555;border:1px solid #999;border-radius:8px;padding:0 .3em;margin-left:.3em}
+  #sq-print .pn-fig{font-size:9pt;color:#555;margin-top:.15rem}
+  #sq-print .pn-a{margin-top:.25rem;font-size:9.5pt;display:flex;gap:1.2rem}
+  #sq-print .pn-mine{color:#a00}
+  #sq-print .pn-right{font-weight:700}
+  #sq-print .pn-x{margin-top:.2rem;font-size:9pt;line-height:1.65;color:#333;word-break:keep-all}
+  #sq-print .pn-blank{margin-top:.35rem;border-bottom:1px dashed #bbb;height:1.1rem}
+  #sq-print .pn-foot{margin-top:1.4rem;font-size:8pt;color:#888;text-align:right}
+  @page{margin:14mm 12mm}
+}
+/* 기후 그래프 패널이 라이트 모드에서 어둡게 남던 것 보정 */
+:root[data-theme="light"] .cq-panel-bg{fill:#eef1f5}
+:root[data-theme="light"] .cq-tbar{fill:#5a6572}
+:root[data-theme="light"] .cq-grid{stroke:rgba(0,0,0,.12)}
+
+#sq-title{font-size:1rem;font-weight:700;color:var(--tx);letter-spacing:.02em}
+#sq-sub{font-size:.7rem;color:var(--tx2)}
+/* 수특퀴즈 지도 문항에서는 소국 표시를 깜빡이지 않게 — 문항마다 정답이 하나뿐이라
+   지도 전체가 반짝이면 시선만 흩어진다. 클릭 범위는 그대로 유지한다. */
+body.sq-map #world-svg .circ-glow{animation:none;stroke-opacity:.42}

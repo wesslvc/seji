@@ -135,7 +135,8 @@ const TAB_META={
   tenergy:{label:'에너지',ic:'power'},
   korea:{label:'시·군',ic:'pin'},
   river:{label:'하천',ic:'wave'},
-  climate:{label:'기후',ic:'climate'}
+  climate:{label:'기후',ic:'climate'},
+  suteuk:{label:'수특퀴즈',ic:'book'}
 };
 
 function setMode(mob){
@@ -160,20 +161,25 @@ const LD_SLIDES=[
  {act:'trade',  ic:'trade', mc:'#8b9dff', tt:'무역 구조', ds:'수출·수입 품목 트리맵을 보고 어느 나라인지 맞혀요.', pts:'2~9점', diff:'tdiff', tkind:true},
  {act:'tenergy',ic:'power', mc:'#ffb37a', tt:'에너지 구성', ds:'발전·에너지 믹스를 보고 나라를 맞혀요. 유형 필터도 고를 수 있어요.', pts:'2 · 4 · 6점', diff:'ediff',
   dd:{L:'하 · 특징 뚜렷한 국가만 (2점)',M:'중 · 모든 국가 · 힌트 있음 (4점)',H:'상 · 힌트 없음 (6점)'}, esub:true},
- {act:'worlddict', ic:'dict', mc:'#e2c07a', tt:'세지 위키', ds:'국가별 수도·인구·GDP·기후·수출·에너지·종교·접경국 정보를 한눈에 봐요. 설명은 누구나 수정을 제안할 수 있어요.', pts:'모두가 만드는 사전', dict:true}
+ {act:'worlddict', ic:'dict', mc:'#e2c07a', tt:'세지 위키', ds:'국가별 수도·인구·GDP·기후·수출·에너지·종교·접경국 정보를 한눈에 봐요. 설명은 누구나 수정을 제안할 수 있어요.', pts:'모두가 만드는 사전', dict:true},
+ /* 3×3 배치를 흐트러뜨리지 않도록 맨 아래 가로 한 칸으로 붙인다 */
+ {act:'suteuk', ic:'book', mc:'#ff9db1', tt:'9모대비 수특퀴즈', wide:true,
+  ds:'EBS 수능특강 1~4강 내용을 지도 클릭·기후 그래프·원그래프·순서 배열 등 여러 방식으로 물어봐요. 고정 문항에 더해 앱이 가진 데이터로 매번 새 문항을 만들어 섞습니다. 틀린 문항은 오답노트로 정리해 PDF로 저장할 수 있어요.',
+  pts:'2 · 3 · 4점', diff:'sqdiff', levels:['L','M','H'],
+  dd:{L:'하 · 60문항 (기본 개념 위주)',M:'중 · 100문항 (수특 1~4강 전 범위)',H:'상 · 150문항 (단답·지도 비중 높음)'}}
 ];
 const TRADE_DD={
  x:{L:'하 · 주요국만 · 힌트 있음 (2점)',M:'중 · 모든 국가 · 힌트 있음 (4점)',H:'상 · 힌트 없음 (6점)'},
  m:{L:'하 · 주요국만 · 힌트 있음 (3점)',M:'중 · 모든 국가 · 힌트 있음 (6점)',H:'상 · 힌트 없음 (9점)'}
 };
 
-const LD={sel:new Set(),bdiff:'M',rdiff:'M',ediff:'M',tdiff:'M',kdiff:'M',vdiff:'M',cldiff:'M',esub:'all',tkind:'x'};
+const LD={sel:new Set(),bdiff:'M',rdiff:'M',ediff:'M',tdiff:'M',kdiff:'M',vdiff:'M',cldiff:'M',sqdiff:'M',esub:'all',tkind:'x'};
 const LD_ESUB_LABEL={all:'전체',ff:'화석연료만',re:'신재생만'};
 const LD_SAVE_KEY='g3_ld_v1';
 function ldSave(){
   try{
     localStorage.setItem(LD_SAVE_KEY,JSON.stringify({
-      sel:[...LD.sel],bdiff:LD.bdiff,rdiff:LD.rdiff,ediff:LD.ediff,tdiff:LD.tdiff,kdiff:LD.kdiff,vdiff:LD.vdiff,cldiff:LD.cldiff,esub:LD.esub,tkind:LD.tkind,
+      sel:[...LD.sel],bdiff:LD.bdiff,rdiff:LD.rdiff,ediff:LD.ediff,tdiff:LD.tdiff,kdiff:LD.kdiff,vdiff:LD.vdiff,cldiff:LD.cldiff,sqdiff:LD.sqdiff,esub:LD.esub,tkind:LD.tkind,
       conts:[...document.querySelectorAll('.ld-cont-cb')].filter(c=>c.checked).map(c=>c.value),
       big:!!(document.getElementById('ld-big')||{}).checked,
       noisle:!!(document.getElementById('ld-noisle')||{}).checked,
@@ -194,6 +200,7 @@ function ldRestore(){
   if(['L','M'].includes(d.kdiff))LD.kdiff=d.kdiff;
   if(['L','M','H'].includes(d.vdiff))LD.vdiff=d.vdiff;
   if(['L','M','H'].includes(d.cldiff))LD.cldiff=d.cldiff;
+  if(['L','M','H'].includes(d.sqdiff))LD.sqdiff=d.sqdiff;
   return d;
 }
 /* ── 모드 그리드 (한눈에 보이는 선택) ── */
@@ -201,9 +208,11 @@ function ldBuildGrid(){
   const grid=document.getElementById('ld-grid');grid.innerHTML='';
   LD_SLIDES.forEach(sl=>{
     const c=document.createElement('div');
-    c.className='ld-cell'+(sl.disabled?' disabled':'');c.dataset.act=sl.act;c.style.setProperty('--mc',sl.mc);
+    c.className='ld-cell'+(sl.disabled?' disabled':'')+(sl.wide?' wide':'');c.dataset.act=sl.act;c.style.setProperty('--mc',sl.mc);
     const pt=sl.disabled?'<span class="ld-soon">준비중</span>':sl.pts;
-    const txt='<div class="ld-cell-tt">'+sl.tt+'</div><div class="ld-cell-pt">'+pt+'</div>';
+    const txt=sl.wide
+      ?'<div class="ld-cell-txt"><div class="ld-cell-tt">'+sl.tt+'</div></div><div class="ld-cell-pt">'+pt+'</div>'
+      :'<div class="ld-cell-tt">'+sl.tt+'</div><div class="ld-cell-pt">'+pt+'</div>';
     c.innerHTML='<span class="ck"><span data-ic="check"></span></span>'
       +'<div class="ld-cell-ic"><span data-ic="'+sl.ic+'"></span></div>'+txt;
     if(sl.dict)c.addEventListener('click',()=>{try{wdOpen();}catch(e){}}); /* 사전은 세션 없이 바로 열람 */
@@ -364,6 +373,7 @@ function startFromLanding(){
   if(acts.includes('texp')||acts.includes('timp'))key+='_d'+(LD.tdiff||'M');
   if(acts.includes('river'))key+='_v'+(LD.vdiff||'M');
   if(acts.includes('climate'))key+='_cl'+(LD.cldiff||'M');
+  if(acts.includes('suteuk'))key+='_sq'+(LD.sqdiff||'M');
   if(acts.includes('religion'))key+='_r'+(LD.rdiff||'M');
   if(acts.includes('tenergy')){key+='_e'+(LD.ediff||'M');if((LD.esub||'all')!=='all')key+='_esub'+(LD.esub||'all');}
   if((acts.includes('border')&&borderDiff==='M')||acts.includes('rborder'))key+='_nomap';
@@ -402,6 +412,7 @@ function startSession(cat,acts,filterKey,rqContKey){
     if(acts.includes('rborder')){rbqInit(filterKey);}
     if(acts.includes('river')){rvInit(filterKey);}
     if(acts.includes('climate')){cqInit(filterKey);}
+    if(acts.includes('suteuk')){try{sqInit(filterKey);}catch(e){}}
     if(acts.includes('religion')){tqInit('r',filterKey);}
     if(acts.includes('texp')){tqInit('x',filterKey);}
     if(acts.includes('timp')){tqInit('m',filterKey);}
@@ -432,11 +443,14 @@ function switchTab(key){
   const rvMap=(key==='river'&&RV.diff==='M');
   const rvDraw=(key==='river'&&RV.diff==='H');
   const climateOn=(key==='climate');
+  const suteukOn=(key==='suteuk');
   const showMap=(key==='name'||(key==='border'&&!BQ.noMap)||(key==='rborder'&&!RBQ.noMap)||rvMap||rvDraw||climateOn);
   document.getElementById('rq-screen').classList.remove('on');
   document.getElementById('kr-screen').classList.toggle('on',key==='korea');
   document.getElementById('rv-screen').classList.toggle('on',key==='river'&&RV.diff==='L');
   document.getElementById('tq-screen').classList.toggle('on',key==='texp'||key==='timp'||key==='religion'||key==='tenergy');
+  if(!suteukOn){const sqs=document.getElementById('sq-screen');if(sqs)sqs.classList.remove('on');const sqb=document.getElementById('sq-box');if(sqb)sqb.classList.remove('on');}
+  if(!suteukOn)document.body.classList.remove('sq-map');
   document.getElementById('bq-box').classList.toggle('on',key==='border');
   document.getElementById('rbq-box').classList.toggle('on',key==='rborder');
   document.getElementById('rvc-box').classList.toggle('on',rvMap);
@@ -450,7 +464,7 @@ function switchTab(key){
   document.body.classList.toggle('circ-on',key==='name'||key==='border'||key==='rborder'||rvMap||rvDraw||climateOn);
   document.body.classList.toggle('cq-mode',climateOn);
   const listBtn=document.getElementById('ui-list-btn');
-  if(listBtn)listBtn.style.display=(rvMap||rvDraw||climateOn)?'none':'';
+  if(listBtn)listBtn.style.display=(rvMap||rvDraw||climateOn||suteukOn)?'none':'';
   if(showMap){
     mapMode=rvDraw?'rvd':(rvMap?'rvc':(climateOn?'climate':key));
     const logo=document.getElementById('ui-logo');
@@ -464,6 +478,11 @@ function switchTab(key){
   else if(key==='texp'){tqEnter('x');}
   else if(key==='timp'){tqEnter('m');}
   else if(key==='tenergy'){tqEnter('e');}
+  else if(suteukOn){ /* 수특퀴즈는 문항 종류에 따라 카드 화면과 지도 화면을 오간다 */
+    mapMode='suteuk';
+    try{dynMask.textContent='';}catch(e){} /* 다른 모드의 출제 범위 마스크가 남아 지도가 잠기는 걸 막는다 */
+    try{clearMapColors();paint();}catch(e){}
+    sqEnter(); }
   else if(key==='korea'){openKoreaTab();}
   document.body.classList.toggle('bq-nomap',(key==='border'&&!!BQ.noMap)||(key==='rborder'&&!!RBQ.noMap));
   try{refreshCircActive();}catch(e){} /* 모드마다 출제 집합이 달라 소국 강조·클릭 범위를 다시 맞춘다 */
@@ -482,6 +501,7 @@ function endSession(){
   document.body.classList.remove('bq-nomap');
   document.body.classList.remove('border-mode');
   document.body.classList.remove('circ-on');
+  document.body.classList.remove('sq-map');
   document.body.classList.remove('cq-mode');
   document.getElementById('rq-screen').classList.remove('on');
   document.getElementById('kr-screen').classList.remove('on');
@@ -491,18 +511,21 @@ function endSession(){
   const rvd=document.getElementById('rvd-box');if(rvd)rvd.classList.remove('on');
   try{rvdStop();}catch(e){}
   try{rvSave();}catch(e){}
+  const sqs=document.getElementById('sq-screen');if(sqs)sqs.classList.remove('on');
+  const sqb=document.getElementById('sq-box');if(sqb)sqb.classList.remove('on');
+  try{if(SQ.inited&&!SQ.recorded)sqSave();}catch(e){}
   const cqb=document.getElementById('cq-box');if(cqb)cqb.classList.remove('on');
   const cqw=document.getElementById('cq-world-svg');if(cqw)cqw.classList.remove('on');
   try{cqPinsStop();}catch(e){}
   try{cqSaveState();}catch(e){}
   document.getElementById('bq-box').classList.remove('on');
   document.getElementById('ui-end').style.display='none';
-  ['rq-end','kr-end','bq-end','rbq-end','tq-end','tq-explain','rv-end','cq-end'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.remove('on');});
+  ['rq-end','kr-end','bq-end','rbq-end','tq-end','tq-explain','rv-end','cq-end','sq-end'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.remove('on');});
   document.getElementById('landing-overlay').style.display='flex';
   updateStartState();
 }
 /* 지도 헤더 액션 — 현재 모드(나라이름/접경국)에 따라 분기 */
-function mapListAction(){if(mapMode==='border')openBQList();else if(mapMode==='rborder')openRBQList();else openCountryList();}
+function mapListAction(){if(mapMode==='suteuk')return;if(mapMode==='border')openBQList();else if(mapMode==='rborder')openRBQList();else openCountryList();}
 /* 여기서 끝내기 — 현재 진행 상황으로 점수를 기록하고 결과 화면 표시 */
 const FINISH_MSG='여기서 끝낼까요?\n지금까지 진행한 내용으로 점수가 기록됩니다.';
 /* 결과창이 닫힐 때 실행되는 이연 리셋 — 모달이 떠 있는 동안 보드가 바뀌거나
@@ -517,6 +540,7 @@ function mapFinishAction(){
   else if(mapMode==='rborder')rbqEnd();
   else if(mapMode==='rvc'||mapMode==='rvd')rvEnd();
   else if(mapMode==='climate')cqFinishNow();
+  else if(mapMode==='suteuk')sqFinishNow();
   else endScreen();
 }
 /* ── 결과 자랑하기: 공유 카드 이미지 생성 → 공유/저장 ── */
@@ -660,7 +684,7 @@ function borderReviewDone(){
   const cb=window._brCb;window._brCb=null;if(cb)cb();
 }
 function krFinishNow(){if(!confirm(FINISH_MSG))return;_blurActive();krEndScreen();}
-function mapResetAction(){if(mapMode==='border')resetBorderQuiz();else if(mapMode==='rborder')resetRBQ();else if(mapMode==='rvc'||mapMode==='rvd')rvReset();else if(mapMode==='climate')cqReset();else resetMapQuiz();}
+function mapResetAction(){if(mapMode==='suteuk'){sqResetConfirm();return;}if(mapMode==='border')resetBorderQuiz();else if(mapMode==='rborder')resetRBQ();else if(mapMode==='rvc'||mapMode==='rvd')rvReset();else if(mapMode==='climate')cqReset();else resetMapQuiz();}
 function openReligionTab(){if(!RQ.list||!RQ.list.length){if(!loadRQ())buildRQList();}showRQCard();}
 function openKoreaTab(){setTimeout(()=>{initKorea();applyModeUI();},30);}
 
@@ -1815,6 +1839,7 @@ function paintMask(){
 function circIsActive(iso){
   if(mapMode==='border')return !!(BQ.activeSet&&BQ.activeSet.has(iso));
   if(mapMode==='rborder')return !!(RBQ.activeSet&&RBQ.activeSet.has(iso));
+  if(mapMode==='suteuk')return true; /* 수특퀴즈는 세계 어디든 정답이 될 수 있다 */
   return inActive(iso);
 }
 /* 대륙 필터·소국 제외·속령 제외 등으로 출제에서 빠진 소국은 반짝이지도 않고
@@ -3004,6 +3029,7 @@ function initMap(){
     if(mapMode==='border'){bqHandleClick(iso);return;}
     if(mapMode==='rborder'){rbqHandleClick(iso);return;}
     if(mapMode==='rvc'){rvcHandleClick(iso);return;}
+    if(mapMode==='suteuk'){try{sqMapClick(iso);}catch(e){}return;}
     if(mapMode==='rvd')return;
     if(mapMode!=='name')return;
     if(!inActive(iso))return;
@@ -3013,7 +3039,8 @@ function initMap(){
   const tip=document.getElementById('ui-tip');
   svg.addEventListener('mouseover',function(e){
     /* 하천 그리기·기후는 나라를 고르는 화면이 아니라 툴팁을 띄우지 않는다 */
-    if(mapMode==='rvd'||mapMode==='climate'){tip.style.display='none';return;}
+    /* 수특퀴즈 지도 문항은 나라 이름 자체가 정답이라 툴팁을 띄우지 않는다 */
+    if(mapMode==='rvd'||mapMode==='climate'||mapMode==='suteuk'){tip.style.display='none';return;}
     const cel=findCountryEl(e.target);
     if(!cel){tip.style.display='none';return;}
     const iso=iso4el(cel);
@@ -3243,6 +3270,10 @@ function listSaves(){
       const ty=k.startsWith('tq_x_')?'texp':k.startsWith('tq_m_')?'timp':k.startsWith('tq_e_')?'tenergy':'religion';
       out.push({type:ty,key:k,scope:d.filterKey||k.slice(5),
         done,total:d.totalCountries||0,wrong:(d.wrong||[]).length,recorded:!!d.recorded});
+    }else if(/^sq_[LMH]$/.test(k)){
+      if(!d.plan||!d.plan.length)continue;
+      const done=(d.cor||0)+(d.wr||0);if(!done)continue; /* 시작만 한 건 제외 */
+      out.push({type:'suteuk',key:k,scope:'suteuk_'+k.slice(3),done,total:d.plan.length,wrong:d.wr||0,recorded:!!d.recorded});
     }else if(k.startsWith('cq_')&&!k.includes('__')){
       if(!d.attempted)continue; /* 시작만 한 건 제외 */
       const m=k.match(/^cq_([LMH])_(.+)$/);if(!m)continue;
@@ -3275,6 +3306,7 @@ function _resumeStart(type,key){
   else if(type==='korea')startSession('korea',['korea'],key==='kq_prov_v1'?'L':null);
   else if(type==='river'){const m=key.match(/^rv_([LMH])_(.*)$/);if(m)startSession('world',['river'],m[2]+'_v'+m[1]);}
   else if(type==='climate'){const m=key.match(/^cq_[LMH]_(.+)$/);if(m)startSession('world',['climate'],m[1]);}
+  else if(type==='suteuk'){startSession('world',['suteuk'],'all_sq'+key.slice(3));}
 }
 function resumeSave(type,key){_resumeStart(type,key);}
 /* 저장본에서 종교 오답 ISO 목록을 미리 읽음 (startSession이 새로 만들며 비우기 전에) */

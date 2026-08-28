@@ -15,7 +15,7 @@
 </noscript>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%235eead4%27 stroke-width=%272%27 stroke-linecap=%27round%27%3E%3Ccircle cx=%2712%27 cy=%2712%27 r=%279%27/%3E%3Cellipse cx=%2712%27 cy=%2712%27 rx=%274%27 ry=%279%27/%3E%3Cpath d=%27M3.5 9h17M3.5 15h17%27/%3E%3C/svg%3E">
 <script>(function(){try{var m=localStorage.getItem('seji_theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');document.documentElement.dataset.theme=m;}catch(e){}})();</script>
-<link rel="stylesheet" href="css/main.css?v=20260726b">
+<link rel="stylesheet" href="css/main.css?v=20260828a">
 </head>
 <body>
 <button id="theme-toggle" type="button" title="화면 밝기 전환" onclick="toggleTheme()"></button>
@@ -81,6 +81,7 @@
           <tr><td>수출구조 (하·중·상)</td><td>2 · 4 · 6점</td></tr>
           <tr><td>수입구조 (하·중·상)</td><td>3 · 6 · 9점</td></tr>
           <tr><td>한국지리 시·군</td><td>1점</td></tr>
+          <tr><td>9모대비 수특퀴즈 (하·중·상)</td><td>문항당 2 · 3 · 4점</td></tr>
         </table>
       </div>
     </div>
@@ -160,6 +161,19 @@
 <!-- 기후 맞히기: 하단 그래프 카드 독 (배경 지도·핀 오버레이는 #ui-map 안에 있음 —
      main의 overflow 클리핑을 받아야 지도가 헤더·메뉴 위로 흘러넘치지 않고,
      ui-map 기준 좌표계와 일치해야 핀 중앙 정렬이 화면에서도 정확히 가운데가 된다) -->
+<!-- ══════════ 9모대비 수특퀴즈 · 지도 문항 바 ══════════ -->
+<div id="sq-box">
+  <div class="cq-head">
+    <div id="sq-m-pos">1 / 1</div>
+    <div class="cq-stats"><span>정답 <b id="sq-m-cor">0</b></span><span>오답 <b id="sq-m-wr">0</b></span></div>
+  </div>
+  <div class="bq-q" id="sq-m-q"></div>
+  <div class="bq-fb" id="sq-m-fb"></div>
+  <div class="sq-m-btns">
+    <button class="btn" type="button" id="sq-m-skip" onclick="sqMapGiveUp()">모르겠어요</button>
+    <button class="btn bp" type="button" id="sq-m-next" style="display:none" onclick="sqNext()">다음 →</button>
+  </div>
+</div>
 <div id="cq-box">
   <div class="cq-head">
     <div id="cq-round-title">0 / 10지점</div>
@@ -225,6 +239,23 @@
   </div>
 </div>
 <!-- 기후 맞히기 완료 -->
+<!-- ══════════ 수특퀴즈 완료 ══════════ -->
+<div id="sq-end">
+  <div class="rq-end-card sq-end-card">
+    <h1>9모대비 수특퀴즈 완료!</h1>
+    <div class="esc" id="sq-escore">0점</div>
+    <div class="eg" style="grid-template-columns:1fr 1fr 1fr">
+      <div class="est"><div class="esv" style="color:#81c995" id="sq-e1">0</div><div class="esl">정답</div></div>
+      <div class="est"><div class="esv" style="color:var(--wr)" id="sq-e2">0</div><div class="esl">오답</div></div>
+      <div class="est"><div class="esv" style="color:var(--gd)" id="sq-e3">0%</div><div class="esl">정답률</div></div>
+    </div>
+    <div class="sq-note" id="sq-note"></div>
+    <button class="reb" id="sq-note-pdf" onclick="sqPrintNote()">오답노트 PDF로 저장</button>
+    <button class="reb" onclick="shareLastResult()">결과 자랑하기</button>
+    <button class="reb secondary" onclick="document.getElementById('sq-end').classList.remove('on');sqReset()">새 문항으로 다시 풀기</button>
+    <button class="reb secondary" onclick="document.getElementById('sq-end').classList.remove('on');endSession()">처음으로</button>
+  </div>
+</div>
 <div id="cq-end">
   <div class="rq-end-card">
     <h1>기후 맞히기 완료!</h1>
@@ -4618,6 +4649,39 @@
 </svg></template>
 
 <!-- 무역구조 매칭 퀴즈 (수출/수입) -->
+<!-- ══════════ 9모대비 수특퀴즈 · 카드 문항 ══════════ -->
+<div id="sq-screen">
+  <div class="tq-top">
+    <div class="tq-th">
+      <span id="sq-title">9모대비 수특퀴즈</span><span id="sq-sub">수능특강 1~4강</span>
+      <button class="tq-hbtn" title="여기서 끝내고 결과 보기" onclick="sqFinishNow()"><span data-ic="flag"></span></button>
+      <button class="tq-hbtn danger" title="초기화 (처음부터 다시)" onclick="sqResetConfirm()"><span data-ic="reset"></span></button>
+    </div>
+    <div class="tq-stats">
+      <div><div class="sv" id="sq-pos" style="color:var(--ac)">0 / 0</div><div class="sl">문항</div></div>
+      <div><div class="sv" style="color:#81c995" id="sq-cor">0</div><div class="sl">정답</div></div>
+      <div><div class="sv" style="color:var(--wr)" id="sq-wr">0</div><div class="sl">오답</div></div>
+      <div><div class="sv" style="color:var(--gd)" id="sq-pts">0</div><div class="sl">점수</div></div>
+    </div>
+    <div class="tq-progress"><div id="sq-pf"></div></div>
+  </div>
+  <div id="sq-card">
+    <div class="sq-meta" id="sq-meta"></div>
+    <div class="sq-q" id="sq-q"></div>
+    <div class="sq-fig" id="sq-fig"></div>
+    <div class="sq-ans" id="sq-ans"></div>
+    <div class="sq-fb" id="sq-fb"></div>
+    <div class="sq-exp" id="sq-exp"></div>
+    <div class="sq-foot">
+      <button class="tq-btn ghost" type="button" id="sq-giveup" onclick="sqGiveUp()">모르겠어요</button>
+      <button class="tq-btn" type="button" id="sq-ok" onclick="sqSubmit()">확인</button>
+      <button class="tq-btn" type="button" id="sq-next" onclick="sqNext()" style="display:none">다음 →</button>
+    </div>
+  </div>
+</div>
+<!-- 오답노트 인쇄(PDF 저장) 전용 영역 — 화면에는 안 보이고 인쇄할 때만 나온다 -->
+<div id="sq-print" aria-hidden="true"></div>
+
 <div id="tq-screen">
   <div class="tq-top">
     <div class="tq-th">
@@ -4837,20 +4901,22 @@
     <button class="reb secondary" onclick="runPendingReset();document.getElementById('rbq-end').classList.remove('on')">다시 시작</button>
   </div>
 </div>
-<script src="js/data.js?v=20260726b"></script>
-<script src="js/rivers-data.js?v=20260726b"></script>
-<script src="js/climate-data.js?v=20260726b"></script>
-<script src="js/climate-map-data.js?v=20260726b"></script>
-<script src="js/app.js?v=20260726b"></script>
-<script src="js/climate.js?v=20260726b"></script>
-<script src="js/dict-data.js?v=20260726b"></script>
-<script src="js/flag-colors-data.js?v=20260726b"></script>
-<script src="js/flag-bg-data.js?v=20260726b"></script>
-<script src="js/dict.js?v=20260726b"></script>
+<script src="js/data.js?v=20260828a"></script>
+<script src="js/rivers-data.js?v=20260828a"></script>
+<script src="js/climate-data.js?v=20260828a"></script>
+<script src="js/climate-map-data.js?v=20260828a"></script>
+<script src="js/app.js?v=20260828a"></script>
+<script src="js/climate.js?v=20260828a"></script>
+<script src="js/dict-data.js?v=20260828a"></script>
+<script src="js/flag-colors-data.js?v=20260828a"></script>
+<script src="js/flag-bg-data.js?v=20260828a"></script>
+<script src="js/dict.js?v=20260828a"></script>
+<script src="js/suteuk-data.js?v=20260828a"></script>
+<script src="js/suteuk.js?v=20260828a"></script>
 <!-- ════════════════════════════════════════════════════════════
      계정 · 소셜로그인 · 랭킹 (Supabase) — 빌드/명령어 불필요, 이 파일만으로 동작
      ▼▼▼ 여기 두 줄만 본인 Supabase 값으로 바꾸면 끝 ▼▼▼ -->
-<script type="module" src="js/account.js?v=20260726b"></script>
+<script type="module" src="js/account.js?v=20260828a"></script>
 
 </body>
 </html>

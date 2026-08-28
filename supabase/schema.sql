@@ -100,7 +100,8 @@ create policy "scores insert" on public.scores for insert to authenticated
     and total > 0 and correct >= 0 and correct <= total
     and accuracy >= 0 and accuracy <= 100
     and category in ('name','border','rborder','religion',
-                     'texp','timp','tenergy','river','climate','korea')
+                     'texp','timp','tenergy','river','climate','korea',
+                     'suteuk')  -- 9모대비 수특퀴즈
   );
 
 -- 랭킹용 집계 데이터만 노출하는 보안 함수 (테이블 직접 접근 대신 이걸로만 제공)
