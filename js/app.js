@@ -3171,6 +3171,7 @@ function initMap(){
               if(mapMode==='border'){bqHandleClick(iso);}
               else if(mapMode==='rborder'){rbqHandleClick(iso);}
               else if(mapMode==='rvc'){rvcHandleClick(iso);}
+              else if(mapMode==='suteuk'){try{sqMapClick(iso);}catch(err){}}
               else if(mapMode==='rvd'){/* 그리기는 draw-ov 포인터 이벤트로 처리, 지도 탭은 무시 */}
               else if(mapMode!=='name'){/* 알 수 없는 모드 — 이름맞히기로 새지 않게 무시 */}
               else if(S.status[iso]==='cr')showAnswer(iso,touch.clientX,touch.clientY-10);else if(!done(iso)){openModal(iso);centerCountry(iso);}}}

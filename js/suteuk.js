@@ -120,7 +120,7 @@ function sqGenClimateKop(){
       /* 그래프만 보면 답이 뻔한 ‘이 기후는?’은 한 판에 한 번만 낸다 */
       if(l.ko===hlOne){
         out.push({ch:'그래프',t:'mc',tag:'열대 고산',gen:1,chart:l.id,hideLabel:1,
-          q:'다음 기후 그래프는 저위도인데도 연중 서늘하고 기온의 연교차가 거의 없다. 이 기후는?',
+          q:'다음 기후 그래프에 해당하는 기후는?',
           opts:shuffle(['열대 우림','사바나','온대 동계 건조','열대 고산']),a:'열대 고산',
           saAlt:['열대고산','열대 고산 기후','고산 기후'],saHint:'기후 이름으로',
           exp:l.ko+'('+l.ccKo+') — 특강 01의 열대 고산 기후 암기법 ‘키보드로 쿠라치는 멕시코 아저씨’(키토·보고타·쿠스코·라파스·멕시코시티·아디스아바바) 중 하나다.'+stat});
@@ -213,12 +213,26 @@ function sqBuildGenerated(){
    상(H) 난이도는 보기를 지우고 직접 쓰게 한다. 보기를 없애면 무엇을 묻는지
    알 수 없는 문항(keepMc)만 객관식으로 남긴다 — 그런 문항은 애초에 질문 안에
    후보가 적혀 있거나(‘… 중’) 표기를 정확히 맞히기 어려운 것들이다. */
+/* 질문 끝에 달린 후보 나열 "(A · B · C 중)"을 떼어 낸다 — 보기를 없앤 마당에
+   질문 안에 후보가 남아 있으면 결국 고르기 문제가 된다. */
+function sqStripChoices(t){
+  return String(t||'').replace(/\s*\(([^()]*?)\s*중\)/g,'').replace(/\s{2,}/g,' ').trim();
+}
+/* 단답으로 바꿔도 되는 문항인가 —
+   ① 후보를 떼고도 질문에 정답이 남아 있으면(양자택일형) 고르기 문제로 둔다.
+   ② 정답이 문장인 ‘이유 고르기’류도 단답으로는 채점이 불가능하니 그대로 둔다. */
+function sqCanSA(q){
+  if(q.t!=='mc'||q.keepMc||!q.opts)return false;
+  const a=String(q.a||'');
+  if(a.length>=14||(a.split(/\s/).length>=4))return false;
+  return !sqNorm(sqStripChoices(q.q)).includes(sqNorm(a));
+}
 function sqToSA(q){
-  if(q.t!=='mc'||q.keepMc)return q;
+  if(!sqCanSA(q))return q;
   const alt=Object.assign({},q.alt||{});
   const extra=(q.saAlt||[]).filter(v=>v&&!sqSame(v,q.a));
   if(extra.length)alt[q.a]=(alt[q.a]||[]).concat(extra);
-  const out=Object.assign({},q,{t:'txt',alt:alt,sa:1});
+  const out=Object.assign({},q,{t:'txt',alt:alt,sa:1,q:sqStripChoices(q.q)});
   delete out.opts;delete out.saAlt;
   return out;
 }
@@ -243,7 +257,7 @@ function sqBuildPlan(){
   if(SQ.diff==='H')all=all.map(q=>sqToOrdTxt(sqToSA(q)));
   else if(SQ.diff==='M'){
     /* 중은 객관식의 3분의 2를 단답으로 돌린다 — 보기를 보고 찍는 비중을 줄인다 */
-    all=all.map(q=>(q.t==='mc'&&!q.keepMc&&Math.random()<0.66)?sqToSA(q):q);
+    all=all.map(q=>(sqCanSA(q)&&Math.random()<0.66)?sqToSA(q):q);
   }
   return all.map((x,i)=>Object.assign({},x,{qid:(x.gen?'g':'b')+i}));
 }
@@ -341,7 +355,7 @@ function sqFigHTML(q){
     const l=sqLocs().find(x=>x.id===q.chart);
     if(!l)return '';
     return '<div class="sq-charts"><div class="sq-chart">'+cqChartSVG(l)
-      +'<div class="sq-chart-cap">'+(q.hideLabel?'?':sqLocLabel(l))+'</div></div></div>';
+      +(q.hideLabel?'':'<div class="sq-chart-cap">'+sqLocLabel(l)+'</div>')+'</div></div>';
   }
   if(q.chart2){
     const ls=q.chart2.map(id=>sqLocs().find(x=>x.id===id)).filter(Boolean);
