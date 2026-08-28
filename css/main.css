@@ -1037,3 +1037,5 @@ body.in-session #sq-screen{top:42px}
 /* 수특퀴즈 지도 문항에서는 소국 표시를 깜빡이지 않게 — 문항마다 정답이 하나뿐이라
    지도 전체가 반짝이면 시선만 흩어진다. 클릭 범위는 그대로 유지한다. */
 body.sq-map #world-svg .circ-glow{animation:none;stroke-opacity:.42}
+
+.sq-hint{font-size:.7rem;color:var(--tx2);margin-top:-.15rem}

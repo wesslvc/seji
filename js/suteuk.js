@@ -75,6 +75,11 @@ function sqStarLocs(){
   SQ_CLIM_STAR.forEach(n=>{const l=sqLocByName(n);if(l)out.push(l);});
   return out;
 }
+/* 나라 이름을 단답으로 받을 때 허용할 표기들 (COUNTRIES의 별칭 + 영문명) */
+function sqIsoAlt(iso){
+  const c=COUNTRIES[iso];if(!c)return [];
+  return (c.x||[]).concat(c.e?[c.e]:[]);
+}
 function sqLocLabel(l){
   const cn=(typeof COUNTRIES!=='undefined'&&COUNTRIES[l.cc])?COUNTRIES[l.cc].k:l.cc.toUpperCase();
   return l.ko+' · '+cn;
@@ -98,6 +103,8 @@ function sqGenClimateKop(n){
     out.push({ch:'그래프',t:'mc',tag:'기후 그래프',gen:1,chart:l.id,
       q:sqLocLabel(l)+'의 기후 그래프다. 이 지점의 기후 구분은?',
       opts:shuffle(others.concat([right])),a:right,
+      saAlt:[l.kop,right.replace(/\([^)]*\)/,'').trim()],
+      saHint:'기후 이름이나 쾨펜 기호로',
       exp:sqLocLabel(l)+' — 쾨펜 기호 '+l.kop+'('+right+'). 최난월 '+Math.round(Math.max(...l.tmax))+'℃ · 최한월 '+Math.round(Math.min(...l.tmin))+'℃ · 연 강수량 약 '+Math.round(sqAnnPrec(l))+'mm.'});
   }
   return out;
@@ -110,9 +117,10 @@ function sqGenClimateCity(n){
     if(out.length>=n)break;
     const others=shuffle(sqLocs().filter(x=>x.grp!==l.grp&&x.ko!==l.ko&&SQ_CORE_SET.has(x.cc)&&SQ_CLIM_STAR.includes(x.ko))).slice(0,3);
     if(others.length<3)continue;
-    out.push({ch:'그래프',t:'mc',tag:'기후 그래프',gen:1,chart:l.id,hideLabel:1,
+    out.push({ch:'그래프',t:'mc',tag:'기후 그래프',gen:1,chart:l.id,hideLabel:1,keepMc:true,
       q:'다음 기후 그래프에 해당하는 지점은?',
       opts:shuffle(others.map(sqLocLabel).concat([sqLocLabel(l)])),a:sqLocLabel(l),
+      saAlt:[l.ko,l.city],saHint:'지점 이름만 써도 됩니다',
       exp:sqLocLabel(l)+'는 '+SQ_KOP_KO[l.kop]+'('+l.kop+') 기후다. 연 강수량 약 '+Math.round(sqAnnPrec(l))+'mm, 기온의 연교차 약 '+sqAnnRange(l).toFixed(1)+'℃.'});
   }
   return out;
@@ -135,6 +143,7 @@ function sqGenClimateCompare(n){
     const win=va>vb?a:b;
     out.push({ch:'그래프',t:'mc',tag:'기후 비교',gen:1,chart2:[a.id,b.id],
       q:kind.q,opts:[sqLocLabel(a),sqLocLabel(b)],a:sqLocLabel(win),
+      saAlt:[win.ko,win.city],saHint:'그래프 아래 이름 중에서',
       exp:sqLocLabel(a)+' = '+(kind.k==='cold'?(-va).toFixed(1):va.toFixed(0))+kind.u+' / '+sqLocLabel(b)+' = '+(kind.k==='cold'?(-vb).toFixed(1):vb.toFixed(0))+kind.u+'.'});
   }
   return out;
@@ -154,9 +163,9 @@ function sqGenReligionPie(n){
       return i!==iso&&c&&c[0]===top[0];
     })).slice(0,3);
     if(others.length<3)continue;
-    out.push({ch:'자료',t:'mc',tag:'종교 구성',gen:1,pie:{cells:cells,kind:'r'},
+    out.push({ch:'자료',t:'mc',tag:'종교 구성',gen:1,keepMc:true,pie:{cells:cells,kind:'r'},
       q:'다음 종교 구성을 가진 국가는?',
-      opts:shuffle(others.concat([iso]).map(i=>COUNTRIES[i].k)),a:COUNTRIES[iso].k,
+      opts:shuffle(others.concat([iso]).map(i=>COUNTRIES[i].k)),a:COUNTRIES[iso].k,saAlt:sqIsoAlt(iso),
       exp:COUNTRIES[iso].k+' — '+cells.slice(0,3).map(c=>RELIG2_NAME[c[0]]+' '+c[1]+'%').join(' · ')+'.'});
   }
   return out;
@@ -170,9 +179,9 @@ function sqGenEnergyPie(n){
     if(out.length>=n)break;
     const cells=ENERGY_DATA[iso];
     const others=shuffle(isos.filter(i=>i!==iso)).slice(0,3);
-    out.push({ch:'자료',t:'mc',tag:'에너지 구성',gen:1,pie:{cells:cells,kind:'e'},
+    out.push({ch:'자료',t:'mc',tag:'에너지 구성',gen:1,keepMc:true,pie:{cells:cells,kind:'e'},
       q:'다음 1차 에너지 소비 구조를 가진 국가는?',
-      opts:shuffle(others.concat([iso]).map(i=>COUNTRIES[i].k)),a:COUNTRIES[iso].k,
+      opts:shuffle(others.concat([iso]).map(i=>COUNTRIES[i].k)),a:COUNTRIES[iso].k,saAlt:sqIsoAlt(iso),
       exp:COUNTRIES[iso].k+' — '+cells.slice(0,4).map(c=>ENERGY_NAME[c[0]]+' '+c[1]+'%').join(' · ')+'.'
         +((typeof ENERGY_STORY!=='undefined'&&ENERGY_STORY[iso])?' '+ENERGY_STORY[iso]:'')});
   }
@@ -191,9 +200,28 @@ function sqGenEnergyTop(n){
     const others=shuffle(cells.slice(1).map(c=>ENERGY_NAME[c[0]])).slice(0,3);
     if(others.length<3)continue;
     out.push({ch:'자료',t:'mc',tag:'에너지 구성',gen:1,
-      q:COUNTRIES[iso].k+'의 1차 에너지 소비에서 비중이 가장 큰 에너지원은?',
+      q:COUNTRIES[iso].k+'의 1차 에너지 소비에서 비중이 가장 큰 에너지원은? (석탄·가스·석유·원자력·수력·태양광·풍력 중)',
       opts:shuffle(others.concat([right])),a:right,
       exp:COUNTRIES[iso].k+' — '+cells.slice(0,4).map(c=>ENERGY_NAME[c[0]]+' '+c[1]+'%').join(' · ')+'.'});
+  }
+  return out;
+}
+/* ⑥-2 종교 원그래프를 읽어 1·2위 종교를 직접 쓰기 (보기 없이도 답이 하나로 정해진다) */
+function sqGenReligionRead(n){
+  if(typeof RELIG2_DATA==='undefined')return [];
+  const isos=Object.keys(RELIG2_DATA).filter(i=>SQ_CORE_SET.has(i)&&COUNTRIES[i]&&(RELIG2_DATA[i]||[]).length>=2);
+  const out=[];
+  for(const iso of _rnSample(isos,n*2)){
+    if(out.length>=n)break;
+    const cells=RELIG2_DATA[iso].slice().sort((a,b)=>b[1]-a[1]);
+    if(cells.length<2||cells[0][1]-cells[1][1]<5)continue;
+    const second=cells[1][1]>=3;   /* 2위가 너무 작으면 그래프에서 읽기 어렵다 */
+    const kind=second&&Math.random()<.5?1:0;
+    const right=RELIG2_NAME[cells[kind][0]];
+    out.push({ch:'자료',t:'txt',tag:'종교 구성',gen:1,pie:{cells:RELIG2_DATA[iso],kind:'r'},
+      q:COUNTRIES[iso].k+'의 종교 구성이다. 신자 비율 '+(kind?'2위':'1위')+'인 종교는?',
+      a:right,saHint:'기독교·이슬람교·불교·힌두교·유대교 중',
+      exp:COUNTRIES[iso].k+' — '+cells.slice(0,3).map(c=>RELIG2_NAME[c[0]]+' '+c[1]+'%').join(' · ')+'.'});
   }
   return out;
 }
@@ -209,7 +237,7 @@ function sqGenTradeTop(n){
     const right=HS2_KO[x[0][0]];if(!right)continue;
     const others=shuffle(x.slice(1).map(c=>HS2_KO[c[0]]).filter(Boolean)).slice(0,3);
     if(others.length<3)continue;
-    out.push({ch:'자료',t:'mc',tag:'무역 구조',gen:1,
+    out.push({ch:'자료',t:'mc',tag:'무역 구조',gen:1,keepMc:true,
       q:COUNTRIES[iso].k+'의 수출액에서 비중이 가장 큰 품목은?',
       opts:shuffle(others.concat([right])),a:right,
       exp:COUNTRIES[iso].k+' 수출 상위 — '+x.slice(0,4).map(c=>(HS2_KO[c[0]]||'?')+' '+c[1]+'%').join(' · ')+'.'});
@@ -333,9 +361,10 @@ function sqBuildGenerated(total){
     [sqGenClimateKop,   .16],
     [sqGenClimateCity,  .10],
     [sqGenClimateCompare,.09],
-    [sqGenReligionPie,  .08],
-    [sqGenEnergyPie,    .08],
-    [sqGenEnergyTop,    .07],
+    [sqGenReligionPie,  .05],
+    [sqGenReligionRead, .05],
+    [sqGenEnergyPie,    .05],
+    [sqGenEnergyTop,    .08],
     [sqGenTradeTop,     .08],
     [sqGenLocate,       .09],
     [sqGenBorderMap,    .09],
@@ -351,12 +380,28 @@ function sqBuildGenerated(total){
   });
   return shuffle(out).slice(0,total);
 }
+/* ── 객관식 → 단답 변환 ──
+   상(H) 난이도는 보기를 지우고 직접 쓰게 한다. 보기를 없애면 무엇을 묻는지
+   알 수 없는 문항(keepMc)만 객관식으로 남긴다 — 그런 문항은 애초에 질문 안에
+   후보가 적혀 있거나(‘… 중’) 표기를 정확히 맞히기 어려운 것들이다. */
+function sqToSA(q){
+  if(q.t!=='mc'||q.keepMc)return q;
+  const alt=Object.assign({},q.alt||{});
+  const extra=(q.saAlt||[]).filter(v=>v&&!sqSame(v,q.a));
+  if(extra.length)alt[q.a]=(alt[q.a]||[]).concat(extra);
+  const out=Object.assign({},q,{t:'txt',alt:alt,sa:1});
+  delete out.opts;delete out.saAlt;
+  if(q.saHint)out.saHint=q.saHint;
+  return out;
+}
 function sqBuildPlan(){
   const q=SQ_QUOTA[SQ.diff]||SQ_QUOTA.M;
   const bank=shuffle((typeof SUTEUK_BANK!=='undefined'?SUTEUK_BANK:[]).slice()).slice(0,q.bank);
   const gen=sqBuildGenerated(q.gen);
+  let all=bank.concat(gen);
+  if(SQ.diff==='H')all=all.map(sqToSA);
   /* 고정 문항과 생성 문항이 뭉치지 않게 섞는다 */
-  return shuffle(bank.concat(gen)).map((x,i)=>Object.assign({},x,{qid:(x.gen?'g':'b')+i}));
+  return shuffle(all).map((x,i)=>Object.assign({},x,{qid:(x.gen?'g':'b')+i}));
 }
 
 /* ══════════ 저장 / 복원 ══════════ */
@@ -494,7 +539,9 @@ function sqAnsHTML(q){
       +'<span class="sq-opt-n">'+(i+1)+'</span>'+sqEsc(o)+'</button>').join('')+'</div>';
   }
   if(q.t==='txt'){
-    return '<div class="sq-type"><input type="text" id="sq-input" autocomplete="off" placeholder="정답을 입력하세요"/></div>';
+    /* 힌트는 입력을 시작해도 사라지지 않게 입력창 아래에 따로 둔다 */
+    return '<div class="sq-type"><input type="text" id="sq-input" autocomplete="off" placeholder="정답을 입력하세요"/></div>'
+      +(q.saHint?'<div class="sq-hint">'+sqEsc(q.saHint)+'</div>':'');
   }
   if(q.t==='multi'){
     return '<div class="sq-type"><input type="text" id="sq-input" autocomplete="off" placeholder="하나씩 입력하고 Enter ('+q.a.length+'개)"/></div>'
