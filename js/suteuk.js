@@ -140,11 +140,14 @@ function sqGenClimateKop(){
           saAlt:['열대고산','열대 고산 기후','고산 기후'],saHint:'기후 이름으로',
           exp:l.ko+'('+l.ccKo+') — 특강 01의 열대 고산 기후 암기법 ‘키보드로 쿠라치는 멕시코 아저씨’(키토·보고타·쿠스코·라파스·멕시코시티·아디스아바바) 중 하나다.'+stat});
       }
-      /* 나머지는 그래프를 곁들여 ‘어느 나라의 고산 도시인지’를 확인한다 */
-      out.push({ch:'그래프',t:'mc',tag:'열대 고산',gen:1,chart:l.id,hideLabel:1,
-        q:'열대 고산 기후 암기법 ‘키보드로 쿠라치는 멕시코 아저씨’의 여섯 도시 중 하나인 '+l.ko+sqJosa(l.ko,'이','가')+' 속한 국가는?',
-        opts:shuffle(hlCountries.filter(c=>c!==l.ccKo).slice(0,3).concat([l.ccKo])),a:l.ccKo,
-        exp:l.ko+' — '+l.ccKo+'. 여섯 도시는 키토(에콰도르)·보고타(콜롬비아)·쿠스코(페루)·라파스(볼리비아)·멕시코시티(멕시코)·아디스아바바(에티오피아)다.'});
+      /* 나머지는 그래프를 곁들여 ‘어느 나라의 고산 도시인지’를 확인한다.
+         도시 이름에 나라 이름이 들어 있는 곳(멕시코시티)은 물어봐야 의미가 없다. */
+      if(!sqNorm(l.ko).includes(sqNorm(l.ccKo)))
+        out.push({ch:'그래프',t:'mc',tag:'열대 고산',gen:1,chart:l.id,hideLabel:1,
+          q:'열대 고산 기후가 나타나는 도시 '+l.ko+sqJosa(l.ko,'이','가')+' 속한 국가는?',
+          opts:shuffle(hlCountries.filter(c=>c!==l.ccKo).slice(0,3).concat([l.ccKo])),a:l.ccKo,
+          mnem:'키보드로 쿠라치는 멕시코 아저씨 — 키토·보고타·쿠스코·라파스·멕시코시티·아디스아바바',
+          exp:l.ko+' — '+l.ccKo+'. 여섯 도시는 키토(에콰도르)·보고타(콜롬비아)·쿠스코(페루)·라파스(볼리비아)·멕시코시티(멕시코)·아디스아바바(에티오피아)다.'});
     }else if(l.wettest){
       out.push({ch:'그래프',t:'txt',tag:'기후 그래프',gen:1,chart:l.id,hideLabel:1,
         q:'다음 기후 그래프는 여름 남서 계절풍이 히말라야에 부딪혀 막대한 지형성 강수를 쏟는 세계 최다우지의 것이다. 이곳은 어디인가?',
@@ -410,33 +413,35 @@ function sqBuildGenerated(){
    상(H) 난이도는 보기를 지우고 직접 쓰게 한다. 보기를 없애면 무엇을 묻는지
    알 수 없는 문항(keepMc)만 객관식으로 남긴다 — 그런 문항은 애초에 질문 안에
    후보가 적혀 있거나(‘… 중’) 표기를 정확히 맞히기 어려운 것들이다. */
-/* 질문 끝에 달린 후보 나열 "(A · B · C 중)"을 떼어 낸다 — 보기를 없앤 마당에
-   질문 안에 후보가 남아 있으면 결국 고르기 문제가 된다. */
-function sqStripChoices(t){
-  return String(t||'').replace(/\s*\(([^()]*?)\s*중\)/g,'').replace(/\s{2,}/g,' ').trim();
-}
 /* 단답으로 바꿔도 되는 문항인가 —
-   ① 후보를 떼고도 질문에 정답이 남아 있으면(양자택일형) 고르기 문제로 둔다.
+   ① 질문에 정답이 이미 들어 있으면(‘A와 B 중 …는?’, ‘(A · B · C 중)’ 같은
+      후보 나열형) 보기를 그대로 둔다. 질문에서 후보를 떼어 내면 애초에
+      풀 수 없는 문제가 되기 때문이다.
    ② 정답이 문장인 ‘이유 고르기’류도 단답으로는 채점이 불가능하니 그대로 둔다. */
 function sqCanSA(q){
   if(q.t!=='mc'||q.keepMc||!q.opts)return false;
   const a=String(q.a||'');
   if(a.length>=14||(a.split(/\s/).length>=4))return false;
-  return !sqNorm(sqStripChoices(q.q)).includes(sqNorm(a));
+  return !sqNorm(q.q).includes(sqNorm(a));
 }
 function sqToSA(q){
   if(!sqCanSA(q))return q;
   const alt=Object.assign({},q.alt||{});
   const extra=(q.saAlt||[]).filter(v=>v&&!sqSame(v,q.a));
   if(extra.length)alt[q.a]=(alt[q.a]||[]).concat(extra);
-  const out=Object.assign({},q,{t:'txt',alt:alt,sa:1,q:sqStripChoices(q.q)});
+  const out=Object.assign({},q,{t:'txt',alt:alt,sa:1});
   delete out.opts;delete out.saAlt;
   return out;
 }
-/* 순서 배열 → 보기 없이 1번부터 차례로 입력. 보기를 보고 고르면 순서만 맞히면 되지만
-   직접 쓰게 하면 항목과 순서를 둘 다 외워야 한다. */
+/* 순서 배열 → 보기 없이 1번부터 차례로 입력.
+   단, 나열할 대상이 질문에 적혀 있거나(openSet: 전 세계·전 대륙처럼 대상이
+   자명한 경우) 일 때만 바꾼다. 대상이 어디에도 안 보이면 보기를 남긴다 —
+   그러지 않으면 무엇을 쓰라는 건지 알 수 없는 문제가 된다. */
 function sqToOrdTxt(q){
   if(q.t!=='order')return q;
+  const qn=sqNorm(q.q);
+  const named=q.a.every(v=>qn.includes(sqNorm(v)));
+  if(!named&&!q.openSet)return q;
   const out=Object.assign({},q,{t:'ordtxt'});
   delete out.opts;
   return out;
