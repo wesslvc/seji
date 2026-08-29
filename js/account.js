@@ -44,7 +44,15 @@ function scopeContinents(scope) {
 function scopeLabel(scope) {
   if(/^river_[LMH]$/.test(scope||''))return {L:'모양 맞히기',M:'통과국 클릭',H:'경로 그리기'}[scope.slice(-1)];
   if(/^climate_[LMH]$/.test(scope||''))return {L:'하 · 기후 기호',M:'중 · 출제지',H:'상 · 전 지점'}[scope.slice(-1)];
-  if(/^suteuk_[LMH]$/.test(scope||''))return {L:'하 · 60문항',M:'중 · 100문항',H:'상 · 150문항'}[scope.slice(-1)];
+  if(/^suteuk(_|$)/.test(scope||'')){
+    const CAT={nat:'기후·자연',pop:'인구·도시',cul:'문화·분쟁·기구',ene:'자원·에너지',ind:'농업·무역·산업',geo:'위치·지역'};
+    const FMT={map:'지도 클릭',graph:'기후 그래프',order:'순서 배열',text:'단답·객관식'};
+    const parts=[];
+    const cm=scope.match(/_c([a-z-]+?)(?=_f|$)/), fm=scope.match(/_f([a-z-]+)$/);
+    if(cm)parts.push(cm[1].split('-').map(v=>CAT[v]||v).join('·'));
+    if(fm)parts.push(fm[1].split('-').map(v=>FMT[v]||v).join('·'));
+    return parts.length?parts.join(' / '):'전 범위';
+  }
   if (!scope) return '전체';
   if (scope === 'korea') return '한국';
   const parts = scope.split('_');

@@ -1043,8 +1043,13 @@ body.sq-map #world-svg .circ-glow{animation:none;stroke-opacity:.42}
 .sq-hint{font-size:.7rem;color:var(--tx2);margin-top:-.15rem}
 
 /* ── 수특퀴즈: 지도에 점 찍기 · 그래프 보기 · 암기법 힌트 ── */
-.sq-mapfig{background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:.35rem;max-width:540px;margin:0 auto;width:100%}
-.sq-mapfig svg{display:block;width:100%;height:auto}
+.sq-mapfig{position:relative;background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:.35rem;width:100%;overflow:hidden;touch-action:none}
+.sq-mapfig svg{display:block;width:100%;height:auto;cursor:grab}
+.sq-mapfig svg:active{cursor:grabbing}
+.sq-mm-ctrl{position:absolute;right:.45rem;bottom:.45rem;display:flex;gap:.25rem}
+.sq-mm-ctrl button{width:30px;height:30px;border-radius:8px;border:1px solid var(--bd);background:color-mix(in srgb,var(--sf) 92%,transparent);color:var(--tx);font-family:inherit;font-size:.95rem;font-weight:700;line-height:1;cursor:pointer;padding:0}
+.sq-mm-ctrl button.wide{width:auto;padding:0 .5rem;font-size:.7rem;font-weight:600}
+.sq-mm-ctrl button:hover{border-color:var(--ac);color:var(--ac)}
 #sq-mm-land{fill:var(--land);stroke:var(--map-line);stroke-width:1;vector-effect:non-scaling-stroke}
 #sq-mm-halo{fill:none;stroke:var(--wr);stroke-width:14;opacity:.5;animation:sqPin 1.5s ease-in-out infinite}
 #sq-mm-dot{fill:var(--wr);stroke:var(--sf);stroke-width:10}

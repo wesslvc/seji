@@ -164,22 +164,21 @@ const LD_SLIDES=[
  {act:'worlddict', ic:'dict', mc:'#e2c07a', tt:'세지 위키', ds:'국가별 수도·인구·GDP·기후·수출·에너지·종교·접경국 정보를 한눈에 봐요. 설명은 누구나 수정을 제안할 수 있어요.', pts:'모두가 만드는 사전', dict:true},
  /* 3×3 배치를 흐트러뜨리지 않도록 맨 아래 가로 한 칸으로 붙인다 */
  {act:'suteuk', ic:'book', mc:'#ff9db1', tt:'9모대비 수특퀴즈', wide:true,
-  ds:'수능특강 세계지리 1~4강과 「이것이 수특 정리다」 특강 자료 01~25에 나온 내용만 물어봐요. 지도에 찍힌 지점의 기후 그래프 고르기, 순서 직접 입력, 지도 클릭 등 외운 대로 써야 풀리는 형태입니다. 암기법은 힌트 버튼을 눌러야 보이고, 보면 그 문항 배점이 절반이 돼요. 틀린 문항은 오답노트 PDF로 저장할 수 있습니다.',
-  pts:'2 · 3 · 4점', diff:'sqdiff', levels:['L','M','H'],
-  dd:{L:'하 · 60문항 · 객관식 위주',M:'중 · 100문항 · 대부분 직접 입력',H:'상 · 전 문항 · 순서까지 보기 없이 직접 입력'}}
+  ds:'수능특강 세계지리 1~4강과 「이것이 수특 정리다」 특강 자료 01~25에 나온 내용만 물어봐요. 지도에 찍힌 지점의 기후 그래프 고르기, 순서 직접 입력, 지도 클릭 등 외운 대로 써야 풀리는 형태입니다. 아래에서 주제·형식을 골라 그 부분만 집중해서 풀 수 있어요. 암기법은 힌트 버튼을 눌러야 보이고, 보면 그 문항 배점이 절반이 됩니다. 틀린 문항은 오답노트 PDF로 저장할 수 있어요.',
+  pts:'문항당 3점'}
 ];
 const TRADE_DD={
  x:{L:'하 · 주요국만 · 힌트 있음 (2점)',M:'중 · 모든 국가 · 힌트 있음 (4점)',H:'상 · 힌트 없음 (6점)'},
  m:{L:'하 · 주요국만 · 힌트 있음 (3점)',M:'중 · 모든 국가 · 힌트 있음 (6점)',H:'상 · 힌트 없음 (9점)'}
 };
 
-const LD={sel:new Set(),bdiff:'M',rdiff:'M',ediff:'M',tdiff:'M',kdiff:'M',vdiff:'M',cldiff:'M',sqdiff:'M',sqcat:new Set(),sqfmt:new Set(),esub:'all',tkind:'x'};
+const LD={sel:new Set(),bdiff:'M',rdiff:'M',ediff:'M',tdiff:'M',kdiff:'M',vdiff:'M',cldiff:'M',sqcat:new Set(),sqfmt:new Set(),esub:'all',tkind:'x'};
 const LD_ESUB_LABEL={all:'전체',ff:'화석연료만',re:'신재생만'};
 const LD_SAVE_KEY='g3_ld_v1';
 function ldSave(){
   try{
     localStorage.setItem(LD_SAVE_KEY,JSON.stringify({
-      sel:[...LD.sel],bdiff:LD.bdiff,rdiff:LD.rdiff,ediff:LD.ediff,tdiff:LD.tdiff,kdiff:LD.kdiff,vdiff:LD.vdiff,cldiff:LD.cldiff,sqdiff:LD.sqdiff,sqcat:[...LD.sqcat],sqfmt:[...LD.sqfmt],esub:LD.esub,tkind:LD.tkind,
+      sel:[...LD.sel],bdiff:LD.bdiff,rdiff:LD.rdiff,ediff:LD.ediff,tdiff:LD.tdiff,kdiff:LD.kdiff,vdiff:LD.vdiff,cldiff:LD.cldiff,sqcat:[...LD.sqcat],sqfmt:[...LD.sqfmt],esub:LD.esub,tkind:LD.tkind,
       conts:[...document.querySelectorAll('.ld-cont-cb')].filter(c=>c.checked).map(c=>c.value),
       big:!!(document.getElementById('ld-big')||{}).checked,
       noisle:!!(document.getElementById('ld-noisle')||{}).checked,
@@ -200,7 +199,6 @@ function ldRestore(){
   if(['L','M'].includes(d.kdiff))LD.kdiff=d.kdiff;
   if(['L','M','H'].includes(d.vdiff))LD.vdiff=d.vdiff;
   if(['L','M','H'].includes(d.cldiff))LD.cldiff=d.cldiff;
-  if(['L','M','H'].includes(d.sqdiff))LD.sqdiff=d.sqdiff;
   if(Array.isArray(d.sqcat))LD.sqcat=new Set(d.sqcat);
   if(Array.isArray(d.sqfmt))LD.sqfmt=new Set(d.sqfmt);
   return d;
@@ -295,8 +293,7 @@ function ldRenderDetail(){
 function ldSqCountText(){
   let n=0;try{n=sqCountFor(LD.sqcat,LD.sqfmt);}catch(e){}
   if(!n)return '이 범위에는 문항이 없어요. 주제나 형식을 더 골라 주세요.';
-  const cnt={L:60,M:100,H:9999}[LD.sqdiff]||100;
-  return '선택한 범위 '+n+'문항' + (n<=cnt?' — 이번 판에 전부 나옵니다':' 중 '+cnt+'문항 출제');
+  return '선택한 범위 '+n+'문항 — 한 판에 전부 나옵니다';
 }
 function ldToggle(act,forceOn){
   /* 단일 선택 */
@@ -401,7 +398,7 @@ function startFromLanding(){
   if(acts.includes('river'))key+='_v'+(LD.vdiff||'M');
   if(acts.includes('climate'))key+='_cl'+(LD.cldiff||'M');
   if(acts.includes('suteuk')){
-    key+='_sq'+(LD.sqdiff||'M');
+    key+='_sq';
     if(LD.sqcat.size)key+='_sqc'+[...LD.sqcat].sort().join('+');
     if(LD.sqfmt.size)key+='_sqf'+[...LD.sqfmt].sort().join('+');
     let n=0;try{n=sqCountFor(LD.sqcat,LD.sqfmt);}catch(e){}
@@ -3308,10 +3305,10 @@ function listSaves(){
       const ty=k.startsWith('tq_x_')?'texp':k.startsWith('tq_m_')?'timp':k.startsWith('tq_e_')?'tenergy':'religion';
       out.push({type:ty,key:k,scope:d.filterKey||k.slice(5),
         done,total:d.totalCountries||0,wrong:(d.wrong||[]).length,recorded:!!d.recorded});
-    }else if(/^sq_[LMH](_c[a-z]+)?(_f[a-z]+)?$/.test(k)){
+    }else if(/^sq_(all|c[a-z-]+(_f[a-z-]+)?|f[a-z-]+)$/.test(k)){
       if(!d.plan||!d.plan.length)continue;
       const done=(d.cor||0)+(d.wr||0);if(!done)continue; /* 시작만 한 건 제외 */
-      out.push({type:'suteuk',key:k,scope:'suteuk_'+(d.diff||'M'),done,total:d.plan.length,wrong:d.wr||0,recorded:!!d.recorded});
+      out.push({type:'suteuk',key:k,scope:k.replace(/^sq_/,'suteuk_'),done,total:d.plan.length,wrong:d.wr||0,recorded:!!d.recorded});
     }else if(k.startsWith('cq_')&&!k.includes('__')){
       if(!d.attempted)continue; /* 시작만 한 건 제외 */
       const m=k.match(/^cq_([LMH])_(.+)$/);if(!m)continue;
@@ -3347,7 +3344,7 @@ function _resumeStart(type,key){
   else if(type==='suteuk'){
     /* 저장본에 남겨 둔 filterKey로 학습 범위까지 그대로 복원한다 */
     let fk='';try{fk=(JSON.parse(localStorage.getItem(key))||{}).fk||'';}catch(e){}
-    startSession('world',['suteuk'],fk||('all_sq'+(key.match(/^sq_([LMH])/)||[,'M'])[1]));
+    startSession('world',['suteuk'],fk||'all_sq');
   }
 }
 function resumeSave(type,key){_resumeStart(type,key);}
