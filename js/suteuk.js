@@ -447,7 +447,12 @@ function sqCanSA(q){
   const a=String(q.a||'');
   /* 정답이 한 문장인 ‘이유 고르기’류는 단답으로 채점할 수 없다 */
   if(a.length>=18||a.split(/\s/).length>=5)return false;
-  return !sqNorm(q.q).includes(sqNorm(a));
+  /* 보기가 둘·셋뿐인데 문장이 그 대상을 하나도 안 밝히고 힌트도 없으면
+     ‘무엇들 중에서’인지 알 수 없는 문제가 된다 — 보기를 남긴다.
+     (예: “석유와 천연가스를 이용한 발전량의 절대치가 더 큰 쪽은?”) */
+  const qn=sqNorm(q.q);
+  if(q.opts.length<=3&&!q.choices&&!q.opts.some(o=>qn.includes(sqNorm(o))))return false;
+  return !qn.includes(sqNorm(a));
 }
 function sqToSA(q){
   if(!sqCanSA(q))return q;
