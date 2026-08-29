@@ -20,10 +20,61 @@ function sqNorm(s){
 }
 function sqSame(a,b){return sqNorm(a)===sqNorm(b);}
 
-/* 한 정답에 허용되는 표기들 (문항의 alt 맵 + 정답 자신) */
+/* ── 같은 뜻의 다른 표기 ──
+   나라 이름은 COUNTRIES가 이미 별칭을 갖고 있으니(오스트레일리아=호주,
+   튀르키예=터키, 에스파냐=스페인 …) 그대로 끌어다 쓴다. 대륙·지역·종교·
+   기후처럼 나라가 아닌 말만 여기에 적는다. */
+const SQ_ALIAS_RAW={
+  '앵글로아메리카':['앵글로 아메리카','앵글로-아메리카','북아메리카','북미'],
+  '라틴 아메리카':['라틴아메리카','중남미','중·남부 아메리카','중남부 아메리카'],
+  '중·남부 아메리카':['중남부 아메리카','중남미','라틴 아메리카','라틴아메리카'],
+  '오세아니아':['대양주'],
+  '서남아시아':['서아시아','중동'],
+  '북부 아프리카':['북아프리카'],
+  '건조 아시아':['건조아시아'],
+  '동아시아':['동아시아 국가'],
+  '크리스트교':['기독교','그리스도교'],
+  '이슬람교':['회교','무슬림'],
+  '힌두교':['힌두'],
+  '열대 우림':['열대우림','Af','열대 우림 기후'],
+  '열대 몬순':['열대몬순','열대 계절풍','Am','열대 몬순 기후'],
+  '사바나':['사반나','Aw','사바나 기후'],
+  '온대 동계 건조':['온대동계건조','Cw','Cwa','Cwb','온대 겨울 건조'],
+  '지중해성':['지중해성 기후','Cs','Csa','Csb'],
+  '서안 해양성':['서안해양성','Cfb','Cfc','서안 해양성 기후'],
+  '온난 습윤':['온난습윤','Cfa','온대 습윤'],
+  '열대 고산':['열대고산','고산','고산 기후','열대 고산 기후'],
+  '툰드라':['ET'],'빙설':['EF'],
+  '냉대 습윤':['Df','Dfa','Dfb'],'냉대 동계 건조':['Dw','Dwa','Dwb'],
+  '열대 사막':['BWh'],'열대 스텝':['BSh'],'냉대 사막':['BWk'],'냉대 스텝':['BSk']
+};
+let _sqAliasIdx=null;   /* 정규화한 표기 → 같은 뜻의 표기 목록 */
+function sqAliasIndex(){
+  if(_sqAliasIdx)return _sqAliasIdx;
+  const idx={};
+  const add=(group)=>{
+    const clean=group.filter(Boolean);
+    clean.forEach(w=>{
+      const k=sqNorm(w);if(!k)return;
+      idx[k]=(idx[k]||[]).concat(clean);
+    });
+  };
+  if(typeof COUNTRIES!=='undefined')
+    Object.keys(COUNTRIES).forEach(iso=>{
+      const c=COUNTRIES[iso];
+      add([c.k].concat(c.x||[]).concat(c.e?[c.e]:[]));
+    });
+  Object.keys(SQ_ALIAS_RAW).forEach(k=>add([k].concat(SQ_ALIAS_RAW[k])));
+  return (_sqAliasIdx=idx);
+}
+function sqAliasesFor(word){
+  return sqAliasIndex()[sqNorm(word)]||[];
+}
+/* 한 정답에 허용되는 표기들 (문항의 alt 맵 + 정답 자신 + 같은 뜻의 다른 표기) */
 function sqAccepts(q,ans){
   const list=[ans];
-  if(q.alt&&q.alt[ans])list.push(...q.alt[ans]);
+  if(q&&q.alt&&q.alt[ans])list.push(...q.alt[ans]);
+  list.push(...sqAliasesFor(ans));
   return list;
 }
 
@@ -834,8 +885,8 @@ function sqSubmit(){
   const raw=(inp&&inp.value||'').trim();
   if(q.t==='txt'){
     if(!raw)return;
-    const cand=Array.isArray(q.a)?q.a.slice():[q.a];
-    (Array.isArray(q.a)?q.a:[q.a]).forEach(v=>{if(q.alt&&q.alt[v])cand.push(...q.alt[v]);});
+    const cand=[];
+    (Array.isArray(q.a)?q.a:[q.a]).forEach(v=>cand.push(...sqAccepts(q,v)));
     const ok=cand.some(v=>sqSame(v,raw));
     if(!ok&&SQ.tries<1){
       SQ.tries++;
