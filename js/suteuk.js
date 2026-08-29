@@ -1,7 +1,7 @@
 /* ══════════════════════════════════════════════════════════════════════════
    9모대비 수특퀴즈 (Suteuk Quiz)
    ──────────────────────────────────────────────────────────────────────────
-   수능특강 1~4강 내용을 고정 문항(SUTEUK_BANK)으로 담고, 거기에 앱이 이미 가진
+   수특지엽 1~4강 내용을 고정 문항(SUTEUK_BANK)으로 담고, 거기에 앱이 이미 가진
    데이터 — 기후 그래프(CLIMATE), 세계지도(world-svg), 종교/에너지 구성,
    무역 구조(TRADE_DATA), 접경국(BORDERS), 하천(RIVERS), 사전(DICT_DATA) —
    에서 매번 새로 뽑아내는 생성 문항을 섞어 출제한다. 그래서 같은 단원을 다시
@@ -166,11 +166,13 @@ function sqGenClimateMap(){
   return shuffle(spec).map(l=>{
     const others=sqPickGraphOpts(spec,l);
     if(others.length<3)return null;
+    const all=shuffle(others.concat([Object.assign({},l,{lbl:sqSpecLabel(l)})]));
+    const optLbl={};all.forEach(x=>{optLbl[x.id]=sqLocLabel(x)+' · '+x.lbl;});
     return {ch:'그래프',t:'mc',tag:'위치와 기후',gen:1,keepMc:true,
-      climap:l.id,optCharts:1,
+      climap:l.id,optCharts:1,optLbl:optLbl,
       q:'세계지도에 표시된 지점의 기후 그래프로 옳은 것은?',
-      opts:shuffle(others.concat([l]).map(x=>x.id)),a:l.id,
-      exp:sqLocLabel(l)+' — '+(l.highland?'열대 고산':l.wettest?'세계 최다우지':SQ_KOP_KO[l.kop])
+      opts:all.map(x=>x.id),a:l.id,
+      exp:sqLocLabel(l)+' — '+(l.wettest?'열대 몬순(세계 최다우지)':sqSpecLabel(l))
         +'. 연 강수량 약 '+Math.round(sqAnnPrec(l))+'mm · 기온의 연교차 약 '+sqAnnRange(l).toFixed(1)+'℃.'
         +(l.why?' '+l.why:'')};
   }).filter(Boolean);
@@ -184,66 +186,82 @@ function sqGraphDist(a,b){
     Math.abs(Math.min(...a.tmin)-Math.min(...b.tmin))/6,
     Math.abs(Math.max(...a.tmax)-Math.max(...b.tmax))/8);
 }
-/* 지점이 속한 큰 범주 — 열대(A) · 열대 고산(H) · 온대(C).
-   보기는 같은 범주 안에서 고른다. 열대를 물으면 열대끼리, 고산이면 고산끼리
-   비교해야 착각하기 쉬우면서도 그래프를 읽으면 갈리는 문제가 된다. */
-function sqSpecCat(l){
-  if(l.highland)return 'H';
-  if(l.wettest)return 'A';              /* 체라푼지 — 수특은 열대 몬순 최다우지로 다룬다 */
-  return SQ_FAMILY[SQ_KOP_KO[l.kop]]==='C'?'C':'A';
+/* 정답 지점이 수특에서 어떤 기후로 다뤄지는가 */
+function sqSpecLabel(l){
+  if(l.highland)return '열대 고산';
+  if(l.wettest)return '열대 몬순';      /* 체라푼지 — 수특은 열대 몬순 최다우지로 다룬다 */
+  return SQ_KOP_KO[l.kop];
 }
-/* 보기 세 개 고르기
-   ① 같은 범주에서 (열대는 열대끼리, 고산은 고산끼리)
-   ② 네 그래프가 서로 최소 간격 이상 — 콜롬보와 쿠알라룸푸르처럼 사실상 같은
-      그래프가 함께 나오면 눈으로 못 가른다
-   ③ 정답만 혼자 다른 반구에 놓이지 않게 — 계절 위상만으로 답이 특정되면 안 된다
-   같은 범주에서 셋을 못 채우면 그때만 범주를 넘어간다. */
+/* 같은 범주 안의 다른 기후들 — 열대면 열대 우림·열대 몬순·사바나·열대 고산 */
+function sqFamilySiblings(label){
+  const fam=SQ_FAMILY[label];
+  return Object.keys(SQ_FAMILY).filter(k=>k!==label&&SQ_FAMILY[k]===fam);
+}
+/* 특정 기후·반구에 해당하는 지점들.
+   문항(지도에 찍는 지점)은 수특에 나온 곳만 쓰지만, 보기로 깔 그래프는
+   앱이 가진 기후 자료 1,000여 지점을 전부 후보로 쓴다. 그래야 같은 범주 안에서
+   서로 다른 기후를 하나씩 세울 수 있다. */
+let _sqSpecIds=null;
+function sqSpecIdSet(){
+  if(!_sqSpecIds)_sqSpecIds=new Set(sqSpecLocs().map(x=>x.id));
+  return _sqSpecIds;
+}
+function sqLocsByLabel(label,hemi){
+  if(label==='열대 고산')                    /* 고산은 쾨펜 기호로 잡히지 않아 수특 여섯 도시를 쓴다 */
+    return sqSpecLocs().filter(x=>x.highland&&(x.lat>=0)===hemi);
+  /* 수특 지점은 보기로 쓰지 않는다 — 앱의 쾨펜 기호가 수특이 가르치는 분류와
+     어긋나는 곳이 있어(키토 Csb, 라파스 ET, 체라푼지 Cwb) 엉뚱한 이름이 붙는다 */
+  const spec=sqSpecIdSet();
+  const all=sqLocs().filter(l=>SQ_KOP_KO[l.kop]===label&&(l.lat>=0)===hemi&&!spec.has(l.id));
+  /* ‘◯◯ 인근’ 같은 관측 격자점보다 실제 도시를 먼저 쓴다 */
+  const cities=all.filter(l=>!/인근|사막|저지대|고원|해안|삼각주|제도|빙상|부근/.test(l.ko));
+  return cities.length>=8?cities:all;
+}
+
+/* 두 지점의 기후 그래프가 눈으로 얼마나 다른가 — 1보다 크면 확실히 구분된다.
+   연 강수량 500mm · 연교차 4℃ · 최한월 6℃ · 최난월 8℃를 각각 1로 본다. */
+function sqGraphDist(a,b){
+  return Math.max(
+    Math.abs(sqAnnPrec(a)-sqAnnPrec(b))/500,
+    Math.abs(sqAnnRange(a)-sqAnnRange(b))/4,
+    Math.abs(Math.min(...a.tmin)-Math.min(...b.tmin))/6,
+    Math.abs(Math.max(...a.tmax)-Math.max(...b.tmax))/8);
+}
+/* 보기 세 개 고르기 —
+   같은 범주(열대끼리·온대끼리) 안에서 서로 다른 기후를 하나씩, 정답과 같은
+   반구에서, 그래프가 눈에 띄게 다른 지점으로 세운다. 같은 기후 둘을 나란히
+   놓으면(열대 우림 두 곳) 눈으로 가를 수 없어 문제가 성립하지 않는다. */
 const SQ_GRAPH_MIN=0.7;
 function sqPickGraphOpts(spec,ans){
-  const cat=sqSpecCat(ans), hemi=ans.lat>=0;
-  /* 같은 범주 → 범주 넘기 → 간격 완화 순으로만 물러선다 */
+  const label=sqSpecLabel(ans);
+  const sibs=sqFamilySiblings(label);
   const passes=[
-    {cat:true, min:SQ_GRAPH_MIN},
-    {cat:false,min:SQ_GRAPH_MIN},
-    {cat:false,min:SQ_GRAPH_MIN/2},
-    {cat:false,min:0}
+    {hemi:true, min:SQ_GRAPH_MIN},
+    {hemi:false,min:SQ_GRAPH_MIN},
+    {hemi:false,min:SQ_GRAPH_MIN/2}
   ];
   for(const ps of passes){
-    const pool=spec.filter(x=>x.id!==ans.id
-      &&(!ps.cat||sqSpecCat(x)===cat)
-      &&sqGraphDist(x,ans)>=ps.min);
-    /* 후보가 열둘뿐이라 세 개 조합을 전부 훑는다 — 그리디로 잡으면 좋은 조합을
-       스스로 막아 버려(예: 마이애미) 괜히 범주를 넘어가게 된다 */
-    const sols=[];
-    for(let a=0;a<pool.length;a++)for(let b=a+1;b<pool.length;b++)for(let c=b+1;c<pool.length;c++){
-      const t=[pool[a],pool[b],pool[c]];
-      if(sqGraphDist(t[0],t[1])<ps.min)continue;
-      if(sqGraphDist(t[0],t[2])<ps.min)continue;
-      if(sqGraphDist(t[1],t[2])<ps.min)continue;
-      sols.push(t);
+    const hemi=ans.lat>=0;
+    const picked=[];
+    for(const sib of shuffle(sibs)){
+      if(picked.length>=3)break;
+      let pool=sqLocsByLabel(sib,hemi);
+      if(!ps.hemi)pool=pool.concat(sqLocsByLabel(sib,!hemi));
+      const fit=pool.filter(x=>x.id!==ans.id
+        &&sqGraphDist(x,ans)>=ps.min
+        &&picked.every(pk=>sqGraphDist(x,pk)>=ps.min));
+      /* CLIMATE는 도시 규모 순이라 id가 작을수록 널리 알려진 곳이다.
+         상위권에서 무작위로 뽑아 낯선 관측점 대신 아는 도시가 나오게 한다. */
+      fit.sort((u,v)=>u.id-v.id);
+      const c=fit.length?fit[Math.floor(Math.random()*Math.min(fit.length,15))]:null;
+      if(c)picked.push(Object.assign({},c,{lbl:sib}));
     }
-    if(!sols.length)continue;
-    /* 정답만 혼자 다른 반구에 놓이면 계절 위상만으로 답이 특정된다 */
-    const good=sols.filter(t=>t.some(x=>(x.lat>=0)===hemi));
-    if(good.length)return good[Math.floor(Math.random()*good.length)].slice();
-    if(ps.cat){
-      /* 같은 범주에 같은 반구 지점이 없을 때(자카르타처럼)는 범주에서 둘,
-         같은 반구에서 하나를 가져와 위상만으로 갈리지 않게 한다 */
-      const hemiPool=shuffle(spec.filter(x=>x.id!==ans.id&&(x.lat>=0)===hemi&&sqGraphDist(x,ans)>=ps.min));
-      for(let a=0;a<pool.length;a++)for(let b=a+1;b<pool.length;b++){
-        if(sqGraphDist(pool[a],pool[b])<ps.min)continue;
-        const h=hemiPool.find(x=>x!==pool[a]&&x!==pool[b]
-          &&sqGraphDist(x,pool[a])>=ps.min&&sqGraphDist(x,pool[b])>=ps.min);
-        if(h)return [pool[a],pool[b],h];
-      }
-      continue;   /* 그래도 안 되면 다음 pass에서 범주를 푼다 */
-    }
-    return sols[Math.floor(Math.random()*sols.length)].slice();
+    if(picked.length>=3)return picked;
   }
   return [];
 }
 
-/* 카드 안에 띄우는 작은 세계지도 — 기후 지도(CQ_MAP_D)와 같은 등장방형 투영이라
+/* 카드 안에 띄우는 작은 세계지도/* 카드 안에 띄우는 작은 세계지도 — 기후 지도(CQ_MAP_D)와 같은 등장방형 투영이라
    위경도를 그대로 찍으면 실제 위치에 정확히 표시된다. */
 let _sqMMReady=false;
 function sqMiniMapInit(){
@@ -446,7 +464,7 @@ function sqToOrdTxt(q){
   delete out.opts;
   return out;
 }
-/* 전체 문항 풀 = 수능특강 1~4강 + 특강 자료 01~25 + 수특 지점 기후 그래프 */
+/* 전체 문항 풀 = 수특지엽 1~4강 + 특강 자료 01~25 + 수특 지점 기후 그래프 */
 function sqPool(){
   const a=(typeof SUTEUK_BANK!=='undefined'?SUTEUK_BANK:[]);
   const b=(typeof SUTEUK_B!=='undefined'?SUTEUK_B:[]);
@@ -755,6 +773,8 @@ function sqFeedback(ok,q){
       if(sqSame(v,q.a))b.classList.add('right');
       else if(b.classList.contains('on'))b.classList.add('wrong');
       b.disabled=true;
+      /* 그래프 보기는 어느 지점의 어떤 기후였는지 알려 준다 — 틀려도 남는 게 있게 */
+      if(q.optLbl&&q.optLbl[v])b.insertAdjacentHTML('beforeend','<span class="sq-opt-cap">'+sqEsc(q.optLbl[v])+'</span>');
     });
   }
   if(q.t==='ordtxt'){
@@ -969,6 +989,7 @@ function sqPrintNote(){
       +'<div class="pn-blank"></div></div>';
   }).join('')).join('');
   host.innerHTML='<div class="pn-head"><h1>9모대비 수특퀴즈 오답노트</h1>'
+    +'<div class="pn-src">수특지엽 1~4강 · 「이것이 수특 정리다」 특강 자료 01~25</div>'
     +'<div class="pn-sub">'+stamp+' · '+sqRangeLabel()
     +' · 정답 '+SQ.cor+' / 오답 '+SQ.wr+' · 총 '+SQ.pts+'점</div></div>'+body
     +'<div class="pn-foot">Geogl3 · geogl3.xyz</div>';
