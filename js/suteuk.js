@@ -519,9 +519,18 @@ function sqPool(){
   const b=(typeof SUTEUK_B!=='undefined'?SUTEUK_B:[]);
   return a.concat(b).concat(sqBuildGenerated());
 }
+/* 보기 순서 섞기.
+   문항 데이터에는 정답을 맨 앞에 적어 두었고, 순서 배열 문항의 보기도
+   정답 순서 그대로다. 그대로 내면 “1번이 정답”, “적힌 대로 누르면 정답”이
+   되어 버리므로 판을 짤 때 한 번 섞는다. 원본 배열은 건드리지 않는다. */
+function sqShufOpts(q){
+  if(!q.opts||q.opts.length<2)return q;
+  if(q.t!=='mc'&&q.t!=='order')return q;
+  return Object.assign({},q,{opts:shuffle(q.opts.slice())});
+}
 function sqBuildPlan(){
   const all=shuffle(sqFilterPool(sqPool(),SQ.cats,SQ.fmts))
-    .map(q=>sqToOrdTxt(sqToSA(q)));
+    .map(q=>sqShufOpts(sqToOrdTxt(sqToSA(q))));
   return all.map((x,i)=>Object.assign({},x,{qid:(x.gen?'g':'b')+i}));
 }
 
@@ -542,7 +551,14 @@ function sqRefreshPlan(){
   SQ.plan=SQ.plan.map(old=>{
     const f=fresh[sqPlanKey(old)];
     if(!f)return old;                      /* 없어진 문항은 그대로 둔다 */
-    const nq=sqToOrdTxt(sqToSA(f));
+    let nq=sqToOrdTxt(sqToSA(f));
+    /* 보기 구성이 그대로면 이미 섞어 둔 순서를 유지한다 — 새로 고칠 때마다
+       보고 있던 문항의 보기가 뒤바뀌면 헷갈린다. 달라졌으면 새로 섞는다. */
+    if(nq.opts){
+      const same=old.opts&&old.opts.length===nq.opts.length
+                 &&nq.opts.every(o=>old.opts.indexOf(o)>=0);
+      nq=same?Object.assign({},nq,{opts:old.opts.slice()}):sqShufOpts(nq);
+    }
     if(nq.q!==old.q||nq.t!==old.t)changed++;
     return Object.assign({},nq,{qid:old.qid});
   });
