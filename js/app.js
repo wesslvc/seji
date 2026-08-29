@@ -125,6 +125,40 @@ function toggleSfx(){
   if(sfxOn)playCorrectSound();
 }
 updateSfxBtn();
+/* ══════════ 새 버전 알림 ══════════
+   정적 사이트라 탭을 열어 둔 채로는 옛 스크립트가 계속 돈다. 문항을 고쳐도
+   반영되지 않아 이미 고친 문제를 다시 마주치게 되므로, 탭으로 돌아올 때마다
+   빌드 스탬프(build.txt)를 확인해 새 버전이 올라왔으면 알려 준다.
+   스탬프는 index.html의 ?v= 값과 같은 값을 쓴다. */
+const BUILD=(function(){
+  try{
+    const el=document.currentScript||document.querySelector('script[src*="js/app.js"]');
+    const m=((el&&el.src)||'').match(/[?&]v=([^&]+)/);
+    return m?m[1]:'';
+  }catch(e){return '';}
+})();
+let _buildNotified=false,_buildLast=0;
+async function checkNewBuild(){
+  if(!BUILD||_buildNotified)return;
+  const now=Date.now();
+  if(now-_buildLast<60000)return;      /* 1분에 한 번까지만 */
+  _buildLast=now;
+  try{
+    const r=await fetch('build.txt?t='+now,{cache:'no-store'});
+    if(!r.ok)return;
+    const v=(await r.text()).trim();
+    if(v&&v!==BUILD){
+      _buildNotified=true;
+      const el=document.getElementById('new-build');
+      if(el)el.classList.add('on');
+    }
+  }catch(e){}
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkNewBuild();});
+window.addEventListener('focus',checkNewBuild);
+setInterval(checkNewBuild,10*60*1000);
+setTimeout(checkNewBuild,20000);
+
 const TAB_META={
   name:{label:'나라 이름',ic:'globe'},
   border:{label:'접경국',ic:'border'},
