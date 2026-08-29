@@ -447,11 +447,16 @@ function sqCanSA(q){
   const a=String(q.a||'');
   /* 정답이 한 문장인 ‘이유 고르기’류는 단답으로 채점할 수 없다 */
   if(a.length>=18||a.split(/\s/).length>=5)return false;
-  /* 보기가 둘·셋뿐인데 문장이 그 대상을 하나도 안 밝히고 힌트도 없으면
-     ‘무엇들 중에서’인지 알 수 없는 문제가 된다 — 보기를 남긴다.
-     (예: “석유와 천연가스를 이용한 발전량의 절대치가 더 큰 쪽은?”) */
+  /* 문장이 보기 대상을 하나도 밝히지 않고 힌트도 없으면 ‘무엇들 중에서’인지
+     알 수 없는 문제가 된다 — 이럴 땐 보기를 남긴다.
+       ① 보기가 둘·셋뿐인 경우 (예: “…발전량의 절대치가 더 큰 쪽은?”)
+       ② ‘세 나라 중’, ‘주요국 중’처럼 범위만 가리키고 대상을 안 밝힌 경우 */
   const qn=sqNorm(q.q);
-  if(q.opts.length<=3&&!q.choices&&!q.opts.some(o=>qn.includes(sqNorm(o))))return false;
+  const names=q.opts.some(o=>qn.includes(sqNorm(o)));
+  if(!names&&!q.choices){
+    if(q.opts.length<=3)return false;
+    if(/(세|네|다섯|여섯)\s*(나라|국가|작물|지점|대륙|곳)|주요국\s*중|자료의\s*(나라|국가)/.test(q.q))return false;
+  }
   return !qn.includes(sqNorm(a));
 }
 function sqToSA(q){
