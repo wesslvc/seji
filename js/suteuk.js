@@ -445,7 +445,8 @@ function sqBuildGenerated(){
 function sqCanSA(q){
   if(q.t!=='mc'||q.keepMc||!q.opts)return false;
   const a=String(q.a||'');
-  if(a.length>=14||(a.split(/\s/).length>=4))return false;
+  /* 정답이 한 문장인 ‘이유 고르기’류는 단답으로 채점할 수 없다 */
+  if(a.length>=18||a.split(/\s/).length>=5)return false;
   return !sqNorm(q.q).includes(sqNorm(a));
 }
 function sqToSA(q){
@@ -693,10 +694,10 @@ function sqShow(){
   document.getElementById('sq-meta').innerHTML='<span class="sq-ch">'+sqEsc(q.ch)+'</span><span class="sq-tag">'+sqEsc(q.tag||'')+'</span>';
   document.getElementById('sq-q').textContent=q.q;
   document.getElementById('sq-fig').innerHTML=sqFigHTML(q);
-  /* 암기법 힌트 — 눌러야 보인다 */
+  /* 힌트 — 암기법이나 보기 목록. 눌러야 보인다 */
   const hb=document.getElementById('sq-hint-btn'),hx=document.getElementById('sq-hint-box');
   if(hx){hx.textContent='';hx.classList.remove('on');}
-  if(hb)hb.style.display=q.mnem?'':'none';
+  if(hb){hb.disabled=false;hb.style.display=sqHintText(q)?'':'none';}
   document.getElementById('sq-ans').innerHTML=sqAnsHTML(q);
   const fb=document.getElementById('sq-fb');fb.textContent='';fb.className='sq-fb';
   const ex=document.getElementById('sq-exp');ex.innerHTML='';ex.classList.remove('on');
@@ -765,12 +766,20 @@ function sqBindAns(q){
     }
   }
 }
-/* 암기법 힌트 — 열어 보면 그 문항의 배점이 절반이 된다 */
+/* 이 문항에 붙은 힌트 — 암기법이거나, 고를 후보 목록 */
+function sqHintText(q){
+  if(!q)return '';
+  if(q.mnem)return '암기법 — '+q.mnem;
+  if(q.choices)return '보기 — '+q.choices;
+  return '';
+}
+/* 힌트를 열어 보면 그 문항의 배점이 절반이 된다 */
 function sqShowHint(){
-  const q=sqCur();if(!q||!q.mnem||SQ.answered||SQ.hinted)return;
+  const q=sqCur();const txt=sqHintText(q);
+  if(!q||!txt||SQ.answered||SQ.hinted)return;
   SQ.hinted=true;SQ.hintUsed++;
   const hx=document.getElementById('sq-hint-box');
-  if(hx){hx.textContent='💡 '+q.mnem+'  (힌트를 봐서 이 문항은 '+Math.max(1,Math.floor(sqPer()/2))+'점)';hx.classList.add('on');}
+  if(hx){hx.textContent='💡 '+txt+'  (힌트를 봐서 이 문항은 '+Math.max(1,Math.floor(sqPer()/2))+'점)';hx.classList.add('on');}
   const hb=document.getElementById('sq-hint-btn');if(hb)hb.disabled=true;
   sqSave();
 }
@@ -792,7 +801,7 @@ function sqGiveAnswerText(q){
 }
 function sqLogWrong(q,mine){
   SQ.wrongLog.push({ch:q.ch,tag:q.tag||'',q:q.q,a:sqGiveAnswerText(q),mine:mine||'(무응답)',exp:q.exp||'',
-    mnem:q.mnem||'',
+    mnem:sqHintText(q),
     fig:q.climap?('세계지도에 표시된 지점 + 기후 그래프 보기'):
         q.chart?('기후 그래프 · '+(()=>{const l=sqLocs().find(x=>x.id===q.chart);return l?sqLocLabel(l):'';})()):''});
 }
@@ -1047,7 +1056,7 @@ function sqPrintNote(){
       +(w.fig?'<div class="pn-fig">자료 — '+sqEsc(w.fig)+'</div>':'')
       +'<div class="pn-a"><span class="pn-mine">내가 쓴 답: '+sqEsc(w.mine)+'</span>'
       +'<span class="pn-right">정답: '+sqEsc(w.a)+'</span></div>'
-      +(w.mnem?'<div class="pn-x"><b>암기법</b> '+sqEsc(w.mnem)+'</div>':'')
+      +(w.mnem?'<div class="pn-x"><b>힌트</b> '+sqEsc(w.mnem)+'</div>':'')
       +(w.exp?'<div class="pn-x">'+sqEsc(w.exp)+'</div>':'')
       +'<div class="pn-blank"></div></div>';
   }).join('')).join('');
