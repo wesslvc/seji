@@ -278,23 +278,47 @@ function sqShowMiniMap(locId){
   const l=sqLocs().find(x=>x.id===locId);
   if(!l||!sqMiniMapInit()){box.style.display='none';return;}
   const [x,y]=cqLonLatToMain(l.lon,l.lat);
-  ['sq-mm-halo','sq-mm-dot'].forEach(id=>{
-    const c=document.getElementById(id);
-    if(c){c.setAttribute('cx',x.toFixed(1));c.setAttribute('cy',y.toFixed(1));}
-  });
+  _mm.px=x;_mm.py=y;
   box.style.display='';
-  sqMMReset();
+  sqMMFocus();   /* 처음부터 지점 둘레가 크게 보이도록 확대해서 연다 */
 }
 
 /* ── 작은 지도 확대·축소·이동 ──
    viewBox는 그대로 두고 안쪽 <g>에 transform을 건다. 휠·드래그·핀치·버튼 모두
    같은 상태(_mm)를 고친다. 문항이 바뀌면 전체 보기로 되돌아간다. */
-const _mm={k:1,x:0,y:0};
+const SQ_MM_W=2754, SQ_MM_H=1398;
+const SQ_MM_K0=2.8;                    /* 문항을 열 때의 기본 배율 */
+const _mm={k:1,x:0,y:0,px:SQ_MM_W/2,py:SQ_MM_H/2};
+/* 확대해도 지도가 화면 밖으로 밀려나지 않게 */
+function sqMMClamp(){
+  if(_mm.k<=1){_mm.x=0;_mm.y=0;return;}
+  _mm.x=Math.min(0,Math.max(SQ_MM_W*(1-_mm.k),_mm.x));
+  _mm.y=Math.min(0,Math.max(SQ_MM_H*(1-_mm.k),_mm.y));
+}
 function sqMMApply(){
+  sqMMClamp();
   const g=document.getElementById('sq-mm-g');
   if(g)g.setAttribute('transform','translate('+_mm.x.toFixed(1)+','+_mm.y.toFixed(1)+') scale('+_mm.k.toFixed(3)+')');
+  /* 핀은 확대 그룹 밖에 있으므로 위치를 직접 계산하고, 화면상 크기를 고정한다 */
+  const svg=document.getElementById('sq-mm-svg');
+  if(!svg)return;
+  const r=svg.getBoundingClientRect();
+  const sc=Math.min(r.width/SQ_MM_W,r.height/SQ_MM_H)||0.25;   /* 지도 단위 → 화면 px */
+  const cx=_mm.px*_mm.k+_mm.x, cy=_mm.py*_mm.k+_mm.y;
+  const dot=document.getElementById('sq-mm-dot'), halo=document.getElementById('sq-mm-halo');
+  if(dot){dot.setAttribute('cx',cx.toFixed(1));dot.setAttribute('cy',cy.toFixed(1));
+    dot.setAttribute('r',(2.6/sc).toFixed(1));dot.setAttribute('stroke-width',(1.2/sc).toFixed(1));}
+  if(halo){halo.setAttribute('cx',cx.toFixed(1));halo.setAttribute('cy',cy.toFixed(1));
+    halo.setAttribute('r',(7.5/sc).toFixed(1));halo.setAttribute('stroke-width',(1.4/sc).toFixed(1));}
 }
 function sqMMReset(){_mm.k=1;_mm.x=0;_mm.y=0;sqMMApply();}
+/* 표시된 지점을 화면 한가운데에 두고 기본 배율로 */
+function sqMMFocus(){
+  _mm.k=SQ_MM_K0;
+  _mm.x=SQ_MM_W/2-_mm.px*_mm.k;
+  _mm.y=SQ_MM_H/2-_mm.py*_mm.k;
+  sqMMApply();
+}
 /* 화면 좌표 → 지도(viewBox) 좌표 */
 function sqMMPt(cx,cy){
   const svg=document.getElementById('sq-mm-svg');

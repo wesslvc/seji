@@ -1051,9 +1051,10 @@ body.sq-map #world-svg .circ-glow{animation:none;stroke-opacity:.42}
 .sq-mm-ctrl button.wide{width:auto;padding:0 .5rem;font-size:.7rem;font-weight:600}
 .sq-mm-ctrl button:hover{border-color:var(--ac);color:var(--ac)}
 #sq-mm-land{fill:var(--land);stroke:var(--map-line);stroke-width:1;vector-effect:non-scaling-stroke}
-#sq-mm-halo{fill:none;stroke:var(--wr);stroke-width:14;opacity:.5;animation:sqPin 1.5s ease-in-out infinite}
-#sq-mm-dot{fill:var(--wr);stroke:var(--sf);stroke-width:10}
-@keyframes sqPin{0%,100%{opacity:.25;r:70}50%{opacity:.75;r:100}}
+/* 핀 크기는 자바스크립트가 화면 기준으로 잡는다(배율과 무관하게 일정) */
+#sq-mm-halo{fill:none;stroke:var(--wr);opacity:.55;animation:sqPin 1.6s ease-in-out infinite}
+#sq-mm-dot{fill:var(--wr);stroke:var(--sf)}
+@keyframes sqPin{0%,100%{opacity:.25}50%{opacity:.8}}
 .sq-opts-chart{grid-template-columns:1fr 1fr}
 .sq-opt-chart{flex-direction:column;align-items:stretch;gap:.25rem;padding:.5rem .5rem .35rem;position:relative}
 .sq-opt-chart .sq-opt-n{position:absolute;top:.4rem;left:.45rem}
