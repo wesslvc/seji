@@ -16,7 +16,9 @@ function sqNorm(s){
   return String(s==null?'':s).toLowerCase().trim()
     .replace(/\([^)]*\)/g,'')          /* 괄호 주석 제거: 온대 동계 건조(Cw) → 온대 동계 건조 */
     .replace(/[\s·・.,'"’‘“”\-_/]/g,'')
-    .replace(/강$|산맥$|해협$|사막$/,''); /* 콜로라도강 = 콜로라도 */
+    /* 붙이든 안 붙이든 같은 답으로 보는 꼬리말 — 콜로라도강=콜로라도,
+       지중해성 기후=지중해성, 스톡홀름 협약=스톡홀름 */
+    .replace(/(강|산맥|해협|사막|기후|협약|해류|산지|고원|평야|반도|제도)$/,'');
 }
 function sqSame(a,b){return sqNorm(a)===sqNorm(b);}
 
@@ -70,6 +72,24 @@ function sqAliasIndex(){
 function sqAliasesFor(word){
   return sqAliasIndex()[sqNorm(word)]||[];
 }
+/* ── 줄여 쓴 답도 받아 준다 ──
+   다이아몬드 → 다이아, 카자흐스탄 → 카자흐, 사우디아라비아 → 사우디처럼
+   앞부분만 써도 맞는 것으로 본다. 세 글자 이상이고 원래 답의 40% 이상일 때만
+   인정해, '수단'과 '남수단', '콩고'와 '콩고민주공화국'처럼 서로 다른 답이
+   뒤섞이지 않게 한다. 오타 보정(한 글자 다름)은 넣지 않았다 —
+   '온대 동계 건조'와 '냉대 동계 건조'처럼 한 글자만 다른 정답들이 있어서다. */
+function sqLoose(expected,typed){
+  const e=sqNorm(expected), t=sqNorm(typed);
+  if(!e||!t)return false;
+  if(e===t)return true;
+  const lo=e.length<=t.length?e:t, hi=e.length<=t.length?t:e;
+  return hi.startsWith(lo)&&lo.length>=3&&lo.length>=hi.length*0.4;
+}
+/* 입력한 답이 이 정답으로 인정되는가 (별칭·줄임말 모두 확인) */
+function sqAnsOk(q,expected,typed){
+  return sqAccepts(q,expected).some(v=>sqLoose(v,typed));
+}
+
 /* 한 정답에 허용되는 표기들 (문항의 alt 맵 + 정답 자신 + 같은 뜻의 다른 표기) */
 function sqAccepts(q,ans){
   const list=[ans];
@@ -900,9 +920,7 @@ function sqSubmit(){
   const raw=(inp&&inp.value||'').trim();
   if(q.t==='txt'){
     if(!raw)return;
-    const cand=[];
-    (Array.isArray(q.a)?q.a:[q.a]).forEach(v=>cand.push(...sqAccepts(q,v)));
-    const ok=cand.some(v=>sqSame(v,raw));
+    const ok=(Array.isArray(q.a)?q.a:[q.a]).some(v=>sqAnsOk(q,v,raw));
     if(!ok&&SQ.tries<1){
       SQ.tries++;
       const fb=document.getElementById('sq-fb');
@@ -915,7 +933,7 @@ function sqSubmit(){
     if(!raw)return;
     SQ.got=SQ.got||[];
     const want=q.a[SQ.got.length];
-    const okOne=sqAccepts(q,want).some(v=>sqSame(v,raw));
+    const okOne=sqAnsOk(q,want,raw);
     if(okOne){
       SQ.got.push(want);inp.value='';
       const g=document.getElementById('sq-got');
@@ -937,7 +955,7 @@ function sqSubmit(){
     if(!raw)return;
     SQ.got=SQ.got||[];
     const remain=q.a.filter(v=>!SQ.got.includes(v));
-    const hit=remain.find(v=>sqAccepts(q,v).some(x=>sqSame(x,raw)));
+    const hit=remain.find(v=>sqAnsOk(q,v,raw));
     if(hit){
       SQ.got.push(hit);inp.value='';
       const g=document.getElementById('sq-got');
