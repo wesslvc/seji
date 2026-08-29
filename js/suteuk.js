@@ -312,133 +312,64 @@ function sqPickGraphOpts(spec,ans){
   return [];
 }
 
-/* 카드 안에 띄우는 작은 세계지도/* 카드 안에 띄우는 작은 세계지도 — 기후 지도(CQ_MAP_D)와 같은 등장방형 투영이라
-   위경도를 그대로 찍으면 실제 위치에 정확히 표시된다. */
-let _sqMMReady=false;
-function sqMiniMapInit(){
-  if(_sqMMReady)return true;
-  const path=document.getElementById('sq-mm-land');
-  if(!path||typeof CQ_MAP_D==='undefined')return false;
-  path.setAttribute('d',CQ_MAP_D);
-  sqMMBind();
-  _sqMMReady=true;return true;
+/* ══════════ 지도에 지점 찍기 (기후 맞히기와 같은 방식) ══════════
+   기후 맞히기가 쓰는 정확한 등장방형 배경 지도(#cq-world-svg)와 핀 오버레이
+   (#cq-pins-ov)를 그대로 빌려 쓴다. 손그림 world-svg는 위경도가 근사라 핀이
+   실제 위치와 어긋난다. 지도는 화면 전체를 쓰고 보기 그래프는 아래 바에 깐다. */
+let _sqPinReady=false;
+function sqPinInit(){
+  if(_sqPinReady)return true;
+  const p=document.getElementById('cq-world-path');
+  if(!p||typeof CQ_MAP_D==='undefined')return false;
+  if(!p.getAttribute('d'))p.setAttribute('d',CQ_MAP_D);
+  _sqPinReady=true;return true;
 }
-function sqShowMiniMap(locId){
-  const box=document.getElementById('sq-mapfig');
-  if(!box)return;
-  const l=sqLocs().find(x=>x.id===locId);
-  if(!l||!sqMiniMapInit()){box.style.display='none';return;}
-  const [x,y]=cqLonLatToMain(l.lon,l.lat);
-  _mm.px=x;_mm.py=y;
-  box.style.display='';
-  sqMMFocus();   /* 처음부터 지점 둘레가 크게 보이도록 확대해서 연다 */
-}
-
-/* ── 작은 지도 확대·축소·이동 ──
-   viewBox는 그대로 두고 안쪽 <g>에 transform을 건다. 휠·드래그·핀치·버튼 모두
-   같은 상태(_mm)를 고친다. 문항이 바뀌면 전체 보기로 되돌아간다. */
-const SQ_MM_W=2754, SQ_MM_H=1398;
-const SQ_MM_K0=2.8;                    /* 문항을 열 때의 기본 배율 */
-const _mm={k:1,x:0,y:0,px:SQ_MM_W/2,py:SQ_MM_H/2};
-/* 확대해도 지도가 화면 밖으로 밀려나지 않게 */
-function sqMMClamp(){
-  if(_mm.k<=1){_mm.x=0;_mm.y=0;return;}
-  _mm.x=Math.min(0,Math.max(SQ_MM_W*(1-_mm.k),_mm.x));
-  _mm.y=Math.min(0,Math.max(SQ_MM_H*(1-_mm.k),_mm.y));
-}
-function sqMMApply(){
-  sqMMClamp();
-  const g=document.getElementById('sq-mm-g');
-  if(g)g.setAttribute('transform','translate('+_mm.x.toFixed(1)+','+_mm.y.toFixed(1)+') scale('+_mm.k.toFixed(3)+')');
-  /* 핀은 확대 그룹 밖에 있으므로 위치를 직접 계산하고, 화면상 크기를 고정한다 */
-  const svg=document.getElementById('sq-mm-svg');
-  if(!svg)return;
-  const r=svg.getBoundingClientRect();
-  const sc=Math.min(r.width/SQ_MM_W,r.height/SQ_MM_H)||0.25;   /* 지도 단위 → 화면 px */
-  const cx=_mm.px*_mm.k+_mm.x, cy=_mm.py*_mm.k+_mm.y;
-  const dot=document.getElementById('sq-mm-dot'), halo=document.getElementById('sq-mm-halo');
-  if(dot){dot.setAttribute('cx',cx.toFixed(1));dot.setAttribute('cy',cy.toFixed(1));
-    dot.setAttribute('r',(2.6/sc).toFixed(1));dot.setAttribute('stroke-width',(1.2/sc).toFixed(1));}
-  if(halo){halo.setAttribute('cx',cx.toFixed(1));halo.setAttribute('cy',cy.toFixed(1));
-    halo.setAttribute('r',(7.5/sc).toFixed(1));halo.setAttribute('stroke-width',(1.4/sc).toFixed(1));}
-}
-function sqMMReset(){_mm.k=1;_mm.x=0;_mm.y=0;sqMMApply();}
-/* 표시된 지점을 화면 한가운데에 두고 기본 배율로 */
-function sqMMFocus(){
-  _mm.k=SQ_MM_K0;
-  _mm.x=SQ_MM_W/2-_mm.px*_mm.k;
-  _mm.y=SQ_MM_H/2-_mm.py*_mm.k;
-  sqMMApply();
-}
-/* 화면 좌표 → 지도(viewBox) 좌표 */
-function sqMMPt(cx,cy){
-  const svg=document.getElementById('sq-mm-svg');
-  const r=svg.getBoundingClientRect();
-  /* preserveAspectRatio=meet: 가로가 꽉 차므로 배율은 폭 기준, 세로는 가운데 정렬 */
-  const sc=Math.min(r.width/2754,r.height/1398);
-  return [(cx-r.left-(r.width-2754*sc)/2)/sc, (cy-r.top-(r.height-1398*sc)/2)/sc];
-}
-function sqMMZoomAt(f,vx,vy){
-  const nk=Math.min(Math.max(_mm.k*f,1),12);
-  f=nk/_mm.k;if(f===1)return;
-  _mm.x=vx-(vx-_mm.x)*f;_mm.y=vy-(vy-_mm.y)*f;_mm.k=nk;
-  /* 전체 배율에선 늘 원위치 */
-  if(_mm.k<=1.001){_mm.x=0;_mm.y=0;}
-  sqMMApply();
-}
-function sqMMZoom(f){sqMMZoomAt(f,2754/2,1398/2);}
-let _mmBound=false;
-function sqMMBind(){
-  if(_mmBound)return;
-  const svg=document.getElementById('sq-mm-svg');
-  if(!svg)return;
-  _mmBound=true;
-  svg.addEventListener('wheel',e=>{
-    e.preventDefault();
-    const [vx,vy]=sqMMPt(e.clientX,e.clientY);
-    sqMMZoomAt(e.deltaY<0?1.2:1/1.2,vx,vy);
-  },{passive:false});
-  let drag=null;
-  svg.addEventListener('pointerdown',e=>{
-    if(e.pointerType==='touch')return;   /* 터치는 아래 핀치·드래그에서 처리 */
-    drag={x:e.clientX,y:e.clientY};svg.setPointerCapture(e.pointerId);
-  });
-  svg.addEventListener('pointermove',e=>{
-    if(!drag)return;
-    const svgR=svg.getBoundingClientRect();
-    const sc=Math.min(svgR.width/2754,svgR.height/1398)||1;
-    _mm.x+=(e.clientX-drag.x)/sc;_mm.y+=(e.clientY-drag.y)/sc;
-    drag={x:e.clientX,y:e.clientY};sqMMApply();
-  });
-  const endDrag=()=>{drag=null;};
-  svg.addEventListener('pointerup',endDrag);svg.addEventListener('pointercancel',endDrag);
-  /* 터치: 한 손가락 이동, 두 손가락 핀치 */
-  let t=null;
-  svg.addEventListener('touchstart',e=>{
-    if(e.touches.length===1)t={x:e.touches[0].clientX,y:e.touches[0].clientY,pinch:false};
-    else if(e.touches.length===2)t={pinch:true,
-      d:Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY),
-      mx:(e.touches[0].clientX+e.touches[1].clientX)/2,my:(e.touches[0].clientY+e.touches[1].clientY)/2};
-    e.stopPropagation();
-  },{passive:true});
-  svg.addEventListener('touchmove',e=>{
-    if(!t)return;
-    e.preventDefault();e.stopPropagation();
-    const r=svg.getBoundingClientRect();
-    const sc=Math.min(r.width/2754,r.height/1398)||1;
-    if(!t.pinch&&e.touches.length===1){
-      _mm.x+=(e.touches[0].clientX-t.x)/sc;_mm.y+=(e.touches[0].clientY-t.y)/sc;
-      t.x=e.touches[0].clientX;t.y=e.touches[0].clientY;sqMMApply();
-    }else if(t.pinch&&e.touches.length===2){
-      const nd=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
-      const mx=(e.touches[0].clientX+e.touches[1].clientX)/2,my=(e.touches[0].clientY+e.touches[1].clientY)/2;
-      const [vx,vy]=sqMMPt(mx,my);
-      sqMMZoomAt(nd/t.d,vx,vy);
-      t.d=nd;t.mx=mx;t.my=my;
+/* 지도 이동·확대에 맞춰 배경 지도와 핀을 같은 프레임에 옮긴다 */
+(function(){
+  const orig=_flushT;
+  _flushT=function(){
+    orig();
+    if(mapMode==='suteuk'&&document.body.classList.contains('sq-pin')){
+      const cw=document.getElementById('cq-world-svg');
+      if(cw)cw.style.transform='translate3d('+_x+'px,'+_y+'px,0) scale('+_s+')';
+      sqPinRender();
     }
-  },{passive:false});
-  const endT=()=>{t=null;};
-  svg.addEventListener('touchend',endT);svg.addEventListener('touchcancel',endT);
+  };
+})();
+function sqPinRender(){
+  const g=document.querySelector('#cq-pins-ov .sq-pin');
+  if(!g)return;
+  const mx=+g.dataset.mx,my=+g.dataset.my;
+  g.setAttribute('transform','translate('+(mx*_s+_x).toFixed(1)+','+(my*_s+_y).toFixed(1)+')');
+}
+function sqShowPin(loc){
+  const ov=document.getElementById('cq-pins-ov');
+  if(!ov||!sqPinInit())return;
+  const cw=document.getElementById('cq-world-svg');if(cw)cw.classList.add('on');
+  const [mx,my]=cqLonLatToMain(loc.lon,loc.lat);
+  ov.innerHTML='';
+  const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+  g.setAttribute('class','sq-pin');g.dataset.mx=mx;g.dataset.my=my;
+  g.innerHTML='<circle class="sq-pin-halo" r="17"/><circle class="sq-pin-dot" r="4.5"/>';
+  ov.appendChild(g);
+  sqFitToPin(mx,my);
+}
+function sqHidePin(){
+  const cw=document.getElementById('cq-world-svg');if(cw)cw.classList.remove('on');
+  const ov=document.getElementById('cq-pins-ov');if(ov)ov.innerHTML='';
+}
+/* 지점을 화면 가운데(아래 보기 바를 뺀 영역)에 두고, 대륙 윤곽이 보일 만큼 확대 */
+function sqFitToPin(mx,my){
+  const mw=document.getElementById('ui-map');if(!mw||!mw.clientWidth)return;
+  const dock=document.getElementById('sq-box');
+  const availH=Math.max(mw.clientHeight-(dock?dock.clientHeight:0),120);
+  const fit=Math.min(mw.clientWidth/SW,mw.clientHeight/SH);
+  /* 가로로 경도 약 100°가 들어오게 — 어느 지역인지 알아볼 만큼만 */
+  const want=mw.clientWidth/(100/360*SW);
+  _s=Math.min(Math.max(want,fit*1.6),fit*7);
+  _x=mw.clientWidth/2-mx*_s;
+  _y=availH/2-my*_s;
+  applyT();
 }
 
 /* ══════════ 유형별 학습 ══════════
@@ -614,20 +545,23 @@ function sqEnter(){
 /* 지도 문항일 땐 카드 화면을 접고 세계지도 위 질문 바를 띄운다 */
 function sqApplyView(){
   const q=sqCur();
-  const isMap=!!(q&&q.t==='map');
+  const isPin=!!(q&&q.climap);          /* 지도에 지점을 찍고 그래프를 고르는 문항 */
+  const isMap=!!(q&&(q.t==='map'||isPin));
   const scr=document.getElementById('sq-screen');
   const box=document.getElementById('sq-box');
   if(scr)scr.classList.toggle('on',!isMap);
   if(box)box.classList.toggle('on',isMap);
   document.body.classList.toggle('border-mode',isMap);
-  document.body.classList.toggle('circ-on',isMap);
-  document.body.classList.toggle('sq-map',isMap);
+  document.body.classList.toggle('circ-on',isMap&&!isPin);
+  document.body.classList.toggle('sq-map',isMap&&!isPin);
+  document.body.classList.toggle('sq-pin',isPin);
   if(isMap){
     mapMode='suteuk';
     const logo=document.getElementById('ui-logo');
-    if(logo)logo.innerHTML='수특퀴즈 <span>/ 지도에서 찾기</span>';
+    if(logo)logo.innerHTML=isPin?'수특퀴즈 <span>/ 이 지점의 기후는</span>':'수특퀴즈 <span>/ 지도에서 찾기</span>';
     try{refreshCircActive();}catch(e){}
   }
+  if(!isPin)sqHidePin();
 }
 /* 세계지도를 화면에 꽉 차게 되돌린다 */
 function sqFitMap(){
@@ -737,21 +671,27 @@ function sqShow(){
   SQ.answered=false;SQ.sel=null;SQ.ord=[];SQ.got=[];SQ.tries=0;SQ.hinted=false;
   sqApplyView();
   sqStats();
-  if(q.t==='map'){
+  if(q.t==='map'||q.climap){
     const el=document.getElementById('sq-m-q');if(el)el.textContent=q.q;
     const fb=document.getElementById('sq-m-fb');if(fb){fb.textContent='';fb.className='bq-fb';}
     const nx=document.getElementById('sq-m-next');if(nx)nx.style.display='none';
     const sk=document.getElementById('sq-m-skip');if(sk)sk.style.display='';
-    try{clearMapColors();paint();}catch(e){}
-    sqFitMap();   /* 앞 문항에서 정답 나라로 확대된 채라 매번 세계 전체로 되돌린다 */
+    const cards=document.getElementById('sq-m-cards');
+    if(q.climap){
+      if(cards)sqRenderPinCards(q,cards);
+      try{clearMapColors();paint();}catch(e){}
+      const loc=sqLocs().find(x=>x.id===q.climap);
+      if(loc)sqShowPin(loc);
+    }else{
+      if(cards)cards.innerHTML='';
+      try{clearMapColors();paint();}catch(e){}
+      sqFitMap();   /* 앞 문항에서 정답 나라로 확대된 채라 매번 세계 전체로 되돌린다 */
+    }
     return;
   }
   const card=document.getElementById('sq-card');if(!card)return;
   document.getElementById('sq-meta').innerHTML='<span class="sq-ch">'+sqEsc(q.ch)+'</span><span class="sq-tag">'+sqEsc(q.tag||'')+'</span>';
   document.getElementById('sq-q').textContent=q.q;
-  /* 지도에 점 찍는 문항 */
-  const mf=document.getElementById('sq-mapfig');
-  if(q.climap)sqShowMiniMap(q.climap); else if(mf)mf.style.display='none';
   document.getElementById('sq-fig').innerHTML=sqFigHTML(q);
   /* 암기법 힌트 — 눌러야 보인다 */
   const hb=document.getElementById('sq-hint-btn'),hx=document.getElementById('sq-hint-box');
@@ -766,6 +706,37 @@ function sqShow(){
   okBtn.disabled=false;
   document.getElementById('sq-next').style.display='none';
   sqBindAns(q);
+}
+/* 아래 바에 까는 그래프 보기 — 기후 맞히기의 카드 독과 같은 모양 */
+function sqRenderPinCards(q,host){
+  host.innerHTML=q.opts.map((id,i)=>{
+    const l=sqLocs().find(x=>x.id===id);
+    return '<div class="sq-pcard" data-i="'+i+'"><span class="sq-pcard-n">'+(i+1)+'</span>'
+      +(l?cqChartSVG(l):'')+'<div class="sq-pcard-cap"></div></div>';
+  }).join('');
+  host.querySelectorAll('.sq-pcard').forEach(c=>c.addEventListener('click',()=>{
+    if(SQ.answered)return;
+    SQ.sel=+c.dataset.i;
+    host.querySelectorAll('.sq-pcard').forEach(x=>x.classList.toggle('sel',x===c));
+    sqAnswerPin(q);
+  }));
+}
+function sqAnswerPin(q){
+  const ok=sqSame(q.opts[SQ.sel],q.a);
+  sqAward(ok,q,q.optLbl?q.optLbl[q.opts[SQ.sel]]:q.opts[SQ.sel]);
+  document.querySelectorAll('#sq-m-cards .sq-pcard').forEach(c=>{
+    const v=q.opts[+c.dataset.i];
+    if(sqSame(v,q.a))c.classList.add('right');
+    else if(c.classList.contains('sel'))c.classList.add('wrong');
+    const cap=c.querySelector('.sq-pcard-cap');
+    if(cap&&q.optLbl)cap.textContent=q.optLbl[v]||'';
+  });
+  const fb=document.getElementById('sq-m-fb');
+  if(fb){fb.textContent=(ok?'정답! ':'아쉬워요 — 정답은 ')+(q.exp||sqGiveAnswerText(q));
+    fb.className='bq-fb '+(ok?'ok':'ng');}
+  const nx=document.getElementById('sq-m-next');
+  if(nx){nx.style.display='';nx.textContent=(SQ.idx+1>=SQ.plan.length)?'결과 보기 →':'다음 →';}
+  const sk=document.getElementById('sq-m-skip');if(sk)sk.style.display='none';
 }
 function sqBindAns(q){
   const wrap=document.getElementById('sq-ans');
@@ -982,7 +953,23 @@ function sqMapClick(iso){
   const sk=document.getElementById('sq-m-skip');if(sk)sk.style.display='none';
 }
 function sqMapGiveUp(){
-  const q=sqCur();if(!q||q.t!=='map'||SQ.answered)return;
+  const q=sqCur();if(!q||SQ.answered)return;
+  if(q.climap){SQ.sel=q.opts.indexOf(q.a);SQ.sel=SQ.sel<0?0:SQ.sel;
+    /* 정답을 고른 것으로 처리하지 않도록 오답 경로를 직접 태운다 */
+    sqAward(false,q,'(모르겠어요)');
+    document.querySelectorAll('#sq-m-cards .sq-pcard').forEach(c=>{
+      const v=q.opts[+c.dataset.i];
+      if(sqSame(v,q.a))c.classList.add('right');
+      const cap=c.querySelector('.sq-pcard-cap');
+      if(cap&&q.optLbl)cap.textContent=q.optLbl[v]||'';
+    });
+    const fb=document.getElementById('sq-m-fb');
+    if(fb){fb.textContent='정답은 '+(q.exp||sqGiveAnswerText(q));fb.className='bq-fb ng';}
+    const nx=document.getElementById('sq-m-next');
+    if(nx){nx.style.display='';nx.textContent=(SQ.idx+1>=SQ.plan.length)?'결과 보기 →':'다음 →';}
+    const sk=document.getElementById('sq-m-skip');if(sk)sk.style.display='none';
+    return;}
+  if(q.t!=='map')return;
   try{setColor(q.iso,'cr');centerCountry(q.iso);}catch(e){}
   sqAward(false,q,'(모르겠어요)');
   const fb=document.getElementById('sq-m-fb');
@@ -998,6 +985,7 @@ function sqFinishNow(){
   SQ.plan=SQ.plan.slice(0,Math.max(SQ.idx,1));sqEnd();
 }
 function sqEnd(){
+  try{sqHidePin();}catch(e){}
   const done=SQ.cor+SQ.wr;
   const pct=done?Math.round(SQ.cor/done*1000)/10:0;
   const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};

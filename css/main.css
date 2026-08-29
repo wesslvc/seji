@@ -1043,18 +1043,6 @@ body.sq-map #world-svg .circ-glow{animation:none;stroke-opacity:.42}
 .sq-hint{font-size:.7rem;color:var(--tx2);margin-top:-.15rem}
 
 /* ── 수특퀴즈: 지도에 점 찍기 · 그래프 보기 · 암기법 힌트 ── */
-.sq-mapfig{position:relative;background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:.35rem;width:100%;overflow:hidden;touch-action:none}
-.sq-mapfig svg{display:block;width:100%;height:auto;cursor:grab}
-.sq-mapfig svg:active{cursor:grabbing}
-.sq-mm-ctrl{position:absolute;right:.45rem;bottom:.45rem;display:flex;gap:.25rem}
-.sq-mm-ctrl button{width:30px;height:30px;border-radius:8px;border:1px solid var(--bd);background:color-mix(in srgb,var(--sf) 92%,transparent);color:var(--tx);font-family:inherit;font-size:.95rem;font-weight:700;line-height:1;cursor:pointer;padding:0}
-.sq-mm-ctrl button.wide{width:auto;padding:0 .5rem;font-size:.7rem;font-weight:600}
-.sq-mm-ctrl button:hover{border-color:var(--ac);color:var(--ac)}
-#sq-mm-land{fill:var(--land);stroke:var(--map-line);stroke-width:1;vector-effect:non-scaling-stroke}
-/* 핀 크기는 자바스크립트가 화면 기준으로 잡는다(배율과 무관하게 일정) */
-#sq-mm-halo{fill:none;stroke:var(--wr);opacity:.55;animation:sqPin 1.6s ease-in-out infinite}
-#sq-mm-dot{fill:var(--wr);stroke:var(--sf)}
-@keyframes sqPin{0%,100%{opacity:.25}50%{opacity:.8}}
 .sq-opts-chart{grid-template-columns:1fr 1fr}
 .sq-opt-chart{flex-direction:column;align-items:stretch;gap:.25rem;padding:.5rem .5rem .35rem;position:relative}
 .sq-opt-chart .sq-opt-n{position:absolute;top:.4rem;left:.45rem}
@@ -1069,3 +1057,27 @@ body.sq-map #world-svg .circ-glow{animation:none;stroke-opacity:.42}
 .sq-opt-cap{display:block;margin-top:.25rem;font-size:.66rem;line-height:1.35;color:var(--tx2);text-align:center;word-break:keep-all}
 .sq-opt.right .sq-opt-cap{color:#81c995;font-weight:600}
 @media print{ #sq-print .pn-src{font-size:8.5pt;color:#666;margin-top:.15rem} }
+
+/* ── 수특퀴즈: 지도에 지점 찍고 아래에서 그래프 고르기 ── */
+body.sq-pin #world-svg{visibility:hidden}
+body.sq-pin #cq-pins-ov{display:block}
+.sq-pin-halo{fill:none;stroke:var(--wr);stroke-width:2.2;opacity:.6;animation:sqPinP 1.6s ease-in-out infinite}
+.sq-pin-dot{fill:var(--wr);stroke:var(--sf);stroke-width:1.6}
+@keyframes sqPinP{0%,100%{opacity:.25}50%{opacity:.85}}
+#sq-m-cards{display:flex;align-items:flex-start;gap:.5rem;overflow-x:auto;overflow-y:hidden;padding-bottom:.25rem;scrollbar-width:thin}
+#sq-m-cards:empty{display:none}
+.sq-pcard{position:relative;display:flex;flex-direction:column;flex:0 0 auto;width:138px;background:var(--sf);border:1.5px solid var(--bd);border-radius:12px;padding:.4rem .4rem .45rem;cursor:pointer;transition:border-color .15s var(--ease),transform .15s var(--ease);user-select:none}
+.sq-pcard:hover{border-color:var(--ac);transform:translateY(-2px)}
+.sq-pcard.sel{border-color:var(--ac)}
+.sq-pcard.right{border-color:#81c995;box-shadow:0 0 0 2px color-mix(in srgb,#81c995 35%,transparent)}
+.sq-pcard.wrong{border-color:var(--wr)}
+.sq-pcard-n{position:absolute;top:.3rem;left:.4rem;z-index:1;display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:var(--sf2);color:var(--tx2);font-size:.62rem;font-weight:700}
+.sq-pcard .cq-chart-svg{width:100%;height:auto;max-height:150px}
+@media (min-width:760px){ .sq-pcard .cq-chart-svg{max-height:185px} }
+/* 그래프를 고르는 문항은 보기 카드가 있어 바가 조금 더 높아야 한다 */
+body.sq-pin #sq-box{max-height:56vh;max-height:56dvh}
+#sq-m-cards{flex:0 1 auto;min-height:0}
+.sq-pcard-cap{margin-top:.25rem;font-size:.62rem;line-height:1.3;color:var(--tx2);text-align:center;word-break:keep-all}
+.sq-pcard-cap:empty{display:none}
+.sq-pcard.right .sq-pcard-cap{color:#81c995;font-weight:600}
+@media (min-width:760px){ .sq-pcard{width:168px} }

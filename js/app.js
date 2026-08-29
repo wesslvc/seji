@@ -485,6 +485,7 @@ function switchTab(key){
   document.getElementById('tq-screen').classList.toggle('on',key==='texp'||key==='timp'||key==='religion'||key==='tenergy');
   if(!suteukOn){const sqs=document.getElementById('sq-screen');if(sqs)sqs.classList.remove('on');const sqb=document.getElementById('sq-box');if(sqb)sqb.classList.remove('on');}
   if(!suteukOn)document.body.classList.remove('sq-map');
+  if(!suteukOn){document.body.classList.remove('sq-pin');try{sqHidePin();}catch(e){}}
   document.getElementById('bq-box').classList.toggle('on',key==='border');
   document.getElementById('rbq-box').classList.toggle('on',key==='rborder');
   document.getElementById('rvc-box').classList.toggle('on',rvMap);
@@ -536,6 +537,8 @@ function endSession(){
   document.body.classList.remove('border-mode');
   document.body.classList.remove('circ-on');
   document.body.classList.remove('sq-map');
+  document.body.classList.remove('sq-pin');
+  try{sqHidePin();}catch(e){}
   document.body.classList.remove('cq-mode');
   document.getElementById('rq-screen').classList.remove('on');
   document.getElementById('kr-screen').classList.remove('on');
