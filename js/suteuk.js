@@ -109,11 +109,9 @@ const SQ_FAMILY={
 };
 function sqClimOpts(right){
   const fam=SQ_FAMILY[right];
-  let same=Object.keys(SQ_FAMILY).filter(k=>k!==right&&SQ_FAMILY[k]===fam);
-  const out=[];
-  /* 온대 동계 건조는 수특이 "사바나 기후 주변에 분포"라고 짚은 만큼 사바나를 꼭 넣는다 */
-  if(right==='온대 동계 건조')out.push('사바나');
-  out.push(...shuffle(same).slice(0,3-out.length));
+  const same=Object.keys(SQ_FAMILY).filter(k=>k!==right&&SQ_FAMILY[k]===fam);
+  const out=shuffle(same).slice(0,3);
+  /* 같은 범주에 셋이 안 되면 그때만 다른 범주에서 채운다 */
   if(out.length<3)out.push(...shuffle(Object.keys(SQ_FAMILY).filter(k=>k!==right&&!out.includes(k))).slice(0,3-out.length));
   return out;
 }
@@ -163,16 +161,8 @@ function sqGenClimateMap(){
   const spec=sqSpecLocs();
   if(spec.length<4)return [];
   return shuffle(spec).map(l=>{
-    /* 보기는 정답과 같은 반구에서 고른다 — 남반구 그래프는 여름이 1월 쪽이라
-       계절 위상만 보고도 후보가 걸러지기 때문이다.
-       그중에서도 연 강수량·연교차가 정답과 뚜렷이 다른 지점부터 쓴다. */
-    const sameHemi=spec.filter(x=>x.id!==l.id&&(x.lat>=0)===(l.lat>=0));
-    const base=sameHemi.length>=3?sameHemi:spec.filter(x=>x.id!==l.id);
-    const pa=sqAnnPrec(l),ra=sqAnnRange(l);
-    const ranked=base.map(x=>({
-      x:x, d:Math.max(Math.abs(sqAnnPrec(x)-pa)/500, Math.abs(sqAnnRange(x)-ra)/5)
-    })).sort((u,v)=>v.d-u.d);
-    const others=shuffle(ranked.slice(0,Math.max(4,Math.min(6,ranked.length))).map(o=>o.x)).slice(0,3);
+    const others=sqPickGraphOpts(spec,l);
+    if(others.length<3)return null;
     return {ch:'그래프',t:'mc',tag:'위치와 기후',gen:1,keepMc:true,
       climap:l.id,optCharts:1,
       q:'세계지도에 표시된 지점의 기후 그래프로 옳은 것은?',
@@ -180,8 +170,76 @@ function sqGenClimateMap(){
       exp:sqLocLabel(l)+' — '+(l.highland?'열대 고산':l.wettest?'세계 최다우지':SQ_KOP_KO[l.kop])
         +'. 연 강수량 약 '+Math.round(sqAnnPrec(l))+'mm · 기온의 연교차 약 '+sqAnnRange(l).toFixed(1)+'℃.'
         +(l.why?' '+l.why:'')};
-  });
+  }).filter(Boolean);
 }
+/* 두 지점의 기후 그래프가 눈으로 얼마나 다른가 — 1보다 크면 확실히 구분된다.
+   연 강수량 500mm · 연교차 4℃ · 최한월 6℃ · 최난월 8℃를 각각 1로 본다. */
+function sqGraphDist(a,b){
+  return Math.max(
+    Math.abs(sqAnnPrec(a)-sqAnnPrec(b))/500,
+    Math.abs(sqAnnRange(a)-sqAnnRange(b))/4,
+    Math.abs(Math.min(...a.tmin)-Math.min(...b.tmin))/6,
+    Math.abs(Math.max(...a.tmax)-Math.max(...b.tmax))/8);
+}
+/* 지점이 속한 큰 범주 — 열대(A) · 열대 고산(H) · 온대(C).
+   보기는 같은 범주 안에서 고른다. 열대를 물으면 열대끼리, 고산이면 고산끼리
+   비교해야 착각하기 쉬우면서도 그래프를 읽으면 갈리는 문제가 된다. */
+function sqSpecCat(l){
+  if(l.highland)return 'H';
+  if(l.wettest)return 'A';              /* 체라푼지 — 수특은 열대 몬순 최다우지로 다룬다 */
+  return SQ_FAMILY[SQ_KOP_KO[l.kop]]==='C'?'C':'A';
+}
+/* 보기 세 개 고르기
+   ① 같은 범주에서 (열대는 열대끼리, 고산은 고산끼리)
+   ② 네 그래프가 서로 최소 간격 이상 — 콜롬보와 쿠알라룸푸르처럼 사실상 같은
+      그래프가 함께 나오면 눈으로 못 가른다
+   ③ 정답만 혼자 다른 반구에 놓이지 않게 — 계절 위상만으로 답이 특정되면 안 된다
+   같은 범주에서 셋을 못 채우면 그때만 범주를 넘어간다. */
+const SQ_GRAPH_MIN=0.7;
+function sqPickGraphOpts(spec,ans){
+  const cat=sqSpecCat(ans), hemi=ans.lat>=0;
+  /* 같은 범주 → 범주 넘기 → 간격 완화 순으로만 물러선다 */
+  const passes=[
+    {cat:true, min:SQ_GRAPH_MIN},
+    {cat:false,min:SQ_GRAPH_MIN},
+    {cat:false,min:SQ_GRAPH_MIN/2},
+    {cat:false,min:0}
+  ];
+  for(const ps of passes){
+    const pool=spec.filter(x=>x.id!==ans.id
+      &&(!ps.cat||sqSpecCat(x)===cat)
+      &&sqGraphDist(x,ans)>=ps.min);
+    /* 후보가 열둘뿐이라 세 개 조합을 전부 훑는다 — 그리디로 잡으면 좋은 조합을
+       스스로 막아 버려(예: 마이애미) 괜히 범주를 넘어가게 된다 */
+    const sols=[];
+    for(let a=0;a<pool.length;a++)for(let b=a+1;b<pool.length;b++)for(let c=b+1;c<pool.length;c++){
+      const t=[pool[a],pool[b],pool[c]];
+      if(sqGraphDist(t[0],t[1])<ps.min)continue;
+      if(sqGraphDist(t[0],t[2])<ps.min)continue;
+      if(sqGraphDist(t[1],t[2])<ps.min)continue;
+      sols.push(t);
+    }
+    if(!sols.length)continue;
+    /* 정답만 혼자 다른 반구에 놓이면 계절 위상만으로 답이 특정된다 */
+    const good=sols.filter(t=>t.some(x=>(x.lat>=0)===hemi));
+    if(good.length)return good[Math.floor(Math.random()*good.length)].slice();
+    if(ps.cat){
+      /* 같은 범주에 같은 반구 지점이 없을 때(자카르타처럼)는 범주에서 둘,
+         같은 반구에서 하나를 가져와 위상만으로 갈리지 않게 한다 */
+      const hemiPool=shuffle(spec.filter(x=>x.id!==ans.id&&(x.lat>=0)===hemi&&sqGraphDist(x,ans)>=ps.min));
+      for(let a=0;a<pool.length;a++)for(let b=a+1;b<pool.length;b++){
+        if(sqGraphDist(pool[a],pool[b])<ps.min)continue;
+        const h=hemiPool.find(x=>x!==pool[a]&&x!==pool[b]
+          &&sqGraphDist(x,pool[a])>=ps.min&&sqGraphDist(x,pool[b])>=ps.min);
+        if(h)return [pool[a],pool[b],h];
+      }
+      continue;   /* 그래도 안 되면 다음 pass에서 범주를 푼다 */
+    }
+    return sols[Math.floor(Math.random()*sols.length)].slice();
+  }
+  return [];
+}
+
 /* 카드 안에 띄우는 작은 세계지도 — 기후 지도(CQ_MAP_D)와 같은 등장방형 투영이라
    위경도를 그대로 찍으면 실제 위치에 정확히 표시된다. */
 let _sqMMReady=false;
