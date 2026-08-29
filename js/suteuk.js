@@ -488,7 +488,30 @@ function sqBuildPlan(){
   return all.map((x,i)=>Object.assign({},x,{qid:(x.gen?'g':'b')+i}));
 }
 
-/* ══════════ 저장 / 복원 ══════════ */
+/* ══════════ 저장 / 복원 ══════════
+   저장본에는 문항 객체가 통째로 들어간다. 그래서 문항을 고쳐도 진행 중이던
+   판은 옛 문장을 그대로 들고 있었다(“세 나라 수도 중 …” 같은). 불러올 때마다
+   지금 문항 은행의 같은 문항으로 갈아 끼워, 진행은 그대로 두고 내용만 최신으로
+   맞춘다. 단원·주제·정답·지도/그래프 대상이 같으면 같은 문항으로 본다. */
+function sqPlanKey(q){
+  return [q.ch,q.tag,Array.isArray(q.a)?q.a.join('|'):String(q.a),
+          q.iso||'',q.climap||'',q.chart||''].join('~');
+}
+function sqRefreshPlan(){
+  if(!SQ.plan||!SQ.plan.length)return 0;
+  const fresh={};
+  try{sqPool().forEach(q=>{const k=sqPlanKey(q);if(!fresh[k])fresh[k]=q;});}catch(e){return 0;}
+  let changed=0;
+  SQ.plan=SQ.plan.map(old=>{
+    const f=fresh[sqPlanKey(old)];
+    if(!f)return old;                      /* 없어진 문항은 그대로 둔다 */
+    const nq=sqToOrdTxt(sqToSA(f));
+    if(nq.q!==old.q||nq.t!==old.t)changed++;
+    return Object.assign({},nq,{qid:old.qid});
+  });
+  return changed;
+}
+
 function sqSave(){
   try{
     localStorage.setItem(SQ.saveKey,JSON.stringify({
@@ -503,6 +526,8 @@ function sqLoad(){
   SQ.plan=d.plan;SQ.idx=Math.min(d.idx||0,d.plan.length);
   SQ.cor=d.cor||0;SQ.wr=d.wr||0;SQ.pts=d.pts||0;SQ.maxPts=d.maxPts||0;
   SQ.wrongLog=Array.isArray(d.wrong)?d.wrong:[];SQ.recorded=!!d.recorded;SQ.hintUsed=d.hintUsed||0;
+  const upd=sqRefreshPlan();
+  if(upd)sqSave();                          /* 갈아 끼운 내용을 바로 저장해 둔다 */
   return true;
 }
 function sqInit(filterKey){
