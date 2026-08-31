@@ -182,8 +182,8 @@ function setMode(mob){
 /* 3×3 그리드: 한국지리(korea)를 정중앙(5번째 항목)에 놓고 세계지리 항목들이 둘러싼다 */
 const LD_SLIDES=[
  {act:'name',  ic:'globe', mc:'#7cc4ff', tt:'나라 이름 맞히기', ds:'지도에서 나라를 클릭하고 이름을 맞혀요. 3번 안에 맞히면 색이 칠해져요.', pts:'국가당 1점'},
- {act:'border', ic:'border',mc:'#81c995', tt:'접경국 퀴즈', ds:'국경을 맞댄 이웃 나라로 추리하는 퀴즈. 난이도에 따라 방식이 달라져요.', pts:'1 · 3 · 9 · 12점', diff:'bdiff', levels:['L','M','H','X'],
-  dd:{L:'하 · 지도에서 클릭해 맞히기 (1점)',M:'중 · 지도 없이 이름 입력 (3점)',H:'상 · 접한 나라 모두 쓰기 (비율별 2·5·9점)',X:'하드코어 · 4개국 이상과 접한 나라만. 몇 개인지 안 알려 주고, 하나도 빠짐없이 다 써야 정답 (12점)'}},
+ {act:'border', ic:'border',mc:'#81c995', tt:'접경국 퀴즈', ds:'국경을 맞댄 이웃 나라로 추리하는 퀴즈. 난이도에 따라 방식이 달라져요.', pts:'1 · 3 · 9 · 40점', diff:'bdiff', levels:['L','M','H','X'],
+  dd:{L:'하 · 지도에서 클릭해 맞히기 (1점)',M:'중 · 지도 없이 이름 입력 (3점)',H:'상 · 접한 나라 모두 쓰기 (비율별 2·5·9점)',X:'하드코어 · 4개국 이상과 접한 나라만. 개수를 안 알려 줘요. 문항당 40점에서 놓치면 −2, 잘못 적으면 −5 (마이너스 가능)'}},
  {act:'religion',ic:'book', mc:'#fdd663', tt:'종교 구성', ds:'원그래프를 보고 나라별 종교 구성을 맞혀요.', pts:'1 · 2 · 3점', diff:'rdiff',
   dd:{L:'하 · 상위 종교 70%+ 국가만 (1점)',M:'중 · 모든 국가 · 힌트 있음 (2점)',H:'상 · 3번 틀려야 공개 (3점)'}},
  {act:'river', ic:'wave',  mc:'#8ab4f8', tt:'하천 맞히기', ds:'세계 주요 하천 60개를 경로·통과국으로 맞혀요.', pts:'3~10점', diff:'vdiff',
@@ -1058,11 +1058,17 @@ function rbqShowCurrent(){
   if(SESSION.cur==='rborder'&&box)box.classList.add('on');
   if(!RBQ.noMap){try{clearMapColors();for(const[k,v]of Object.entries(RBQ.status)){if(v&&v!=='blink')colors[k]=v;}paint();setColor(iso,'c1');centerCountry(iso);}catch(e){}}
 }
-const RBQ_HARD_PTS=12;
+/* 하드코어 배점 — 기본 40점에서 깎는다. 아래로 뚫려서 마이너스도 나온다. */
+const RBQ_HARD_BASE=40;    /* 문항 기본 점수 */
+const RBQ_HARD_MISS=2;     /* 놓친 접경국 한 곳당 차감 */
+const RBQ_HARD_EXTRA=5;    /* 접하지 않는데 적은 나라 한 곳당 차감 */
+function rbqHardPts(missed,extra){
+  return RBQ_HARD_BASE-RBQ_HARD_MISS*missed-RBQ_HARD_EXTRA*extra;
+}
 function rbqCountryPts(found,total){
   if(!total)return 0;
-  /* 하드코어는 부분 점수가 없다 — 다 맞히거나 0점이거나 */
-  if(RBQ.hard)return found>=total?RBQ_HARD_PTS:0;
+  /* 옛 저장본 대비 — 지금은 채점할 때 점수를 그대로 적어 둔다 */
+  if(RBQ.hard)return rbqHardPts(Math.max(0,total-found),0);
   const r=found/total;
   if(r>=1)return 9;
   if(r>=0.7)return 5;
@@ -1162,17 +1168,25 @@ function rbqHardGrade(){
   const extra=[...RBQ.entries].filter(i=>!nbs.includes(i));
   const perfect=missed.length===0&&extra.length===0;
   const nm=i=>COUNTRIES[i]?COUNTRIES[i].k:i;
+  const pts=rbqHardPts(missed.length,extra.length);
 
   RBQ.correct+=hit.length;RBQ.wrong+=missed.length;
   RBQ.status[tgt]=perfect?'c2':'cr';
-  RBQ.scoreCounts[tgt]={c:hit.length,w:missed.length,p:perfect?RBQ_HARD_PTS:0};
+  RBQ.scoreCounts[tgt]={c:hit.length,w:missed.length,x:extra.length,p:pts};
   RBQ.remaining=new Set();
   if(perfect)playCorrectSound();else playWrongSound();
 
+  /* 무엇 때문에 몇 점이 깎였는지 그대로 보여 준다 */
+  const cut=[];
+  if(missed.length)cut.push('놓침 '+missed.length+'개 −'+(RBQ_HARD_MISS*missed.length));
+  if(extra.length){
+    /* 이름이 너무 길어지면 앞의 넷만 보여 준다 */
+    const names=extra.slice(0,4).map(nm).join(', ')+(extra.length>4?' 외 '+(extra.length-4)+'개':'');
+    cut.push('잘못 적음 '+extra.length+'개 −'+(RBQ_HARD_EXTRA*extra.length)+' ('+names+')');
+  }
   const title=(typeof wdFlagImg==='function'?wdFlagImg(tgt,20):'')+' <b>'+nm(tgt)+'</b>의 접경국 '+nbs.length+'개 — '
-    +(perfect?'완벽! +'+RBQ_HARD_PTS+'점'
-            :'0점 · '+(missed.length?'빨강 '+missed.length+'개를 놓쳤어요':'접하지 않는 나라를 적었어요')
-              +(extra.length?' · 잘못 적음: '+extra.map(nm).join(', '):''));
+    +(perfect?'완벽! +'+RBQ_HARD_BASE+'점'
+            :(pts>0?'+':'')+pts+'점 · '+cut.join(' · '));
   RBQ.queue.shift();rbqSave();rbqStats();
   const inp0=document.getElementById('rbq-gi');if(inp0)inp0.value='';
   setTimeout(()=>borderReview({blue:[tgt],green:hit,red:missed,title},rbqShowCurrent),perfect?700:900);
@@ -1208,7 +1222,7 @@ function resetRBQ(skipConfirm){
 function rbqEnd(){
   const el=document.getElementById('rbq-end');if(!el)return;
   const points=Object.values(RBQ.scoreCounts).reduce((s,sc)=>s+(typeof sc.p==='number'?sc.p:rbqCountryPts(sc.c,sc.c+sc.w)),0);
-  const maxPts=Object.values(RBQ.scoreCounts).length*(RBQ.hard?RBQ_HARD_PTS:9);
+  const maxPts=Object.values(RBQ.scoreCounts).length*(RBQ.hard?RBQ_HARD_BASE:9);
   document.getElementById('rbq-escore').textContent=points+'점';
   document.getElementById('rbq-e1').textContent=RBQ.correct;
   document.getElementById('rbq-e2').textContent=RBQ.wrong;
