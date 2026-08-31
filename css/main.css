@@ -1107,3 +1107,5 @@ body.sq-pin #sq-box{max-height:56vh;max-height:56dvh}
 /* 문항 배점 — 아프리카는 60점이라 눈에 띄게 */
 .rbq-base{font-size:.66rem;color:var(--tx2);font-weight:600;}
 .rbq-base.af{color:#e8b820;}
+/* 하드코어 연속 오답 놀림말 */
+.br-taunt{margin-top:.35rem;font-size:.78rem;font-weight:600;color:var(--gd);opacity:.95;}

@@ -605,6 +605,26 @@ const FINISH_MSG='여기서 끝낼까요?\n지금까지 진행한 내용으로 �
 function runPendingReset(){const f=window._pendingReset;window._pendingReset=null;if(f)try{f();}catch(e){}}
 /* confirm() 닫힌 뒤 브라우저가 입력 포커스를 복원해 모바일 키보드가 완료창을 가리는 것 방지 */
 function _blurActive(){const b=()=>{try{if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();}catch(e){}};b();setTimeout(b,60);setTimeout(b,250);}
+/* 연속으로 틀릴 때 던지는 말 — 연속 횟수가 열쇠 */
+const RBQ_HARD_STREAK={
+  3:'ㅋㅋ 세 번 연속이요. 하부터 하고 오셔야 할 듯',
+  5:'다섯 번 연속. 이쯤이면 하드코어가 아니라 그냥 모르시는 것 같은데',
+  7:'일곱 번 연속이요. 접경국 "하"가 저쪽에 있습니다',
+  10:'열 번 연속... 제가 다 민망하네요',
+  15:'열다섯 번 연속. 이건 이것대로 재능입니다'
+};
+function rbqHardTaunt(){
+  if(!RBQ.hard)return '';
+  const n=RBQ.streak;
+  if(RBQ_HARD_STREAK[n])return RBQ_HARD_STREAK[n];
+  /* 열다섯을 넘기면 다섯 번마다 한 번씩 */
+  if(n>15&&n%5===0)return n+'번 연속입니다. 하부터 하고 오세요, 진심으로';
+  /* 연속은 끊겼어도 총점이 마이너스로 가라앉아 있으면 한 번씩 */
+  const done=Object.keys(RBQ.scoreCounts).length;
+  const tot=Object.values(RBQ.scoreCounts).reduce((s,x)=>s+(typeof x.p==='number'?x.p:0),0);
+  if(done>=5&&tot<0&&done%5===0)return '총점 '+tot+'점이요. 하부터 하고 오시는 게...';
+  return '';
+}
 /* 하드코어에서 도망가려 할 때 던지는 말 */
 const RBQ_HARD_TAUNT=[
   '벌써요? 아직 {n}개국 남았는데요.',
@@ -1001,7 +1021,7 @@ function openBQList(){
 
 /* ══════════ 역접경국 퀴즈 (RBQ) ══════════ */
 const RBQ={activeSet:null,total:0,queue:[],status:{},scoreCounts:{},correct:0,wrong:0,curWrong:0,target:null,remaining:null,saveKey:'rbq_all',recorded:false,isRetry:false,noMap:false,
-  hard:false,entries:null};
+  hard:false,entries:null,streak:0};
 /* 하드코어에서 다루는 나라 — 접경국이 4개 이상인 나라만 */
 const RBQ_HARD_MIN=4;
 function rbqPool(){
@@ -1018,7 +1038,7 @@ function rbqInit(filterKey){
   TAB_META.rborder.label=RBQ.hard?'접경국 하드코어':'접경국 쓰기';
   RBQ.activeSet=new Set(rbqPool());
   RBQ.total=0;RBQ.activeSet.forEach(iso=>{RBQ.total+=(BORDERS[iso]||[]).length;});
-  RBQ.status={};RBQ.scoreCounts={};RBQ.correct=0;RBQ.wrong=0;RBQ.curWrong=0;RBQ.target=null;RBQ.remaining=null;RBQ.recorded=false;RBQ.isRetry=false;
+  RBQ.status={};RBQ.scoreCounts={};RBQ.correct=0;RBQ.wrong=0;RBQ.curWrong=0;RBQ.target=null;RBQ.remaining=null;RBQ.recorded=false;RBQ.isRetry=false;RBQ.streak=0;
   rbqLoad();
   const done=new Set(Object.keys(RBQ.status));
   RBQ.queue=shuffle([...RBQ.activeSet].filter(iso=>!done.has(iso)));
@@ -1029,11 +1049,11 @@ function rbqLoad(){
     const d=JSON.parse(raw);RBQ.status=d.status||{};RBQ.scoreCounts=d.scoreCounts||{};
     if(Array.isArray(d.active)&&d.active.length){RBQ.activeSet=new Set(d.active);RBQ.total=0;RBQ.activeSet.forEach(iso=>{RBQ.total+=(BORDERS[iso]||[]).length;});}
     let c=0,w=0;for(const sc of Object.values(RBQ.scoreCounts)){c+=sc.c||0;w+=sc.w||0;}
-    RBQ.correct=c;RBQ.wrong=w;RBQ.recorded=!!d.recorded;return true;
+    RBQ.correct=c;RBQ.wrong=w;RBQ.recorded=!!d.recorded;RBQ.streak=d.streak||0;return true;
   }catch(e){return false;}
 }
 function rbqSave(){
-  if(RBQ.activeSet)localStorage.setItem(RBQ.saveKey,JSON.stringify({status:RBQ.status,scoreCounts:RBQ.scoreCounts,correct:RBQ.correct,wrong:RBQ.wrong,recorded:RBQ.recorded,active:[...RBQ.activeSet]}));
+  if(RBQ.activeSet)localStorage.setItem(RBQ.saveKey,JSON.stringify({status:RBQ.status,scoreCounts:RBQ.scoreCounts,correct:RBQ.correct,wrong:RBQ.wrong,recorded:RBQ.recorded,streak:RBQ.streak||0,active:[...RBQ.activeSet]}));
 }
 function rbqStats(){
   const statVals=Object.values(RBQ.status);
@@ -1205,6 +1225,7 @@ function rbqHardGrade(){
   const pts=rbqHardPts(tgt,missed.length,extra.length);
 
   RBQ.correct+=hit.length;RBQ.wrong+=missed.length;
+  RBQ.streak=perfect?0:(RBQ.streak||0)+1;
   RBQ.status[tgt]=perfect?'c2':'cr';
   RBQ.scoreCounts[tgt]={c:hit.length,w:missed.length,x:extra.length,p:pts};
   RBQ.remaining=new Set();
@@ -1223,7 +1244,9 @@ function rbqHardGrade(){
             :pts+'점 · '+rbqHardBase(tgt)+'점 날아감 · '+cut.join(' · '));
   RBQ.queue.shift();rbqSave();rbqStats();
   const inp0=document.getElementById('rbq-gi');if(inp0)inp0.value='';
-  setTimeout(()=>borderReview({blue:[tgt],green:hit,red:missed,title},rbqShowCurrent),perfect?700:900);
+  const taunt=rbqHardTaunt();
+  const full=title+(taunt?'<div class="br-taunt">'+taunt+'</div>':'');
+  setTimeout(()=>borderReview({blue:[tgt],green:hit,red:missed,title:full},rbqShowCurrent),perfect?700:900);
 }
 function rbqTypeSubmit(){
   if(!RBQ.remaining||!RBQ.remaining.size)return;
@@ -1250,7 +1273,7 @@ function rbqSkip(){
 function resetRBQ(skipConfirm){
   if(skipConfirm!==true&&!confirm((RBQ.hard?'접경국 하드코어':'접경국 쓰기')+' 진행 상황을 초기화할까요?'))return;
   localStorage.removeItem(RBQ.saveKey);
-  RBQ.status={};RBQ.scoreCounts={};RBQ.correct=0;RBQ.wrong=0;RBQ.recorded=false;
+  RBQ.status={};RBQ.scoreCounts={};RBQ.correct=0;RBQ.wrong=0;RBQ.recorded=false;RBQ.streak=0;
   try{if(SESSION.cat==='world'&&SESSION.filterKey)initActiveSet(SESSION.filterKey);}catch(e){} /* 표본 재추첨 */
   RBQ.activeSet=new Set(rbqPool());RBQ.total=0;RBQ.activeSet.forEach(iso=>{RBQ.total+=(BORDERS[iso]||[]).length;});
   RBQ.queue=shuffle([...RBQ.activeSet]);
