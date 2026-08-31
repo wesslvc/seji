@@ -183,7 +183,7 @@ function setMode(mob){
 const LD_SLIDES=[
  {act:'name',  ic:'globe', mc:'#7cc4ff', tt:'나라 이름 맞히기', ds:'지도에서 나라를 클릭하고 이름을 맞혀요. 3번 안에 맞히면 색이 칠해져요.', pts:'국가당 1점'},
  {act:'border', ic:'border',mc:'#81c995', tt:'접경국 퀴즈', ds:'국경을 맞댄 이웃 나라로 추리하는 퀴즈. 난이도에 따라 방식이 달라져요.', pts:'1 · 3 · 9 · 40~60점', diff:'bdiff', levels:['L','M','H','X'],
-  dd:{L:'하 · 지도에서 클릭해 맞히기 (1점)',M:'중 · 지도 없이 이름 입력 (3점)',H:'상 · 접한 나라 모두 쓰기 (비율별 2·5·9점)',X:'하드코어 · 4개국 이상과 접한 나라만. 개수도 안 알려 주고 건너뛰기도 없어요. 문항당 40점(아프리카 60점)에서 놓치면 −2, 잘못 적으면 −5 (마이너스 가능)'}},
+  dd:{L:'하 · 지도에서 클릭해 맞히기 (1점)',M:'중 · 지도 없이 이름 입력 (3점)',H:'상 · 접한 나라 모두 쓰기 (비율별 2·5·9점)',X:'하드코어 · 4개국 이상과 접한 나라만. 개수도 안 알려 주고 건너뛰기도 없어요. 완벽해야 40점(아프리카 60점), 하나라도 어긋나면 놓친 곳 −2 · 잘못 적은 곳 −5만 남아요'}},
  {act:'religion',ic:'book', mc:'#fdd663', tt:'종교 구성', ds:'원그래프를 보고 나라별 종교 구성을 맞혀요.', pts:'1 · 2 · 3점', diff:'rdiff',
   dd:{L:'하 · 상위 종교 70%+ 국가만 (1점)',M:'중 · 모든 국가 · 힌트 있음 (2점)',H:'상 · 3번 틀려야 공개 (3점)'}},
  {act:'river', ic:'wave',  mc:'#8ab4f8', tt:'하천 맞히기', ds:'세계 주요 하천 60개를 경로·통과국으로 맞혀요.', pts:'3~10점', diff:'vdiff',
@@ -1093,8 +1093,11 @@ function rbqIsAfrica(iso){
   return _AF_SET.has(iso);
 }
 function rbqHardBase(iso){return rbqIsAfrica(iso)?RBQ_HARD_BASE_AF:RBQ_HARD_BASE;}
+/* 기본 점수는 완벽하게 맞혔을 때만 준다. 하나라도 어긋나면 그 점수는
+   통째로 날아가고 깎인 만큼만 남는다 — 그래서 대개 마이너스가 된다. */
 function rbqHardPts(iso,missed,extra){
-  return rbqHardBase(iso)-RBQ_HARD_MISS*missed-RBQ_HARD_EXTRA*extra;
+  if(!missed&&!extra)return rbqHardBase(iso);
+  return -(RBQ_HARD_MISS*missed+RBQ_HARD_EXTRA*extra);
 }
 function rbqCountryPts(found,total){
   if(!total)return 0;
@@ -1217,7 +1220,7 @@ function rbqHardGrade(){
   }
   const title=(typeof wdFlagImg==='function'?wdFlagImg(tgt,20):'')+' <b>'+nm(tgt)+'</b>의 접경국 '+nbs.length+'개 — '
     +(perfect?'완벽! +'+rbqHardBase(tgt)+'점'
-            :(pts>0?'+':'')+pts+'점 · '+cut.join(' · '));
+            :pts+'점 · '+rbqHardBase(tgt)+'점 날아감 · '+cut.join(' · '));
   RBQ.queue.shift();rbqSave();rbqStats();
   const inp0=document.getElementById('rbq-gi');if(inp0)inp0.value='';
   setTimeout(()=>borderReview({blue:[tgt],green:hit,red:missed,title},rbqShowCurrent),perfect?700:900);
