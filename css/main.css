@@ -1102,3 +1102,8 @@ body.sq-pin #sq-box{max-height:56vh;max-height:56dvh}
 }
 .rbq-hard-submit:hover:not(:disabled){background:#81c99538;}
 .rbq-hard-submit:disabled{opacity:.4;cursor:default;}
+/* 하드코어: 건너뛰기는 눌러도 안 되는 버튼으로 남겨 둔다 */
+.bq-skip.dead{opacity:.45;text-decoration:line-through;cursor:not-allowed;}
+/* 문항 배점 — 아프리카는 60점이라 눈에 띄게 */
+.rbq-base{font-size:.66rem;color:var(--tx2);font-weight:600;}
+.rbq-base.af{color:#e8b820;}

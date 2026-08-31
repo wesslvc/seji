@@ -182,8 +182,8 @@ function setMode(mob){
 /* 3×3 그리드: 한국지리(korea)를 정중앙(5번째 항목)에 놓고 세계지리 항목들이 둘러싼다 */
 const LD_SLIDES=[
  {act:'name',  ic:'globe', mc:'#7cc4ff', tt:'나라 이름 맞히기', ds:'지도에서 나라를 클릭하고 이름을 맞혀요. 3번 안에 맞히면 색이 칠해져요.', pts:'국가당 1점'},
- {act:'border', ic:'border',mc:'#81c995', tt:'접경국 퀴즈', ds:'국경을 맞댄 이웃 나라로 추리하는 퀴즈. 난이도에 따라 방식이 달라져요.', pts:'1 · 3 · 9 · 40점', diff:'bdiff', levels:['L','M','H','X'],
-  dd:{L:'하 · 지도에서 클릭해 맞히기 (1점)',M:'중 · 지도 없이 이름 입력 (3점)',H:'상 · 접한 나라 모두 쓰기 (비율별 2·5·9점)',X:'하드코어 · 4개국 이상과 접한 나라만. 개수를 안 알려 줘요. 문항당 40점에서 놓치면 −2, 잘못 적으면 −5 (마이너스 가능)'}},
+ {act:'border', ic:'border',mc:'#81c995', tt:'접경국 퀴즈', ds:'국경을 맞댄 이웃 나라로 추리하는 퀴즈. 난이도에 따라 방식이 달라져요.', pts:'1 · 3 · 9 · 40~60점', diff:'bdiff', levels:['L','M','H','X'],
+  dd:{L:'하 · 지도에서 클릭해 맞히기 (1점)',M:'중 · 지도 없이 이름 입력 (3점)',H:'상 · 접한 나라 모두 쓰기 (비율별 2·5·9점)',X:'하드코어 · 4개국 이상과 접한 나라만. 개수도 안 알려 주고 건너뛰기도 없어요. 문항당 40점(아프리카 60점)에서 놓치면 −2, 잘못 적으면 −5 (마이너스 가능)'}},
  {act:'religion',ic:'book', mc:'#fdd663', tt:'종교 구성', ds:'원그래프를 보고 나라별 종교 구성을 맞혀요.', pts:'1 · 2 · 3점', diff:'rdiff',
   dd:{L:'하 · 상위 종교 70%+ 국가만 (1점)',M:'중 · 모든 국가 · 힌트 있음 (2점)',H:'상 · 3번 틀려야 공개 (3점)'}},
  {act:'river', ic:'wave',  mc:'#8ab4f8', tt:'하천 맞히기', ds:'세계 주요 하천 60개를 경로·통과국으로 맞혀요.', pts:'3~10점', diff:'vdiff',
@@ -605,7 +605,22 @@ const FINISH_MSG='여기서 끝낼까요?\n지금까지 진행한 내용으로 �
 function runPendingReset(){const f=window._pendingReset;window._pendingReset=null;if(f)try{f();}catch(e){}}
 /* confirm() 닫힌 뒤 브라우저가 입력 포커스를 복원해 모바일 키보드가 완료창을 가리는 것 방지 */
 function _blurActive(){const b=()=>{try{if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();}catch(e){}};b();setTimeout(b,60);setTimeout(b,250);}
+/* 하드코어에서 도망가려 할 때 던지는 말 */
+const RBQ_HARD_TAUNT=[
+  '벌써요? 아직 {n}개국 남았는데요.',
+  '4개국이랑 접한 나라가 그렇게 어렵던가요?',
+  '여기서 끝내면 {n}개국은 영원히 모르는 겁니다.',
+  '지도 한 번 더 보고 오세요. 기다릴게요.',
+  '하드코어 고른 사람이 할 소리는 아닌 것 같은데요.',
+  '{n}개국 남기고 접는 건 좀... 그래도 끝낼래요?'
+];
 function mapFinishAction(){
+  if(mapMode==='rborder'&&RBQ.hard){
+    const left=(RBQ.activeSet?RBQ.activeSet.size:0)-Object.keys(RBQ.status).length;
+    const t=RBQ_HARD_TAUNT[Math.floor(Math.random()*RBQ_HARD_TAUNT.length)].replace('{n}',left);
+    if(!confirm(t+'\n\n'+FINISH_MSG))return;
+    _blurActive();rbqEnd();return;
+  }
   if(!confirm(FINISH_MSG))return;
   _blurActive();
   if(mapMode==='border')bqEnd();
@@ -1052,23 +1067,39 @@ function rbqShowCurrent(){
   if(gi0)gi0.placeholder=RBQ.hard?'접한 나라를 하나씩 입력 (Enter)':'접한 나라 이름 입력...';
   const hs=document.getElementById('rbq-hard-submit');
   if(hs){hs.style.display=RBQ.hard?'':'none';hs.disabled=true;hs.textContent='제출 (0개 입력)';}
+  const sk=document.getElementById('rbq-skip');
+  if(sk){sk.textContent=RBQ.hard?'건너뛰기 없음':'건너뛰기';sk.classList.toggle('dead',!!RBQ.hard);}
+  /* 아프리카는 60점짜리라는 걸 알려 준다 */
+  const bd=document.getElementById('rbq-base');
+  if(bd){
+    bd.style.display=RBQ.hard?'':'none';
+    bd.textContent=RBQ.hard?rbqHardBase(iso)+'점 문항':'';
+    bd.classList.toggle('af',RBQ.hard&&rbqIsAfrica(iso));
+  }
   document.body.classList.add('bq-nomap');
   const gi=document.getElementById('rbq-gi');if(gi){gi.value='';setTimeout(()=>{try{if(!document.getElementById('rbq-end').classList.contains('on'))gi.focus();}catch(e){}},50);}
   const fb=document.getElementById('rbq-fb');if(fb){fb.textContent='';fb.className='bq-fb';}
   if(SESSION.cur==='rborder'&&box)box.classList.add('on');
   if(!RBQ.noMap){try{clearMapColors();for(const[k,v]of Object.entries(RBQ.status)){if(v&&v!=='blink')colors[k]=v;}paint();setColor(iso,'c1');centerCountry(iso);}catch(e){}}
 }
-/* 하드코어 배점 — 기본 40점에서 깎는다. 아래로 뚫려서 마이너스도 나온다. */
+/* 하드코어 배점 — 기본 점수에서 깎는다. 아래로 뚫려서 마이너스도 나온다. */
 const RBQ_HARD_BASE=40;    /* 문항 기본 점수 */
+const RBQ_HARD_BASE_AF=60; /* 아프리카는 국경이 얽혀 있어 더 준다 */
 const RBQ_HARD_MISS=2;     /* 놓친 접경국 한 곳당 차감 */
 const RBQ_HARD_EXTRA=5;    /* 접하지 않는데 적은 나라 한 곳당 차감 */
-function rbqHardPts(missed,extra){
-  return RBQ_HARD_BASE-RBQ_HARD_MISS*missed-RBQ_HARD_EXTRA*extra;
+let _AF_SET=null;
+function rbqIsAfrica(iso){
+  if(!_AF_SET)_AF_SET=new Set(CONT.af||[]);
+  return _AF_SET.has(iso);
+}
+function rbqHardBase(iso){return rbqIsAfrica(iso)?RBQ_HARD_BASE_AF:RBQ_HARD_BASE;}
+function rbqHardPts(iso,missed,extra){
+  return rbqHardBase(iso)-RBQ_HARD_MISS*missed-RBQ_HARD_EXTRA*extra;
 }
 function rbqCountryPts(found,total){
   if(!total)return 0;
   /* 옛 저장본 대비 — 지금은 채점할 때 점수를 그대로 적어 둔다 */
-  if(RBQ.hard)return rbqHardPts(Math.max(0,total-found),0);
+  if(RBQ.hard)return rbqHardPts(RBQ.target,Math.max(0,total-found),0);
   const r=found/total;
   if(r>=1)return 9;
   if(r>=0.7)return 5;
@@ -1168,7 +1199,7 @@ function rbqHardGrade(){
   const extra=[...RBQ.entries].filter(i=>!nbs.includes(i));
   const perfect=missed.length===0&&extra.length===0;
   const nm=i=>COUNTRIES[i]?COUNTRIES[i].k:i;
-  const pts=rbqHardPts(missed.length,extra.length);
+  const pts=rbqHardPts(tgt,missed.length,extra.length);
 
   RBQ.correct+=hit.length;RBQ.wrong+=missed.length;
   RBQ.status[tgt]=perfect?'c2':'cr';
@@ -1185,7 +1216,7 @@ function rbqHardGrade(){
     cut.push('잘못 적음 '+extra.length+'개 −'+(RBQ_HARD_EXTRA*extra.length)+' ('+names+')');
   }
   const title=(typeof wdFlagImg==='function'?wdFlagImg(tgt,20):'')+' <b>'+nm(tgt)+'</b>의 접경국 '+nbs.length+'개 — '
-    +(perfect?'완벽! +'+RBQ_HARD_BASE+'점'
+    +(perfect?'완벽! +'+rbqHardBase(tgt)+'점'
             :(pts>0?'+':'')+pts+'점 · '+cut.join(' · '));
   RBQ.queue.shift();rbqSave();rbqStats();
   const inp0=document.getElementById('rbq-gi');if(inp0)inp0.value='';
@@ -1209,7 +1240,10 @@ function rbqTypeSubmit(){
   else{playWrongSound();bqFlash('그런 나라가 없어요','bfng');inp.classList.add('shake');setTimeout(()=>inp.classList.remove('shake'),360);}
   try{inp.focus();}catch(e){}
 }
-function rbqSkip(){if(RBQ.queue&&RBQ.queue.length>1){const g=RBQ.queue.shift();RBQ.queue.push(g);rbqShowCurrent();}}
+function rbqSkip(){
+  if(RBQ.hard){bqFlash('하드코어에 건너뛰기는 없어요','bfng');return;}
+  if(RBQ.queue&&RBQ.queue.length>1){const g=RBQ.queue.shift();RBQ.queue.push(g);rbqShowCurrent();}
+}
 function resetRBQ(skipConfirm){
   if(skipConfirm!==true&&!confirm((RBQ.hard?'접경국 하드코어':'접경국 쓰기')+' 진행 상황을 초기화할까요?'))return;
   localStorage.removeItem(RBQ.saveKey);
@@ -1222,7 +1256,9 @@ function resetRBQ(skipConfirm){
 function rbqEnd(){
   const el=document.getElementById('rbq-end');if(!el)return;
   const points=Object.values(RBQ.scoreCounts).reduce((s,sc)=>s+(typeof sc.p==='number'?sc.p:rbqCountryPts(sc.c,sc.c+sc.w)),0);
-  const maxPts=Object.values(RBQ.scoreCounts).length*(RBQ.hard?RBQ_HARD_BASE:9);
+  const maxPts=RBQ.hard
+    ? Object.keys(RBQ.scoreCounts).reduce((s,iso)=>s+rbqHardBase(iso),0)
+    : Object.values(RBQ.scoreCounts).length*9;
   document.getElementById('rbq-escore').textContent=points+'점';
   document.getElementById('rbq-e1').textContent=RBQ.correct;
   document.getElementById('rbq-e2').textContent=RBQ.wrong;
