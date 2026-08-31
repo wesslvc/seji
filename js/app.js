@@ -1021,7 +1021,7 @@ function openBQList(){
 
 /* ══════════ 역접경국 퀴즈 (RBQ) ══════════ */
 const RBQ={activeSet:null,total:0,queue:[],status:{},scoreCounts:{},correct:0,wrong:0,curWrong:0,target:null,remaining:null,saveKey:'rbq_all',recorded:false,isRetry:false,noMap:false,
-  hard:false,entries:null,streak:0};
+  hard:false,entries:null,streak:0,skipTries:0};
 /* 하드코어에서 다루는 나라 — 접경국이 4개 이상인 나라만 */
 const RBQ_HARD_MIN=4;
 function rbqPool(){
@@ -1266,8 +1266,27 @@ function rbqTypeSubmit(){
   else{playWrongSound();bqFlash('그런 나라가 없어요','bfng');inp.classList.add('shake');setTimeout(()=>inp.classList.remove('shake'),360);}
   try{inp.focus();}catch(e){}
 }
+/* 건너뛰기를 누를 때마다 한 마디씩. 누를수록 말이 세진다. */
+const RBQ_HARD_SKIP=[
+  '하드코어에 건너뛰기는 없어요',
+  '없다니까요',
+  '버튼에 줄 그어 놓은 거 안 보이세요?',
+  '누른다고 생기지 않습니다',
+  '이럴 시간에 지도를 보시는 게',
+  '건너뛰기 누른 횟수도 세고 있습니다',
+  '진짜 안 됩니다. 그만 누르세요',
+  '이쯤 되면 접경국보다 이 버튼을 더 열심히 하시는데요'
+];
 function rbqSkip(){
-  if(RBQ.hard){bqFlash('하드코어에 건너뛰기는 없어요','bfng');return;}
+  if(RBQ.hard){
+    RBQ.skipTries=(RBQ.skipTries||0)+1;
+    /* 목록을 다 쓰면, 앞에서 세고 있다고 한 그 횟수를 실제로 들이민다 */
+    const n=RBQ.skipTries;
+    bqFlash(n>RBQ_HARD_SKIP.length?n+'번 눌렀습니다. 그래도 안 됩니다':RBQ_HARD_SKIP[n-1],'bfng');
+    try{const sk=document.getElementById('rbq-skip');
+        if(sk){sk.classList.add('shake');setTimeout(()=>sk.classList.remove('shake'),360);}}catch(e){}
+    return;
+  }
   if(RBQ.queue&&RBQ.queue.length>1){const g=RBQ.queue.shift();RBQ.queue.push(g);rbqShowCurrent();}
 }
 function resetRBQ(skipConfirm){
