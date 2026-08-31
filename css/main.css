@@ -1087,3 +1087,18 @@ body.sq-pin #sq-box{max-height:56vh;max-height:56dvh}
 #new-build.on{display:flex;animation:fadeUp .3s var(--ease)}
 #new-build button{border:none;border-radius:999px;padding:.4rem .9rem;background:var(--btn);color:#fff;font-family:inherit;font-size:.78rem;font-weight:700;cursor:pointer}
 #new-build button.x{background:transparent;color:var(--tx2);padding:.3rem .4rem;font-size:.9rem;font-weight:400}
+
+/* ── 접경국 하드코어 ── */
+/* 적어 둔 나라는 맞았는지 알려 주지 않으므로 중립색으로 둔다 */
+.rbq-entry-tag{
+  cursor:pointer;background:var(--sf2);color:var(--tx);
+  border:1px solid var(--bd);
+}
+.rbq-entry-tag:hover{border-color:var(--wr);color:var(--wr);}
+.rbq-hard-submit{
+  margin-left:auto;padding:.34rem .8rem;border-radius:.5rem;
+  border:1px solid #81c995;background:#81c99522;color:#81c995;
+  font-size:.72rem;font-weight:700;cursor:pointer;white-space:nowrap;
+}
+.rbq-hard-submit:hover:not(:disabled){background:#81c99538;}
+.rbq-hard-submit:disabled{opacity:.4;cursor:default;}
