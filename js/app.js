@@ -598,11 +598,20 @@ function switchTab(key){
 function endSession(){
   qtStop();
   runPendingReset();
-  try{saveGame();}catch(e){}
+  /* 이 판에 실제로 포함된 모드만 저장한다.
+     예전에는 무조건 전부 저장해서, 열어 보지도 않은 모드까지 '빈 기록'이
+     하나씩 만들어졌다. 그 빈 기록이 계정으로 올라가 다른 기기에서 하던
+     진짜 진행을 덮어쓰는 게 기록이 뒤섞이던 원인 중 하나였다. */
+  const _has=a=>!!(SESSION.acts&&SESSION.acts.indexOf(a)>=0);
+  try{if(_has('name'))saveGame();}catch(e){}
   try{saveRQ();}catch(e){}
-  try{saveKR();}catch(e){}
-  try{bqSave();}catch(e){}
-  try{if(TQ.saveKey&&!TQ.isRetry&&!TQ._done)tqSave();}catch(e){}
+  try{if(SESSION.cat==='korea')saveKR();}catch(e){}
+  try{if(_has('border'))bqSave();}catch(e){}
+  try{if(_has('rborder')&&RBQ.activeSet)rbqSave();}catch(e){}
+  /* TQ.saveKey는 기본값이 있어서, 무역·종교·에너지를 고르지 않은 판에서도
+     tq_x_all 빈 기록이 만들어지고 있었다 */
+  try{if((_has('texp')||_has('timp')||_has('religion')||_has('tenergy'))
+        &&TQ.saveKey&&!TQ.isRetry&&!TQ._done)tqSave();}catch(e){}
   if(modalOpen)closeModal();
   document.body.classList.remove('in-session');
   document.body.classList.remove('bq-nomap');
@@ -619,14 +628,15 @@ function endSession(){
   const rvc=document.getElementById('rvc-box');if(rvc)rvc.classList.remove('on');
   const rvd=document.getElementById('rvd-box');if(rvd)rvd.classList.remove('on');
   try{rvdStop();}catch(e){}
-  try{rvSave();}catch(e){}
+  try{if(_has('river'))rvSave();}catch(e){}
   const sqs=document.getElementById('sq-screen');if(sqs)sqs.classList.remove('on');
   const sqb=document.getElementById('sq-box');if(sqb)sqb.classList.remove('on');
-  try{if(SQ.inited&&!SQ.recorded)sqSave();}catch(e){}
+  try{if(_has('suteuk')&&SQ.inited&&!SQ.recorded)sqSave();}catch(e){}
+  try{if(_has('stat')&&ST.inited&&!ST.recorded)stSave();}catch(e){}
   const cqb=document.getElementById('cq-box');if(cqb)cqb.classList.remove('on');
   const cqw=document.getElementById('cq-world-svg');if(cqw)cqw.classList.remove('on');
   try{cqPinsStop();}catch(e){}
-  try{cqSaveState();}catch(e){}
+  try{if(_has('climate'))cqSaveState();}catch(e){}
   document.getElementById('bq-box').classList.remove('on');
   document.getElementById('ui-end').style.display='none';
   ['rq-end','kr-end','bq-end','rbq-end','tq-end','tq-explain','rv-end','cq-end','sq-end','st-end'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.remove('on');});

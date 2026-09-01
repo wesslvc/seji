@@ -108,17 +108,38 @@ function metaClearTomb(k) { const m = metaLoad(); delete m.del[k]; metaSave(m); 
      srvT 서버 updated_at(ms) · locT 로컬에 마지막으로 쓴 시각 · delT 지운 시각
    지운 뒤 서버가 갱신되지 않았으면 삭제가 이긴다. 로컬이 더 최신이면 로컬이
    이긴다. 그 밖에는 서버 값을 받는다. */
+/* 이 저장본에 실제 진행이 담겨 있나.
+   모드마다 필드 이름이 달라 넓게 훑는다. 빈 기록(모드를 열기만 한 판)은
+   서버로 올리지도 않고, 서버에서 내려와도 알맹이 있는 로컬을 덮지 못하게
+   한다 — 이게 '진짜 진행중인 게 날아가던' 원인이다.
+   cq_H_covered 같은 누적 키는 진행 저장본이 아니므로 그냥 통과시킨다. */
+function isProgressKey(k) { return !/_covered$/.test(k); }
+function hasProgress(v) {
+  const d = (typeof v === 'string') ? safeParse(v) : v;
+  if (!d || typeof d !== 'object') return false;
+  const n = (x) => { const y = typeof x === 'number' ? x : parseInt(x, 10); return isNaN(y) ? 0 : y; };
+  const cnt = (o) => (o && typeof o === 'object') ? Object.keys(o).length : 0;
+  if (cnt(d.status) || cnt(d.scoreCounts) || cnt(d.wrong) || cnt(d.wrongCounts)) return true;
+  if (Array.isArray(d.done) && d.done.length) return true;
+  if (Array.isArray(d.wrongItems) && d.wrongItems.length) return true;
+  return !!(n(d.correct) || n(d.cor) || n(d.correctCountries) || n(d.attempted)
+         || n(d.wr) || n(d.idx) || n(d.pts) || n(d.revealed));
+}
 function syncPick(srvT, locT, delT, hasLocal) {
   if (delT && delT >= srvT) return 'delete';
   if (hasLocal && locT > srvT) return 'keepLocal';
   return 'takeServer';
 }
-try { window.__sejiSync = { syncPick, metaLoad, markWritten, markDeleted }; } catch (e) {}
+try { window.__sejiSync = { syncPick, hasProgress, isProgressKey, metaLoad, markWritten, markDeleted }; } catch (e) {}
 let _pushT = null;
 let _dataErrShown = false;
 let _lastCloudToast = 0;
 function safeParse(v) { try { return JSON.parse(v); } catch (e) { return v; } }
-function queuePush(k, v) { _pending.set(k, v); clearTimeout(_pushT); _pushT = setTimeout(flushPush, 800); }
+function queuePush(k, v) {
+  /* 빈 진행은 올리지 않는다. 올려 두면 다른 기기의 알맹이 있는 기록을 덮는다. */
+  if (isProgressKey(k) && !hasProgress(v)) return;
+  _pending.set(k, v); clearTimeout(_pushT); _pushT = setTimeout(flushPush, 800);
+}
 async function flushPush() {
   if (!_pending.size) return;
   await ensureSB();
@@ -188,6 +209,9 @@ async function restoreUserData() {
     const pick = syncPick(srvT, meta.t[row.key] || 0, meta.del[row.key] || 0, localVal != null);
     /* 지운 기록은 되살리지 않고 서버에서도 마저 지운다 */
     if (pick === 'delete') { deleteUserData(row.key); continue; }
+    /* 서버 쪽이 빈 기록이면 알맹이 있는 로컬을 덮지 못한다 (시각과 무관) */
+    if (isProgressKey(row.key) && !hasProgress(row.data)
+        && localVal != null && hasProgress(localVal)) { _pending.set(row.key, localVal); continue; }
     /* 로컬이 더 최신이면 서버를 덮어쓴다 — 진행 중이던 판이 날아가지 않게 */
     if (pick === 'keepLocal') { _pending.set(row.key, localVal); continue; }
     _origSet(row.key, typeof row.data === 'string' ? row.data : JSON.stringify(row.data));
@@ -201,7 +225,7 @@ async function restoreUserData() {
     const k = localStorage.key(i);
     if (!shouldSync(k) || serverKeys.has(k)) continue;
     if (meta.del[k]) continue;            /* 지운 기록은 다시 올리지 않는다 */
-    _pending.set(k, localStorage.getItem(k));
+    queuePush(k, localStorage.getItem(k));   /* 빈 기록 거르기는 여기서 함께 */
   }
   if (_pending.size) flushPush();
   return restored;
