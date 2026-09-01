@@ -1162,3 +1162,4 @@ body.printing-st>*:not(#st-end){display:none!important}
   .st-slot{font-size:.74rem;padding:.26rem .4rem}
   .st-val{font-size:.64rem}
 }
+.st-warn{display:block;margin-top:.15rem;font-size:.62rem;font-weight:600;color:var(--wr);opacity:.9}

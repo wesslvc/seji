@@ -5,14 +5,14 @@
    순서가 핵심이라 순위를 건너뛰면 오답이다.
 
    배점  순위 하나 맞힐 때마다 2점 (문항당 10점)
-        한 순위에서 세 번 틀리면 그 순위의 정답을 알려 주고 다음으로 넘어간다.
+        기회는 없다 — 한 번이라도 틀리면 그 문항의 남은 순위를 전부 공개하고
+        끝낸다. 이미 맞힌 순위의 점수는 그대로 남는다.
 
    농산물 통계도 EU를 묶지 않고 나라별로 센다.
    ══════════════════════════════════════════════════════════════════════════ */
 const ST={cats:null,plan:[],idx:0,rank:0,tries:0,cor:0,wr:0,pts:0,maxPts:0,
   saveKey:'st_all',recorded:false,inited:false,got:[],wrongLog:[]};
 const ST_PER_RANK=2;      /* 순위 하나당 점수 */
-const ST_MAX_TRIES=3;     /* 한 순위에서 허용하는 오클릭 */
 
 function stPool(){return (typeof STAT_SETS!=='undefined')?STAT_SETS:[];}
 function stCats(){
@@ -87,7 +87,8 @@ function stShow(){
   ST.rank=0;ST.tries=0;ST.got=[];
   try{clearMapColors();paint();}catch(e){}
   const t=document.getElementById('st-title');
-  if(t)t.innerHTML='<b>'+sqEsc(s.name)+'</b>'+sqJosa(s.name,'이','가')+' 많은 나라를 <b>1위부터 5위까지 순서대로</b> 클릭하세요';
+  if(t)t.innerHTML='<b>'+sqEsc(s.name)+'</b>'+sqJosa(s.name,'이','가')+' 많은 나라를 <b>1위부터 5위까지 순서대로</b> 클릭하세요'
+      +'<span class="st-warn">한 번이라도 틀리면 바로 정답 공개</span>';
   const meta=document.getElementById('st-meta');
   if(meta)meta.textContent=s.cat+' · '+s.src;
   stRenderSlots();
@@ -132,30 +133,31 @@ function stMapClick(iso){
     if(ST.rank>=5)stFinishSet(true);
     return;
   }
-  /* 아직 안 나온 다른 순위의 나라를 눌렀으면 순서가 틀린 것 */
+  /* 틀렸다. 기회는 없다 — 남은 순위를 전부 공개하고 이 문항을 끝낸다. */
   let laterAt=-1;
   for(let i=ST.rank+1;i<5;i++)if(statMatch(s.top[i][0],iso)){laterAt=i;break;}
-  ST.tries++;
   try{playWrongSound();}catch(e){}
   const box=document.getElementById('st-box');
   if(box){box.classList.add('shake');setTimeout(()=>box.classList.remove('shake'),360);}
-  if(fb){
-    fb.className='bq-fb ng';
-    fb.textContent=laterAt>=0
-      ? (function(){const nm=statIsoName(s.top[laterAt][0]);
-          return nm+sqJosa(nm,'은','는')+' 5위 안에 있지만 지금 차례가 아니에요 (기회 '+(ST_MAX_TRIES-ST.tries)+')';})()
-      : (typeof COUNTRIES!=='undefined'&&COUNTRIES[iso]?COUNTRIES[iso].k:iso)+' — 아니에요 (기회 '+(ST_MAX_TRIES-ST.tries)+')';
-  }
-  if(ST.tries>=ST_MAX_TRIES){
+  const nm=(typeof COUNTRIES!=='undefined'&&COUNTRIES[iso])?COUNTRIES[iso].k:iso;
+  const why=laterAt>=0
+    ? nm+sqJosa(nm,'은','는')+' '+(laterAt+1)+'위예요 — 지금은 '+(ST.rank+1)+'위 차례'
+    : nm+sqJosa(nm,'은','는')+' 5위 안에 없어요';
+  stRevealRest(s);
+  if(fb){fb.textContent=why+'. 정답을 모두 공개했어요';fb.className='bq-fb ng';}
+}
+/* 남은 순위를 전부 오답으로 처리하고 공개한다 */
+function stRevealRest(s){
+  while(ST.rank<5){
     ST.got[ST.rank]={ok:false};
     ST.wr++;
-    ST.wrongLog.push({set:s.id,rank:ST.rank+1,ans:statIsoName(want)});
-    stPaint(want,'cr');
-    if(fb){fb.textContent=(ST.rank+1)+'위는 '+statIsoName(want)+'였어요';fb.className='bq-fb ng';}
-    ST.rank++;ST.tries=0;
-    stRenderSlots();stStats();
-    if(ST.rank>=5)stFinishSet(false);
+    ST.wrongLog.push({set:s.id,rank:ST.rank+1,ans:statIsoName(s.top[ST.rank][0])});
+    stPaint(s.top[ST.rank][0],'cr');
+    ST.rank++;
   }
+  ST.tries=0;
+  stRenderSlots();stStats();
+  stFinishSet(false);
 }
 /* setColor는 부를 때마다 소리까지 내므로 색만 넣고 한 번 그린다 */
 function stPaint(iso,color){
@@ -181,16 +183,9 @@ function stNext(){
 }
 function stGiveUp(){
   const s=stCur();if(!s||ST.rank>=5)return;
-  while(ST.rank<5){
-    ST.got[ST.rank]={ok:false};ST.wr++;
-    ST.wrongLog.push({set:s.id,rank:ST.rank+1,ans:statIsoName(s.top[ST.rank][0])});
-    stPaint(s.top[ST.rank][0],'cr');
-    ST.rank++;
-  }
-  ST.tries=0;stRenderSlots();stStats();
+  stRevealRest(s);
   const fb=document.getElementById('st-fb');
   if(fb){fb.textContent='정답을 모두 공개했어요';fb.className='bq-fb ng';}
-  stFinishSet(false);
 }
 function stFinishNow(){if(!confirm(FINISH_MSG))return;_blurActive();stEnd();}
 function stResetConfirm(){
