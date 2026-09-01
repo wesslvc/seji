@@ -5,6 +5,7 @@
    목록에 'stat' 하나만 더한다. 이걸 실행하지 않으면 통계 순위 점수가
    RLS에 막혀 조용히 저장되지 않는다.
    Supabase 대시보드 > SQL Editor 에 붙여넣고 실행하세요. 여러 번 실행해도 안전.
+   ✅ 2026-09-01 실행 완료.
    ══════════════════════════════════════════════════════════════════════════ */
 drop policy if exists "scores insert" on public.scores;
 create policy "scores insert" on public.scores for insert to authenticated

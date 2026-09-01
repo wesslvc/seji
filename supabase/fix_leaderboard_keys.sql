@@ -14,6 +14,7 @@
 
    테이블이나 행은 건드리지 않는다. 여러 번 실행해도 안전.
    Supabase 대시보드 > SQL Editor 에 붙여넣고 실행하세요.
+   ✅ 2026-09-01 실행 완료.
    ══════════════════════════════════════════════════════════════════════════ */
 create or replace function public.app_leaderboard()
 returns table(user_id uuid, nickname text, avatar_url text, category text, scope text,
