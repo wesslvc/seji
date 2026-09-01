@@ -4547,4 +4547,27 @@ function tqRestart(){
 }
 window.addEventListener('resize',()=>{ if(document.getElementById('tq-screen').classList.contains('on')){ try{ const isP=TQ.mode==='r'||TQ.mode==='e'; document.querySelectorAll('#tq-left .tq-map-card .tq-map').forEach(tm=>{const iso=tm.parentElement.dataset.iso; (isP?renderPie:renderTreemap)(tm,tqShare(iso));}); tqDrawLines(); }catch(e){} } });
 
-window.SejiGame={listSaves,resumeSave,resumeWrongRetry,resumeWrongView,getBreakdown,resumeWrongByScope};
+/* 이어하기 목록에서 한 판을 아주 지운다.
+   localStorage.removeItem은 account.js가 가로채서 묘비를 남기고 계정에서도
+   지우므로, 이 함수 하나로 기기와 서버 양쪽이 정리된다. */
+function deleteSave(key){
+  try{localStorage.removeItem(key);}catch(e){}
+  /* 지금 그 판을 붙들고 있는 모드라면 메모리 상태도 비워 다시 저장되지 않게 한다 */
+  try{if(S&&S.saveKey===key){S.status={};S.wrong={};S.correct=0;S.revealed=0;}}catch(e){}
+  try{if(BQ&&BQ.saveKey===key){BQ.status={};BQ.correct=0;BQ.wrong=0;}}catch(e){}
+  try{if(RBQ&&RBQ.saveKey===key){RBQ.status={};RBQ.scoreCounts={};RBQ.correct=0;RBQ.wrong=0;}}catch(e){}
+  try{if(TQ&&TQ.saveKey===key){TQ.done=[];TQ.wrong=[];}}catch(e){}
+  try{if(SQ&&SQ.saveKey===key){SQ.plan=[];SQ.idx=0;SQ.cor=0;SQ.wr=0;SQ.inited=false;}}catch(e){}
+  try{if(ST&&ST.saveKey===key){ST.plan=[];ST.idx=0;ST.cor=0;ST.wr=0;ST.inited=false;}}catch(e){}
+}
+/* 이 기기의 모든 퀴즈 진행 기록을 지운다 (계정에 로그인돼 있으면 서버도 함께) */
+function deleteAllSaves(){
+  const keys=[];
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(/^(wq_|bq_|rbq_|kq_|tq_|cq_|rv_|sq_|st_)/.test(k)&&k!=='wq_mode')keys.push(k);
+  }
+  keys.forEach(deleteSave);
+  return keys.length;
+}
+window.SejiGame={listSaves,resumeSave,resumeWrongRetry,resumeWrongView,getBreakdown,resumeWrongByScope,deleteSave,deleteAllSaves};

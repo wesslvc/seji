@@ -675,13 +675,28 @@ function renderSaves() {
       </div>
       <div class="sv-acts">
         <button class="sv-btn go" data-go>이어하기</button>
+        <button class="sv-btn del" data-del>삭제</button>
       </div>
     </div>`);
     const go = () => { closeAll(); window.SejiGame.resumeSave(s.type, s.key); };
     item.querySelector('[data-go]').addEventListener('click', go);
     item.querySelector('.sv-top').addEventListener('click', go);
+    item.querySelector('[data-del]').addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!confirm(`${CAT_NAME[s.type]} 진행 기록을 지울까요?\n기기와 계정 양쪽에서 지워져 다시 살아나지 않습니다.`)) return;
+      window.SejiGame.deleteSave(s.key);
+      renderSaves();
+    });
     box.appendChild(item);
   });
+  const wipe = el(`<button class="sv-wipe" type="button">진행 기록 전부 비우기</button>`);
+  wipe.addEventListener('click', () => {
+    if (!confirm('진행 중인 퀴즈 기록을 전부 지울까요?\n기기와 계정 양쪽에서 지워지고 되돌릴 수 없습니다.\n(점수·랭킹 기록은 그대로 남습니다)')) return;
+    const n = window.SejiGame.deleteAllSaves();
+    toast(n + '개 진행 기록을 지웠어요');
+    renderSaves();
+  });
+  box.appendChild(wipe);
 }
 
 async function openMenuData() {
@@ -1010,6 +1025,9 @@ async function onAuthChange(newSession) {
         setTimeout(() => location.reload(), 800);
       }
     }
+    /* 세션이 없을 때 초기화한 판은 서버에서 못 지웠다. 세션이 붙는 즉시
+       밀린 묘비부터 반영한다 — 그러지 않으면 다음 새로고침에 되살아난다. */
+    flushTombstones();
     // 세션 로딩 전에 쌓인 진행상황을 이제 업로드
     if (_pending.size) flushPush();
   } else {

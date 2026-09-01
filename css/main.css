@@ -1163,3 +1163,12 @@ body.printing-st>*:not(#st-end){display:none!important}
   .st-val{font-size:.64rem}
 }
 .st-warn{display:block;margin-top:.15rem;font-size:.62rem;font-weight:600;color:var(--wr);opacity:.9}
+.sv-btn.del{background:transparent;border:1px solid var(--bd);color:var(--tx2)}
+.sv-btn.del:hover{border-color:var(--wr);color:var(--wr)}
+.sv-wipe{
+  width:100%;margin-top:.6rem;padding:.5rem;border-radius:8px;
+  border:1px solid var(--bd);background:transparent;color:var(--tx2);
+  font-size:.74rem;font-weight:600;cursor:pointer;
+  font-family:'Pretendard','Noto Sans KR',sans-serif;
+}
+.sv-wipe:hover{border-color:var(--wr);color:var(--wr)}
