@@ -3565,6 +3565,10 @@ function listSaves(){
       if(!d.plan||!d.plan.length)continue;
       const done=(d.cor||0)+(d.wr||0);if(!done)continue; /* 시작만 한 건 제외 */
       out.push({type:'suteuk',key:k,scope:k.replace(/^sq_/,'suteuk_'),done,total:d.plan.length,wrong:d.wr||0,recorded:!!d.recorded});
+    }else if(k.startsWith('st_')&&!k.includes('__')){
+      if(!Array.isArray(d.ids)||!d.ids.length)continue;
+      const done=d.idx||0;if(!done)continue;   /* 시작만 한 건 제외 */
+      out.push({type:'stat',key:k,scope:k.slice(3),done,total:d.ids.length,wrong:d.wr||0,recorded:!!d.recorded});
     }else if(k.startsWith('cq_')&&!k.includes('__')){
       if(!d.attempted)continue; /* 시작만 한 건 제외 */
       const m=k.match(/^cq_([LMH])_(.+)$/);if(!m)continue;
@@ -3602,6 +3606,7 @@ function _resumeStart(type,key){
     let fk='';try{fk=(JSON.parse(localStorage.getItem(key))||{}).fk||'';}catch(e){}
     startSession('world',['suteuk'],fk||'all_sq');
   }
+  else if(type==='stat'){const fk=key.slice(3);startSession('world',['stat'],fk,fk);}
 }
 function resumeSave(type,key){_resumeStart(type,key);}
 /* 저장본에서 종교 오답 ISO 목록을 미리 읽음 (startSession이 새로 만들며 비우기 전에) */

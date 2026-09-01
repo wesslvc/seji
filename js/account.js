@@ -32,7 +32,7 @@ function hasStoredSession() {
  * 게임 종료 시 window.SejiAccount.submitScore(...) 로 점수를 전송한다.
  */
 
-const CAT_NAME = { name: '나라이름', border: '접경국', rborder: '접경국쓰기', religion: '종교', texp: '수출구조', timp: '수입구조', tenergy: '에너지', korea: '한국지리', river: '하천', climate: '기후', suteuk: '수특퀴즈' };
+const CAT_NAME = { name: '나라이름', border: '접경국', rborder: '접경국쓰기', religion: '종교', texp: '수출구조', timp: '수입구조', tenergy: '에너지', korea: '한국지리', river: '하천', climate: '기후', suteuk: '수특퀴즈', stat: '통계순위' };
 const CONT_KO = { as: '아시아', eu: '유럽', af: '아프리카', na: '북아메리카', sa: '남아메리카', oc: '오세아니아' };
 function scopeContinents(scope) {
   if (scope === 'korea') return [];
@@ -77,6 +77,9 @@ let profile = null;
 /* ──────────────── 진행상황 동기화 (기기 간 이어하기) ────────────────
  * 게임이 쓰는 localStorage 진행 키(wq_*, bq_*, kq_*)를 계정에 미러링.
  * localStorage.setItem 을 가로채서 로그인 상태면 서버로 올린다. */
+/* 계정에 미러링할 진행 키. 여기에 넣으면 비로그인 사용자는 그 진행을
+   아예 저장하지 못하게 되므로(아래 setItem 참고), 하천·수특퀴즈·통계 순위는
+   일부러 빼 두고 기기에만 저장한다. */
 const SYNC_RE = /^(wq_|bq_|rbq_|kq_|tq_|cq_)/;
 const SYNC_EXCLUDE = new Set(['wq_mode']);
 function shouldSync(k) { return SYNC_RE.test(k) && !SYNC_EXCLUDE.has(k) && !k.includes('__'); }
@@ -84,6 +87,33 @@ function shouldSync(k) { return SYNC_RE.test(k) && !SYNC_EXCLUDE.has(k) && !k.in
 function isAccountUser() { return !!session || (supabaseEnabled && hasStoredSession()); }
 const _origSet = localStorage.setItem.bind(localStorage);
 const _pending = new Map();
+
+/* ── 동기화 메타 ──────────────────────────────────────────────────────────
+   서버 값으로 로컬을 무조건 덮어쓰면 두 가지가 깨진다.
+     ① 방금 로컬에서 지운 기록이 서버에서 되살아나 '진행 중'으로 다시 뜬다
+     ② 로컬이 더 최신인데 서버의 옛 진행으로 덮여 진짜 진행분이 날아간다
+   그래서 키마다 마지막으로 로컬에서 쓴 시각(t)과 지운 시각(del, 묘비)을
+   따로 적어 두고, 서버 updated_at과 견줘 더 최신인 쪽만 남긴다.
+   이 키는 SYNC_RE에 걸리지 않아 서버로 올라가지 않는다(기기별 지역 정보). */
+const SYNC_META_KEY = 'seji_syncmeta';
+function metaLoad() {
+  try { const m = JSON.parse(localStorage.getItem(SYNC_META_KEY)); if (m && typeof m === 'object') return { t: m.t || {}, del: m.del || {} }; } catch (e) {}
+  return { t: {}, del: {} };
+}
+function metaSave(m) { try { _origSet(SYNC_META_KEY, JSON.stringify(m)); } catch (e) {} }
+function markWritten(k) { const m = metaLoad(); m.t[k] = Date.now(); delete m.del[k]; metaSave(m); }
+function markDeleted(k) { const m = metaLoad(); m.del[k] = Date.now(); delete m.t[k]; metaSave(m); }
+function metaClearTomb(k) { const m = metaLoad(); delete m.del[k]; metaSave(m); }
+/* 서버 한 줄을 어떻게 할지 고르는 순수 함수 — 규칙을 한곳에 모아 두고 시험한다.
+     srvT 서버 updated_at(ms) · locT 로컬에 마지막으로 쓴 시각 · delT 지운 시각
+   지운 뒤 서버가 갱신되지 않았으면 삭제가 이긴다. 로컬이 더 최신이면 로컬이
+   이긴다. 그 밖에는 서버 값을 받는다. */
+function syncPick(srvT, locT, delT, hasLocal) {
+  if (delT && delT >= srvT) return 'delete';
+  if (hasLocal && locT > srvT) return 'keepLocal';
+  return 'takeServer';
+}
+try { window.__sejiSync = { syncPick, metaLoad, markWritten, markDeleted }; } catch (e) {}
 let _pushT = null;
 let _dataErrShown = false;
 let _lastCloudToast = 0;
@@ -110,36 +140,71 @@ localStorage.setItem = function (k, v) {
   // 진짜 게스트(설정됨 + 로그인 안 함)만 진행상황 저장 안 함
   if (shouldSync(k) && supabaseEnabled && !isAccountUser()) return;
   _origSet(k, v);
-  if (shouldSync(k) && isAccountUser()) queuePush(k, v);
+  if (shouldSync(k)) { markWritten(k); if (isAccountUser()) queuePush(k, v); }
 };
 // 초기화(저장 삭제) 시 서버의 진행 기록도 삭제 → 리더보드에서도 빠짐
 const _origRemove = localStorage.removeItem.bind(localStorage);
 localStorage.removeItem = function (k) {
+  const had = localStorage.getItem(k) != null;
   _origRemove(k);
-  if (shouldSync(k) && isAccountUser()) { _pending.delete(k); deleteUserData(k); }
+  if (!shouldSync(k)) return;
+  /* 로그인 여부와 상관없이 묘비를 남긴다. 세션이 아직 없을 때 초기화하면
+     서버 삭제가 그때는 실패하는데, 묘비가 없으면 다음 복원 때 그 기록이
+     되살아난다 — 이게 '초기화했는데 진행 중으로 다시 뜨는' 원인이었다.
+     단, 이 기기에 실제로 있던 것만 묘비를 남긴다. 없던 키까지 묘비를 세우면
+     나중에 로그인했을 때 다른 기기에서 하던 판을 지워 버린다. */
+  if (had) markDeleted(k);
+  _pending.delete(k);
+  if (isAccountUser()) deleteUserData(k);
 };
 async function deleteUserData(k) {
-  if (!session) return;
   await ensureSB();
-  if (!supabase) return;
-  await supabase.from('user_data').delete().eq('user_id', session.user.id).eq('key', k);
+  if (!supabase || !session) return false;   // 세션이 없으면 묘비만 남기고 다음 기회에
+  const { error } = await supabase.from('user_data').delete().eq('user_id', session.user.id).eq('key', k);
+  if (!error) metaClearTomb(k);
+  return !error;
+}
+/* 세션이 붙은 뒤, 그동안 못 지운 묘비들을 서버에 반영한다 */
+async function flushTombstones() {
+  const m = metaLoad();
+  const keys = Object.keys(m.del || {});
+  for (const k of keys) await deleteUserData(k);
 }
 async function restoreUserData() {
   if (!session) return 0;
   await ensureSB();
   if (!supabase) return 0;
-  const { data } = await supabase.from('user_data').select('key,data').eq('user_id', session.user.id);
+  /* 먼저 밀린 삭제부터 서버에 반영한다 — 그러지 않으면 바로 아래에서
+     지운 기록을 도로 내려받는다 */
+  await flushTombstones();
+  const { data } = await supabase.from('user_data')
+    .select('key,data,updated_at').eq('user_id', session.user.id);
   const serverKeys = new Set((data || []).map((r) => r.key));
+  const meta = metaLoad();
+  let restored = 0;
   for (const row of data || []) {
+    const srvT = Date.parse(row.updated_at || '') || 0;
+    const localVal = localStorage.getItem(row.key);
+    const pick = syncPick(srvT, meta.t[row.key] || 0, meta.del[row.key] || 0, localVal != null);
+    /* 지운 기록은 되살리지 않고 서버에서도 마저 지운다 */
+    if (pick === 'delete') { deleteUserData(row.key); continue; }
+    /* 로컬이 더 최신이면 서버를 덮어쓴다 — 진행 중이던 판이 날아가지 않게 */
+    if (pick === 'keepLocal') { _pending.set(row.key, localVal); continue; }
     _origSet(row.key, typeof row.data === 'string' ? row.data : JSON.stringify(row.data));
+    meta.t[row.key] = srvT;       /* 방금 받은 값의 기준 시각을 서버 시각으로 맞춘다 */
+    delete meta.del[row.key];
+    restored++;
   }
+  metaSave(meta);
   // 서버에 아직 없는 로컬 진행상황은 업로드 (게스트로 풀던 기록 보존)
   for (let i = 0; i < localStorage.length; i++) {
     const k = localStorage.key(i);
-    if (shouldSync(k) && !serverKeys.has(k)) _pending.set(k, localStorage.getItem(k));
+    if (!shouldSync(k) || serverKeys.has(k)) continue;
+    if (meta.del[k]) continue;            /* 지운 기록은 다시 올리지 않는다 */
+    _pending.set(k, localStorage.getItem(k));
   }
   if (_pending.size) flushPush();
-  return (data || []).length;
+  return restored;
 }
 
 /* ──────────────── 스타일 주입 ──────────────── */
@@ -611,7 +676,7 @@ async function openMenuData() {
   // 유형별
   const catBox = document.getElementById('acct-cat-stats');
   catBox.innerHTML = '';
-  const cats = ['name', 'border', 'rborder', 'religion', 'texp', 'timp', 'tenergy', 'river', 'climate', 'korea', 'suteuk'];
+  const cats = ['name', 'border', 'rborder', 'religion', 'texp', 'timp', 'tenergy', 'river', 'climate', 'korea', 'suteuk', 'stat'];
   const has = cats.filter((c) => graded.some((r) => r.category === c));
   if (!has.length) catBox.innerHTML = `<div style="font-size:.78rem;color:var(--tx2)">아직 기록이 없습니다.</div>`;
   has.forEach((c) => {
