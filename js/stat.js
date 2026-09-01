@@ -7,7 +7,7 @@
    배점  순위 하나 맞힐 때마다 2점 (문항당 10점)
         한 순위에서 세 번 틀리면 그 순위의 정답을 알려 주고 다음으로 넘어간다.
 
-   EU는 회원국 아무 곳이나 누르면 인정한다 — 지도에 EU라는 도형이 없다.
+   농산물 통계도 EU를 묶지 않고 나라별로 센다.
    ══════════════════════════════════════════════════════════════════════════ */
 const ST={cats:null,plan:[],idx:0,rank:0,tries:0,cor:0,wr:0,pts:0,maxPts:0,
   saveKey:'st_all',recorded:false,inited:false,got:[],wrongLog:[]};
@@ -157,14 +157,9 @@ function stMapClick(iso){
     if(ST.rank>=5)stFinishSet(false);
   }
 }
-/* EU는 회원국을 모두 칠한다.
-   setColor는 호출할 때마다 다시 그리고 소리까지 내므로, 27개국을 칠할 때는
-   색만 넣어 두고 마지막에 한 번만 그린다. */
+/* setColor는 부를 때마다 소리까지 내므로 색만 넣고 한 번 그린다 */
 function stPaint(iso,color){
-  try{
-    if(iso==='eu'){EU_MEMBERS.forEach(m=>{colors[m]=color;});paint();}
-    else{colors[iso]=color;paint();}
-  }catch(e){}
+  try{colors[iso]=color;paint();}catch(e){}
 }
 function stFinishSet(){
   const s=stCur();if(!s)return;
