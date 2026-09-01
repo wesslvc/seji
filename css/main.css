@@ -1109,3 +1109,56 @@ body.sq-pin #sq-box{max-height:56vh;max-height:56dvh}
 .rbq-base.af{color:#e8b820;}
 /* 하드코어 연속 오답 놀림말 */
 .br-taunt{margin-top:.35rem;font-size:.78rem;font-weight:600;color:var(--gd);opacity:.95;}
+
+/* ══════════ 통계 순위 테스트 ══════════ */
+#st-end{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:800;display:none;align-items:center;justify-content:center}
+#st-end.on{display:flex}
+/* 유럽이 순위에 자주 나오므로 카드를 아래쪽에 둔다 — 위에 두면 EU를 가린다.
+   오답일 때 흔드는 .shake가 transform을 덮어쓰므로, 가운데 정렬은
+   translateX가 아니라 좌우 0 + margin auto로 잡는다. */
+#st-box{
+  position:absolute;left:0;right:0;bottom:1rem;margin:0 auto;
+  z-index:12;background:color-mix(in srgb,var(--sf) 96%,transparent);
+  border:1px solid var(--bd);border-radius:14px;padding:.7rem .9rem;
+  box-shadow:var(--shadow2);backdrop-filter:blur(10px);
+  width:min(560px,calc(100vw - 2rem));display:none;
+}
+#st-box.on{display:block}
+.st-meta{font-size:.66rem;color:var(--tx2);text-align:center;margin:.25rem 0 .5rem}
+.st-slots{display:flex;flex-direction:column;gap:.25rem}
+.st-slot{
+  display:flex;align-items:center;gap:.5rem;padding:.3rem .5rem;
+  border:1px solid var(--bd);border-radius:8px;background:var(--sf2);
+  font-size:.8rem;font-weight:600;color:var(--tx);
+}
+.st-slot.now{border-color:var(--ac);background:var(--ac2)}
+.st-slot.ok{border-color:#81c995;background:color-mix(in srgb,#81c995 14%,transparent)}
+.st-slot.miss{border-color:var(--wr);background:color-mix(in srgb,var(--wr) 12%,transparent)}
+.st-rank{
+  flex-shrink:0;font-size:.64rem;font-weight:800;color:var(--tx2);
+  min-width:2.1rem;text-align:center;
+}
+.st-slot.now .st-rank{color:var(--ac)}
+.st-slot.ok .st-rank{color:#81c995}
+.st-slot.miss .st-rank{color:var(--wr)}
+.st-ask{color:var(--tx2);font-weight:500}
+.st-slot.now .st-ask{color:var(--ac);font-weight:700}
+.st-val{margin-left:auto;font-size:.7rem;font-weight:600;color:var(--tx2)}
+.st-note{
+  margin-top:.5rem;padding-top:.5rem;border-top:1px dashed var(--bd);
+  font-size:.72rem;line-height:1.55;color:var(--tx2);
+}
+.st-note-list{margin:.3rem 0 .4rem;padding-left:1.2rem;font-size:.78rem;line-height:1.7}
+.st-note-list li.miss{color:var(--wr);font-weight:700}
+.st-note-p{margin:.2rem 0 0;font-size:.73rem;color:var(--tx2);line-height:1.6}
+body.printing-st>*:not(#st-end){display:none!important}
+@media print{
+  body.printing-st #st-end{position:static;background:#fff;display:block}
+  body.printing-st #st-end .reb{display:none}
+  body.printing-st #st-end .rq-end-card{box-shadow:none;border:0;max-height:none;overflow:visible}
+}
+@media (max-width:640px){
+  #st-box{bottom:.5rem;padding:.55rem .6rem}
+  .st-slot{font-size:.74rem;padding:.26rem .4rem}
+  .st-val{font-size:.64rem}
+}
