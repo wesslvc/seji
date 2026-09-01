@@ -11,7 +11,7 @@
    농산물 통계도 EU를 묶지 않고 나라별로 센다.
    ══════════════════════════════════════════════════════════════════════════ */
 const ST={cats:null,plan:[],idx:0,rank:0,tries:0,cor:0,wr:0,pts:0,maxPts:0,
-  saveKey:'st_all',recorded:false,inited:false,got:[],wrongLog:[]};
+  saveKey:'st_all',recorded:false,inited:false,got:[],wrongLog:[],isRetry:false};
 const ST_PER_RANK=2;      /* 순위 하나당 점수 */
 
 function stPool(){return (typeof STAT_SETS!=='undefined')?STAT_SETS:[];}
@@ -29,7 +29,7 @@ function stInit(filterKey){
   ST.saveKey='st_'+(filterKey||'all');
   ST.cats=(typeof stSetFromKey==='function')?stSetFromKey(filterKey):null;
   ST.idx=0;ST.rank=0;ST.tries=0;ST.cor=0;ST.wr=0;ST.pts=0;
-  ST.got=[];ST.wrongLog=[];ST.recorded=false;
+  ST.got=[];ST.wrongLog=[];ST.recorded=false;ST.isRetry=false;
   ST.plan=shuffle(stFilter(stPool(),ST.cats));
   ST.maxPts=ST.plan.length*5*ST_PER_RANK;
   ST.inited=true;
@@ -187,6 +187,29 @@ function stGiveUp(){
   const fb=document.getElementById('st-fb');
   if(fb){fb.textContent='정답을 모두 공개했어요';fb.className='bq-fb ng';}
 }
+/* 이번 판에서 한 순위라도 틀린 통계들 */
+function stWrongSets(){
+  const ids=[];
+  (ST.wrongLog||[]).forEach(w=>{if(ids.indexOf(w.set)<0)ids.push(w.set);});
+  const by={};stPool().forEach(x=>{by[x.id]=x;});
+  return ids.map(id=>by[id]).filter(Boolean);
+}
+/* 틀린 통계만 새 판으로 다시 — 다 맞힐 때까지 몇 번이고 이어서 할 수 있다.
+   저장키에 __를 넣어 이어하기 목록과 계정 동기화에서 빠지게 하고,
+   점수는 isRetry로 보내 랭킹에는 반영되지 않게 한다. */
+function stRetryWrong(){
+  const sets=stWrongSets();
+  if(!sets.length)return;
+  const el=document.getElementById('st-end');if(el)el.classList.remove('on');
+  ST.saveKey='st__retry';
+  ST.isRetry=true;
+  ST.plan=shuffle(sets.slice());
+  ST.idx=0;ST.rank=0;ST.tries=0;ST.cor=0;ST.wr=0;ST.pts=0;
+  ST.got=[];ST.wrongLog=[];ST.recorded=false;
+  ST.maxPts=ST.plan.length*5*ST_PER_RANK;
+  try{clearMapColors();paint();}catch(e){}
+  stStats();stShow();
+}
 function stFinishNow(){if(!confirm(FINISH_MSG))return;_blurActive();stEnd();}
 function stResetConfirm(){
   if(!confirm('통계 순위 테스트를 처음부터 다시 풀까요?'))return;
@@ -200,6 +223,15 @@ function stEnd(){
   document.getElementById('st-e1').textContent=ST.cor;
   document.getElementById('st-e2').textContent=ST.wr;
   stRenderNote();
+  /* 틀린 게 남아 있으면 그것만 다시 풀 수 있게 한다 */
+  const rt=document.getElementById('st-retry');
+  if(rt){
+    const n=stWrongSets().length;
+    rt.style.display=n?'':'none';
+    rt.textContent='틀린 통계 '+n+'개만 다시 풀기';
+  }
+  const ttl=el.querySelector('h1');
+  if(ttl)ttl.textContent=ST.isRetry?'오답 다시 풀기 완료!':'통계 순위 테스트 완료!';
   el.classList.add('on');
   window._lastResult={title:'통계 순위',score:ST.pts+'점',
     rows:[['맞힌 순위',ST.cor,'#81c995'],['놓친 순위',ST.wr,'#f28b82']]};
@@ -208,7 +240,7 @@ function stEnd(){
     try{window.SejiAccount&&window.SejiAccount.submitScore({category:'stat',
       correct:ST.cor,total:ST.cor+ST.wr,
       accuracy:Math.round(ST.cor/((ST.cor+ST.wr)||1)*1000)/10,
-      scope:SESSION.filterKey,points:ST.pts,maxPoints:ST.maxPts});}catch(e){}
+      scope:SESSION.filterKey,points:ST.pts,maxPoints:ST.maxPts,isRetry:ST.isRetry});}catch(e){}
   }
   window._pendingReset=()=>{try{localStorage.removeItem(ST.saveKey);}catch(e){}ST.inited=false;stInit(SESSION.filterKey);stShow();};
 }
