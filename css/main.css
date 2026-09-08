@@ -1,4 +1,10 @@
-:root{color-scheme:dark;--bg:#14161a;--sf:#1c1f24;--sf2:#23272e;--bd:#31363f;--tx:#e9eaec;--tx2:#9298a3;--ac:#7fb3a8;--ac2:rgba(127,179,168,.13);--btn:#2f6f63;--wr:#e08b83;--gd:#d9b268;--land:#313e52;--map-line:#161e2b;--map-hover:#46587a;--map-mask-fill:#1c2330;--map-mask-line:#141a24;--map-active-fill:#38455a;--map-ant:#232a36;--c1:#4285f4;--c2:#34a853;--c3:#fbbc04;--g-blue:#4285f4;--g-red:#ea4335;--g-yellow:#fbbc05;--g-green:#34a853;--shadow:0 1px 2px rgba(0,0,0,.28),0 4px 14px rgba(0,0,0,.22);--shadow2:0 6px 20px rgba(0,0,0,.3),0 18px 50px rgba(0,0,0,.26);}
+:root{color-scheme:dark;--bg:#14161a;--sf:#1c1f24;--sf2:#23272e;--bd:#31363f;--tx:#e9eaec;--tx2:#9298a3;--ac:#7ba9db;--ac2:rgba(123,169,219,.13);--btn:#3a6ea8;--wr:#e08b83;--gd:#d9b268;--land:#313e52;--map-line:#161e2b;--map-hover:#46587a;--map-mask-fill:#1c2330;--map-mask-line:#141a24;--map-active-fill:#38455a;--map-ant:#232a36;--c1:#4285f4;--c2:#34a853;--c3:#fbbc04;--g-blue:#4285f4;--g-red:#ea4335;--g-yellow:#fbbc05;--g-green:#34a853;--shadow:0 1px 2px rgba(0,0,0,.28),0 4px 14px rgba(0,0,0,.22);--shadow2:0 6px 20px rgba(0,0,0,.3),0 18px 50px rgba(0,0,0,.26);  /* ── 물까치(Cyanopica cyanus) 팔레트 ──
+     사진의 새에서 그대로 가져온 네 가지 색이다. 로고와 강조 요소가
+     이 안에서만 움직이도록 묶어 두었다.
+       cap  검은 두건 · wing 하늘색 날개와 꼬리 · body 은회색 가슴
+       bark 나무 밑동의 따뜻한 갈색(라이트 모드 바탕의 기준색) */
+  --mg-cap:#141518;--mg-wing:#7ba9db;--mg-wing-d:#5b96d4;--mg-body:#f2eddc;--mg-bark:#d8c0a8;
+}
 /* 라이트 모드 — html의 data-theme 속성으로 전환(<head> 인라인 스크립트가 첫 페인트 전에
    미리 세팅해 깜빡임 방지). 지도 색(--c1~c3)·구글 브랜드색은 밝은 배경에서도 잘
    보이는 채도라 그대로 두고, 배경·표면·글자·그림자만 라이트용으로 바꾼다.
@@ -8,7 +14,7 @@
    필터로 제외된 나라를 어둡게 가리는 표시)·--map-hover·--map-active-fill도
    전부 다크 전용 하드코딩이라 라이트모드에서 지도 위에 시커먼 덩어리가 떠
    있는 것처럼 보였던 문제를 같이 고친다. */
-:root[data-theme="light"]{color-scheme:light;--bg:#f7f6f3;--sf:#ffffff;--sf2:#f1efeb;--bd:#e2ded7;--tx:#1d1f22;--tx2:#6b6f76;--ac:#2f6f63;--ac2:rgba(47,111,99,.07);--btn:#2f6f63;--wr:#b3453c;--gd:#9a7b3c;--land:#c9ced7;--map-line:#98a1ad;--map-hover:#aab4c2;--map-mask-fill:#e7e9ec;--map-mask-line:#cfd3d8;--map-active-fill:#b7c0cc;--map-ant:#dde1e6;--shadow:0 1px 2px rgba(28,25,20,.05),0 4px 14px rgba(28,25,20,.05);--shadow2:0 6px 20px rgba(28,25,20,.07),0 18px 50px rgba(28,25,20,.06);}
+:root[data-theme="light"]{color-scheme:light;--bg:#f7f6f3;--sf:#ffffff;--sf2:#f1efeb;--bd:#e2ded7;--tx:#1d1f22;--tx2:#6b6f76;--ac:#3a6ea8;--ac2:rgba(58,110,168,.07);--btn:#3a6ea8;--wr:#b3453c;--gd:#9a7b3c;--land:#c9ced7;--map-line:#98a1ad;--map-hover:#aab4c2;--map-mask-fill:#e7e9ec;--map-mask-line:#cfd3d8;--map-active-fill:#b7c0cc;--map-ant:#dde1e6;--shadow:0 1px 2px rgba(28,25,20,.05),0 4px 14px rgba(28,25,20,.05);--shadow2:0 6px 20px rgba(28,25,20,.07),0 18px 50px rgba(28,25,20,.06);}
 /* 홈 화면 배경 방사형 그라데이션(#landing-overlay)과 로고 파스텔 그라데이션 글자
    (.g3-logo)는 어두운 배경을 전제로 만든 효과라, 라이트모드에서 그대로 두면
    흰 화면 한가운데 어두운 얼룩이 뜨고 그 위에 밝은 파스텔 글자가 겹쳐 대비가
@@ -309,9 +315,19 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 .ld-stage{width:min(560px,94vw);display:flex;flex-direction:column;align-items:center;gap:.55rem}
 /* 로고 — 무지개 그라데이션과 발광 그림자를 걷어내고 단색 활자로 뒀다.
    지구본 하나만 액센트색으로 남겨 시선을 한 곳에 모은다. */
-.g3-logo{font-family:'Space Grotesk','Pretendard',sans-serif;font-size:2.75rem;font-weight:600;text-align:center;letter-spacing:-.04em;line-height:1;user-select:none;margin-bottom:.15rem;color:var(--tx)}
-.g3-globe{display:inline-block;width:.7em;height:.7em;margin:0 .03em;vertical-align:-.04em;color:var(--ac)}
-.g3-globe svg{width:100%;height:100%;display:block}
+/* 로고 — 마크가 색을 다 맡으므로 글자는 단색으로 조용히 둔다 */
+.g3-logo{font-family:'Space Grotesk','Pretendard',sans-serif;font-size:2.3rem;font-weight:600;text-align:center;letter-spacing:-.02em;line-height:1;user-select:none;color:var(--tx);white-space:nowrap}
+/* 로고 잠금 — 물까치 마크 위에 워드마크.
+   마크는 검은 바탕째로 둥근 타일에 담는다. 그림 자체가 검정 위에 그려져
+   있어서 배경을 지우면 검은 두건까지 함께 잘려 나가고, 타일로 두는 편이
+   밝은 화면·어두운 화면 양쪽에서 또렷하다. */
+.g3-lockup{display:flex;flex-direction:column;align-items:center;gap:.55rem}
+.g3-bird{
+  width:5.4rem;height:5.4rem;border-radius:26%;display:block;
+  background:#000;box-shadow:var(--shadow2);
+  user-select:none;-webkit-user-drag:none;
+}
+@media (max-width:640px){.g3-bird{width:4.4rem;height:4.4rem}}
 .ld-tag{font-size:.84rem;color:var(--tx2);letter-spacing:.03em;margin-bottom:.5rem}
 /* 모드 그리드 */
 .ld-stage{width:min(680px,94vw)}
