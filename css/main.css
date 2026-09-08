@@ -1,4 +1,4 @@
-:root{color-scheme:dark;--bg:#14161a;--sf:#1c1f24;--sf2:#23272e;--bd:#31363f;--tx:#e9eaec;--tx2:#9298a3;--ac:#7ba9db;--ac2:rgba(123,169,219,.13);--btn:#3a6ea8;--wr:#e08b83;--gd:#d9b268;--land:#313e52;--map-line:#161e2b;--map-hover:#46587a;--map-mask-fill:#1c2330;--map-mask-line:#141a24;--map-active-fill:#38455a;--map-ant:#232a36;--c1:#4285f4;--c2:#34a853;--c3:#fbbc04;--g-blue:#4285f4;--g-red:#ea4335;--g-yellow:#fbbc05;--g-green:#34a853;--shadow:0 1px 2px rgba(0,0,0,.28),0 4px 14px rgba(0,0,0,.22);--shadow2:0 6px 20px rgba(0,0,0,.3),0 18px 50px rgba(0,0,0,.26);  /* ── 물까치(Cyanopica cyanus) 팔레트 ──
+:root{color-scheme:dark;--bg:#14171c;--sf:#1c2027;--sf2:#242932;--bd:#333944;--tx:#e9eaec;--tx2:#9298a3;--ac:#7fb2e6;--ac2:rgba(127,178,230,.14);--btn:#2f74b8;--wr:#e08b83;--gd:#d9b268;--land:#313e52;--map-line:#161e2b;--map-hover:#46587a;--map-mask-fill:#1c2330;--map-mask-line:#141a24;--map-active-fill:#38455a;--map-ant:#232a36;--c1:#4285f4;--c2:#34a853;--c3:#fbbc04;--g-blue:#4285f4;--g-red:#ea4335;--g-yellow:#fbbc05;--g-green:#34a853;--shadow:0 1px 2px rgba(0,0,0,.28),0 4px 14px rgba(0,0,0,.22);--shadow2:0 6px 20px rgba(0,0,0,.3),0 18px 50px rgba(0,0,0,.26);  /* ── 물까치(Cyanopica cyanus) 팔레트 ──
      사진의 새에서 그대로 가져온 네 가지 색이다. 로고와 강조 요소가
      이 안에서만 움직이도록 묶어 두었다.
        cap  검은 두건 · wing 하늘색 날개와 꼬리 · body 은회색 가슴
@@ -22,7 +22,7 @@
    필터로 제외된 나라를 어둡게 가리는 표시)·--map-hover·--map-active-fill도
    전부 다크 전용 하드코딩이라 라이트모드에서 지도 위에 시커먼 덩어리가 떠
    있는 것처럼 보였던 문제를 같이 고친다. */
-:root[data-theme="light"]{color-scheme:light;--bg:#f7f6f3;--sf:#ffffff;--sf2:#f1efeb;--bd:#e2ded7;--tx:#1d1f22;--tx2:#6b6f76;--ac:#3a6ea8;--ac2:rgba(58,110,168,.07);--btn:#3a6ea8;--wr:#b3453c;--gd:#9a7b3c;--land:#c9ced7;--map-line:#98a1ad;--map-hover:#aab4c2;--map-mask-fill:#e7e9ec;--map-mask-line:#cfd3d8;--map-active-fill:#b7c0cc;--map-ant:#dde1e6;--shadow:0 1px 2px rgba(28,25,20,.05),0 4px 14px rgba(28,25,20,.05);--shadow2:0 6px 20px rgba(28,25,20,.07),0 18px 50px rgba(28,25,20,.06);}
+:root[data-theme="light"]{color-scheme:light;--bg:#f6f7f9;--sf:#ffffff;--sf2:#eef1f5;--bd:#e0e5ec;--tx:#191c21;--tx2:#646a74;--ac:#2f74b8;--ac2:rgba(47,116,184,.08);--btn:#2f74b8;--wr:#b3453c;--gd:#9a7b3c;--land:#c9ced7;--map-line:#98a1ad;--map-hover:#aab4c2;--map-mask-fill:#e7e9ec;--map-mask-line:#cfd3d8;--map-active-fill:#b7c0cc;--map-ant:#dde1e6;--shadow:0 1px 2px rgba(28,25,20,.05),0 4px 14px rgba(28,25,20,.05);--shadow2:0 6px 20px rgba(28,25,20,.07),0 18px 50px rgba(28,25,20,.06);}
 /* 홈 화면 배경 방사형 그라데이션(#landing-overlay)과 로고 파스텔 그라데이션 글자
    (.g3-logo)는 어두운 배경을 전제로 만든 효과라, 라이트모드에서 그대로 두면
    흰 화면 한가운데 어두운 얼룩이 뜨고 그 위에 밝은 파스텔 글자가 겹쳐 대비가
@@ -290,7 +290,7 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 .wi-country{font-weight:600}
 .wi-ans{color:#81c995;margin-left:6px}
 .wi-yours{color:var(--wr);margin-left:6px}
-#landing-overlay{position:fixed;inset:0;background:radial-gradient(1100px 620px at 50% -12%,#1b1f25 0%,var(--bg) 62%);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2rem;overflow-y:auto;padding:1.2rem 0}
+#landing-overlay{position:fixed;inset:0;background:radial-gradient(1100px 620px at 50% -12%,#1d222a 0%,var(--bg) 62%);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2rem;overflow-y:auto;padding:1.2rem 0}
 .land-choices{display:flex;gap:.8rem;flex-wrap:wrap;justify-content:center}
 .land-btn{padding:1.1rem 1.8rem;border-radius:4px;border:1px solid var(--bd);background:var(--sf);color:var(--tx);font-family:var(--font-sans);font-size:.92rem;font-weight:600;cursor:pointer;transition:.2s;min-width:140px;text-align:center}
 .land-btn:hover{border-color:var(--tx);color:var(--tx);background:var(--sf2)}
@@ -365,12 +365,15 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 .ld-cell.wide .ld-cell-tt{font-size:.82rem}
 .ld-cell.wide .ld-cell-txt{display:flex;flex-direction:column;gap:.12rem}
 .ld-cell.wide .ld-cell-pt{margin-left:auto;flex:0 0 auto;padding-left:.5rem}
-/* 카드마다 색을 달리하면 무지개처럼 보여 어수선하다. 칩은 한 톤으로 두고
-   구분은 아이콘 모양에 맡긴다. --mc는 아주 옅은 기운으로만 남긴다. */
+/* 카드색은 물까치 계열(하늘·크림·연분홍) 안에서만 움직여 무지개처럼 보이지
+   않게 하되, 색이 아예 안 보일 만큼 죽이면 칙칙해진다. 칩에서만 또렷하게
+   드러내고 나머지 자리는 조용히 둔다. */
 .ld-cell-ic{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;
-  background:color-mix(in srgb,var(--mc) 9%,var(--sf2));color:color-mix(in srgb,var(--mc) 42%,var(--tx2));
-  transition:color .2s var(--ease),background .2s var(--ease)}
-.ld-cell:hover .ld-cell-ic,.ld-cell.sel .ld-cell-ic{color:color-mix(in srgb,var(--mc) 72%,var(--tx));background:color-mix(in srgb,var(--mc) 16%,var(--sf2))}
+  background:color-mix(in srgb,var(--mc) 20%,var(--sf));color:color-mix(in srgb,var(--mc) 78%,var(--tx));
+  transition:color .2s var(--ease),background .2s var(--ease),transform .2s var(--ease)}
+.ld-cell:hover .ld-cell-ic,.ld-cell.sel .ld-cell-ic{
+  background:color-mix(in srgb,var(--mc) 34%,var(--sf));color:color-mix(in srgb,var(--mc) 92%,var(--tx));
+  transform:translateY(-1px)}
 .ld-cell-ic svg{width:20px;height:20px}
 .ld-cell-tt{font-size:.82rem;font-weight:600;color:var(--tx);line-height:1.3;word-break:keep-all;letter-spacing:-.01em}
 .ld-cell-pt{font-size:.62rem;color:var(--tx2);letter-spacing:-.005em}
