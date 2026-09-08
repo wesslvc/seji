@@ -430,17 +430,17 @@ async function emailAuth(isSignup) {
   const msg = document.getElementById('acct-em-msg');
   msg.style.color = '#b06060';
   if (!email || !pw) { msg.textContent = '이메일과 비밀번호를 입력하세요'; return; }
-  if (pw.length < 6) { msg.textContent = '비밀번호는 6자 이상이어야 합니다'; return; }
+  if (pw.length < 6) { msg.textContent = '비밀번호는 6자 이상이어야 해요'; return; }
   msg.style.color = '#888'; msg.textContent = '처리 중…';
   if (isSignup) {
     const { data, error } = await supabase.auth.signUp({ email, password: pw });
     if (error) { msg.style.color = '#b06060'; msg.textContent = '가입 실패: ' + error.message; return; }
-    if (data.session) { closeAll(); toast('가입 완료, 로그인되었습니다'); await initAuth(); }
+    if (data.session) { closeAll(); toast('가입이 끝났어요. 로그인됐어요'); await initAuth(); }
     else { msg.style.color = '#81c995'; msg.textContent = '확인 메일을 보냈어요. 메일의 링크를 누른 뒤 로그인하세요.'; }
   } else {
     const { error } = await supabase.auth.signInWithPassword({ email, password: pw });
     if (error) { msg.style.color = '#b06060'; msg.textContent = '로그인 실패: 이메일/비밀번호 확인 (가입 안 했으면 회원가입)'; return; }
-    closeAll(); toast('로그인되었습니다'); await initAuth();
+    closeAll(); toast('로그인됐어요'); await initAuth();
   }
 }
 
@@ -449,7 +449,7 @@ async function signOut() {
   if (!supabase) return;
   await supabase.auth.signOut();
   closeAll();
-  toast('로그아웃되었습니다');
+  toast('로그아웃됐어요');
 }
 
 /* ──────────────── 프로필 ──────────────── */
@@ -524,7 +524,7 @@ function renderSaves() {
   const all = (window.SejiGame && window.SejiGame.listSaves) ? window.SejiGame.listSaves() : [];
   const saves = all.filter((s) => s.inProgress); // 진행 중만 (완료는 최근 기록에)
   box.innerHTML = '';
-  if (!saves.length) { box.innerHTML = `<div style="font-size:.78rem;color:var(--tx2)">진행 중인 퀴즈가 없습니다.</div>`; return; }
+  if (!saves.length) { box.innerHTML = `<div style="font-size:.78rem;color:var(--tx2)">진행 중인 퀴즈가 없어요.</div>`; return; }
   saves.forEach((s) => {
     const scope = s.type === 'korea' ? (s.scope==='korea_prov'?'시·도 단위':'시·군 전체') : scopeLabel(s.scope);
     const item = el(`<div class="sv-item">
@@ -550,7 +550,7 @@ function renderSaves() {
   });
   const wipe = el(`<button class="sv-wipe" type="button">진행 기록 전부 비우기</button>`);
   wipe.addEventListener('click', () => {
-    if (!confirm('진행 중인 퀴즈 기록을 전부 지울까요?\n기기와 계정 양쪽에서 지워지고 되돌릴 수 없습니다.\n(점수·랭킹 기록은 그대로 남습니다)')) return;
+    if (!confirm('진행 중인 퀴즈 기록을 전부 지울까요?\n기기와 계정 양쪽에서 지워지고 되돌릴 수 없어요.\n(점수·랭킹 기록은 그대로 남습니다)')) return;
     const n = window.SejiGame.deleteAllSaves();
     toast(n + '개 진행 기록을 지웠어요');
     renderSaves();
@@ -576,7 +576,7 @@ async function openMenuData() {
   catBox.innerHTML = '';
   const cats = ['name', 'border', 'rborder', 'religion', 'texp', 'timp', 'tenergy', 'river', 'climate', 'korea', 'suteuk', 'stat'];
   const has = cats.filter((c) => graded.some((r) => r.category === c));
-  if (!has.length) catBox.innerHTML = `<div style="font-size:.78rem;color:var(--tx2)">아직 기록이 없습니다.</div>`;
+  if (!has.length) catBox.innerHTML = `<div style="font-size:.78rem;color:var(--tx2)">아직 기록이 없어요.</div>`;
   has.forEach((c) => {
     const cr = graded.filter((r) => r.category === c);
     const a = aggregate(cr);
@@ -594,7 +594,7 @@ async function openMenuData() {
   const recBox = document.getElementById('acct-recent');
   recBox.innerHTML = '';
   const recent = rows.slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 8);
-  if (!recent.length) recBox.innerHTML = `<div style="font-size:.78rem;color:var(--tx2)">아직 기록이 없습니다.</div>`;
+  if (!recent.length) recBox.innerHTML = `<div style="font-size:.78rem;color:var(--tx2)">아직 기록이 없어요.</div>`;
   recent.forEach((r) => {
     const d = new Date(r.created_at);
     const ds = `${d.getMonth() + 1}/${d.getDate()}`;
@@ -630,7 +630,7 @@ function openRecordDetail(r) {
     ${bd.hasState ? `
       ${r.category !== 'religion' ? `<div class="acct-lbl" style="margin-top:.8rem">맞춘 것 (${bd.right.length})</div><div class="rd-tags">${tags(bd.right)}</div>` : ''}
       <div class="acct-lbl" style="margin-top:.8rem">틀린 것 (${bd.wrong.length})</div><div class="rd-tags rd-wrong">${tags(bd.wrong)}</div>
-    ` : `<div style="color:var(--tx2);font-size:.78rem;margin-top:.8rem">상세 정/오답은 해당 범위를 다시 풀면 기록됩니다.</div>`}
+    ` : `<div style="color:var(--tx2);font-size:.78rem;margin-top:.8rem">상세 정/오답은 해당 범위를 다시 풀면 기록돼요.</div>`}
     ${bd.hasWrong ? `<button class="acct-btn" id="rd-retry" style="background:color-mix(in srgb,var(--wr) 14%,transparent);color:var(--wr);border-color:color-mix(in srgb,var(--wr) 40%,transparent);margin-top:1rem">틀린 것만 다시 풀기</button>` : ''}
   `;
   card.querySelector('[data-close]').addEventListener('click', () => document.getElementById('acct-recdetail').classList.remove('on'));
@@ -678,12 +678,12 @@ async function saveProfile() {
     .from('profiles')
     .update({ nickname: nick, avatar_url: avatarUrl })
     .eq('id', uid);
-  if (error) { toast(error.message.includes('duplicate') ? '이미 사용 중인 닉네임입니다' : '저장 실패'); return; }
+  if (error) { toast(error.message.includes('duplicate') ? '이미 쓰고 있는 닉네임이에요' : '저장 실패'); return; }
   profile = { ...profile, nickname: nick, avatar_url: avatarUrl };
   pendingAvatarFile = null;
   renderChip();
   closeAll();
-  toast('프로필이 저장되었습니다');
+  toast('프로필을 저장했어요');
 }
 
 /* ──────────────── 랭킹 · 통계 ──────────────── */
@@ -802,7 +802,7 @@ function renderRanking() {
       return { id: uid, nickname: p.nickname, avatar_url: p.avatar_url, avg, best, val: (key === 'avg' ? avg : best), sub };
     }).sort((a, b) => b.val - a.val).slice(0, 100);
   }
-  if (!rows.length) { list.innerHTML = `<div class="acct-empty">이 조건의 기록이 아직 없습니다.</div>`; return; }
+  if (!rows.length) { list.innerHTML = `<div class="acct-empty">이 조건의 기록이 아직 없어요.</div>`; return; }
   list.innerHTML = '';
   rows.forEach((r, i) => {
     const me = r.id === myId;
@@ -930,7 +930,7 @@ async function wikiSubmitEdit(iso, text) {
   await ensureSB();
   const { error } = await supabase.from('wiki_edits').insert({ iso, user_id: session.user.id, proposed_fact: text });
   if (error) { toast('제안 접수 실패: ' + (error.message || '')); return false; }
-  toast('제안이 접수됐어요 — 관리자 승인 후 반영됩니다');
+  toast('제안이 접수됐어요 — 관리자 승인 후 반영돼요');
   return true;
 }
 async function wikiMyEdits(iso) {

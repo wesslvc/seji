@@ -247,7 +247,7 @@ function stEnd(){
 /* 틀린 순위만 모아 보여 준다 — 그대로 인쇄할 수 있다 */
 function stRenderNote(){
   const host=document.getElementById('st-note-body');if(!host)return;
-  if(!ST.wrongLog.length){host.innerHTML='<div class="sq-note-none">틀린 게 없어요. 완벽합니다.</div>';return;}
+  if(!ST.wrongLog.length){host.innerHTML='<div class="sq-note-none">틀린 게 없어요. 완벽해요.</div>';return;}
   const by={};stPool().forEach(s=>by[s.id]=s);
   const grp={};
   ST.wrongLog.forEach(w=>{(grp[w.set]=grp[w.set]||[]).push(w);});
