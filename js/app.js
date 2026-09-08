@@ -714,46 +714,54 @@ async function shareLastResult(){
   const av=info?await _loadImg(info.avatarUrl):null;
   const W=1080,H=1080,cv=document.createElement('canvas');cv.width=W;cv.height=H;
   const x=cv.getContext('2d');
-  x.fillStyle='#17181b';x.fillRect(0,0,W,H);
-  const glow=x.createRadialGradient(W/2,140,40,W/2,140,620);
-  glow.addColorStop(0,'rgba(94,234,212,.14)');glow.addColorStop(1,'rgba(94,234,212,0)');
+  const bird=await _loadImg('img/magpie-512.png');
+  /* 따뜻한 먹색 바탕 — 앱 다크 모드와 같은 색 */
+  x.fillStyle='#14161a';x.fillRect(0,0,W,H);
+  const glow=x.createRadialGradient(W/2,180,40,W/2,180,660);
+  glow.addColorStop(0,'rgba(123,169,219,.13)');glow.addColorStop(1,'rgba(123,169,219,0)');
   x.fillStyle=glow;x.fillRect(0,0,W,H);
-  /* 글로브 마크 */
-  x.strokeStyle='#5eead4';x.lineWidth=7;x.lineCap='round';
-  const gx=W/2,gy=170,gr=56;
-  x.beginPath();x.arc(gx,gy,gr,0,Math.PI*2);x.stroke();
-  x.beginPath();x.ellipse(gx,gy,gr*.45,gr,0,0,Math.PI*2);x.stroke();
-  x.beginPath();x.moveTo(gx-gr*.92,gy-gr*.33);x.lineTo(gx+gr*.92,gy-gr*.33);
-  x.moveTo(gx-gr*.92,gy+gr*.33);x.lineTo(gx+gr*.92,gy+gr*.33);x.stroke();
-  /* 워드마크 */
-  const grad=x.createLinearGradient(W/2-220,0,W/2+220,0);
-  grad.addColorStop(0,'#7cc4ff');grad.addColorStop(.52,'#5eead4');grad.addColorStop(1,'#8b9dff');
-  x.fillStyle=grad;x.textAlign='center';
-  x.font="700 88px 'Space Grotesk','Pretendard',sans-serif";
-  x.fillText('MAPICA',W/2,322);
+  /* 비행 궤적 — 홈 화면과 같은 점선 호 */
+  x.save();x.strokeStyle='rgba(123,169,219,.30)';x.lineWidth=3;x.setLineDash([5,20]);x.lineCap='round';
+  x.beginPath();x.moveTo(-20,300);
+  x.bezierCurveTo(200,300,260,110,540,110);
+  x.bezierCurveTo(820,110,880,300,1100,300);
+  x.stroke();x.restore();
+  /* 물까치 마크 */
+  if(bird)x.drawImage(bird,W/2-110,66,220,220);
+  /* 워드마크 — 앱과 같은 넓은 자간 */
+  x.textAlign='center';x.fillStyle='#f2eddc';
+  x.font="600 76px 'Space Grotesk','Pretendard',sans-serif";
+  if(x.letterSpacing!==undefined)x.letterSpacing='16px';
+  x.fillText('MAPICA',W/2,352);
+  if(x.letterSpacing!==undefined)x.letterSpacing='0px';
+  x.fillStyle='#7ba9db';x.font="500 27px 'Space Grotesk','Pretendard',sans-serif";
+  if(x.letterSpacing!==undefined)x.letterSpacing='7px';
+  x.fillText('SEE THE WORLD FROM ABOVE',W/2,398);
+  if(x.letterSpacing!==undefined)x.letterSpacing='0px';
   /* 모드명 */
-  x.fillStyle='#9aa0a6';x.font="600 44px 'Pretendard',sans-serif";
-  x.fillText(r.title,W/2,398);
+  x.fillStyle='#9298a3';x.font="600 42px var(--font-sans),'Pretendard',sans-serif";
+  x.font="600 42px 'Pretendard',sans-serif";
+  x.fillText(r.title,W/2,486);
   /* 점수 */
-  x.fillStyle='#e8eaed';x.font="800 175px 'Space Grotesk','Pretendard',sans-serif";
-  x.fillText(r.score,W/2,590);
+  x.fillStyle='#e9eaec';x.font="700 168px 'Space Grotesk','Pretendard',sans-serif";
+  x.fillText(r.score,W/2,648);
   /* 통계 행 */
   x.font="600 40px 'Pretendard',sans-serif";
-  const rows=r.rows||[];const rowY=690;
+  const rows=r.rows||[];const rowY=736;
   const widths=rows.map(([lb,v])=>x.measureText(lb+'  '+v).width+66);
   let tx=W/2-widths.reduce((a,b)=>a+b,0)/2;
   rows.forEach(([lb,v,col],i)=>{
     const cx2=tx+widths[i]/2;
-    x.fillStyle='#9aa0a6';x.textAlign='right';x.fillText(lb,cx2-8,rowY);
-    x.fillStyle=col||'#e8eaed';x.textAlign='left';x.fillText(String(v),cx2+8,rowY);
+    x.fillStyle='#9298a3';x.textAlign='right';x.fillText(lb,cx2-8,rowY);
+    x.fillStyle=col||'#e9eaec';x.textAlign='left';x.fillText(String(v),cx2+8,rowY);
     tx+=widths[i];
   });
   x.textAlign='center';
   /* 프로필 + 총점·랭킹 (로그인 시) */
   if(info){
-    const py=810;
-    x.strokeStyle='#2a2b2f';x.lineWidth=2;
-    x.beginPath();x.moveTo(W/2-320,750);x.lineTo(W/2+320,750);x.stroke();
+    const py=852;
+    x.strokeStyle='#31363f';x.lineWidth=2;
+    x.beginPath();x.moveTo(W/2-320,792);x.lineTo(W/2+320,792);x.stroke();
     x.font="700 46px 'Pretendard',sans-serif";
     const nm=info.nickname||'플레이어';
     const nmW=x.measureText(nm).width;
@@ -762,31 +770,31 @@ async function shareLastResult(){
     if(av){
       x.save();x.beginPath();x.arc(startX+avR,py,avR,0,Math.PI*2);x.clip();
       x.drawImage(av,startX,py-avR,avR*2,avR*2);x.restore();
-      x.strokeStyle='#3c4043';x.lineWidth=3;
+      x.strokeStyle='#31363f';x.lineWidth=3;
       x.beginPath();x.arc(startX+avR,py,avR,0,Math.PI*2);x.stroke();
     }
-    x.fillStyle='#e8eaed';x.textAlign='left';
+    x.fillStyle='#e9eaec';x.textAlign='left';
     x.fillText(nm,startX+(av?avR*2+gap:0),py+16);
     x.textAlign='center';
     if(info.totalPoints!=null){
       x.font="600 40px 'Pretendard',sans-serif";
-      x.fillStyle='#fdd663';
+      x.fillStyle='#d9b268';
       const rkTxt='총점 '+info.totalPoints.toLocaleString()+'점'+(info.rank?'  ·  랭킹 '+info.rank+'위'+(info.users?' / '+info.users+'명':''):'');
-      x.fillText(rkTxt,W/2,900);
+      x.fillText(rkTxt,W/2,938);
     }
   }
   /* 푸터 */
   const d=new Date();
-  x.fillStyle='#5f6368';x.font="500 34px 'Pretendard',sans-serif";
-  x.fillText(d.getFullYear()+'. '+(d.getMonth()+1)+'. '+d.getDate()+'.  ·  MAPICA 지리 퀴즈',W/2,1005);
+  x.fillStyle='#6b7079';x.font="500 32px 'Pretendard',sans-serif";
+  x.fillText(d.getFullYear()+'. '+(d.getMonth()+1)+'. '+d.getDate()+'.  ·  MAPICA',W/2,1012);
   const finish=blob=>{
     if(!blob)return;
-    const file=new File([blob],'geogl3-result.png',{type:'image/png'});
+    const file=new File([blob],'mapica-result.png',{type:'image/png'});
     if(navigator.canShare&&navigator.canShare({files:[file]})){
       navigator.share({files:[file],title:'MAPICA 결과'}).catch(()=>{});return;
     }
     const a=document.createElement('a');
-    a.href=URL.createObjectURL(blob);a.download='geogl3-result.png';a.click();
+    a.href=URL.createObjectURL(blob);a.download='mapica-result.png';a.click();
     setTimeout(()=>URL.revokeObjectURL(a.href),4000);
   };
   cv.toBlob(finish,'image/png'); /* 프사는 crossOrigin 로드 성공 시에만 그려져 캔버스 오염 없음 */
