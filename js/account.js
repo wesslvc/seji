@@ -95,7 +95,7 @@ function injectStyle() {
   const css = `
   #acct-chip{position:fixed;top:.5rem;right:.6rem;z-index:9200;display:flex;align-items:center;gap:.4rem;
     background:color-mix(in srgb,var(--sf) 92%,transparent);border:1px solid var(--bd,#3c4043);border-radius:999px;padding:.25rem .55rem .25rem .3rem;
-    cursor:pointer;backdrop-filter:blur(8px);transition:border-color .2s,transform .2s;font-family:'Pretendard','Noto Sans KR',sans-serif}
+    cursor:pointer;backdrop-filter:blur(8px);transition:border-color .2s,transform .2s;font-family:var(--font-sans)}
   #acct-chip:hover{border-color:var(--tx2)}
   #acct-chip img,#acct-chip .acct-ph{width:26px;height:26px;border-radius:50%;object-fit:cover;background:var(--sf2);flex-shrink:0;
     display:flex;align-items:center;justify-content:center;font-size:.8rem;color:var(--tx2);font-weight:600}
@@ -118,7 +118,7 @@ function injectStyle() {
   .acct-card .sub{font-size:.78rem;color:var(--tx2);margin-bottom:1rem}
   .acct-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:.6rem;padding:.7rem;border-radius:8px;
     border:1px solid var(--bd);background:#fff;color:#111;font-size:.9rem;font-weight:600;cursor:pointer;margin-bottom:.55rem;
-    font-family:'Pretendard','Noto Sans KR',sans-serif;transition:transform .15s}
+    font-family:var(--font-sans);transition:transform .15s}
   .acct-btn:active{transform:scale(.98)}
   .acct-btn.apple{background:#000;color:#fff;border-color:#000}
   .acct-btn.ghost{background:transparent;color:var(--tx2);border-color:var(--bd)}
@@ -128,7 +128,7 @@ function injectStyle() {
   .acct-av{width:64px;height:64px;border-radius:50%;object-fit:cover;background:var(--sf2);cursor:pointer;flex-shrink:0;
     display:flex;align-items:center;justify-content:center;color:var(--tx2);font-size:1.4rem;font-weight:700;border:2px solid var(--bd)}
   .acct-in{width:100%;padding:.55rem .7rem;background:var(--sf2);border:1px solid var(--bd);border-radius:6px;color:var(--tx);
-    font-size:.9rem;font-family:'Pretendard','Noto Sans KR',sans-serif;outline:none;margin-bottom:.6rem}
+    font-size:.9rem;font-family:var(--font-sans);outline:none;margin-bottom:.6rem}
   .acct-in:focus{border-color:var(--ac)}
   .acct-lbl{font-size:.7rem;color:var(--tx2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem}
   .acct-menu-item{display:flex;align-items:center;gap:.6rem;padding:.65rem .2rem;font-size:.88rem;color:var(--tx);cursor:pointer;
@@ -137,11 +137,11 @@ function injectStyle() {
   .acct-menu-item:last-child{border-bottom:none}
   .acct-stat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin:.4rem 0 1rem}
   .acct-stat{background:var(--sf2);border:1px solid var(--bd);border-radius:6px;padding:.5rem;text-align:center}
-  .acct-stat .v{font-size:1.2rem;font-weight:700;color:var(--tx);font-family:'Space Grotesk','Pretendard',sans-serif}
+  .acct-stat .v{font-size:1.2rem;font-weight:700;color:var(--tx);font-family:var(--font-display)}
   .acct-stat .l{font-size:.6rem;color:var(--tx2);margin-top:2px}
   .rank-tabs{display:flex;gap:.3rem;margin-bottom:.6rem;flex-wrap:wrap}
   .rank-tab{flex:1 1 auto;min-width:0;padding:.4rem .35rem;border-radius:6px;border:1px solid var(--bd);background:transparent;color:var(--tx2);
-    font-size:.74rem;line-height:1;text-align:center;cursor:pointer;font-family:'Pretendard','Noto Sans KR',sans-serif;white-space:nowrap}
+    font-size:.74rem;line-height:1;text-align:center;cursor:pointer;font-family:var(--font-sans);white-space:nowrap}
   .rank-tab.on{background:var(--ac2);color:var(--ac);border-color:var(--ac2)}
   /* 대륙 탭은 7개라 3열 그리드로 줄바꿈 (글씨 안 짤리게) */
   #acct-rank-conts{display:grid;grid-template-columns:repeat(3,1fr);gap:.3rem}
@@ -149,19 +149,19 @@ function injectStyle() {
   .rank-list{display:flex;flex-direction:column;gap:.3rem;max-height:50vh;overflow-y:auto;margin-top:.2rem}
   .rank-item{display:flex;align-items:center;gap:.6rem;padding:.45rem .55rem;border-radius:6px;background:var(--sf2)}
   .rank-item.me{background:var(--ac2);border:1px solid var(--ac)}
-  .rank-no{width:26px;text-align:center;font-weight:700;color:var(--tx2);font-family:'Space Grotesk','Pretendard',sans-serif;font-size:1.05rem;
+  .rank-no{width:26px;text-align:center;font-weight:700;color:var(--tx2);font-family:var(--font-display);font-size:1.05rem;
     font-variant-numeric:tabular-nums;flex-shrink:0}
   .rank-no.top{color:#d4a017}
   .rank-av{width:30px;height:30px;border-radius:50%;object-fit:cover;background:var(--sf2);flex-shrink:0;display:flex;
     align-items:center;justify-content:center;color:var(--tx2);font-size:.75rem;font-weight:700}
   .rank-nm{flex:1;min-width:0;font-size:.84rem;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .rank-right{text-align:right;flex-shrink:0;line-height:1.2}
-  .rank-val{font-size:.95rem;font-weight:700;color:var(--tx);font-family:'Space Grotesk','Pretendard',sans-serif;font-variant-numeric:tabular-nums}
+  .rank-val{font-size:.95rem;font-weight:700;color:var(--tx);font-family:var(--font-display);font-variant-numeric:tabular-nums}
   .rank-sub{font-size:.62rem;color:var(--tx2)}
   .acct-empty{text-align:center;color:var(--tx2);font-size:.82rem;padding:1.4rem 0}
   .acct-toast{position:fixed;bottom:1.2rem;left:50%;transform:translateX(-50%);z-index:9999;background:#1a1a1a;
     border:1px solid #333;color:#e8eaed;padding:.6rem 1.1rem;border-radius:8px;font-size:.82rem;opacity:0;transition:opacity .25s;
-    font-family:'Pretendard','Noto Sans KR',sans-serif;pointer-events:none}
+    font-family:var(--font-sans);pointer-events:none}
   .acct-toast.on{opacity:1}
   #acct-inapp{font-size:.76rem;color:var(--gd);line-height:1.5;background:color-mix(in srgb,var(--gd) 10%,transparent);
     border:1px solid color-mix(in srgb,var(--gd) 30%,transparent);border-radius:8px;padding:.6rem .7rem;margin-bottom:.7rem}
@@ -172,12 +172,12 @@ function injectStyle() {
   .sv-title{font-size:.84rem;color:var(--tx);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .sv-scope{font-size:.68rem;color:var(--tx2);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .sv-badge{flex-shrink:0;font-size:.72rem;font-weight:700;padding:.22rem .5rem;border-radius:999px;
-    font-family:'Space Grotesk','Pretendard',sans-serif;font-variant-numeric:tabular-nums}
+    font-family:var(--font-display);font-variant-numeric:tabular-nums}
   .sv-badge.prog{background:rgba(138,180,248,.15);color:#8ab4f8}
   .sv-badge.done{background:rgba(129,201,149,.15);color:#81c995}
   .sv-acts{display:flex;gap:.35rem;margin-top:.5rem}
   .sv-btn{flex:1;padding:.4rem;border-radius:6px;border:1px solid var(--bd);background:transparent;color:var(--tx2);
-    font-size:.74rem;cursor:pointer;font-family:'Pretendard','Noto Sans KR',sans-serif}
+    font-size:.74rem;cursor:pointer;font-family:var(--font-sans)}
   .sv-btn.go{background:var(--ac);color:#fff;border-color:var(--ac);font-weight:600}
   .sv-btn.wr{color:var(--wr);border-color:var(--wr)}
   .rd-score{font-size:.95rem;color:var(--tx);margin-top:.6rem;background:var(--sf2);border:1px solid var(--bd);border-radius:6px;padding:.6rem .7rem}

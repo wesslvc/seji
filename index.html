@@ -8,15 +8,15 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <!-- 폰트는 비차단 로딩(먼저 시스템 폰트로 그리고 준비되면 교체) → 첫 화면 빠르게 -->
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" media="print" onload="this.media='all'">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript>
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 </noscript>
-<link rel="icon" href="img/magpie-64.png?v=20260903j">
-<link rel="apple-touch-icon" href="img/magpie-192.png?v=20260903j">
+<link rel="icon" href="img/magpie-64.png?v=20260903k">
+<link rel="apple-touch-icon" href="img/magpie-192.png?v=20260903k">
 <script>(function(){try{var m=localStorage.getItem('seji_theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');document.documentElement.dataset.theme=m;}catch(e){}})();</script>
-<link rel="stylesheet" href="css/main.css?v=20260903j">
+<link rel="stylesheet" href="css/main.css?v=20260903k">
 </head>
 <body>
 <button id="theme-toggle" type="button" title="화면 밝기 전환" onclick="toggleTheme()"></button>
@@ -25,7 +25,7 @@
 <div id="landing-overlay">
   <div class="ld-stage">
     <div class="g3-lockup" aria-label="MAPPICA">
-      <img class="g3-bird" src="img/magpie-512.png?v=20260903j" alt="" width="512" height="512" decoding="async"/>
+      <img class="g3-bird" src="img/magpie-512.png?v=20260903k" alt="" width="512" height="512" decoding="async"/>
       <div class="g3-logo">MAPPICA</div>
     </div>
     <p class="ld-tag">지도로 배우는 지리 퀴즈</p>
@@ -316,7 +316,7 @@
   <button class="act-home" id="act-home" onclick="endSession()"><span data-ic="back"></span>처음으로</button>
 </div>
 <header>
-  <div class="logo" id="ui-logo">나라 이름 <span>/ Countries</span></div>
+  <img class="hd-bird" src="img/magpie-64.png?v=20260903k" alt="" width="64" height="64" decoding="async"/><div class="logo" id="ui-logo">나라 이름 <span>/ Countries</span></div>
   <div class="stats">
     <div class="stat"><div class="sv" style="color:var(--tx2)" id="ui-rem">0</div><div class="sl">남은</div></div>
     <div class="stat"><div class="sv" style="color:#81c995" id="ui-cor">0</div><div class="sl">정답</div></div>
@@ -4939,25 +4939,25 @@
     <button class="reb secondary" onclick="runPendingReset();document.getElementById('rbq-end').classList.remove('on')">다시 시작</button>
   </div>
 </div>
-<script src="js/data.js?v=20260903j"></script>
-<script src="js/rivers-data.js?v=20260903j"></script>
-<script src="js/climate-data.js?v=20260903j"></script>
-<script src="js/religion-pop-data.js?v=20260903j"></script>
-<script src="js/climate-map-data.js?v=20260903j"></script>
-<script src="js/app.js?v=20260903j"></script>
-<script src="js/climate.js?v=20260903j"></script>
-<script src="js/dict-data.js?v=20260903j"></script>
-<script src="js/flag-colors-data.js?v=20260903j"></script>
-<script src="js/flag-bg-data.js?v=20260903j"></script>
-<script src="js/dict.js?v=20260903j"></script>
-<script src="js/suteuk-data.js?v=20260903j"></script>
-<script src="js/suteuk.js?v=20260903j"></script>
-<script src="js/stat-data.js?v=20260903j"></script>
-<script src="js/stat.js?v=20260903j"></script>
+<script src="js/data.js?v=20260903k"></script>
+<script src="js/rivers-data.js?v=20260903k"></script>
+<script src="js/climate-data.js?v=20260903k"></script>
+<script src="js/religion-pop-data.js?v=20260903k"></script>
+<script src="js/climate-map-data.js?v=20260903k"></script>
+<script src="js/app.js?v=20260903k"></script>
+<script src="js/climate.js?v=20260903k"></script>
+<script src="js/dict-data.js?v=20260903k"></script>
+<script src="js/flag-colors-data.js?v=20260903k"></script>
+<script src="js/flag-bg-data.js?v=20260903k"></script>
+<script src="js/dict.js?v=20260903k"></script>
+<script src="js/suteuk-data.js?v=20260903k"></script>
+<script src="js/suteuk.js?v=20260903k"></script>
+<script src="js/stat-data.js?v=20260903k"></script>
+<script src="js/stat.js?v=20260903k"></script>
 <!-- ════════════════════════════════════════════════════════════
      계정 · 소셜로그인 · 랭킹 (Supabase) — 빌드/명령어 불필요, 이 파일만으로 동작
      ▼▼▼ 여기 두 줄만 본인 Supabase 값으로 바꾸면 끝 ▼▼▼ -->
-<script type="module" src="js/account.js?v=20260903j"></script>
+<script type="module" src="js/account.js?v=20260903k"></script>
 
 </body>
 </html>
