@@ -74,162 +74,21 @@ function scopeLabel(scope) {
 let session = null;
 let profile = null;
 
-/* ──────────────── 진행상황 동기화 (기기 간 이어하기) ────────────────
- * 게임이 쓰는 localStorage 진행 키(wq_*, bq_*, kq_*)를 계정에 미러링.
- * localStorage.setItem 을 가로채서 로그인 상태면 서버로 올린다. */
-/* 계정에 미러링할 진행 키. 여기에 넣으면 비로그인 사용자는 그 진행을
-   아예 저장하지 못하게 되므로(아래 setItem 참고), 하천·수특퀴즈·통계 순위는
-   일부러 빼 두고 기기에만 저장한다. */
-const SYNC_RE = /^(wq_|bq_|rbq_|kq_|tq_|cq_)/;
-const SYNC_EXCLUDE = new Set(['wq_mode']);
-function shouldSync(k) { return SYNC_RE.test(k) && !SYNC_EXCLUDE.has(k) && !k.includes('__'); }
-// 로그인했거나(세션) 로그인 토큰이 남아있으면(세션 로딩 중) 계정 사용자로 취급
-function isAccountUser() { return !!session || (supabaseEnabled && hasStoredSession()); }
-const _origSet = localStorage.setItem.bind(localStorage);
-const _pending = new Map();
-
-/* ── 동기화 메타 ──────────────────────────────────────────────────────────
-   서버 값으로 로컬을 무조건 덮어쓰면 두 가지가 깨진다.
-     ① 방금 로컬에서 지운 기록이 서버에서 되살아나 '진행 중'으로 다시 뜬다
-     ② 로컬이 더 최신인데 서버의 옛 진행으로 덮여 진짜 진행분이 날아간다
-   그래서 키마다 마지막으로 로컬에서 쓴 시각(t)과 지운 시각(del, 묘비)을
-   따로 적어 두고, 서버 updated_at과 견줘 더 최신인 쪽만 남긴다.
-   이 키는 SYNC_RE에 걸리지 않아 서버로 올라가지 않는다(기기별 지역 정보). */
-const SYNC_META_KEY = 'seji_syncmeta';
-function metaLoad() {
-  try { const m = JSON.parse(localStorage.getItem(SYNC_META_KEY)); if (m && typeof m === 'object') return { t: m.t || {}, del: m.del || {} }; } catch (e) {}
-  return { t: {}, del: {} };
-}
-function metaSave(m) { try { _origSet(SYNC_META_KEY, JSON.stringify(m)); } catch (e) {} }
-function markWritten(k) { const m = metaLoad(); m.t[k] = Date.now(); delete m.del[k]; metaSave(m); }
-function markDeleted(k) { const m = metaLoad(); m.del[k] = Date.now(); delete m.t[k]; metaSave(m); }
-function metaClearTomb(k) { const m = metaLoad(); delete m.del[k]; metaSave(m); }
-/* 서버 한 줄을 어떻게 할지 고르는 순수 함수 — 규칙을 한곳에 모아 두고 시험한다.
-     srvT 서버 updated_at(ms) · locT 로컬에 마지막으로 쓴 시각 · delT 지운 시각
-   지운 뒤 서버가 갱신되지 않았으면 삭제가 이긴다. 로컬이 더 최신이면 로컬이
-   이긴다. 그 밖에는 서버 값을 받는다. */
-/* 이 저장본에 실제 진행이 담겨 있나.
-   모드마다 필드 이름이 달라 넓게 훑는다. 빈 기록(모드를 열기만 한 판)은
-   서버로 올리지도 않고, 서버에서 내려와도 알맹이 있는 로컬을 덮지 못하게
-   한다 — 이게 '진짜 진행중인 게 날아가던' 원인이다.
-   cq_H_covered 같은 누적 키는 진행 저장본이 아니므로 그냥 통과시킨다. */
-function isProgressKey(k) { return !/_covered$/.test(k); }
-function hasProgress(v) {
-  const d = (typeof v === 'string') ? safeParse(v) : v;
-  if (!d || typeof d !== 'object') return false;
-  const n = (x) => { const y = typeof x === 'number' ? x : parseInt(x, 10); return isNaN(y) ? 0 : y; };
-  const cnt = (o) => (o && typeof o === 'object') ? Object.keys(o).length : 0;
-  if (cnt(d.status) || cnt(d.scoreCounts) || cnt(d.wrong) || cnt(d.wrongCounts)) return true;
-  if (Array.isArray(d.done) && d.done.length) return true;
-  if (Array.isArray(d.wrongItems) && d.wrongItems.length) return true;
-  return !!(n(d.correct) || n(d.cor) || n(d.correctCountries) || n(d.attempted)
-         || n(d.wr) || n(d.idx) || n(d.pts) || n(d.revealed));
-}
-function syncPick(srvT, locT, delT, hasLocal) {
-  if (delT && delT >= srvT) return 'delete';
-  if (hasLocal && locT > srvT) return 'keepLocal';
-  return 'takeServer';
-}
-try { window.__sejiSync = { syncPick, hasProgress, isProgressKey, metaLoad, markWritten, markDeleted }; } catch (e) {}
-let _pushT = null;
-let _dataErrShown = false;
-let _lastCloudToast = 0;
-function safeParse(v) { try { return JSON.parse(v); } catch (e) { return v; } }
-function queuePush(k, v) {
-  /* 빈 진행은 올리지 않는다. 올려 두면 다른 기기의 알맹이 있는 기록을 덮는다. */
-  if (isProgressKey(k) && !hasProgress(v)) return;
-  _pending.set(k, v); clearTimeout(_pushT); _pushT = setTimeout(flushPush, 800);
-}
-async function flushPush() {
-  if (!_pending.size) return;
-  await ensureSB();
-  if (!supabase || !session) return; // 세션 준비 전이면 _pending 유지 후 로그인 시 재시도
-  const rows = [..._pending].map(([key, val]) => ({
-    user_id: session.user.id, key, data: safeParse(val), updated_at: new Date().toISOString(),
-  }));
-  _pending.clear();
-  const { error } = await supabase.from('user_data').upsert(rows);
-  if (error) {
-    console.error('[Geogl3] 진행상황 저장 실패:', error);
-    if (!_dataErrShown) { _dataErrShown = true; toast('⚠ 진행상황 저장 실패: ' + (error.message || error.code || 'user_data 테이블 확인')); }
-  } else if (Date.now() - _lastCloudToast > 8000) {
-    _lastCloudToast = Date.now();
-    toast('☁ 계정에 저장됨');
-  }
-}
-localStorage.setItem = function (k, v) {
-  // 진짜 게스트(설정됨 + 로그인 안 함)만 진행상황 저장 안 함
-  if (shouldSync(k) && supabaseEnabled && !isAccountUser()) return;
-  _origSet(k, v);
-  if (shouldSync(k)) { markWritten(k); if (isAccountUser()) queuePush(k, v); }
-};
-// 초기화(저장 삭제) 시 서버의 진행 기록도 삭제 → 리더보드에서도 빠짐
-const _origRemove = localStorage.removeItem.bind(localStorage);
-localStorage.removeItem = function (k) {
-  const had = localStorage.getItem(k) != null;
-  _origRemove(k);
-  if (!shouldSync(k)) return;
-  /* 로그인 여부와 상관없이 묘비를 남긴다. 세션이 아직 없을 때 초기화하면
-     서버 삭제가 그때는 실패하는데, 묘비가 없으면 다음 복원 때 그 기록이
-     되살아난다 — 이게 '초기화했는데 진행 중으로 다시 뜨는' 원인이었다.
-     단, 이 기기에 실제로 있던 것만 묘비를 남긴다. 없던 키까지 묘비를 세우면
-     나중에 로그인했을 때 다른 기기에서 하던 판을 지워 버린다. */
-  if (had) markDeleted(k);
-  _pending.delete(k);
-  if (isAccountUser()) deleteUserData(k);
-};
-async function deleteUserData(k) {
-  await ensureSB();
-  if (!supabase || !session) return false;   // 세션이 없으면 묘비만 남기고 다음 기회에
-  const { error } = await supabase.from('user_data').delete().eq('user_id', session.user.id).eq('key', k);
-  if (!error) metaClearTomb(k);
-  return !error;
-}
-/* 세션이 붙은 뒤, 그동안 못 지운 묘비들을 서버에 반영한다 */
-async function flushTombstones() {
-  const m = metaLoad();
-  const keys = Object.keys(m.del || {});
-  for (const k of keys) await deleteUserData(k);
-}
-async function restoreUserData() {
-  if (!session) return 0;
-  await ensureSB();
-  if (!supabase) return 0;
-  /* 먼저 밀린 삭제부터 서버에 반영한다 — 그러지 않으면 바로 아래에서
-     지운 기록을 도로 내려받는다 */
-  await flushTombstones();
-  const { data } = await supabase.from('user_data')
-    .select('key,data,updated_at').eq('user_id', session.user.id);
-  const serverKeys = new Set((data || []).map((r) => r.key));
-  const meta = metaLoad();
-  let restored = 0;
-  for (const row of data || []) {
-    const srvT = Date.parse(row.updated_at || '') || 0;
-    const localVal = localStorage.getItem(row.key);
-    const pick = syncPick(srvT, meta.t[row.key] || 0, meta.del[row.key] || 0, localVal != null);
-    /* 지운 기록은 되살리지 않고 서버에서도 마저 지운다 */
-    if (pick === 'delete') { deleteUserData(row.key); continue; }
-    /* 서버 쪽이 빈 기록이면 알맹이 있는 로컬을 덮지 못한다 (시각과 무관) */
-    if (isProgressKey(row.key) && !hasProgress(row.data)
-        && localVal != null && hasProgress(localVal)) { _pending.set(row.key, localVal); continue; }
-    /* 로컬이 더 최신이면 서버를 덮어쓴다 — 진행 중이던 판이 날아가지 않게 */
-    if (pick === 'keepLocal') { _pending.set(row.key, localVal); continue; }
-    _origSet(row.key, typeof row.data === 'string' ? row.data : JSON.stringify(row.data));
-    meta.t[row.key] = srvT;       /* 방금 받은 값의 기준 시각을 서버 시각으로 맞춘다 */
-    delete meta.del[row.key];
-    restored++;
-  }
-  metaSave(meta);
-  // 서버에 아직 없는 로컬 진행상황은 업로드 (게스트로 풀던 기록 보존)
-  for (let i = 0; i < localStorage.length; i++) {
-    const k = localStorage.key(i);
-    if (!shouldSync(k) || serverKeys.has(k)) continue;
-    if (meta.del[k]) continue;            /* 지운 기록은 다시 올리지 않는다 */
-    queuePush(k, localStorage.getItem(k));   /* 빈 기록 거르기는 여기서 함께 */
-  }
-  if (_pending.size) flushPush();
-  return restored;
-}
+/* ──────────────── 진행 기록은 기기에만 둔다 ────────────────
+ * 예전에는 localStorage의 진행 키를 계정(user_data)에 미러링해 기기 간
+ * 이어하기를 지원했다. 그런데 서버 값이 로컬을 덮는 구조라, 초기화한 판이
+ * 새로고침마다 되살아나고 진행 중이던 판이 날아가는 문제가 반복됐다.
+ * 시각 비교와 묘비로 여러 번 손봤지만 고치기 전에 쌓인 기록까지는 어쩌지
+ * 못해서, 동기화 자체를 걷어냈다.
+ *
+ * 이제 진행 기록은 그 기기의 localStorage에만 남는다. 이어하기는 같은
+ * 기기에서 그대로 되고, 기기를 옮기면 이어지지 않는다. 점수·랭킹·프로필·
+ * 위키는 예전처럼 계정에 저장된다 — 그건 scores/profiles 테이블이라 이
+ * 변경과 무관하다.
+ *
+ * localStorage를 가로채지 않으므로 비로그인 사용자도 모든 모드의 진행이
+ * 정상 저장된다(전에는 동기화 대상 키가 게스트에게 아예 저장되지 않았다).
+ */
 
 /* ──────────────── 스타일 주입 ──────────────── */
 function injectStyle() {
@@ -1010,26 +869,11 @@ async function submitScore({ category, correct, total, accuracy, scope, points, 
 }
 
 /* ──────────────── 부트스트랩 ──────────────── */
-let _restoredOnce = false;
 async function onAuthChange(newSession) {
   const wasLoggedOut = !session;
   session = newSession;
   if (session) {
     await loadProfile();
-    if (wasLoggedOut && !_restoredOnce) {
-      _restoredOnce = true;
-      const n = await restoreUserData();
-      // 게임 진행 중에 로그인했다면 새로 받은 기록을 반영하기 위해 새로고침
-      if (n > 0 && document.body.classList.contains('in-session')) {
-        toast('내 기록을 불러왔어요');
-        setTimeout(() => location.reload(), 800);
-      }
-    }
-    /* 세션이 없을 때 초기화한 판은 서버에서 못 지웠다. 세션이 붙는 즉시
-       밀린 묘비부터 반영한다 — 그러지 않으면 다음 새로고침에 되살아난다. */
-    flushTombstones();
-    // 세션 로딩 전에 쌓인 진행상황을 이제 업로드
-    if (_pending.size) flushPush();
   } else {
     profile = null;
   }
@@ -1072,8 +916,6 @@ async function boot() {
   });
 
   // 진행 중에 앱을 닫거나 백그라운드로 가면 즉시 서버에 저장 (디바운스 대기 없이)
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushPush(); });
-  window.addEventListener('pagehide', () => flushPush());
 }
 
 /* ══════════ 세지 위키 (세계지리 사전 커뮤니티 편집) ══════════

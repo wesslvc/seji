@@ -11,7 +11,11 @@ create table if not exists public.profiles (
   created_at  timestamptz not null default now()
 );
 
--- 1-2) 게임 진행상황 동기화 (기기 간 이어하기 · 오답/기록 저장)
+-- 1-2) [폐기] 게임 진행상황 동기화
+--   기기 간 이어하기를 위해 진행 키를 미러링했으나, 서버 값이 로컬을 덮는
+--   구조라 초기화한 판이 되살아나고 진행 중이던 판이 날아갔다. 2026-09-03에
+--   동기화를 걷어내고 진행 기록은 기기(localStorage)에만 두기로 했다.
+--   표는 남겨 두되 앱은 읽지도 쓰지도 않는다.
 create table if not exists public.user_data (
   user_id    uuid not null references auth.users on delete cascade,
   key        text not null,
