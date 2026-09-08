@@ -106,9 +106,9 @@ function injectStyle() {
   body.in-session #acct-chip .acct-nm{display:none}
   body.in-session #acct-chip img,body.in-session #acct-chip .acct-ph{width:28px;height:28px}
   body.in-session #act-tabs{padding-right:46px}
-  #ld-guest-note{margin-top:.7rem;font-size:.72rem;color:var(--gd);text-align:center;line-height:1.45;
-    background:color-mix(in srgb,var(--gd) 8%,transparent);border:1px solid color-mix(in srgb,var(--gd) 25%,transparent);border-radius:6px;padding:.5rem .6rem}
-  #ld-guest-note b{color:var(--gd)}
+  #ld-guest-note{margin-top:.9rem;font-size:.72rem;color:var(--tx2);text-align:center;line-height:1.5;
+    background:none;border:0;padding:0}
+  #ld-guest-note b{color:var(--tx);font-weight:600}
   .acct-ov{position:fixed;inset:0;z-index:9300;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.65)}
   .acct-ov.on{display:flex}
   .acct-card{background:var(--sf);box-shadow:var(--shadow2);border:1px solid var(--bd);border-radius:10px;padding:1.4rem 1.3rem 1.2rem;width:min(380px,92vw);

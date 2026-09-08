@@ -1,4 +1,4 @@
-:root{color-scheme:dark;--bg:#17181b;--sf:#202124;--sf2:#2a2b2f;--bd:#3c4043;--tx:#e8eaed;--tx2:#9aa0a6;--ac:#8ab4f8;--ac2:rgba(138,180,248,.14);--btn:#1a73e8;--wr:#f28b82;--gd:#fdd663;--land:#313e52;--map-line:#161e2b;--map-hover:#46587a;--map-mask-fill:#1c2330;--map-mask-line:#141a24;--map-active-fill:#38455a;--map-ant:#232a36;--c1:#4285f4;--c2:#34a853;--c3:#fbbc04;--g-blue:#4285f4;--g-red:#ea4335;--g-yellow:#fbbc05;--g-green:#34a853;--shadow:0 1px 2px rgba(0,0,0,.5),0 2px 6px 2px rgba(0,0,0,.3);--shadow2:0 4px 12px rgba(0,0,0,.45),0 12px 32px rgba(0,0,0,.35);}
+:root{color-scheme:dark;--bg:#14161a;--sf:#1c1f24;--sf2:#23272e;--bd:#31363f;--tx:#e9eaec;--tx2:#9298a3;--ac:#7fb3a8;--ac2:rgba(127,179,168,.13);--btn:#2f6f63;--wr:#e08b83;--gd:#d9b268;--land:#313e52;--map-line:#161e2b;--map-hover:#46587a;--map-mask-fill:#1c2330;--map-mask-line:#141a24;--map-active-fill:#38455a;--map-ant:#232a36;--c1:#4285f4;--c2:#34a853;--c3:#fbbc04;--g-blue:#4285f4;--g-red:#ea4335;--g-yellow:#fbbc05;--g-green:#34a853;--shadow:0 1px 2px rgba(0,0,0,.28),0 4px 14px rgba(0,0,0,.22);--shadow2:0 6px 20px rgba(0,0,0,.3),0 18px 50px rgba(0,0,0,.26);}
 /* 라이트 모드 — html의 data-theme 속성으로 전환(<head> 인라인 스크립트가 첫 페인트 전에
    미리 세팅해 깜빡임 방지). 지도 색(--c1~c3)·구글 브랜드색은 밝은 배경에서도 잘
    보이는 채도라 그대로 두고, 배경·표면·글자·그림자만 라이트용으로 바꾼다.
@@ -8,14 +8,14 @@
    필터로 제외된 나라를 어둡게 가리는 표시)·--map-hover·--map-active-fill도
    전부 다크 전용 하드코딩이라 라이트모드에서 지도 위에 시커먼 덩어리가 떠
    있는 것처럼 보였던 문제를 같이 고친다. */
-:root[data-theme="light"]{color-scheme:light;--bg:#f4f5f7;--sf:#ffffff;--sf2:#edeef1;--bd:#d5d8dc;--tx:#202124;--tx2:#5f6368;--ac:#1a73e8;--ac2:rgba(26,115,232,.08);--btn:#1a73e8;--wr:#c5221f;--gd:#b8860b;--land:#c9ced7;--map-line:#98a1ad;--map-hover:#aab4c2;--map-mask-fill:#e7e9ec;--map-mask-line:#cfd3d8;--map-active-fill:#b7c0cc;--map-ant:#dde1e6;--shadow:0 1px 2px rgba(0,0,0,.08),0 2px 6px 2px rgba(0,0,0,.06);--shadow2:0 4px 12px rgba(0,0,0,.1),0 12px 32px rgba(0,0,0,.08);}
+:root[data-theme="light"]{color-scheme:light;--bg:#f7f6f3;--sf:#ffffff;--sf2:#f1efeb;--bd:#e2ded7;--tx:#1d1f22;--tx2:#6b6f76;--ac:#2f6f63;--ac2:rgba(47,111,99,.07);--btn:#2f6f63;--wr:#b3453c;--gd:#9a7b3c;--land:#c9ced7;--map-line:#98a1ad;--map-hover:#aab4c2;--map-mask-fill:#e7e9ec;--map-mask-line:#cfd3d8;--map-active-fill:#b7c0cc;--map-ant:#dde1e6;--shadow:0 1px 2px rgba(28,25,20,.05),0 4px 14px rgba(28,25,20,.05);--shadow2:0 6px 20px rgba(28,25,20,.07),0 18px 50px rgba(28,25,20,.06);}
 /* 홈 화면 배경 방사형 그라데이션(#landing-overlay)과 로고 파스텔 그라데이션 글자
    (.g3-logo)는 어두운 배경을 전제로 만든 효과라, 라이트모드에서 그대로 두면
    흰 화면 한가운데 어두운 얼룩이 뜨고 그 위에 밝은 파스텔 글자가 겹쳐 대비가
    과해져 눈이 부시다("눈뽕"). 라이트모드에서는 얼룩을 없애고 로고도 단색
    검정 계열 글자로 바꿔 흰 바탕 + 검정 글씨로 깔끔하게 정리한다. */
 :root[data-theme="light"] #landing-overlay{background:var(--bg)}
-:root[data-theme="light"] .g3-logo{background:none;-webkit-background-clip:initial;background-clip:initial;color:var(--tx);filter:none}
+:root[data-theme="light"] .g3-logo{color:var(--tx)}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 #theme-toggle{position:fixed;top:.5rem;left:.6rem;z-index:9200;width:34px;height:34px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;background:var(--sf);border:1px solid var(--bd);
@@ -276,7 +276,7 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 .wi-country{font-weight:600}
 .wi-ans{color:#81c995;margin-left:6px}
 .wi-yours{color:var(--wr);margin-left:6px}
-#landing-overlay{position:fixed;inset:0;background:radial-gradient(1200px 700px at 50% -10%,#20242e 0%,var(--bg) 60%);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2rem;overflow-y:auto;padding:1.2rem 0}
+#landing-overlay{position:fixed;inset:0;background:radial-gradient(1100px 620px at 50% -12%,#1b1f25 0%,var(--bg) 62%);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2rem;overflow-y:auto;padding:1.2rem 0}
 .land-choices{display:flex;gap:.8rem;flex-wrap:wrap;justify-content:center}
 .land-btn{padding:1.1rem 1.8rem;border-radius:4px;border:1px solid var(--bd);background:var(--sf);color:var(--tx);font-family:'Pretendard','Noto Sans KR',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;transition:.2s;min-width:140px;text-align:center}
 .land-btn:hover{border-color:var(--tx);color:var(--tx);background:var(--sf2)}
@@ -307,15 +307,17 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 
 /* ── Geogl3 랜딩 (다크 · 캐러셀) ── */
 .ld-stage{width:min(560px,94vw);display:flex;flex-direction:column;align-items:center;gap:.55rem}
-.g3-logo{font-family:'Space Grotesk','Pretendard',sans-serif;font-size:3rem;font-weight:700;text-align:center;letter-spacing:-.045em;line-height:1;user-select:none;margin-bottom:.1rem;background:linear-gradient(105deg,#7cc4ff 0%,#5eead4 52%,#8b9dff 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 24px rgba(94,234,212,.18))}
-.g3-globe{display:inline-block;width:.72em;height:.72em;margin:0 .02em;vertical-align:-.045em;color:#5eead4}
+/* 로고 — 무지개 그라데이션과 발광 그림자를 걷어내고 단색 활자로 뒀다.
+   지구본 하나만 액센트색으로 남겨 시선을 한 곳에 모은다. */
+.g3-logo{font-family:'Space Grotesk','Pretendard',sans-serif;font-size:2.75rem;font-weight:600;text-align:center;letter-spacing:-.04em;line-height:1;user-select:none;margin-bottom:.15rem;color:var(--tx)}
+.g3-globe{display:inline-block;width:.7em;height:.7em;margin:0 .03em;vertical-align:-.04em;color:var(--ac)}
 .g3-globe svg{width:100%;height:100%;display:block}
 .ld-tag{font-size:.84rem;color:var(--tx2);letter-spacing:.03em;margin-bottom:.5rem}
 /* 모드 그리드 */
 .ld-stage{width:min(680px,94vw)}
 .ld-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.55rem;width:100%}
-.ld-cell{position:relative;display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:.95rem .4rem .8rem;background:var(--sf);border:1.5px solid var(--bd);border-radius:16px;cursor:pointer;transition:border-color .18s var(--ease),background .18s var(--ease),transform .18s var(--ease);user-select:none;text-align:center}
-.ld-cell:hover{border-color:#5f6368;transform:translateY(-1px)}
+.ld-cell{position:relative;display:flex;flex-direction:column;align-items:center;gap:.45rem;padding:1.05rem .5rem .9rem;background:var(--sf);border:1px solid var(--bd);border-radius:14px;cursor:pointer;transition:border-color .2s var(--ease),background .2s var(--ease),box-shadow .2s var(--ease);user-select:none;text-align:center}
+.ld-cell:hover{border-color:color-mix(in srgb,var(--ac) 45%,var(--bd));box-shadow:var(--shadow)}
 .ld-cell.sel{border-color:var(--ac);background:var(--ac2)}
 .ld-cell.disabled{cursor:default;opacity:.55}
 .ld-cell.disabled:hover{border-color:var(--bd);transform:none}
@@ -325,10 +327,15 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 .ld-cell.wide .ld-cell-tt{font-size:.86rem}
 .ld-cell.wide .ld-cell-txt{display:flex;flex-direction:column;gap:.12rem}
 .ld-cell.wide .ld-cell-pt{margin-left:auto;flex:0 0 auto;padding-left:.5rem}
-.ld-cell-ic{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--mc) 15%,transparent);color:var(--mc)}
+/* 카드마다 색을 달리하면 무지개처럼 보여 어수선하다. 칩은 한 톤으로 두고
+   구분은 아이콘 모양에 맡긴다. --mc는 아주 옅은 기운으로만 남긴다. */
+.ld-cell-ic{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;
+  background:color-mix(in srgb,var(--mc) 9%,var(--sf2));color:color-mix(in srgb,var(--mc) 42%,var(--tx2));
+  transition:color .2s var(--ease),background .2s var(--ease)}
+.ld-cell:hover .ld-cell-ic,.ld-cell.sel .ld-cell-ic{color:color-mix(in srgb,var(--mc) 72%,var(--tx));background:color-mix(in srgb,var(--mc) 16%,var(--sf2))}
 .ld-cell-ic svg{width:20px;height:20px}
-.ld-cell-tt{font-size:.78rem;font-weight:700;color:var(--tx);line-height:1.25;word-break:keep-all}
-.ld-cell-pt{font-size:.62rem;color:var(--tx2)}
+.ld-cell-tt{font-size:.79rem;font-weight:600;color:var(--tx);line-height:1.3;word-break:keep-all;letter-spacing:-.01em}
+.ld-cell-pt{font-size:.64rem;color:var(--tx2);letter-spacing:-.005em}
 .ld-soon{display:inline-block;font-size:.6rem;font-weight:700;color:var(--tx2);background:var(--sf2);border:1px solid var(--bd);border-radius:999px;padding:.1rem .5rem}
 .ld-cell .ck{position:absolute;top:6px;right:6px;width:16px;height:16px;border-radius:50%;background:var(--ac);color:#17181b;display:none;align-items:center;justify-content:center}
 .ld-cell .ck svg{width:10px;height:10px}
