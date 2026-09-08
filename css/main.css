@@ -1248,8 +1248,14 @@ body.printing-st>*:not(#st-end){display:none!important}
 /* 새는 로고에만 둔다. 진행 막대·헤더·빈 목록에도 넣어 봤지만 장식으로만
    보여서 덜어냈다. */
 
-/* 만든 곳 표기 — 사이트는 지오글, 브랜드는 NEPICA */
+/* 만든 곳 표기 — 사이트는 지오글, 브랜드는 NEPICA.
+   브랜드 사이트(nepica.vercel.app)로 가는 문이다. 눌리는 것이라고 티는 내되
+   (닿으면 또렷해진다) 평소에는 예전처럼 조용히 있는다 — 시작 버튼 아래에서
+   눈에 띄면 그쪽을 먼저 누르게 된다. */
 .ld-brand{
+  display:block;
   margin-top:1.6rem;font-family:var(--font-display);font-size:.62rem;font-weight:600;
   letter-spacing:.34em;text-indent:.34em;color:var(--tx2);opacity:.5;text-align:center;
+  text-decoration:none;transition:opacity .15s var(--ease);
 }
+.ld-brand:hover{opacity:.85}
