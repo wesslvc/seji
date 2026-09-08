@@ -703,6 +703,55 @@ function wdChartInner(l){
     +(blurb?'<div class="wd-city-blurb">'+blurb+'</div>':'');
 }
 
+/* ══════════ 설명 갈래 나누기 ══════════
+   위키 설명은 원래 지리 소개 한 문단이었는데, 커뮤니티가 덧붙이면서 대부분
+   스포츠 이야기(올림픽·월드컵·크리켓 성적)로 길어졌다. 241개 나라 중 238개가
+   그렇다. 한 덩어리로 두면 지리를 보러 온 사람에게 읽기 어려워서, 보여줄 때
+   세 갈래로 갈라 놓는다.
+
+   원본 지리 소개는 DICT_DATA에 그대로 남아 있어서 그것을 앞에서 떼면
+   커뮤니티가 덧붙인 부분만 남는다. 저장된 글 자체는 건드리지 않는다 —
+   수정 제안은 예전처럼 한 편집창에서 전체를 다룬다. */
+/* 이 낱말이 하나만 있어도 스포츠 이야기로 본다 */
+const WD_SPORT_STRONG=/올림픽|월드컵|크리켓|FIFA|피파|대표팀|국가대표|메달|우승|준우승|예선|본선|리그|그랑프리|챔피언|아시안게임|코파|네이션스리그|프로야구|프리미어리그|분데스리가|라리가|세리에|NBA|MLB|UFC|축구|야구|농구|배구|럭비|하키|육상|양궁|태권도|유도|복싱|레슬링|역도|사격|펜싱|사이클|골프|테니스|탁구|배드민턴|핸드볼|마라톤|스모|스케이팅|컬링|봅슬레이|알파인|스키 점프|F1/;
+/* 혼자서는 애매한 낱말 — '스키 관광', '경기 침체'처럼 스포츠가 아닌 쓰임이 있다 */
+const WD_SPORT_WEAK=/선수|감독|구단|경기장|출전|승리|패배|무승부|골|스키|수영|조정|경기/;
+/* 점수 표기(1:0, 3대 2)는 그 자체로 경기 결과다 */
+const WD_SPORT_SCORE=/\d+\s*[:대]\s*\d+/;
+function wdIsSport(sentence){
+  if(WD_SPORT_STRONG.test(sentence))return true;
+  if(WD_SPORT_SCORE.test(sentence)&&WD_SPORT_WEAK.test(sentence))return true;
+  /* 약한 낱말은 둘 이상 겹칠 때만 */
+  let n=0;const re=new RegExp(WD_SPORT_WEAK.source,'g');
+  while(re.exec(sentence)){n++;if(n>=2)return true;}
+  return false;
+}
+/* 문장 단위로 자른다. 한국어 서술문은 대부분 '다.'로 끝난다. */
+function wdSentences(text){
+  return String(text||'')
+    .split(/\n{2,}/).join(' ')
+    .split(/(?<=[.!?])\s+/)
+    .map(x=>x.trim()).filter(Boolean);
+}
+/* {geo, sport, etc} — 지리 소개 · 스포츠 · 그 밖 */
+function wdSplitFact(iso,fact){
+  const base=((typeof DICT_DATA!=='undefined'&&DICT_DATA[iso])||{}).fact||'';
+  let geo=String(fact||''),rest='';
+  if(base&&geo.indexOf(base)===0){rest=geo.slice(base.length).trim();geo=base;}
+  const sport=[],etc=[];
+  wdSentences(rest).forEach(x=>{(wdIsSport(x)?sport:etc).push(x);});
+  return {geo:geo,sport:sport.join(' '),etc:etc.join(' ')};
+}
+/* 갈래별 상자로 그린다. 커뮤니티가 덧붙인 게 없으면 지리 한 덩어리만 나온다. */
+function wdFactSectionsHTML(iso,fact){
+  const p=wdSplitFact(iso,fact);
+  const esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  let h='<div class="wd-sec"><div class="wd-sec-b">'+esc(p.geo)+'</div></div>';
+  if(p.sport)h+='<div class="wd-sec wd-sec-sport"><div class="wd-sec-h">스포츠</div><div class="wd-sec-b">'+esc(p.sport)+'</div></div>';
+  if(p.etc)h+='<div class="wd-sec wd-sec-etc"><div class="wd-sec-h">그 밖의 이야기</div><div class="wd-sec-b">'+esc(p.etc)+'</div></div>';
+  return h;
+}
+
 /* ══════════ 위키 편집: 설명(fact) 수정 제안 + 승인 반영 표시 ══════════ */
 async function wdEnhanceFact(iso){
   const SA=window.SejiAccount;if(!SA)return;
@@ -715,6 +764,7 @@ async function wdEnhanceFact(iso){
     const rec=facts[iso];
     const history=historyMap[iso]||[];
     if(rec&&rec.fact){
+      window._wdFactRaw=window._wdFactRaw||{};window._wdFactRaw[iso]=rec.fact;
       const box=document.getElementById('wd-fact-text');
       const legendBox=document.getElementById('wd-blame-legend');
       const render=highlight=>{
@@ -724,7 +774,7 @@ async function wdEnhanceFact(iso){
           box.innerHTML=html;
           if(legendBox){legendBox.innerHTML=legendHtml;legendBox.style.display=legendHtml?'':'none';}
         }else{
-          box.textContent=rec.fact;
+          box.innerHTML=wdFactSectionsHTML(iso,rec.fact);
           if(legendBox){legendBox.innerHTML='';legendBox.style.display='none';}
         }
       };
@@ -777,7 +827,8 @@ function wdOpenEditModal(iso){
   const m=wdEnsureEditModal();
   document.getElementById('wd-edit-title').textContent='설명 수정 제안 — '+(COUNTRIES[iso]?COUNTRIES[iso].k:iso);
   const ta=document.getElementById('wd-edit-textarea');
-  ta.value=(document.getElementById('wd-fact-text')||{}).textContent||(DICT_DATA[iso]||{}).fact||'';
+  /* 화면은 갈래로 나눠 보여 주지만 편집은 원문 한 덩어리로 한다 */
+  ta.value=(window._wdFactRaw&&window._wdFactRaw[iso])||(DICT_DATA[iso]||{}).fact||'';
   const btn=document.getElementById('wd-edit-submit-btn');
   btn.onclick=async()=>{
     const text=ta.value.trim();

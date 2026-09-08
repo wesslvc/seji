@@ -1179,3 +1179,20 @@ body.printing-st>*:not(#st-end){display:none!important}
   font-family:'Pretendard','Noto Sans KR',sans-serif;
 }
 .sv-wipe:hover{border-color:var(--wr);color:var(--wr)}
+
+/* ── 위키 설명 갈래 ──
+   지리 소개 / 스포츠 / 그 밖을 상자로 갈라 놓는다. 제목은 조용하게 두고
+   왼쪽 선으로만 갈래를 구분해, 읽는 흐름이 끊기지 않게 했다. */
+.wd-sec{margin-top:.7rem}
+.wd-sec:first-child{margin-top:0}
+.wd-sec-h{
+  font-size:.66rem;font-weight:700;letter-spacing:.02em;color:var(--tx2);
+  margin-bottom:.25rem;
+}
+.wd-sec-b{font-size:.82rem;line-height:1.75;color:var(--tx)}
+.wd-sec-sport,.wd-sec-etc{
+  padding-left:.7rem;border-left:2px solid var(--bd);
+}
+.wd-sec-sport{border-left-color:color-mix(in srgb,var(--ac) 55%,var(--bd))}
+.wd-sec-sport .wd-sec-h{color:color-mix(in srgb,var(--ac) 70%,var(--tx2))}
+.wd-sec-sport .wd-sec-b,.wd-sec-etc .wd-sec-b{color:var(--tx2)}
