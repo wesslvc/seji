@@ -179,7 +179,7 @@ function setMode(mob){
   document.querySelectorAll('#ld-mode .ld-seg-btn').forEach(b=>b.classList.toggle('active',(b.dataset.mode==='mob')===mob));
   try{applyModeUI();}catch(e){}
 }
-/* ══════════ MAPPICA 랜딩 — 캐러셀 모드 선택 ══════════ */
+/* ══════════ MAPICA 랜딩 — 캐러셀 모드 선택 ══════════ */
 /* 3×3 그리드: 한국지리(korea)를 정중앙(5번째 항목)에 놓고 세계지리 항목들이 둘러싼다 */
 const LD_SLIDES=[
  {act:'name',  ic:'globe', mc:'#7ba9db', tt:'나라 이름 맞히기', ds:'지도에서 나라를 클릭하고 이름을 맞혀요. 3번 안에 맞히면 색이 칠해져요.', pts:'국가당 1점'},
@@ -730,7 +730,7 @@ async function shareLastResult(){
   grad.addColorStop(0,'#7cc4ff');grad.addColorStop(.52,'#5eead4');grad.addColorStop(1,'#8b9dff');
   x.fillStyle=grad;x.textAlign='center';
   x.font="700 88px 'Space Grotesk','Pretendard',sans-serif";
-  x.fillText('MAPPICA',W/2,322);
+  x.fillText('MAPICA',W/2,322);
   /* 모드명 */
   x.fillStyle='#9aa0a6';x.font="600 44px 'Pretendard',sans-serif";
   x.fillText(r.title,W/2,398);
@@ -778,12 +778,12 @@ async function shareLastResult(){
   /* 푸터 */
   const d=new Date();
   x.fillStyle='#5f6368';x.font="500 34px 'Pretendard',sans-serif";
-  x.fillText(d.getFullYear()+'. '+(d.getMonth()+1)+'. '+d.getDate()+'.  ·  MAPPICA 지리 퀴즈',W/2,1005);
+  x.fillText(d.getFullYear()+'. '+(d.getMonth()+1)+'. '+d.getDate()+'.  ·  MAPICA 지리 퀴즈',W/2,1005);
   const finish=blob=>{
     if(!blob)return;
     const file=new File([blob],'geogl3-result.png',{type:'image/png'});
     if(navigator.canShare&&navigator.canShare({files:[file]})){
-      navigator.share({files:[file],title:'MAPPICA 결과'}).catch(()=>{});return;
+      navigator.share({files:[file],title:'MAPICA 결과'}).catch(()=>{});return;
     }
     const a=document.createElement('a');
     a.href=URL.createObjectURL(blob);a.download='geogl3-result.png';a.click();

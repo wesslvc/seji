@@ -318,7 +318,7 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 .mnu-sec{padding:.4rem .95rem .22rem;font-size:.6rem;color:var(--tx2);letter-spacing:.1em;text-transform:uppercase;background:#26272b;border-bottom:1px solid var(--bd)}
 .mnu-sep{height:4px;background:#2f3034;border-top:1px solid var(--bd);border-bottom:1px solid var(--bd)}
 
-/* ── MAPPICA 랜딩 (다크 · 캐러셀) ── */
+/* ── MAPICA 랜딩 (다크 · 캐러셀) ── */
 .ld-stage{width:min(560px,94vw);display:flex;flex-direction:column;align-items:center;gap:.55rem}
 /* 로고 — 무지개 그라데이션과 발광 그림자를 걷어내고 단색 활자로 뒀다.
    지구본 하나만 액센트색으로 남겨 시선을 한 곳에 모은다. */
@@ -337,7 +337,19 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
   user-select:none;-webkit-user-drag:none;
 }
 @media (max-width:640px){.g3-bird{width:4.9rem;height:4.9rem}}
-.ld-tag{font-size:.84rem;color:var(--tx2);letter-spacing:.03em;margin-bottom:.5rem}
+/* 슬로건 — 영문은 마크와 같은 디스플레이 글꼴로 넓게, 우리말은 그 아래 작게 */
+.ld-tag{font-family:var(--font-display);font-size:.82rem;font-weight:500;color:var(--tx2);
+  letter-spacing:.2em;text-transform:uppercase;margin:.15rem 0 .1rem}
+.ld-tag-ko{font-size:.74rem;color:var(--tx2);opacity:.72;letter-spacing:.01em;margin-bottom:.5rem}
+/* 비행 궤적 — 로고 뒤를 지나는 물까치의 자취. '위에서 본다'는 말을 그림으로
+   받쳐 주되, 읽는 데 방해되지 않게 아주 옅게 둔다. */
+.ld-path{position:absolute;top:-.4rem;left:50%;transform:translateX(-50%);
+  width:min(30rem,92vw);height:11rem;pointer-events:none;z-index:0;
+  fill:none;stroke:var(--ac);stroke-width:1.4;stroke-linecap:round;
+  stroke-dasharray:2 9;opacity:.28}
+.ld-stage{position:relative}
+.ld-stage>.g3-lockup,.ld-stage>.ld-tag,.ld-stage>.ld-tag-ko{position:relative;z-index:1}
+@media (max-width:640px){.ld-path{height:9rem}}
 /* 모드 그리드 */
 .ld-stage{width:min(680px,94vw)}
 .ld-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.55rem;width:100%}
@@ -1221,3 +1233,21 @@ body.printing-st>*:not(#st-end){display:none!important}
 .wd-sec-sport{border-left-color:color-mix(in srgb,var(--ac) 55%,var(--bd))}
 .wd-sec-sport .wd-sec-h{color:color-mix(in srgb,var(--ac) 70%,var(--tx2))}
 .wd-sec-sport .wd-sec-b,.wd-sec-etc .wd-sec-b{color:var(--tx2)}
+
+/* ══════════ 컨셉 요소 ══════════
+   물까치와 '위에서 내려다본다'는 말을 화면 곳곳에 옅게 되풀이한다.
+   읽는 데 방해되지 않도록 전부 배경 수준으로만 둔다. */
+
+/* 완료 화면 — 점수 위에 작은 물까치 */
+.rq-end-card h1::before{
+  content:'';display:block;width:2.6rem;height:2.6rem;margin:0 auto .5rem;
+  background:url('../img/magpie-192.png') center/contain no-repeat;
+}
+/* 비어 있는 목록 — 물까치를 워터마크로 */
+.acct-empty,.sq-note-none{
+  background:url('../img/magpie-192.png') center top .2rem/2.2rem no-repeat;
+  padding-top:3rem!important;opacity:.9;
+}
+.acct-empty{background-position:center top .4rem}
+/* 지도 위 안내 띠 — '위에서 본다'는 결을 살려 살짝 떠 있게 */
+.mp-above{letter-spacing:.02em}
