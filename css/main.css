@@ -54,9 +54,6 @@ body.in-session #fb-toggle{display:none}
 @media (min-width:900px){html{font-size:18px}}
 @media (min-width:1400px){html{font-size:19px}}
 body{font-family:var(--font-sans);background:var(--bg);color:var(--tx);height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden;-webkit-font-smoothing:antialiased}
-/* 인세션 헤더 — 왼쪽에 작은 물까치를 두어 홈 화면과 같은 얼굴을 유지한다 */
-.hd-bird{width:26px;height:26px;flex-shrink:0;margin-right:.1rem;user-select:none;-webkit-user-drag:none}
-@media (max-width:640px){.hd-bird{width:22px;height:22px}}
 header{padding:.55rem 1.2rem;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;background:var(--sf);flex-shrink:0;gap:.8rem}
 .logo{font-family:var(--font-display);font-size:.92rem;font-weight:600;color:var(--tx);letter-spacing:.01em}
 .logo span{color:var(--tx2);font-weight:400;letter-spacing:.01em;font-size:.76rem}
@@ -64,18 +61,8 @@ header{padding:.55rem 1.2rem;border-bottom:1px solid var(--bd);display:flex;alig
 .stat{display:flex;flex-direction:row;align-items:center;gap:.4rem;background:var(--sf2);border-radius:999px;padding:.32rem .8rem}
 .sv{font-family:var(--font-display);font-size:.92rem;font-weight:700;letter-spacing:.01em}
 .sl{font-size:.7rem;color:var(--tx2);letter-spacing:0}
-/* 진행 막대 — 물까치가 진행 위치에서 난다.
-   장식으로 뿌려 두는 대신 '지금 어디쯤인지'를 알리는 일을 맡겼다. */
-.pb{height:2px;background:var(--bd);flex-shrink:0;position:relative;overflow:visible}
-.pf{height:100%;background:var(--ac);transition:width .4s;width:0%;position:relative}
-.pf::after{
-  content:'';position:absolute;right:-13px;top:50%;
-  width:26px;height:26px;margin-top:-13px;
-  background:url('../img/magpie-64.png') center/contain no-repeat;
-  opacity:0;transition:opacity .3s var(--ease);pointer-events:none;
-}
-body.in-session .pf::after{opacity:1}
-@media (max-width:640px){.pf::after{width:21px;height:21px;right:-10px;margin-top:-10px}}
+.pb{height:2px;background:var(--bd);flex-shrink:0}
+.pf{height:100%;background:var(--ac);transition:width .4s;width:0%}
 main{flex:1;position:relative;overflow:hidden}
 body.mob-mode main{padding-bottom:72px}
 #ui-map{width:100%;height:100%;overflow:hidden;cursor:grab;user-select:none;position:absolute;inset:0;z-index:1;touch-action:none}
@@ -332,14 +319,14 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 .mnu-sec{padding:.4rem .95rem .22rem;font-size:.62rem;color:var(--tx2);letter-spacing:.1em;text-transform:uppercase;background:#26272b;border-bottom:1px solid var(--bd)}
 .mnu-sep{height:4px;background:#2f3034;border-top:1px solid var(--bd);border-bottom:1px solid var(--bd)}
 
-/* ── MAPICA 랜딩 (다크 · 캐러셀) ── */
+/* ── Geogl3 랜딩 (다크 · 캐러셀) ── */
 .ld-stage{width:min(560px,94vw);display:flex;flex-direction:column;align-items:center;gap:.55rem}
 /* 로고 — 무지개 그라데이션과 발광 그림자를 걷어내고 단색 활자로 뒀다.
    지구본 하나만 액센트색으로 남겨 시선을 한 곳에 모은다. */
 /* 로고 — 마크가 색을 다 맡으므로 글자는 단색으로 조용히 둔다 */
 /* 로고 — 마크가 색을 다 맡으므로 글자는 단색으로 조용히 두고, 자간을 넓혀
    상표처럼 보이게 한다 */
-.g3-logo{font-family:var(--font-display);font-size:1.95rem;font-weight:600;text-align:center;letter-spacing:.16em;line-height:1;user-select:none;color:var(--tx);white-space:nowrap;text-indent:.16em}
+.g3-logo{font-family:var(--font-display);font-size:2.1rem;font-weight:600;text-align:center;letter-spacing:.05em;line-height:1;user-select:none;color:var(--tx);white-space:nowrap;text-indent:.05em}
 /* 로고 잠금 — 물까치 마크 위에 워드마크.
    마크는 검은 바탕째로 둥근 타일에 담는다. 그림 자체가 검정 위에 그려져
    있어서 배경을 지우면 검은 두건까지 함께 잘려 나가고, 타일로 두는 편이
@@ -1255,13 +1242,11 @@ body.printing-st>*:not(#st-end){display:none!important}
    물까치와 '위에서 내려다본다'는 말을 화면 곳곳에 옅게 되풀이한다.
    읽는 데 방해되지 않도록 전부 배경 수준으로만 둔다. */
 
-/* 비어 있는 목록에만 새를 남긴다 — '아직 날아오른 퀴즈가 없다'는 말과
-   맞물려 뜻이 있는 자리다. 완료 화면 제목 위에도 붙여 봤지만 그냥 장식이라
-   뺐다. */
-.acct-empty,.sq-note-none{
-  background:url('../img/magpie-192.png') center top .2rem/2.2rem no-repeat;
-  padding-top:3rem!important;opacity:.9;
+/* 새는 로고에만 둔다. 진행 막대·헤더·빈 목록에도 넣어 봤지만 장식으로만
+   보여서 덜어냈다. */
+
+/* 만든 곳 표기 — 사이트는 지오글, 브랜드는 NEPICA */
+.ld-brand{
+  margin-top:1.6rem;font-family:var(--font-display);font-size:.62rem;font-weight:600;
+  letter-spacing:.34em;text-indent:.34em;color:var(--tx2);opacity:.5;text-align:center;
 }
-.acct-empty{background-position:center top .4rem}
-/* 지도 위 안내 띠 — '위에서 본다'는 결을 살려 살짝 떠 있게 */
-.mp-above{letter-spacing:.02em}

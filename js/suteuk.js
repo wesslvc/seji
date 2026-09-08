@@ -1145,7 +1145,7 @@ function sqPrintNote(){
     +'<div class="pn-src">수특지엽 1~4강 · 「이것이 수특 정리다」 특강 자료 01~25</div>'
     +'<div class="pn-sub">'+stamp+' · '+sqRangeLabel()
     +' · 정답 '+SQ.cor+' / 오답 '+SQ.wr+' · 총 '+SQ.pts+'점</div></div>'+body
-    +'<div class="pn-foot">MAPICA · geogl3.xyz</div>';
+    +'<div class="pn-foot">Geogl3 · geogl3.xyz &nbsp;·&nbsp; NEPICA</div>';
   document.body.classList.add('sq-printing');
   const cleanup=()=>{document.body.classList.remove('sq-printing');window.removeEventListener('afterprint',cleanup);};
   window.addEventListener('afterprint',cleanup);

@@ -179,7 +179,7 @@ function setMode(mob){
   document.querySelectorAll('#ld-mode .ld-seg-btn').forEach(b=>b.classList.toggle('active',(b.dataset.mode==='mob')===mob));
   try{applyModeUI();}catch(e){}
 }
-/* ══════════ MAPICA 랜딩 — 캐러셀 모드 선택 ══════════ */
+/* ══════════ Geogl3 랜딩 — 캐러셀 모드 선택 ══════════ */
 /* 3×3 그리드: 한국지리(korea)를 정중앙(5번째 항목)에 놓고 세계지리 항목들이 둘러싼다 */
 const LD_SLIDES=[
  {act:'name',  ic:'globe', mc:'#7ba9db', tt:'나라 이름 맞히기', ds:'지도에서 나라를 클릭하고 이름을 맞혀요. 3번 안에 맞히면 색이 칠해져요.', pts:'국가당 1점'},
@@ -731,8 +731,8 @@ async function shareLastResult(){
   /* 워드마크 — 앱과 같은 넓은 자간 */
   x.textAlign='center';x.fillStyle='#f2eddc';
   x.font="600 76px 'Space Grotesk','Pretendard',sans-serif";
-  if(x.letterSpacing!==undefined)x.letterSpacing='16px';
-  x.fillText('MAPICA',W/2,352);
+  if(x.letterSpacing!==undefined)x.letterSpacing='5px';
+  x.fillText('Geogl3',W/2,352);
   if(x.letterSpacing!==undefined)x.letterSpacing='0px';
   x.fillStyle='#7ba9db';x.font="500 27px 'Space Grotesk','Pretendard',sans-serif";
   if(x.letterSpacing!==undefined)x.letterSpacing='7px';
@@ -785,13 +785,18 @@ async function shareLastResult(){
   }
   /* 푸터 */
   const d=new Date();
-  x.fillStyle='#6b7079';x.font="500 32px 'Pretendard',sans-serif";
-  x.fillText(d.getFullYear()+'. '+(d.getMonth()+1)+'. '+d.getDate()+'.  ·  MAPICA',W/2,1012);
+  x.fillStyle='#6b7079';x.font="500 30px 'Pretendard',sans-serif";
+  x.fillText(d.getFullYear()+'. '+(d.getMonth()+1)+'. '+d.getDate()+'.  ·  Geogl3',W/2,986);
+  /* 브랜드 — 사이트는 지오글, 만든 곳은 NEPICA */
+  x.fillStyle='#4d525a';x.font="600 24px 'Space Grotesk','Pretendard',sans-serif";
+  if(x.letterSpacing!==undefined)x.letterSpacing='9px';
+  x.fillText('NEPICA',W/2,1030);
+  if(x.letterSpacing!==undefined)x.letterSpacing='0px';
   const finish=blob=>{
     if(!blob)return;
     const file=new File([blob],'mapica-result.png',{type:'image/png'});
     if(navigator.canShare&&navigator.canShare({files:[file]})){
-      navigator.share({files:[file],title:'MAPICA 결과'}).catch(()=>{});return;
+      navigator.share({files:[file],title:'Geogl3 결과'}).catch(()=>{});return;
     }
     const a=document.createElement('a');
     a.href=URL.createObjectURL(blob);a.download='mapica-result.png';a.click();

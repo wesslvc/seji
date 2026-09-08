@@ -863,7 +863,7 @@ async function submitScore({ category, correct, total, accuracy, scope, points, 
     const lbl = category === 'religion' ? `${points}/${maxPoints}pt` : `${acc}%`;
     toast(`${CAT_NAME[category] || ''} 기록 저장 · ${lbl}${isRetry ? ' (오답·랭킹 제외)' : ''}`);
   } else {
-    console.error('[MAPICA] 점수 저장 실패:', error);
+    console.error('[Geogl3] 점수 저장 실패:', error);
     toast('⚠ 점수 저장 실패: ' + (error.message || error.code || '알 수 없는 오류'));
   }
 }
