@@ -311,23 +311,25 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 .mnu-sec{padding:.4rem .95rem .22rem;font-size:.6rem;color:var(--tx2);letter-spacing:.1em;text-transform:uppercase;background:#26272b;border-bottom:1px solid var(--bd)}
 .mnu-sep{height:4px;background:#2f3034;border-top:1px solid var(--bd);border-bottom:1px solid var(--bd)}
 
-/* ── Geogl3 랜딩 (다크 · 캐러셀) ── */
+/* ── MAPPICA 랜딩 (다크 · 캐러셀) ── */
 .ld-stage{width:min(560px,94vw);display:flex;flex-direction:column;align-items:center;gap:.55rem}
 /* 로고 — 무지개 그라데이션과 발광 그림자를 걷어내고 단색 활자로 뒀다.
    지구본 하나만 액센트색으로 남겨 시선을 한 곳에 모은다. */
 /* 로고 — 마크가 색을 다 맡으므로 글자는 단색으로 조용히 둔다 */
-.g3-logo{font-family:'Space Grotesk','Pretendard',sans-serif;font-size:2.3rem;font-weight:600;text-align:center;letter-spacing:-.02em;line-height:1;user-select:none;color:var(--tx);white-space:nowrap}
+/* 로고 — 마크가 색을 다 맡으므로 글자는 단색으로 조용히 두고, 자간을 넓혀
+   상표처럼 보이게 한다 */
+.g3-logo{font-family:'Space Grotesk','Pretendard',sans-serif;font-size:1.95rem;font-weight:600;text-align:center;letter-spacing:.16em;line-height:1;user-select:none;color:var(--tx);white-space:nowrap;text-indent:.16em}
 /* 로고 잠금 — 물까치 마크 위에 워드마크.
    마크는 검은 바탕째로 둥근 타일에 담는다. 그림 자체가 검정 위에 그려져
    있어서 배경을 지우면 검은 두건까지 함께 잘려 나가고, 타일로 두는 편이
    밝은 화면·어두운 화면 양쪽에서 또렷하다. */
 .g3-lockup{display:flex;flex-direction:column;align-items:center;gap:.55rem}
+/* 배경을 빼서 어느 화면에서든 새만 떠 있게 뒀다 */
 .g3-bird{
-  width:5.4rem;height:5.4rem;border-radius:26%;display:block;
-  background:#000;box-shadow:var(--shadow2);
+  width:6rem;height:6rem;display:block;
   user-select:none;-webkit-user-drag:none;
 }
-@media (max-width:640px){.g3-bird{width:4.4rem;height:4.4rem}}
+@media (max-width:640px){.g3-bird{width:4.9rem;height:4.9rem}}
 .ld-tag{font-size:.84rem;color:var(--tx2);letter-spacing:.03em;margin-bottom:.5rem}
 /* 모드 그리드 */
 .ld-stage{width:min(680px,94vw)}
