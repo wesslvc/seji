@@ -928,7 +928,9 @@ function wikiRequireLogin() {
 async function wikiSubmitEdit(iso, text) {
   if (!wikiRequireLogin()) return false;
   await ensureSB();
-  const { error } = await supabase.from('wiki_edits').insert({ iso, user_id: session.user.id, proposed_fact: text });
+  /* 들어오는 순간 문체를 '합니다체'로 맞춘다 — 사전 원문과 말투가 섞이지 않게 */
+  const fact = typeof wdNormalizeStyle === 'function' ? wdNormalizeStyle(text) : text;
+  const { error } = await supabase.from('wiki_edits').insert({ iso, user_id: session.user.id, proposed_fact: fact });
   if (error) { toast('제안 접수 실패: ' + (error.message || '')); return false; }
   toast('제안이 접수됐어요 — 관리자 승인 후 반영돼요');
   return true;

@@ -639,7 +639,7 @@ function wdShow(iso){
     +'<div class="wd-theme-bar" id="wd-theme-bar"></div>'
     +'<div class="wd-head">'+wdFlagImg(iso,64,'big')
     +'<div class="wd-head-tx"><h2>'+c.k+'</h2><small>'+c.e+' · '+wdContOf(iso)+'<span id="wd-view-count" class="wd-view-count"></span></small></div></div>'
-    +'<div class="wd-fact" id="wd-fact-box"><div id="wd-fact-text">'+(d.fact||'')+'</div>'
+    +'<div class="wd-fact" id="wd-fact-box"><div id="wd-fact-text">'+wdFactSectionsHTML(iso,d.fact||'')+'</div>'
       +'<div id="wd-blame-legend" class="wd-blame-legend" style="display:none"></div>'
       +'<div class="wd-fact-actions"><button type="button" class="wd-edit-btn" id="wd-edit-btn">✎ 설명 수정 제안</button>'
       +'<span class="wd-my-status" id="wd-my-status"></span></div></div>'
@@ -713,7 +713,7 @@ function wdChartInner(l){
    커뮤니티가 덧붙인 부분만 남는다. 저장된 글 자체는 건드리지 않는다 —
    수정 제안은 예전처럼 한 편집창에서 전체를 다룬다. */
 /* 이 낱말이 하나만 있어도 스포츠 이야기로 본다 */
-const WD_SPORT_STRONG=/올림픽|월드컵|크리켓|FIFA|피파|대표팀|국가대표|메달|우승|준우승|예선|본선|리그|그랑프리|챔피언|아시안게임|코파|네이션스리그|프로야구|프리미어리그|분데스리가|라리가|세리에|NBA|MLB|UFC|축구|야구|농구|배구|럭비|하키|육상|양궁|태권도|유도|복싱|레슬링|역도|사격|펜싱|사이클|골프|테니스|탁구|배드민턴|핸드볼|마라톤|스모|스케이팅|컬링|봅슬레이|알파인|스키 점프|F1/;
+const WD_SPORT_STRONG=/올림픽|월드컵|크리켓|FIFA|피파|대표팀|국가대표|메달|우승|준우승|예선|본선|리그|그랑프리|챔피언|아시안게임|코파|네이션스리그|프로야구|프리미어리그|분데스리가|라리가|세리에|NBA|MLB|UFC|축구|야구|농구|배구|럭비|하키|육상|양궁|태권도|유도|복싱|레슬링|역도|사격|펜싱|사이클|골프|테니스|탁구|배드민턴|핸드볼|마라톤|스모|스케이팅|컬링|봅슬레이|알파인|스키 점프|F1|결승|준결승|4강|8강|16강|32강|승부차기|조별리그|토너먼트|챔피언스리그|유로파리그|선수권|득점|어시스트|홈런|타율|방어율|트로피|승점|출전권|패럴림픽|우승컵|리그전|플레이오프/;
 /* 혼자서는 애매한 낱말 — '스키 관광', '경기 침체'처럼 스포츠가 아닌 쓰임이 있다 */
 const WD_SPORT_WEAK=/선수|감독|구단|경기장|출전|승리|패배|무승부|골|스키|수영|조정|경기/;
 /* 점수 표기(1:0, 3대 2)는 그 자체로 경기 결과다 */
@@ -733,18 +733,50 @@ function wdSentences(text){
     .split(/(?<=[.!?])\s+/)
     .map(x=>x.trim()).filter(Boolean);
 }
+/* 비교용으로 문장을 깎는다 — 띄어쓰기·문장부호·문체 차이는 무시하고 뼈대만 본다 */
+function wdSentKey(s){
+  return String(s||'').replace(/(습니다|입니다|합니다)/g,'다').replace(/[^가-힣0-9a-zA-Z]/g,'');
+}
+/* 지리 소개가 어디까지인지 찾는다.
+   보통은 원문(DICT_DATA)이 앞에 그대로 붙어 있어 그 길이만큼 떼면 되지만,
+   커뮤니티가 원문 자체를 손질하면 그 방법이 통하지 않는다. 그때는 문장 단위로
+   맞춰 보고, 원문 문장 수만큼은 지리로 쳐 준다. 이렇게 해야 원문이 한 번 바뀌어도
+   스포츠 이야기가 지리 칸에 쏟아지지 않는다. */
+function wdGeoSentenceCount(sents,baseSents){
+  if(!baseSents.length)return sents.length?1:0;
+  const keys={};baseSents.forEach(x=>{keys[wdSentKey(x)]=1;});
+  let n=0;
+  for(let i=0;i<sents.length;i++){
+    const known=!!keys[wdSentKey(sents[i])];
+    if(known){n=i+1;continue;}
+    /* 원문 자리 안이고 스포츠 이야기가 아니면 손질된 지리 문장으로 본다 */
+    if(i<baseSents.length&&!wdIsSport(sents[i])){n=i+1;continue;}
+    break;
+  }
+  return n||1;
+}
+/* 저장된 글이 예전 문체('…했다')여도 화면에는 늘 '합니다체'로 나가게 한다 */
+function wdStyle(text){
+  return typeof wdNormalizeStyle==='function'?wdNormalizeStyle(text):String(text||'');
+}
 /* {geo, sport, etc} — 지리 소개 · 스포츠 · 그 밖 */
 function wdSplitFact(iso,fact){
   const base=((typeof DICT_DATA!=='undefined'&&DICT_DATA[iso])||{}).fact||'';
-  let geo=String(fact||''),rest='';
-  if(base&&geo.indexOf(base)===0){rest=geo.slice(base.length).trim();geo=base;}
+  const whole=String(fact||'');
+  let geo=whole,rest='';
+  if(base&&whole.indexOf(base)===0){rest=whole.slice(base.length).trim();geo=base;}
+  else if(base){
+    const sents=wdSentences(whole),baseSents=wdSentences(base);
+    const n=wdGeoSentenceCount(sents,baseSents);
+    geo=sents.slice(0,n).join(' ');rest=sents.slice(n).join(' ');
+  }
   const sport=[],etc=[];
   wdSentences(rest).forEach(x=>{(wdIsSport(x)?sport:etc).push(x);});
   return {geo:geo,sport:sport.join(' '),etc:etc.join(' ')};
 }
 /* 갈래별 상자로 그린다. 커뮤니티가 덧붙인 게 없으면 지리 한 덩어리만 나온다. */
 function wdFactSectionsHTML(iso,fact){
-  const p=wdSplitFact(iso,fact);
+  const p=wdSplitFact(iso,wdStyle(fact));
   const esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   let h='<div class="wd-sec"><div class="wd-sec-b">'+esc(p.geo)+'</div></div>';
   if(p.sport)h+='<div class="wd-sec wd-sec-sport"><div class="wd-sec-h">스포츠</div><div class="wd-sec-b">'+esc(p.sport)+'</div></div>';
@@ -828,7 +860,7 @@ function wdOpenEditModal(iso){
   document.getElementById('wd-edit-title').textContent='설명 수정 제안 — '+(COUNTRIES[iso]?COUNTRIES[iso].k:iso);
   const ta=document.getElementById('wd-edit-textarea');
   /* 화면은 갈래로 나눠 보여 주지만 편집은 원문 한 덩어리로 한다 */
-  ta.value=(window._wdFactRaw&&window._wdFactRaw[iso])||(DICT_DATA[iso]||{}).fact||'';
+  ta.value=wdStyle((window._wdFactRaw&&window._wdFactRaw[iso])||(DICT_DATA[iso]||{}).fact||'');
   const btn=document.getElementById('wd-edit-submit-btn');
   btn.onclick=async()=>{
     const text=ta.value.trim();
