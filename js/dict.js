@@ -574,12 +574,9 @@ function wdShow(iso){
     :'<div class="wd-none">국경을 맞댄 나라가 없어요 (섬나라 또는 데이터 없음)</div>';
 
   /* 종교 (원그래프 데이터 있으면 상세, 없으면 주요 종교만) */
-  let relHtml='',relNote='';
+  let relHtml='';
   if(typeof RELIG2_DATA!=='undefined'&&RELIG2_DATA[iso]){
     relHtml=wdBars(RELIG2_DATA[iso].slice(0,4).map(([i,v])=>[RELIG2_NAME[i],v,RELIG2_COLOR[i]]));
-    /* 전체 인구가 아니라 종교를 가진 사람 100을 기준으로 매긴 비율이다.
-       체코가 기독교 98%로 보이는 이유 — 인구의 76%는 무종교라 이 계산에서 빠져 있다. */
-    relNote='무종교를 뺀, 종교를 가진 사람 기준이에요';
   }else if(typeof RELIGION_DATA!=='undefined'&&RELIGION_DATA[iso]){
     const r=RELIGION_DATA[iso];
     relHtml='<div class="wd-plain">주요 종교: <b>'+rqRelKo(r.r1)+'</b>'+(r.p2>=5?' · 2위 '+rqRelKo(r.r2)+' 약 '+Math.round(r.p2)+'%':'')+'</div>';
@@ -650,7 +647,7 @@ function wdShow(iso){
     +'<div class="wd-sections-2col">'
     +wdSec('접경국',nbHtml)
     +wdSec('주요 도시',ctHtml)
-    +wdSec('종교 구성',relHtml,relNote)
+    +wdSec('종교 구성',relHtml)
     +wdSec('수출 구조 (상위 품목)',expHtml)
     +wdSec('에너지 구성',enHtml)
     +wdSec('기후 (쾨펜 구분)',clHtml)
