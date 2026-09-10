@@ -1253,9 +1253,15 @@ body.printing-st>*:not(#st-end){display:none!important}
    (닿으면 또렷해진다) 평소에는 예전처럼 조용히 있는다 — 시작 버튼 아래에서
    눈에 띄면 그쪽을 먼저 누르게 된다. */
 .ld-brand{
-  display:block;
+  display:flex;flex-direction:column;align-items:center;gap:.4rem;
   margin-top:1.6rem;font-family:var(--font-display);font-size:.62rem;font-weight:600;
-  letter-spacing:.34em;text-indent:.34em;color:var(--tx2);opacity:.5;text-align:center;
+  letter-spacing:.34em;color:var(--tx2);opacity:.55;text-align:center;
   text-decoration:none;transition:opacity .15s var(--ease);
 }
-.ld-brand:hover{opacity:.85}
+/* 마크는 **아무것도 물지 않은 물까치**다 — 제품 마크가 아니라 브랜드 마크라
+   리프린트OCR·VDIC 바닥에 있는 것과 같은 그림이어야 한다. 그래서 이 사이트의
+   로고 파일(img/magpie-*.png)과 따로 둔다 — 로고를 갈아 끼워도 여기는 그대로다. */
+.ld-brand img{display:block;width:22px;height:22px;user-select:none;-webkit-user-drag:none}
+/* 자간은 글자에만 — 껍데기에 걸면 마크까지 밀린다. */
+.ld-brand span{text-indent:.34em}
+.ld-brand:hover{opacity:.9}
