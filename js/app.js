@@ -794,12 +794,12 @@ async function shareLastResult(){
   if(x.letterSpacing!==undefined)x.letterSpacing='0px';
   const finish=blob=>{
     if(!blob)return;
-    const file=new File([blob],'mapica-result.png',{type:'image/png'});
+    const file=new File([blob],'geogl3-result.png',{type:'image/png'});
     if(navigator.canShare&&navigator.canShare({files:[file]})){
       navigator.share({files:[file],title:'Geogl3 결과'}).catch(()=>{});return;
     }
     const a=document.createElement('a');
-    a.href=URL.createObjectURL(blob);a.download='mapica-result.png';a.click();
+    a.href=URL.createObjectURL(blob);a.download='geogl3-result.png';a.click();
     setTimeout(()=>URL.revokeObjectURL(a.href),4000);
   };
   cv.toBlob(finish,'image/png'); /* 프사는 crossOrigin 로드 성공 시에만 그려져 캔버스 오염 없음 */
