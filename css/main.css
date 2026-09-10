@@ -1252,9 +1252,15 @@ body.printing-st>*:not(#st-end){display:none!important}
    브랜드 사이트(nepica.vercel.app)로 가는 문이다. 눌리는 것이라고 티는 내되
    (닿으면 또렷해진다) 평소에는 예전처럼 조용히 있는다 — 시작 버튼 아래에서
    눈에 띄면 그쪽을 먼저 누르게 된다. */
+/* 자리는 쪽 맨 아래 — 리프린트OCR·VDIC 의 footer 와 같은 여백을 준다. */
+.ld-foot{display:flex;justify-content:center;padding:1.3rem 1rem .4rem}
+/* **크기를 rem 이 아니라 px 로 못박는다.** 세 사이트의 rem 기준이 다르다
+   (VDIC 16 · 리프린트OCR 17 · 지오글 18px) — .62rem 으로 두면 같은 마크 아래
+   워드마크만 사이트마다 9.9/10.5/11.2px 로 갈려 잠금 비율이 어긋난다.
+   마크를 22px 로 못박아 둔 것과 같은 이유다(자간·들여쓰기는 em 이라 따라온다). */
 .ld-brand{
-  display:flex;flex-direction:column;align-items:center;gap:.4rem;
-  margin-top:1.6rem;font-family:var(--font-display);font-size:.62rem;font-weight:600;
+  display:inline-flex;flex-direction:column;align-items:center;gap:7px;
+  font-family:var(--font-display);font-size:10px;font-weight:600;line-height:1.5;
   letter-spacing:.34em;color:var(--tx2);opacity:.55;text-align:center;
   text-decoration:none;transition:opacity .15s var(--ease);
 }
