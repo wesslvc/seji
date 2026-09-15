@@ -434,7 +434,6 @@
     <item>E한대 : 최난월 10↓</item>
     <note>서안해양성은 최난월 기온 22도↓</note>
     <note>열대의 건기 기준은 60+- / 온대 기준은 30 +</note>
-    <figure src="img/codex/image15.webp" caption="쾨펜·가이거 기후 구분"/>
     <quiz>
       <q a="A열대">
         <ask>최한월 18+</ask>
@@ -481,12 +480,13 @@
     <note>마사이마라(케냐) =&gt; 적도이지만 Aw</note>
     <line>BW</line>
     <note>일부 난류지역에 한류사막이 존재한다면 그것은 용승으로 인한 것</note>
-    <figure src="img/codex/image16.webp" caption="건조기후의 분포"/>
+    <figure src="img/codex/image15.webp" caption="쾨펜·가이거 기후 구분 (1991–2020)"/>
     <sub title="1) 연중아열대 고압대 사막">
       <line>사하라 사막 / 아라비아사막</line>
       <line>소노란 사막 (미국 남서부, 멕시코 북서부 – 캘리포니아반도)</line>
       <line>치와와 사막 (미국 남서부, 멕시코) / 칼라하리 사막 – (아프리카 남동부)</line>
       <line>그레이트빅토리아 &amp; 그레이트 샌디 사막 (호주) / 타르 사막 (인도-파키스탄)</line>
+      <figure src="img/codex/image16.webp" caption="세계의 사막 분류 — 아열대 고압대·한류·내륙·비그늘"/>
     </sub>
     <sub title="2) 한류사막">
       <line>아타카마 사막 (칠레) - 페루헤류 / 나미브 사막 (나미비아) - 벵겔라해류</line>
