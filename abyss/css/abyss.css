@@ -23,8 +23,11 @@
   --warn:#e0a35c;
   --bad:#e0685c;
   --r-s:6px; --r-m:12px; --r-l:20px;
-  --sans:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,system-ui,'Segoe UI',sans-serif;
-  --serif:'Instrument Serif','Iowan Old Style','Apple Garamond',Georgia,serif;
+  /* 본편 지오글과 같은 짝을 쓴다 — 한글은 Pretendard, 라틴·숫자는 Space Grotesk.
+     같은 글씨체를 쓰되 굵기와 자간으로 결을 달리한다. 본편이 굵고 또렷하다면
+     여기는 가늘고 넓다. */
+  --sans:'Pretendard Variable',Pretendard,'Noto Sans KR',system-ui,sans-serif;
+  --display:'Space Grotesk','Pretendard Variable',Pretendard,sans-serif;
   --ease:cubic-bezier(.22,.61,.36,1);
   --shadow:0 18px 50px -24px rgba(0,0,0,.9);
 }
@@ -66,8 +69,8 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   padding:.85rem 0;margin-bottom:.4rem;
   background:linear-gradient(180deg,rgba(5,8,12,.94),rgba(5,8,12,.72) 70%,transparent);
   backdrop-filter:blur(10px)}
-.topbar .mark{display:flex;align-items:baseline;gap:.5rem;font-family:var(--serif);
-  font-size:1.05rem;letter-spacing:.02em}
+.topbar .mark{display:flex;align-items:baseline;gap:.5rem;font-family:var(--display);
+  font-size:1.02rem;font-weight:600;letter-spacing:.01em}
 .topbar .mark em{font-style:normal;color:var(--glow);letter-spacing:.2em;font-size:.62rem;
   font-family:var(--sans);font-weight:600;text-transform:uppercase;transform:translateY(-1px)}
 .topbar nav{margin-left:auto;display:flex;gap:.1rem;flex-wrap:wrap}
@@ -81,9 +84,9 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .hero{padding:clamp(2.6rem,11vh,6rem) 0 clamp(1.2rem,3vh,2.2rem);position:relative}
 .hero .kicker{font-size:.66rem;letter-spacing:.34em;text-transform:uppercase;color:var(--glow);
   margin-bottom:1.5rem;font-weight:600}
-.hero h1{font-family:var(--serif);font-weight:400;margin:0;line-height:.94;
-  font-size:clamp(3.6rem,13vw,9rem);letter-spacing:-.012em}
-.hero h1 span{display:block;color:var(--tx-2);opacity:.72}
+.hero h1{font-family:var(--display);font-weight:300;margin:0;line-height:.98;
+  font-size:clamp(3.1rem,11.5vw,8rem);letter-spacing:-.035em}
+.hero h1 span{display:block;color:var(--tx-2);opacity:.7;font-weight:400;letter-spacing:-.02em}
 .hero h1 b{font-weight:400;
   background:linear-gradient(170deg,#eaf6f4 8%,#8fd8cd 45%,#2f6f69 96%);
   -webkit-background-clip:text;background-clip:text;color:transparent}
@@ -123,8 +126,8 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .screen.on{display:block}
 @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 .head{padding:clamp(1.6rem,5vh,3rem) 0 1.4rem}
-.head h2{font-family:var(--serif);font-weight:400;font-size:clamp(1.9rem,5.5vw,3rem);
-  margin:0;letter-spacing:-.01em}
+.head h2{font-family:var(--display);font-weight:500;font-size:clamp(1.85rem,5.2vw,2.8rem);
+  margin:0;letter-spacing:-.022em}
 .head p{color:var(--tx-2);margin:.6rem 0 0;max-width:42rem;font-size:.88rem}
 .eyebrow{font-size:.64rem;letter-spacing:.3em;text-transform:uppercase;color:var(--glow);
   font-weight:600;margin-bottom:.7rem}
