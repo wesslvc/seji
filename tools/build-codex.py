@@ -79,39 +79,92 @@ for sec in secs:
                     break
 
 # ── 본문에서 문제 뽑기 ──
+#   이 정리본은 'X : Y' 꼴이 대부분이라 그대로 문제가 된다. 다만 X 가 '토양'
+#   '식생' '가옥'처럼 어느 절에나 나오는 말이면, 한 절 안에서 답이 겹쳐 문제가
+#   성립하지 않는다. 그래서 두 갈래로 나눈다.
+#     · 절마다 한 번뿐인 이름  → 설명을 주고 이름을 고르게 한다
+#     · 여러 절에 걸친 공통 항목 → '열대기후의 토양은?'처럼 절을 묶어 묻는다
+#       (라테라이트 · 포드졸 · 흑토 · 갈색토가 한 문제에서 갈린다)
 PAIR = re.compile(r'^(.{2,22}?)\s*[:：]\s*(.{2,70})$')
-def make_quiz(sec):
-    pool = []
-    def walk(node, where):
+
+def pairs_of(sec):
+    out = []
+    def walk(node):
         for kind, v in node['body']:
             if kind in ('item', 'line'):
                 m = PAIR.match(v)
                 if m and not m.group(1).endswith(')'):
-                    pool.append((m.group(1).strip(), m.group(2).strip(), where))
-    walk(sec, sec['title'])
-    for s in sec['subs']:
-        walk(s, s['title'])
+                    out.append((m.group(1).strip(), m.group(2).strip()))
+    walk(sec)
+    for sb in sec['subs']:
+        walk(sb)
+    return out
+
+# 절을 가로지르는 공통 항목 모으기
+cross = {}
+for sec in secs:
+    for k, v in pairs_of(sec):
+        cross.setdefault(k, []).append((sec['n'], sec['title'], v))
+CROSS = {k: vs for k, vs in cross.items() if len({x[0] for x in vs}) >= 3}
+
+def josa(word, has_batchim='은', no_batchim='는'):
+    """받침을 보고 조사를 고른다 — '토양은' / '식생은' / '가옥은' / '기후는'."""
+    c = word.strip()[-1:]
+    if not c or not ('\uac00' <= c <= '\ud7a3'):
+        return has_batchim
+    return has_batchim if (ord(c) - 0xAC00) % 28 else no_batchim
+
+def uniq(seq):
+    seen, out = set(), []
+    for x in seq:
+        if x not in seen:
+            seen.add(x); out.append(x)
+    return out
+
+def make_quiz(sec):
     qs = []
-    keys = [p[0] for p in pool]
-    for i, (k, v, where) in enumerate(pool):
-        others = [x for x in keys if x != k]
-        if len(others) < 2:
+    ps = pairs_of(sec)
+    keys = [k for k, _ in ps]
+
+    # 1) 절을 가로지르는 공통 항목 — 답은 설명 쪽
+    for k, v in ps:
+        if k not in CROSS:
             continue
-        opts = [k] + others[:3]
-        if len(opts) < 3:
-            continue
-        qs.append({'q': v, 'a': k, 'opts': opts, 'from': where})
-        if len(qs) >= 6:
-            break
-    # 소절이 여럿인 절(고지도 등)은 '특징 → 이름' 문제가 더 값지다
+        others = [x[2] for x in CROSS[k] if x[0] != sec['n'] and x[2] != v]
+        # 한쪽이 다른 쪽에 통째로 들어 있는 보기는 사실상 같은 답이라 뺀다
+        others = [o for o in others if not any(o != x and o in x for x in [v] + others)]
+        opts = uniq([v] + others)[:4]
+        if len(opts) >= 3:
+            qs.append({'q': '「%s」의 %s%s?' % (sec['title'], k, josa(k)),
+                       'a': v, 'opts': opts})
+
+    # 2) 이 절에만 있는 이름 — 답은 이름 쪽
+    for k, v in ps:
+        if k in CROSS or keys.count(k) > 1:
+            continue                      # 한 절에 같은 이름이 둘이면 답이 갈린다
+        others = [x for x in keys if x != k and keys.count(x) == 1 and x not in CROSS]
+        opts = uniq([k] + others)[:4]
+        if len(opts) >= 3:
+            qs.append({'q': v, 'a': k, 'opts': opts})
+
+    # 3) 소절이 여럿인 절(고지도 등)은 '특징 → 이름'이 가장 값지다 — 맨 앞에 둔다
     if len(sec['subs']) >= 3:
         names = [re.sub(r'^\d+\)\s*', '', s['title']).strip() for s in sec['subs']]
-        for s, nm in zip(sec['subs'], names):
-            feats = [v for kind, v in s['body'] if kind == 'item' and 4 <= len(v) <= 60]
-            if len(feats) >= 2 and len(names) >= 3:
-                qs.insert(0, {'q': ' · '.join(feats[:2]), 'a': nm,
-                              'opts': [nm] + [x for x in names if x != nm][:3], 'from': sec['title']})
-    return qs[:8]
+        head = []
+        for sb, nm in zip(sec['subs'], names):
+            feats = [v for kind, v in sb['body'] if kind == 'item' and 4 <= len(v) <= 60]
+            opts = uniq([nm] + [x for x in names if x != nm])[:4]
+            if len(feats) >= 2 and len(opts) >= 3:
+                head.append({'q': ' · '.join(feats[:2]), 'a': nm, 'opts': opts})
+        qs = head + qs
+
+    # 같은 물음이 두 번 나오지 않게
+    seen, out = set(), []
+    for q in qs:
+        if q['q'] in seen:
+            continue
+        seen.add(q['q']); out.append(q)
+    return out[:8]
 
 def esc(s): return html.escape(str(s), quote=True)
 
@@ -129,6 +182,9 @@ for s in secs:
                 out.append('%s<figure src="img/codex/%s.webp" caption="%s"/>' % (ind, v, esc(FIGCAP.get(v, ''))))
             else:
                 out.append('%s<%s>%s</%s>' % (ind, kind, esc(v), kind))
+    seen_fig = set()
+    s['body'] = [(k, v) for k, v in s['body']
+                 if not (k == 'fig' and (v in seen_fig or seen_fig.add(v)))]
     emit(s, '    ')
     for sb in s['subs']:
         out.append('    <sub title="%s">' % esc(sb['title']))
