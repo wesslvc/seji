@@ -297,3 +297,6 @@ h4.sec em{font-style:normal;font-weight:400;color:var(--tx3);font-size:var(--fs-
 .cx-a{margin-top:.9rem;font-size:var(--fs-md)}
 .cx-a.ok{color:var(--ac)}
 .cx-a.no{color:var(--wr)}
+
+/* 목차로 뛰었을 때 제목이 상단 바에 가리지 않게 */
+.cx-sec{scroll-margin-top:5rem}

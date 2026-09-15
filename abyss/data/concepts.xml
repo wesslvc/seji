@@ -13,7 +13,7 @@
     <item>아즈텍 : 멕시코 중부(멕시코시티 – 당시 테노치티틀란)</item>
     <item>잉카 : 페루(수도 쿠스코), 에콰도르, 볼리비아,</item>
     <line>칠레 북부, 콜롬비아남부, 아르헨티나 북서부 등</line>
-    <figure src="img/codex/image1.webp" caption="라틴아메리카 고대 문명의 분포"/>
+    <figure src="img/codex/image1.webp" caption="마야·아즈텍·잉카 문명의 분포"/>
     <quiz>
       <q a="마야">
         <ask>멕시코 남부(치아파스 주 이남) ~ 온두라스 &amp; 엘살바도르</ask>
@@ -39,7 +39,6 @@
     <item>지리적표시제 : 지적재산권</item>
     <item>장소마케팅 : 축제 (태국 송끄란 -&gt; 건기끝나는시기에)</item>
     <item>지역브랜드화 : 상표</item>
-    <figure src="img/codex/image2.webp" caption="지역화 전략"/>
     <quiz>
       <q a="지리적표시제">
         <ask>지적재산권</ask>
@@ -66,28 +65,28 @@
       <item>지구가 구체임을 인식(경위선 사용)</item>
       <item>원뿔도법</item>
       <item>인도양 내해(內海)로 표현함(수특에도 있는 내용)</item>
-      <figure src="img/codex/image3.webp" caption="프톨레마이오스 세계지도"/>
+      <figure src="img/codex/image2.webp" caption="프톨레마이오스 세계지도"/>
     </sub>
     <sub title="2) TO지도">
       <item>아시아 아프리카 경계는 홍해</item>
       <item>유럽 아시아 경계는 지중해</item>
       <item>아시아 유럽 경계는 타나이스(돈강)</item>
       <note>(돈강은 모스크바, 우크라이나 일대를 지난다)</note>
-      <figure src="img/codex/image4.webp" caption="TO 지도"/>
+      <figure src="img/codex/image3.webp" caption="TO 지도"/>
     </sub>
     <sub title="3) 마파문디">
-      <figure src="img/codex/image5.webp" caption="마파문디"/>
+      <figure src="img/codex/image4.webp" caption="마파문디"/>
     </sub>
     <sub title="4) 알 이드리시 세계지도">
       <item>메카를 중심에 둠 (그러려고 뒤집음)</item>
       <item>지구를 구체로 인식 (등기후선을 곡선으로 그림)</item>
-      <figure src="img/codex/image6.webp" caption="알 이드리시 세계지도"/>
+      <figure src="img/codex/image5.webp" caption="알 이드리시 세계지도"/>
     </sub>
     <sub title="5) 포르톨라노 해도海圖">
       <item>향해용 지도</item>
       <item>항구와 섬을 자세히 표현</item>
       <item>나침반에서 여러개의 방사선 -&gt; 항로파악</item>
-      <figure src="img/codex/image7.webp" caption="포르톨라노 해도"/>
+      <figure src="img/codex/image6.webp" caption="포르톨라노 해도"/>
     </sub>
     <sub title="6) 메르카토르">
       <item>신대륙 그려져있음</item>
@@ -97,7 +96,7 @@
       <note>면적 확대의 이유는 실제로 위도가     올라갈수록 경선간 간격이 감소하는데</note>
       <line>북극점, 남극점을 중심으로 펼치다보니</line>
       <line>경산간 간격이 적도부터 고위도까지 모두   일치하게 되었기에 왜곡이 발생함</line>
-      <figure src="img/codex/image8.webp" caption="메르카토르 세계지도"/>
+      <figure src="img/codex/image7.webp" caption="메르카토르 세계지도 (1569)"/>
     </sub>
     <quiz>
       <q a="프톨레마이오스 지도 (AD)">
@@ -144,21 +143,21 @@
       <item>천원지방</item>
       <note>대명혼일도와 굳이 구분하자면 한자의 길이, 우리나라의 크기로 구분가능</note>
       <note>대명혼일도와 굳이 구분하자면22 대명혼일도가 먼저임</note>
-      <figure src="img/codex/image9.webp" caption="혼일강리역대국도지도 (1402)"/>
+      <figure src="img/codex/image8.webp" caption="혼일강리역대국도지도 (1402)"/>
     </sub>
     <sub title="2) 천하도 (조선 중기)">
       <item>민간에서 제작</item>
       <item>중화사상</item>
       <item>내대륙 현실 / 외대륙 상상 (=&gt; 도교사상반영)</item>
       <item>천원지방</item>
-      <figure src="img/codex/image10.webp" caption="천하도"/>
+      <figure src="img/codex/image9.webp" caption="천하도"/>
     </sub>
     <sub title="3) 지구전후도">
       <item>민간에서 제작</item>
       <item>중화사상 &amp; 천원지방X</item>
       <item>지구를 구체로 인식 (경위선, 회귀선O)</item>
       <item>목판본 -&gt; 대량생산</item>
-      <figure src="img/codex/image11.webp" caption="지구전후도"/>
+      <figure src="img/codex/image10.webp" caption="지구전후도"/>
     </sub>
     <quiz>
       <q a="혼일강리역대국도지도 (1402)">
@@ -186,18 +185,19 @@
       <item>중국 전체가 표현된 현존 가장 오래된 지도</item>
       <item>천원지방</item>
       <item>중화사상 (중국 확대, 타 지역 축소)</item>
-      <figure src="img/codex/image12.webp" caption="화이도"/>
+      <figure src="img/codex/image11.webp" caption="화이도"/>
     </sub>
     <sub title="2) 대명혼일도 (14세기 末)">
       <item>천원지방</item>
       <item>중화사상</item>
-      <figure src="img/codex/image13.webp" caption="대명혼일도"/>
+      <figure src="img/codex/image12.webp" caption="대명혼일도"/>
     </sub>
     <sub title="3) 곤여만국전도 (17세기 초)">
       <item>마테오리치(ITA) + 明 학자</item>
       <item>태평양을 중앙에 배치</item>
       <item>중화사상 &amp; 천원지방 OUT</item>
       <item>지구를 구체로 인식</item>
+      <figure src="img/codex/image13.webp" caption="곤여만국전도"/>
     </sub>
     <quiz>
       <q a="화이도 (송나라 12세기)">
@@ -354,7 +354,7 @@
     <line>뉴질랜드 남서부 해안 : 밀포드 사운드(Milford Sound) - 6880mm</line>
     <line>칠레 남부 해안 : 푸에트로 시스네스 (Puetro Cisnes) - 4336mm</line>
     <line>캐나다 남서부 해안 : 밴쿠버(Vancouver) 후쿡툴리스 호수 – 6903mm</line>
-    <figure src="img/codex/image14.webp" caption="세계의 다우지"/>
+    <figure src="img/codex/image14.webp" caption="세계 연강수량"/>
     <quiz>
       <q a="최대강수">
         <ask>방글라데시 삼각주 북쪽 (아삼주, 메갈라야주 – 체라푼지 11000mm+)</ask>
@@ -434,7 +434,7 @@
     <item>E한대 : 최난월 10↓</item>
     <note>서안해양성은 최난월 기온 22도↓</note>
     <note>열대의 건기 기준은 60+- / 온대 기준은 30 +</note>
-    <figure src="img/codex/image15.webp" caption="쾨펜 기후 구분"/>
+    <figure src="img/codex/image15.webp" caption="쾨펜·가이거 기후 구분"/>
     <quiz>
       <q a="A열대">
         <ask>최한월 18+</ask>
@@ -481,7 +481,7 @@
     <note>마사이마라(케냐) =&gt; 적도이지만 Aw</note>
     <line>BW</line>
     <note>일부 난류지역에 한류사막이 존재한다면 그것은 용승으로 인한 것</note>
-    <figure src="img/codex/image16.webp" caption="열대 기후의 분포"/>
+    <figure src="img/codex/image16.webp" caption="건조기후의 분포"/>
     <sub title="1) 연중아열대 고압대 사막">
       <line>사하라 사막 / 아라비아사막</line>
       <line>소노란 사막 (미국 남서부, 멕시코 북서부 – 캘리포니아반도)</line>
@@ -794,7 +794,7 @@
     <item>자원 : 석유 천연가스, 구리, 주석 (석유와 천연가스의 60%가량 매장됨)</item>
     <note>110611 -수마트라섬과 자바섬은 알프스 히말라야 조산대임을 알아야하는 기출이 있다</note>
     <note>발산형경계는 조산대가 아니다.(신기습곡X)</note>
-    <figure src="img/codex/image17.webp" caption="세계의 대지형"/>
+    <figure src="img/codex/image17.webp" caption="관련 기출 — 수마트라섬과 자바섬"/>
   </section>
   <section n="29" title="판 구조">
     <line>대륙판</line>
@@ -806,7 +806,7 @@
     <line>보존형경계</line>
     <line>후안데푸카판 남쪽 태평양판 + 북미판 -&gt; 산안드레아스 단층</line>
     <line>뉴질랜드 알파인 단층대 -&gt; 남섬에 위치(화산X, 빙하 多)</line>
-    <figure src="img/codex/image18.webp" caption="주요 판 구조"/>
+    <figure src="img/codex/image18.webp" caption="세계의 판 구조"/>
   </section>
   <section n="30" title="화산">
     <line>현무암질</line>
