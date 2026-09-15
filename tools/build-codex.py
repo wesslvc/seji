@@ -59,24 +59,54 @@ for text, imgs in rows:
     clean = text.lstrip().lstrip('-+=*').strip()
     (sub or cur)['body'].append((kind, clean))
 
-# ── 그림 자리 바로잡기 ──
-#   한글 문서에서 그림은 빈 문단 뒤에 떠 있어, 다음 소절 제목을 지나쳐 붙는 일이
-#   있다(TO지도 그림이 '마파문디' 밑으로 들어갔다). 설명글이 하나도 없는 소절에
-#   들어간 그림은, 제목이 그림 설명과 맞는 앞 소절로 되돌린다.
-def norm(t): return re.sub(r'[\s\d)]+', '', t)
+# ── 그림 자리 못 박기 ──
+#   한글 문서에서 그림은 빈 문단 뒤에 떠 있어, 흐름대로 읽으면 엉뚱한 절로
+#   넘어간다(메르카토르 지도가 '우리나라의 고지도' 머리에 붙는 식이다).
+#   그림이 무엇인지는 우리가 알고 있으니, 흐름 대신 이름으로 자리를 못 박는다.
+#   (절 번호, 소절 제목의 일부) — 소절이 없으면 절 본문 끝에 붙는다.
+PLACE = {
+ 'image1':  (3,  None),          # 라틴아메리카 고대 문명
+ 'image2':  (4,  None),          # 지역화 전략
+ 'image3':  (5,  '프톨레마이오스'),
+ 'image4':  (5,  'TO지도'),
+ 'image5':  (5,  '마파문디'),
+ 'image6':  (5,  '알 이드리시'),
+ 'image7':  (5,  '포르톨라노'),
+ 'image8':  (5,  '메르카토르'),
+ 'image9':  (6,  '혼일강리역대국도지도'),
+ 'image10': (6,  '천하도'),
+ 'image11': (6,  '지구전후도'),
+ 'image12': (7,  '화이도'),
+ 'image13': (7,  '대명혼일도'),
+ 'image14': (17, None),          # 다우지
+ 'image15': (21, None),          # 쾨펜 경계값
+ 'image16': (22, None),          # 쾨펜 구체적 위치
+ 'image17': (28, None),          # 대지형
+ 'image18': (29, None),          # 판 구조
+}
+
+# 먼저 문서에서 딸려 온 그림을 전부 걷어 낸다
 for sec in secs:
-    for i, sb in enumerate(sec['subs']):
-        if any(k != 'fig' for k, _ in sb['body']):
-            continue
-        for kind, v in list(sb['body']):
-            cap = FIGCAP.get(v, '')
-            if not cap:
-                continue
-            for j in range(i):
-                if norm(cap) and norm(cap) in norm(sec['subs'][j]['title']):
-                    sb['body'].remove((kind, v))
-                    sec['subs'][j]['body'].append((kind, v))
-                    break
+    sec['body'] = [x for x in sec['body'] if x[0] != 'fig']
+    for sb in sec['subs']:
+        sb['body'] = [x for x in sb['body'] if x[0] != 'fig']
+
+by_n = {sec['n']: sec for sec in secs}
+placed = 0
+for img, (n, sub_key) in PLACE.items():
+    sec = by_n.get(n)
+    if not sec:
+        print('절 %d 없음 — %s 건너뜀' % (n, img)); continue
+    target = sec
+    if sub_key:
+        hit = [sb for sb in sec['subs'] if sub_key in sb['title']]
+        if not hit:
+            print('§%d 에 "%s" 소절 없음 — 절 본문에 붙임' % (n, sub_key))
+        else:
+            target = hit[0]
+    target['body'].append(('fig', img))
+    placed += 1
+print('그림 %d장 배치' % placed)
 
 # ── 본문에서 문제 뽑기 ──
 #   이 정리본은 'X : Y' 꼴이 대부분이라 그대로 문제가 된다. 다만 X 가 '토양'

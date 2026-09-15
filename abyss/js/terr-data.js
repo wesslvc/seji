@@ -46,3 +46,5 @@ const TERR_COUNTRIES={
 };
 const TERR_CONT={aw:'na',cw:'na',gf:'sa',gg:'eu',gp:'na',gu:'oc',hk:'as',mo:'as',mq:'na',nc:'oc',pf:'oc',pr:'na',re:'af',vi:'na',yt:'af',
   as:'oc',ai:'na',bm:'na',bq:'na',ky:'na',cx:'as',cc:'as',ck:'oc',fk:'sa',fo:'eu',gi:'eu',gl:'na',im:'eu',je:'eu',ms:'na',nu:'oc',nf:'oc',mp:'oc',pn:'oc',bl:'na',sh:'af',mf:'na',pm:'na',sx:'na',tk:'oc',tc:'na',vg:'na',wf:'oc'};
+/* 속령 집합 — 순위·목록에서 뺄지 말지 가르는 기준이다 */
+const TERRITORIES=new Set(Object.keys(TERR_COUNTRIES));

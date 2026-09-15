@@ -56,7 +56,10 @@ function abBorderStart(list){
       +'<input id="bq-in" type="text" placeholder="맞닿은 나라를 하나씩 입력하고 Enter" autocomplete="off"></div>'
       +'<button class="btn" id="bq-grade">다 적었습니다</button></div>'
     +'<div class="entered" id="bq-list"></div>'
-    +'<div class="map-wrap" id="bq-map">지도를 불러오는 중…</div>'
+    /* 지도는 채점한 뒤에만 편다. 입력하는 동안 대상국이 칠해져 있고 이웃을
+       눌러 고를 수 있으면 그건 문제가 아니라 답지다. */
+    +'<div class="map-hold" id="bq-hold">지도는 채점한 뒤에 펼칩니다.</div>'
+    +'<div class="map-wrap" id="bq-map" hidden></div>'
     +'<div class="btnrow"><button class="btn ghost" id="bq-quit">그만두기</button></div>'
     +'<div id="bq-end"></div>';
   ABBQ.box=document.getElementById('bq-map');
@@ -66,15 +69,17 @@ function abBorderStart(list){
      걸어 두면 역할을 바꿔도 옛 핸들러가 남아 채점이 두 번 돈다 — onclick 하나만 쓴다. */
   document.getElementById('bq-grade').onclick=abBorderGrade;
   document.getElementById('bq-quit').addEventListener('click',abBorderFinish);
-  abMapMount(ABBQ.box,iso=>abBorderType(abName(iso))).then(()=>abBorderShow());
+  /* 지도는 미리 심어 두되 감춰 둔다 — 채점 순간 바로 펼쳐야 하므로 */
+  abMapMount(ABBQ.box).then(()=>abBorderShow());
 }
 function abBorderShow(){
   const iso=ABBQ.plan[ABBQ.idx];
   if(!iso)return abBorderFinish();
   ABBQ.entered=[];ABBQ.graded=false;
   abMapClear(ABBQ.box);
-  abMapPaint(ABBQ.box,iso,'sel');
-  document.getElementById('bq-q').innerHTML=abEsc(abName(iso))
+  document.getElementById('bq-map').hidden=true;
+  document.getElementById('bq-hold').hidden=false;
+  document.getElementById('bq-q').innerHTML=abFlag(iso,26)+abEsc(abName(iso))
     +'<em>와 맞닿은 나라를 모두 · '+(ABBQ.idx+1)+'/'+ABBQ.plan.length+'</em>';
   document.getElementById('bq-list').innerHTML='';
   document.getElementById('bq-sc').textContent=ABBQ.pts+'점';
@@ -99,9 +104,8 @@ function abBorderType(txt){
   if(!iso)return;
   if(ABBQ.entered.indexOf(iso)>=0)return;
   ABBQ.entered.push(iso);
-  abMapPaint(ABBQ.box,iso,'hi');
   document.getElementById('bq-list').innerHTML=ABBQ.entered.map(i=>
-    '<span class="tag">'+abEsc(abName(i))+'</span>').join('');
+    '<span class="tag">'+abFlag(i,18)+abEsc(abName(i))+'</span>').join('');
 }
 function abBorderGrade(){
   const iso=ABBQ.plan[ABBQ.idx];if(!iso||ABBQ.graded)return;
@@ -116,13 +120,18 @@ function abBorderGrade(){
   ABBQ.pts+=pts;
   ABBQ.streak=pts>0?0:ABBQ.streak+1;
   ABBQ.log.push({iso:iso,pts:pts,missed:missed,extra:extra,hit:hit.length,total:want.length});
+  document.getElementById('bq-hold').hidden=true;
+  document.getElementById('bq-map').hidden=false;
+  abMapPaint(ABBQ.box,iso,'sel');
   want.forEach(i=>{if(got.indexOf(i)>=0)abMapPaint(ABBQ.box,i,'cr');else abMapPaint(ABBQ.box,i,'hi');});
   extra.forEach(i=>abMapPaint(ABBQ.box,i,'wr'));
+  abMapFocus(ABBQ.box,[iso].concat(want),0.3);
   document.getElementById('bq-list').innerHTML=
-    want.map(i=>'<span class="tag '+(got.indexOf(i)>=0?'ok':'no')+'">'+abEsc(abName(i))+'</span>').join('')
-    +extra.map(i=>'<span class="tag no">'+abEsc(abName(i))+' ✕</span>').join('');
+    want.map(i=>'<span class="tag '+(got.indexOf(i)>=0?'ok':'no')+'">'
+      +abFlag(i,18)+abEsc(abName(i))+'</span>').join('')
+    +extra.map(i=>'<span class="tag no">'+abFlag(i,18)+abEsc(abName(i))+' ✕</span>').join('');
   const q=document.getElementById('bq-q');
-  q.innerHTML=abEsc(abName(iso))+'<em>'+want.length+'개국 중 '+hit.length+'개 · '
+  q.innerHTML=abFlag(iso,26)+abEsc(abName(iso))+'<em>'+want.length+'개국 중 '+hit.length+'개 · '
     +(pts>0?'+'+pts:pts)+'점'
     +(ABBQ.streak>=3?' — '+AB_TAUNT[Math.floor(Math.random()*AB_TAUNT.length)]:'')+'</em>';
   document.getElementById('bq-sc').textContent=ABBQ.pts+'점';

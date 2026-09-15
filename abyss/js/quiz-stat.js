@@ -99,7 +99,7 @@ function abStatFinish(){
   abSave('stat_last',{pts:ABST.pts,cor:ABST.cor,wr:ABST.wr});
   const max=ABST.plan.length*10;
   let h='<div class="result"><h3>통계 순위 테스트 끝</h3>'
-    +'<div class="big">'+ABST.pts+' <span style="font-size:.9rem;color:var(--tx-3)">/ '+max+'점</span></div>'
+    +'<div class="big">'+ABST.pts+' <span style="font-size:.9rem;color:var(--tx3)">/ '+max+'점</span></div>'
     +'<p class="rank-note">맞힌 순위 '+ABST.cor+'개 · 틀린 문항 '+ABST.wr+'개</p>';
   if(ABST.wrongSets.length){
     h+='<div class="rev"><b>틀린 통계</b><ol>'

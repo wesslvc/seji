@@ -11,7 +11,15 @@ function abAtlasInit(){
   const chips=document.getElementById('atlas-cont');
   const cats=[['','전체']].concat(Object.keys(CONT_NAME).map(k=>[k,CONT_NAME[k]]));
   chips.innerHTML=cats.map(([k,n])=>
-    '<button class="chip'+(k===''?' on':'')+'" data-c="'+k+'">'+n+'</button>').join('');
+    '<button class="chip'+(k===''?' on':'')+'" data-c="'+k+'">'+n+'</button>').join('')
+    +'<span class="chip-gap"></span>'
+    +'<button class="chip terr-sw'+(abTerrOn()?' on':'')+'" id="atlas-terr">속령 포함</button>';
+  document.getElementById('atlas-terr').addEventListener('click',function(){
+    abTerrSet(!abTerrOn());
+    this.classList.toggle('on',abTerrOn());
+    abAtlasList();
+    if(typeof abRankList==='function'){abRankList();abRankView();}
+  });
   chips.addEventListener('click',e=>{
     const b=e.target.closest('.chip');if(!b)return;
     AB_ATLAS.cont=b.dataset.c;
@@ -36,7 +44,7 @@ AB_ON_ENTER['/atlas']=function(key){
 function abAtlasList(){
   const box=document.getElementById('atlas-list');
   const q=AB_ATLAS.q.toLowerCase();
-  const rows=Object.keys(DICT_DATA).filter(iso=>{
+  const rows=abPool().filter(iso=>{
     if(AB_ATLAS.cont&&abCont(iso)!==AB_ATLAS.cont)return false;
     if(!q)return true;
     const c=COUNTRIES[iso]||TERR_COUNTRIES[iso]||{};
@@ -48,8 +56,9 @@ function abAtlasList(){
   box.innerHTML=rows.length?rows.map(iso=>{
     const d=DICT_DATA[iso]||{};
     return '<button class="pick" data-iso="'+iso+'">'
-      +'<span class="pick-k">'+abEsc(abName(iso))+(abIsTerr(iso)?'<em>속령</em>':'')+'</span>'
-      +'<span class="pick-s">'+abEsc(d.rg||'')+'</span></button>';
+      +abFlag(iso,26)
+      +'<span><span class="pick-k">'+abEsc(abName(iso))+(abIsTerr(iso)?'<em>속령</em>':'')+'</span>'
+      +'<span class="pick-s">'+abEsc(d.rg||'')+'</span></span></button>';
   }).join(''):'<p class="none">찾는 나라가 없습니다.</p>';
 }
 
@@ -63,13 +72,17 @@ function abStatCell(id,iso){
     +'<div class="r">'+r.n+'개국 중 '+r.rank+'위</div></div>';
 }
 /* 구성비 막대 */
+/* 막대는 항목마다 다른 색으로 칠한다. 전부 같은 색이면 길이만 남고
+   '무엇이 무엇인지'가 사라진다. 여덟 가지를 돌려 쓴다. */
+const AB_SERIES=['var(--c1)','var(--c2)','var(--c3)','var(--c4)',
+                 'var(--c5)','var(--c6)','var(--c7)','var(--c8)'];
 function abBars(rows,colors){
   if(!rows||!rows.length)return '<p class="none">자료 없음</p>';
   const mx=Math.max.apply(null,rows.map(r=>r[1]))||1;
   return '<div class="bars">'+rows.map((r,i)=>
     '<div class="bar-row"><span class="bar-k">'+abEsc(r[0])+'</span>'
-    +'<span class="bar-t"><i style="width:'+(r[1]/mx*100).toFixed(1)+'%;background:'
-      +((colors&&colors[i])||'linear-gradient(90deg,var(--glow-dim),var(--glow))')+'"></i></span>'
+    +'<span class="bar-t"><i style="width:'+Math.max(2,r[1]/mx*100).toFixed(1)+'%;background:'
+      +((colors&&colors[i])||AB_SERIES[i%AB_SERIES.length])+'"></i></span>'
     +'<span class="bar-v">'+r[1].toFixed(1)+'%</span></div>').join('')+'</div>';
 }
 /* 기후 그래프 — 기온 꺾은선 + 강수 막대 */
@@ -99,20 +112,21 @@ function abClimateChart(st){
 
 function abAtlasShow(iso){
   const d=DICT_DATA[iso]||{}, more=(typeof DICT_MORE!=='undefined'&&DICT_MORE[iso])||[];
+  /* 위키에서 온 산문(나라 특징·도시 설명)은 싣지 않는다 — 여기는 원자료 자료실이다 */
   const c=COUNTRIES[iso]||TERR_COUNTRIES[iso]||{};
   const cl=AB_CLIMATE_BY_ISO[iso], rv=AB_RIVERS_BY_ISO[iso]||[], nb=BORDERS[iso]||[];
   let h='';
   h+='<a class="back" href="#/atlas">← 나라 고르기</a>';
-  h+='<div class="ct-head"><div>'
-    +'<div class="ct-rg">'+abEsc(d.rg||CONT_NAME[abCont(iso)]||'')+'</div>'
+  h+='<div class="ct-head"><div class="ct-id">'
+    +abFlag(iso,72,'big')
+    +'<div><div class="ct-rg">'+abEsc(d.rg||CONT_NAME[abCont(iso)]||'')+'</div>'
     +'<h3>'+abEsc(abName(iso))+(abIsTerr(iso)?' <em class="terr">속령</em>':'')+'</h3>'
-    +'<div class="ct-en">'+abEsc(c.e||'')+' · '+iso.toUpperCase()+'</div></div>'
+    +'<div class="ct-en">'+abEsc(c.e||'')+' · '+iso.toUpperCase()+'</div></div></div>'
     +'<div class="ct-cap"><b>'+abEsc(d.cap||'—')+'</b><span>수도</span>'
     +(d.big?'<b>'+abEsc(d.big)+'</b><span>최대도시</span>':'')
     +(more[1]?'<b>'+abEsc(more[1])+'</b><span>공용어</span>':'')
     +(more[2]?'<b>'+abEsc(more[2])+'</b><span>통화</span>':'')
     +'</div></div>';
-  if(d.fact)h+='<p class="ct-fact">'+abEsc(d.fact)+'</p>';
 
   h+='<h4 class="sec">규모와 위치</h4><div class="grid g-4">'
     +['pop','gdp','pc','area','dens','nb','alt','lat'].map(id=>abStatCell(id,iso)).join('')
@@ -155,22 +169,13 @@ function abAtlasShow(iso){
   }
   /* 접경국 */
   if(nb.length){
-    h+='<h4 class="sec">접경국 <em>'+nb.length+'개국</em></h4><div class="taglist">'
+    h+='<h4 class="sec">접경국 <em>'+nb.length+'개국</em></h4><div class="taglist flags">'
       +nb.map(n=>'<a class="tag'+(DICT_DATA[n]?' link':'')+'"'
-        +(DICT_DATA[n]?' href="#/atlas?'+n+'"':'')+'>'+abEsc(abName(n))+'</a>').join('')+'</div>';
+        +(DICT_DATA[n]?' href="#/atlas?'+n+'"':'')+'>'
+        +abFlag(n,20)+abEsc(abName(n))+'</a>').join('')+'</div>';
   } else if(BORDERS[iso]){
     h+='<h4 class="sec">접경국</h4><p class="none">맞닿은 나라가 없습니다 — 섬나라입니다.</p>';
   }
-  /* 도시 설명 */
-  if(typeof DICT_CITY!=='undefined'){
-    const names=[];
-    String(d.cap||'').split('·').forEach(p=>names.push(p.replace(/\(.*?\)/g,'').trim()));
-    names.push(String(d.big||'').replace(/\s*\(.*?\)/g,'').trim());
-    const found=[...new Set(names)].filter(n=>n&&DICT_CITY[n]);
-    if(found.length)h+='<h4 class="sec">도시</h4>'+found.map(n=>
-      '<div class="city"><b>'+abEsc(n)+'</b><span>'+abEsc(DICT_CITY[n])+'</span></div>').join('');
-  }
-
   const view=document.getElementById('atlas-view');
   view.innerHTML=h;
   if(cl&&cl.st.length){

@@ -8,6 +8,9 @@
    기후는 관측소 단위(1062곳)라 나라별로 묶어 평균을 낸다. 관측소가 한 곳뿐인
    나라도 있으니 표에 관측소 수를 같이 실어 둔다 — 적은 표본을 순위로 읽을 때
    조심하라는 뜻이다.
+
+   항목에 붙는 note 는 '자료를 어떻게 읽어야 하는가'만 적는다. 나라 이야기나
+   해설은 싣지 않는다 — Abyss 는 원자료를 펴 보이는 곳이다.
    ══════════════════════════════════════════════════════════════════════════ */
 
 /* '5168.5만' · '1.87조$' · '98,480km²' → 숫자 */
@@ -84,11 +87,11 @@ const AB_RIVERS_BY_ISO=(function(){
    f 가 나라 코드를 받아 값을 내놓으면 그걸로 줄을 세운다. null 이면 그 나라는 뺀다. */
 const AB_METRICS=[
   {id:'pop',   cat:'규모', name:'인구',        unit:'명',  src:'World Bank WDI',
-   f:i=>abNum((DICT_DATA[i]||{}).pop), note:'우리가 가진 241개 나라·속령을 전부 줄 세운 순위입니다.'},
+   f:i=>abNum((DICT_DATA[i]||{}).pop), note:'기본값은 지오글이 정한 198개국입니다. 속령을 켜면 241개 나라·속령이 들어옵니다.'},
   {id:'gdp',   cat:'규모', name:'명목 GDP',    unit:'$',   src:'World Bank WDI',
    f:i=>abNum((DICT_DATA[i]||{}).gdp)},
   {id:'pc',    cat:'규모', name:'1인당 GDP',   unit:'$',   src:'World Bank WDI',
-   f:i=>abNum((DICT_DATA[i]||{}).pc), note:'인구가 적은 조세 피난처와 산유국이 윗자리를 채웁니다.'},
+   f:i=>abNum((DICT_DATA[i]||{}).pc)},
   {id:'area',  cat:'규모', name:'면적',        unit:'km²', src:'GeoNames',
    f:i=>abNum((DICT_DATA[i]||{}).area)},
   {id:'dens',  cat:'규모', name:'인구밀도',    unit:'명/km²', src:'WDI · GeoNames에서 계산',
@@ -109,7 +112,7 @@ const AB_METRICS=[
    f:i=>{const c=AB_CLIMATE_BY_ISO[i];return c?c.rain:null;}},
   {id:'crange',cat:'기후', name:'기온 연교차', unit:'°C',  src:'관측소 평균',
    f:i=>{const c=AB_CLIMATE_BY_ISO[i];return c?c.range:null;}, dec:1,
-   note:'대륙 안쪽일수록 크고, 바다와 적도에 가까울수록 작습니다.'},
+   },
   {id:'ccold', cat:'기후', name:'최한월 기온', unit:'°C',  src:'관측소 평균',
    f:i=>{const c=AB_CLIMATE_BY_ISO[i];return c?c.cold:null;}, dec:1},
   {id:'chot',  cat:'기후', name:'최난월 기온', unit:'°C',  src:'관측소 평균',
@@ -155,7 +158,9 @@ function abRank(id){
   const m=AB_METRICS.find(x=>x.id===id);
   if(!m)return [];
   const rows=[];
-  Object.keys(DICT_DATA).forEach(iso=>{
+  /* 속령을 셀지 말지는 화면 설정을 따른다 — 기본은 지오글이 정한 198개국 */
+  const pool=(typeof abPool==='function')?abPool():Object.keys(DICT_DATA);
+  pool.forEach(iso=>{
     const v=m.f(iso);
     if(v==null||!isFinite(v))return;
     rows.push({iso:iso,v:v});
