@@ -2999,10 +2999,25 @@ function saveKR(showFb){
     setTimeout(()=>{btn.textContent='💾 저장';btn.classList.remove('saved');},1500);
   }
 }
+/* 지도의 행정구역명을 바로잡으면서 바뀐 이름들 — 저장된 진행 기록이 날아가지
+   않게 옛 이름을 새 이름으로 옮겨 준다.
+   인천 남구→미추홀구도 같이 고쳤지만, 광역시는 구를 합쳐 한 단위로 내므로
+   저장 키에 구 이름이 들어가지 않는다 — 옮길 것이 없다. */
+const KR_RENAMED={
+  '경기도|여주군':'경기도|여주시',      /* 2013년 시 승격 */
+  '충청남도|태안시':'충청남도|태안군',    /* 태안은 군이다 */
+  '전라북도|남원군':'전라북도|남원시'     /* 1995년 시 승격 */
+};
 function loadKR(){
   try{
     const raw=localStorage.getItem(KQ_SAVE_KEY);if(!raw)return false;
     const d=JSON.parse(raw);
+    ['status','wrong'].forEach(k=>{
+      const o=d[k];if(!o)return;
+      for(const[oldKid,newKid]of Object.entries(KR_RENAMED)){
+        if(oldKid in o&&!(newKid in o)){o[newKid]=o[oldKid];delete o[oldKid];}
+      }
+    });
     // 단위 체계가 바뀐 이전 저장 데이터의 키는 무시하고 카운트를 다시 계산
     let cor=0,rev=0;
     for(const[k,v]of Object.entries(d.status||{})){
