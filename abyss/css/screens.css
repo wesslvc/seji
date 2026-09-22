@@ -98,11 +98,25 @@ h4.sec em{font-style:normal;font-weight:400;color:var(--tx3);font-size:var(--fs-
 /* ── 지도 퀴즈 공통 ── */
 
 .map-wrap{position:relative;border:1px solid var(--bd);border-radius:var(--r-md);overflow:hidden;
-  background:#060a0e;touch-action:none}
+  background:var(--bg);touch-action:none}
 .map-wrap svg{display:block;width:100%;height:auto}
-.map-wrap .landxx{fill:#16222c;stroke:#0a1016;stroke-width:.7;vector-effect:non-scaling-stroke}
-.map-wrap .oceanxx{fill:#070c11;stroke:none}
-.map-wrap .landxx:hover{fill:#1f2f3c}
+/* 지도 색은 본편 #world-svg 와 같은 토큰을 쓴다. 한때 여기만 #16222c/#070c11 을
+   박아 두어, 본편과 나란히 놓으면 바다와 땅이 다른 색이었고 밝은 화면에서는
+   흰 바탕 위에 시커먼 덩어리가 떴다. */
+.map-wrap .landxx{fill:var(--land);stroke:var(--map-line);stroke-width:.7;
+  vector-effect:non-scaling-stroke}
+.map-wrap .oceanxx{fill:var(--bg);stroke:none}
+.map-wrap .coastxx{stroke-width:.3}
+.map-wrap .antxx{fill:var(--map-ant);pointer-events:none}
+/* 지도 파일에 같이 들어 있는 보조 도형들 — 본편 #world-svg 와 똑같이 감춘다.
+   안 감추면 검은 점(도시 표시)과 검은 덩어리(서사하라·소말릴란드 같은
+   미승인 경계)가 지도 위에 떠 버린다. */
+.map-wrap .limitxx{fill:transparent;stroke:none;pointer-events:none}
+.map-wrap .circlexx,.map-wrap .subxx,.map-wrap .noxx,.map-wrap .unxx{opacity:0;pointer-events:none}
+.map-wrap circle{opacity:0;pointer-events:none}
+.map-wrap .xk.limitxx,.map-wrap .xz.limitxx,.map-wrap .eh.landxx{fill:var(--land);
+  stroke:var(--map-line);stroke-width:.7;vector-effect:non-scaling-stroke;opacity:1}
+.map-wrap .landxx:hover{fill:var(--map-hover)}
 .map-wrap .landxx.cr{fill:var(--ac)}
 .map-wrap .landxx.wr{fill:var(--wr)}
 .map-wrap .landxx.hi{fill:var(--gd)}
@@ -122,11 +136,16 @@ h4.sec em{font-style:normal;font-weight:400;color:var(--tx3);font-size:var(--fs-
 .slot.done{color:var(--tx);border-color:var(--btn)}
 .slot.miss{color:var(--wr);border-color:var(--wr)}
 
-.btn{display:inline-flex;align-items:center;gap:.45rem;padding:.66rem 1.35rem;border-radius:var(--r-full);
-  background:var(--btn);color:#fff;font-size:var(--fs-md);font-weight:600;transition:.18s var(--ease)}
-.btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
-.btn.ghost{background:var(--sf);border:1px solid var(--bd2);color:var(--tx);font-weight:500}
-.btn.ghost:hover{border-color:var(--ac);color:var(--ac)}
+/* 단추 — 본편 .ld-start(주) 와 .ld-chip(곁) 과 같은 모양 */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;
+  padding:.7rem 1.5rem;border-radius:var(--r-full);background:var(--btn);color:#fff;
+  font-size:var(--fs-lg);font-weight:700;letter-spacing:.02em;box-shadow:var(--shadow);
+  transition:.18s var(--ease)}
+.btn:hover{background:#3b82ea;box-shadow:var(--shadow2)}
+.btn:active{transform:scale(.985)}
+.btn.ghost{background:transparent;border:1px solid var(--bd);color:var(--tx2);font-weight:600;
+  box-shadow:none;padding:.66rem 1.3rem}
+.btn.ghost:hover{border-color:var(--tx2);color:var(--tx);background:transparent;box-shadow:none}
 .btn[disabled]{opacity:.45;pointer-events:none}
 .btnrow{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1.2rem}
 
@@ -148,12 +167,6 @@ h4.sec em{font-style:normal;font-weight:400;color:var(--tx3);font-size:var(--fs-
 .rev li.miss{color:var(--wr)}
 
 /* ══════════ 2차 개편에서 더해진 것들 ══════════ */
-
-/* 밝기 전환 단추 — 본편과 같은 자리·같은 모양 */
-.theme-btn{width:32px;height:32px;border-radius:var(--r-full);border:1px solid var(--bd);
-  background:var(--sf);color:var(--tx2);font-size:.9rem;line-height:1;flex-shrink:0;
-  transition:.15s var(--ease)}
-.theme-btn:hover{color:var(--tx);border-color:var(--bd2)}
 
 /* 국기 */
 .flag{border-radius:2px;object-fit:cover;vertical-align:middle;flex-shrink:0;

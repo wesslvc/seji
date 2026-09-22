@@ -18,6 +18,7 @@ function abGo(hash){
   document.querySelectorAll('.screen').forEach(el=>el.classList.remove('on'));
   const el=document.getElementById(s.el);
   if(el)el.classList.add('on');
+  document.body.classList.toggle('home', path==='/');
   document.querySelectorAll('#nav a').forEach(a=>{
     a.classList.toggle('on', a.getAttribute('href')==='#'+path);
   });
@@ -28,23 +29,26 @@ function abGo(hash){
 }
 const AB_ON_ENTER={};
 
-/* ── 밝기 전환 — 본편과 같은 방식(html의 data-theme) ── */
-function abThemeInit(){
-  /* 기본은 어둡게 둔다 — 심해라는 이름값이다. 밝게 보고 싶으면 직접 바꾸고,
-     그 선택만 기억한다. */
-  const m=abLoad('theme',null)||'dark';
-  document.documentElement.dataset.theme=m;
-  const b=document.getElementById('theme-btn');
-  if(b){
-    b.textContent=m==='dark'?'☾':'☀';
-    b.addEventListener('click',()=>{
-      const now=document.documentElement.dataset.theme==='dark'?'light':'dark';
-      document.documentElement.dataset.theme=now;
-      abSave('theme',now);
-      b.textContent=now==='dark'?'☾':'☀';
-    });
+/* ── 밝기 전환 — 본편과 같은 방식·같은 단추(왼쪽 위 고정 원) ── */
+function abApplyTheme(mode){
+  document.documentElement.dataset.theme=mode;
+  abSave('theme',mode);
+  const btn=document.getElementById('theme-toggle');
+  if(btn){
+    btn.innerHTML='<span data-ic="'+(mode==='light'?'moon':'sun')+'"></span>';
+    delete btn.firstElementChild.dataset.icDone;
+    abIcons(btn);
   }
 }
+function abToggleTheme(){
+  abApplyTheme(document.documentElement.dataset.theme==='light'?'dark':'light');
+}
+/* 어느 쪽으로 열지는 본편과 같은 규칙으로 정한다 — 저장해 둔 선택이 없으면
+   기기 설정을 따른다. 본편은 밝은데 여기만 어두우면 오갈 때마다 화면이
+   번쩍인다. <head> 인라인 스크립트가 첫 페인트 전에 이미 정해 놨으므로
+   여기서는 단추 아이콘만 맞춘다. */
+function abThemeInit(){abApplyTheme(document.documentElement.dataset.theme||'dark');}
+
 /* 국기 — 본편과 같은 파일을 쓴다. 대표색으로 화면을 물들이는 건 본편의 몫이라
    여기서는 그림만 띄운다. */
 function abFlag(iso,px,cls){

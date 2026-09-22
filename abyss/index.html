@@ -5,24 +5,36 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Geogl3 Abyss — 세계지리 심층 자료실</title>
 <meta name="description" content="지오글이 가진 세계지리 원자료를 나라별로 펼쳐 보고, 항목마다 전체 순위를 확인하고, 통계 순위 테스트와 접경국 하드코어로 겨루는 심층 자료실.">
-<meta name="theme-color" content="#05080c">
+<meta name="theme-color" content="#14171c">
 <meta property="og:title" content="Geogl3 Abyss">
 <meta property="og:description" content="세계지리 원자료를 끝까지 내려가 보는 자료실">
-<link rel="icon" href="img/abyss-mark.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
-<link rel="stylesheet" href="css/abyss.css?v=9">
-<link rel="stylesheet" href="css/screens.css?v=9">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<!-- 글꼴은 본편 지오글과 같은 파일·같은 방식(비차단)으로 부른다. 한때 여기만
+     Pretendard Variable 을 썼는데, 같은 글씨가 두 사이트에서 다른 굵기로 보였다. -->
+<link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" media="print" onload="this.media='all'">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript>
+<link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+</noscript>
+<link rel="icon" href="img/magpie-64.png?v=10">
+<link rel="apple-touch-icon" href="img/magpie-192.png?v=10">
+<!-- 본편과 같이 첫 페인트 전에 테마를 정해 깜빡임을 막는다 -->
+<script>(function(){try{var m=localStorage.getItem('abyss_theme');m=m?JSON.parse(m):null;
+  if(m!=='light'&&m!=='dark')m=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';
+  document.documentElement.dataset.theme=m;}catch(e){
+  document.documentElement.dataset.theme='dark';}})();</script>
+<link rel="stylesheet" href="css/abyss.css?v=10">
+<link rel="stylesheet" href="css/screens.css?v=10">
 </head>
 <body>
 
-<div class="wrap">
+<button id="theme-toggle" type="button" title="화면 밝기 전환" onclick="abToggleTheme()"></button>
 
-  <header class="topbar">
-    <button id="theme-btn" type="button" class="theme-btn" title="밝기 전환">☾</button>
-    <a class="mark" href="#/"><span>Geogl3</span><i></i><em>Abyss</em></a>
+<header class="topbar">
+  <div class="tb-in">
+    <a class="logo" href="#/">Geogl3 <span>Abyss</span></a>
     <nav id="nav">
       <a href="#/atlas">국가 아틀라스</a>
       <a href="#/ranks">순위 도감</a>
@@ -30,51 +42,34 @@
       <a href="#/border">접경국 하드코어</a>
       <a href="#/codex">지엽개념</a>
     </nav>
-  </header>
+  </div>
+</header>
+
+<div class="wrap">
 
   <!-- ══════════ 홈 ══════════ -->
   <section class="screen" id="s-home">
-    <div class="hero">
-      <div class="lockup"><b>Geogl3</b><h1>Abyss</h1></div>
-      <p class="htag">세계지리 심층 자료실</p>
-      <p class="lede">지오글이 쌓아 온 원자료를 <b>가공하지 않고 끝까지</b> 펼쳐 놓았습니다.
-        나라 하나를 고르면 인구부터 기후 관측소까지 전부 나오고,
-        항목마다 1위가 아니라 <b>전체 순위</b>를 봅니다.</p>
+    <div class="ld-stage">
+      <!-- 본편의 비행 궤적과 같은 점선. 거기서는 로고 위를 가로지르고,
+           여기서는 내려간다 — 가라앉는 쪽이라. -->
+      <svg class="ld-path" viewBox="0 0 520 190" aria-hidden="true" preserveAspectRatio="none">
+        <path d="M-10 28 C 110 28 145 92 260 104 C 375 116 410 172 530 176"/>
+      </svg>
+      <div class="g3-lockup" aria-label="Geogl3 Abyss">
+        <img class="g3-bird" src="img/magpie-512.png?v=10" alt="" width="512" height="512" decoding="async">
+        <div class="g3-logo">Geogl3</div>
+        <div class="g3-sub">Abyss</div>
+      </div>
+      <p class="ld-tag">All the way down</p>
+      <p class="ld-tag-ko">원자료를 끝까지 내려가 보는 세계지리 자료실</p>
+      <div class="ld-grid" id="ld-grid"></div>
+      <p class="ld-note">로그인 없이 씁니다 — 기록은 이 기기에만 남습니다 ·
+        <a href="https://geogl3.xyz" target="_blank" rel="noreferrer">본편 지오글</a></p>
     </div>
 
-    <a class="feature" href="#/codex">
-      <span class="ft-h"><b>세계지리 지엽개념</b><span id="m-codex">정리본</span></span>
-      <p>고지도부터 주빙하지형까지, 시험에 나오는 지엽을 대단원으로 묶어 정리했습니다.
-        정의는 표로, 위치는 그림으로 보고 바로 퀴즈로 확인합니다.</p>
-      <span class="ft-parts" id="m-codex-parts"></span>
-    </a>
-
-    <nav class="menu">
-      <a href="#/atlas">
-        <span><span class="ttl">국가 아틀라스</span><span class="sub">나라 하나의 원자료 전부 — 규모·위치·기후·종교·무역·에너지·하천·접경</span></span>
-        <span class="meta" id="m-atlas">241개 나라·속령</span>
-      </a>
-      <a href="#/ranks">
-        <span><span class="ttl">순위 도감</span><span class="sub">원자료로 낼 수 있는 모든 항목의 전체 순위</span></span>
-        <span class="meta" id="m-ranks">74개 항목</span>
-      </a>
-      <a href="#/stat">
-        <span><span class="ttl">통계 순위 테스트</span><span class="sub">지도에서 1위부터 5위까지 순서대로 — 한 번 틀리면 답이 열린다</span></span>
-        <span class="meta" id="m-stat">28개 통계</span>
-      </a>
-      <a href="#/border">
-        <span><span class="ttl">접경국 하드코어</span><span class="sub">4개국 이상과 맞닿은 나라만 — 개수를 알려 주지 않고, 다 적어야 채점</span></span>
-        <span class="meta" id="m-border">85개 나라</span>
-      </a>
-    </nav>
-
-    <div class="foot">
-      <span>Geogl3 Abyss</span>
-      <span>·</span>
-      <a href="https://geogl3.xyz" target="_blank" rel="noreferrer">본편 지오글</a>
-      <span>·</span>
-      <span>로그인 없이 씁니다 — 기록은 이 기기에만 남습니다</span>
-    </div>
+    <footer class="ld-foot">
+      <a class="ld-brand" href="https://nepica.vercel.app" target="_blank" rel="noreferrer" aria-label="NEPICA 브랜드 사이트로 이동"><img src="img/nepica-64.png?v=10" alt="" width="22" height="22" decoding="async"><span>NEPICA</span></a>
+    </footer>
   </section>
 
   <!-- ══════════ 국가 아틀라스 ══════════ -->
@@ -135,22 +130,24 @@
 
 </div>
 
-<script src="js/data.js?v=9"></script>
-<script src="js/dict-data.js?v=9"></script>
-<script src="js/climate-data.js?v=9"></script>
-<script src="js/rivers-data.js?v=9"></script>
-<script src="js/borders-data.js?v=9"></script>
-<script src="js/terr-data.js?v=9"></script>
-<script src="js/labels.js?v=9"></script>
-<script src="js/stat-data.js?v=9"></script>
-<script src="js/derive.js?v=9"></script>
-<script src="js/shell.js?v=9"></script>
-<script src="js/atlas.js?v=9"></script>
-<script src="js/ranks.js?v=9"></script>
-<script src="js/worldmap.js?v=9"></script>
-<script src="js/quiz-stat.js?v=9"></script>
-<script src="js/quiz-border.js?v=9"></script>
-<script src="js/codex.js?v=9"></script>
-<script src="js/boot.js?v=9"></script>
+<script src="js/icons.js?v=10"></script>
+<script src="js/data.js?v=10"></script>
+<script src="js/dict-data.js?v=10"></script>
+<script src="js/climate-data.js?v=10"></script>
+<script src="js/rivers-data.js?v=10"></script>
+<script src="js/borders-data.js?v=10"></script>
+<script src="js/terr-data.js?v=10"></script>
+<script src="js/labels.js?v=10"></script>
+<script src="js/stat-data.js?v=10"></script>
+<script src="js/derive.js?v=10"></script>
+<script src="js/shell.js?v=10"></script>
+<script src="js/atlas.js?v=10"></script>
+<script src="js/ranks.js?v=10"></script>
+<script src="js/worldmap.js?v=10"></script>
+<script src="js/quiz-stat.js?v=10"></script>
+<script src="js/quiz-border.js?v=10"></script>
+<script src="js/codex.js?v=10"></script>
+<script src="js/home.js?v=10"></script>
+<script src="js/boot.js?v=10"></script>
 </body>
 </html>

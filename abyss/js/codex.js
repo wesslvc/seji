@@ -25,12 +25,10 @@ function abCodexInit(){
       '<p class="none">정리본을 불러오지 못했습니다 — '+abEsc(e.message)+'</p>';
   });
 }
-/* 본편 홈에 걸어 둔 한 칸 — 숫자는 파일에서 센다 */
+/* 홈 칸의 곁수치 — 손으로 적어 두면 어긋나므로 파일에서 센다 */
 function abCodexHome(){
   const m=document.getElementById('m-codex');
   if(m)m.textContent=CODEX_SECTIONS.length+'개 주제 · 그림 '+abCodexFigs().length+'장';
-  const p=document.getElementById('m-codex-parts');
-  if(p)p.innerHTML=CODEX_PARTS.map(pt=>'<i>'+abEsc(pt.getAttribute('title'))+'</i>').join('');
 }
 function abCodexFigs(){
   const out=[];
