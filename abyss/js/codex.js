@@ -282,7 +282,7 @@ function abCodexQuizStep(){
   box.innerHTML='<div class="cx-run">'
     +'<div class="cx-run-h"><span>'+(q.i+1)+' / '+q.qs.length+'</span>'
       +'<span class="from">'+abEsc(cur.from)+'</span>'
-      +'<span class="sc">'+q.cor+'점</span></div>'
+      +'<span class="sc">맞힘 '+q.cor+'</span></div>'
     +'<p class="cx-ask">'+abCx(cur.ask)+'</p>'
     +'<div class="cx-opt big">'+cur.opts.map(o=>
       '<button data-v="'+abEsc(o)+'">'+abCx(o)+'</button>').join('')+'</div>'
@@ -314,7 +314,7 @@ function abCodexQuizEnd(){
   const q=ABCX.quiz;
   const done=q.i;
   let h='<div class="result"><h3>개념 퀴즈 끝</h3>'
-    +'<div class="big">'+q.cor+' <span style="font-size:.9rem;color:var(--tx3)">/ '+done+'문항</span></div>';
+    +'<div class="big">'+q.cor+' <span class="of">/ '+done+'문항</span></div>';
   if(q.wrong.length){
     h+='<div class="rev"><b>틀린 문제</b><ol>'+q.wrong.map(w=>
       '<li class="miss">'+abCx(w.ask)+' → '+abCx(w.a)+'</li>').join('')+'</ol></div>';

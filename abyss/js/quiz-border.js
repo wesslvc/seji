@@ -6,25 +6,26 @@
      · 몇 개인지 알려 주지 않는다
      · 다 적었다고 누르기 전까지 채점하지 않는다
      · 건너뛰기 없음
-   점수도 본편과 같다 — 완벽하면 40점(아프리카는 60점), 하나라도 틀리면
-   기본점은 없고 깎인 것만 남는다. 놓친 나라 -2, 없는 나라를 적으면 -5.
+   다만 점수는 매기지 않는다. 어비스에는 점수도 랭킹도 없다 — 겨루는 곳은
+   본편이고, 여기는 자료를 파고드는 곳이다. 남는 것은 '하나도 빠뜨리지 않고
+   맞힌 나라가 몇이냐'와 어디를 놓쳤느냐뿐이다.
    ══════════════════════════════════════════════════════════════════════════ */
-const AB_HARD_MIN=4, AB_HARD_BASE=40, AB_HARD_BASE_AF=60, AB_HARD_MISS=2, AB_HARD_EXTRA=5;
+const AB_HARD_MIN=4;
 const AB_TAUNT=[
   '이 정도면 지도를 한 번 더 보고 오시는 게 좋겠습니다.',
   '접경국은 외우는 게 아니라 지도를 읽는 겁니다.',
   '아직 갈 길이 멉니다. 심연은 깊습니다.',
   '하드코어라고 적혀 있었습니다.'
 ];
-const ABBQ={plan:[],idx:0,pts:0,entered:[],log:[],done:false,streak:0};
+const ABBQ={plan:[],idx:0,entered:[],log:[],done:false,streak:0};
 
 function abBorderInit(){
   const pool=Object.keys(BORDERS).filter(i=>BORDERS[i].length>=AB_HARD_MIN&&DICT_DATA[i]);
   const conts=[...new Set(pool.map(abCont))].filter(Boolean);
   document.getElementById('bq-setup').innerHTML=
-    '<p class="rank-note">맞닿은 나라를 <b>하나도 빠뜨리지 않고</b> 적어야 점수가 붙습니다. '
-    +'완벽하면 '+AB_HARD_BASE+'점(아프리카 '+AB_HARD_BASE_AF+'점), 아니면 놓친 나라마다 −'
-    +AB_HARD_MISS+'점, 없는 나라를 적으면 −'+AB_HARD_EXTRA+'점입니다. 총점은 마이너스도 됩니다.</p>'
+    '<p class="rank-note">맞닿은 나라를 <b>하나도 빠뜨리지 않고</b> 적어야 맞힌 것으로 칩니다. '
+    +'몇 개인지 알려 주지 않고, 건너뛰기도 없습니다. 점수는 매기지 않습니다 — '
+    +'빠뜨린 나라는 오답으로 모아 두었다가 다시 풀 수 있습니다.</p>'
     +'<div class="chips" id="bq-cats"><button class="chip on" data-c="">전체 '+pool.length+'</button>'
     +conts.map(c=>'<button class="chip" data-c="'+c+'">'+CONT_NAME[c]+' '
       +pool.filter(i=>abCont(i)===c).length+'</button>').join('')+'</div>'
@@ -52,11 +53,11 @@ AB_ON_ENTER['/border']=function(){
   if(p&&p.list.length)abBorderStart(p.list.slice());
 };
 function abBorderStart(list){
-  ABBQ.plan=list;ABBQ.idx=0;ABBQ.pts=0;ABBQ.log=[];ABBQ.done=false;ABBQ.streak=0;
+  ABBQ.plan=list;ABBQ.idx=0;ABBQ.log=[];ABBQ.done=false;ABBQ.streak=0;
   document.getElementById('bq-setup').hidden=true;
   const play=document.getElementById('bq-play');play.hidden=false;
   play.innerHTML='<div class="play-bar"><span class="q" id="bq-q"></span>'
-    +'<span class="sc" id="bq-sc">0점</span></div>'
+    +'<span class="sc" id="bq-sc">완벽 0</span></div>'
     +'<div class="answer-in"><div class="field">'
       +'<input id="bq-in" type="text" placeholder="맞닿은 나라를 하나씩 입력하고 Enter" autocomplete="off"></div>'
       +'<button class="btn" id="bq-grade">다 적었습니다</button></div>'
@@ -87,7 +88,7 @@ function abBorderShow(){
   document.getElementById('bq-q').innerHTML=abFlag(iso,26)+abEsc(abName(iso))
     +'<em>와 맞닿은 나라를 모두 · '+(ABBQ.idx+1)+'/'+ABBQ.plan.length+'</em>';
   document.getElementById('bq-list').innerHTML='';
-  document.getElementById('bq-sc').textContent=ABBQ.pts+'점';
+  document.getElementById('bq-sc').textContent='완벽 '+abBorderPerfect();
   document.getElementById('bq-in').focus();
 }
 /* 이름 → 나라 코드. 본편처럼 별칭(x)도 받는다 */
@@ -120,11 +121,9 @@ function abBorderGrade(){
   const hit=got.filter(i=>want.indexOf(i)>=0);
   const missed=want.filter(i=>got.indexOf(i)<0);
   const extra=got.filter(i=>want.indexOf(i)<0);
-  const base=abCont(iso)==='af'?AB_HARD_BASE_AF:AB_HARD_BASE;
-  const pts=(!missed.length&&!extra.length)?base:-(AB_HARD_MISS*missed.length+AB_HARD_EXTRA*extra.length);
-  ABBQ.pts+=pts;
-  ABBQ.streak=pts>0?0:ABBQ.streak+1;
-  ABBQ.log.push({iso:iso,pts:pts,missed:missed,extra:extra,hit:hit.length,total:want.length});
+  const clean=!missed.length&&!extra.length;
+  ABBQ.streak=clean?0:ABBQ.streak+1;
+  ABBQ.log.push({iso:iso,clean:clean,missed:missed,extra:extra,hit:hit.length,total:want.length});
   /* 하나도 빠뜨리지 않았으면 오답에서 빠지고, 아니면 쌓인다 */
   if(!missed.length&&!extra.length)abSetDel('wrong','border:'+iso);
   else abSetAdd('wrong','border:'+iso,{k:'border',n:abName(iso)});
@@ -139,10 +138,10 @@ function abBorderGrade(){
       +abFlag(i,18)+abEsc(abName(i))+'</span>').join('')
     +extra.map(i=>'<span class="tag no">'+abFlag(i,18)+abEsc(abName(i))+' ✕</span>').join('');
   const q=document.getElementById('bq-q');
-  q.innerHTML=abFlag(iso,26)+abEsc(abName(iso))+'<em>'+want.length+'개국 중 '+hit.length+'개 · '
-    +(pts>0?'+'+pts:pts)+'점'
+  q.innerHTML=abFlag(iso,26)+abEsc(abName(iso))+'<em>'+want.length+'개국 중 '+hit.length+'개'
+    +(clean?' · 완벽':(extra.length?' · 없는 나라 '+extra.length+'개':''))
     +(ABBQ.streak>=3?' — '+AB_TAUNT[Math.floor(Math.random()*AB_TAUNT.length)]:'')+'</em>';
-  document.getElementById('bq-sc').textContent=ABBQ.pts+'점';
+  document.getElementById('bq-sc').textContent='완벽 '+abBorderPerfect();
   const btn=document.getElementById('bq-grade');
   btn.textContent='다음 문제';
   btn.onclick=()=>{
@@ -151,12 +150,13 @@ function abBorderGrade(){
     if(ABBQ.idx>=ABBQ.plan.length)abBorderFinish();else abBorderShow();
   };
 }
+function abBorderPerfect(){return ABBQ.log.filter(l=>l.clean).length;}
 function abBorderFinish(){
   ABBQ.done=true;
-  const perfect=ABBQ.log.filter(l=>l.pts>0).length;
+  const perfect=abBorderPerfect();
   let h='<div class="result"><h3>접경국 하드코어 끝</h3>'
-    +'<div class="big">'+ABBQ.pts+'점</div>'
-    +'<p class="rank-note">완벽하게 맞힌 나라 '+perfect+' / '+ABBQ.log.length+'개</p>';
+    +'<div class="big">'+perfect+' <span class="of">/ '+ABBQ.log.length+'개국</span></div>'
+    +'<p class="rank-note">하나도 빠뜨리지 않고 맞힌 나라입니다.</p>';
   const bad=ABBQ.log.filter(l=>l.missed.length||l.extra.length);
   if(bad.length){
     h+='<div class="rev"><b>놓친 곳</b><ol>'+bad.map(l=>

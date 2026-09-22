@@ -468,3 +468,5 @@ table.cmp td .dash{color:var(--tx3)}
 .nv-n{font-style:normal;margin-left:.3rem;font-size:var(--fs-2xs);font-weight:700;
   background:var(--ac2);color:var(--ac);border-radius:var(--r-full);padding:.05rem .38rem;
   font-variant-numeric:tabular-nums}
+/* 끝낸 뒤 큰 숫자 옆의 '/ 전체' — 점수가 아니라 개수다 */
+.result .big .of{font-size:var(--fs-lg);color:var(--tx2);font-weight:500}

@@ -1280,24 +1280,22 @@ body.printing-st>*:not(#st-end){display:none!important}
 .ld-brand:hover{opacity:.9}
 
 /* ══════════════════════════════════════════════════════════════════════════
-   숨은 입구 — 홈 맨 아래에서 더 내려가면 물이 차오른다
+   숨은 입구 — 홈 맨 아래에서 세 번 더 내려가면
    ──────────────────────────────────────────────────────────────────────────
-   --p 는 0에서 1까지, 얼마나 밀었는지다(js/dive.js 가 넣는다). 그 값 하나로
-   수면 높이와 안내 글자의 진하기가 같이 움직인다. 멈추면 --p 가 0으로 돌아
-   가면서 조용히 내려간다.
+   세 번째로 밀 때까지 이 층은 화면에 없다(js/dive.js 가 그때 만든다). 한두
+   번 미는 동안 수면이 조금씩 차오르게 해 뒀더니 한 번만 밀어도 '뭔가 있다'가
+   드러나서 숨긴 보람이 없었다.
 
    물은 색 한 겹과 곡선 두 겹이 전부다. 물방울·반짝임·글로우는 넣지 않았다 —
    한 번 보고 마는 장치라 요란하면 금세 싸구려로 보인다.
    ══════════════════════════════════════════════════════════════════════════ */
 #dive{position:fixed;inset:0;z-index:9100;pointer-events:none;opacity:0;
-  transition:opacity .3s var(--ease)}
+  transition:opacity .2s var(--ease)}
 #dive.on{opacity:1}
-.dive-water{position:absolute;left:0;right:0;bottom:0;z-index:1;
-  height:calc(var(--p,0) * 100%);
+.dive-water{position:absolute;left:0;right:0;bottom:0;height:0;
   background:linear-gradient(180deg,
     color-mix(in srgb,#0f1d2b 78%,transparent) 0%,
-    color-mix(in srgb,#0a1622 92%,transparent) 42%, #060f18 100%);
-  transition:height .5s var(--ease)}
+    color-mix(in srgb,#0a1622 92%,transparent) 42%, #060f18 100%)}
 .dive-wave{position:absolute;left:-20%;bottom:100%;width:140%;height:3.2rem;display:block}
 .dive-wave path{fill:color-mix(in srgb,#0f1d2b 78%,transparent)}
 .dive-wave .w2{fill:color-mix(in srgb,#0f1d2b 40%,transparent)}
@@ -1305,20 +1303,8 @@ body.printing-st>*:not(#st-end){display:none!important}
 .dive-wave .w1{animation:diveDrift 9s linear infinite}
 .dive-wave .w2{animation:diveDrift 14s linear infinite reverse}
 @keyframes diveDrift{from{transform:translateX(0)}to{transform:translateX(-33.34%)}}
-/* 안내는 수면 바로 위에 붙어 같이 올라온다. 물에 잠기게 두면 정작 필요한
-   순간에 안 보인다. 본문 위로 지나가므로 글자에 옅은 그림자를 준다. */
-.dive-hint{position:absolute;left:50%;transform:translateX(-50%);z-index:2;
-  bottom:calc(var(--p,0) * 100% + 1.5rem);
-  display:flex;flex-direction:column;align-items:center;gap:.4rem;
-  font-size:.62rem;letter-spacing:.34em;text-indent:.34em;text-transform:uppercase;
-  color:#a9c9e8;white-space:nowrap;text-shadow:0 1px 12px rgba(6,15,24,.85);
-  opacity:clamp(0,calc((var(--p,0) - .05) * 4),.9);
-  transition:bottom .5s var(--ease),opacity .35s var(--ease)}
-.dive-hint i{display:block;width:1px;height:1.6rem;
-  background:linear-gradient(180deg,transparent,#a9c9e8)}
 /* 넘어가기 직전 — 물이 화면을 덮고, 홈은 가라앉듯 조금 내려가며 사라진다 */
 #dive.go .dive-water{height:130%;transition:height 1.05s cubic-bezier(.5,0,.35,1)}
-#dive.go .dive-hint{opacity:0;transition:opacity .25s}
 body.diving #landing-overlay .ld-stage{
   animation:diveSink 1.05s cubic-bezier(.5,0,.35,1) forwards}
 @keyframes diveSink{

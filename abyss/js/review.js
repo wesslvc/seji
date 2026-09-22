@@ -5,6 +5,9 @@
    (각 퀴즈가 abSetAdd/abSetDel 을 부른다). 여기서는 그 모음을 펴 놓고
    갈래별로 몰아서 다시 풀게만 한다.
 
+   본편 지오글의 오답과는 따로 쌓인다. 문항도 채점도 다른 범주라 한 화면에
+   섞어 놓으면 둘 다 못 쓴다.
+
    로그인하면 계정에 남고, 안 하면 이 기기에만 남는다 — 어느 쪽이든 쓰는
    방법은 같다. 로그인을 강요하지 않는다.
    ══════════════════════════════════════════════════════════════════════════ */
@@ -47,10 +50,12 @@ function abReviewRender(){
     +'<button class="on" data-t="wrong">오답 모아풀기 <em>'+wrong.length+'</em></button>'
     +'<button data-t="fav">즐겨찾기 <em>'+fav.length+'</em></button></div>';
 
-  if(!window.abIsLoggedIn||!window.abIsLoggedIn()){
-    h+='<p class="rv-note">지금은 <b>이 기기에만</b> 남습니다. 오른쪽 위에서 로그인하면 '
-      +'계정에 남아 다른 기기에서도 이어집니다.</p>';
-  }
+  h+='<p class="rv-note">여기는 <b>어비스의 오답</b>만 모입니다 — 본편 지오글의 오답과는 '
+    +'따로 쌓입니다.'
+    +((!window.abIsLoggedIn||!window.abIsLoggedIn())
+      ? ' 지금은 <b>이 기기에만</b> 남습니다. 오른쪽 위에서 로그인하면 계정에 남아 '
+        +'다른 기기에서도 이어집니다.' : '')
+    +'</p>';
   h+='<div id="rv-pane"></div>';
   document.getElementById('review-body').innerHTML=h;
   document.getElementById('rv-tabs').addEventListener('click',e=>{

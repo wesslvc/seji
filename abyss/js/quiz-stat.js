@@ -4,13 +4,17 @@
    지도에서 1위부터 5위까지 순서대로 누른다. 본편과 같은 규칙이다 — 한 번이라도
    틀리면 그 문항의 답 다섯을 모두 열어 버린다. 다시 시도할 기회는 없다.
    대신 끝난 뒤 '틀린 것만 다시'로 골라 낼 수 있다.
+
+   점수는 매기지 않는다. 어비스에는 점수도 랭킹도 없다 — 겨루는 곳은 본편이고,
+   여기는 자료를 파고드는 곳이다. 남는 것은 맞힌 개수와 틀린 문항뿐이다.
    ══════════════════════════════════════════════════════════════════════════ */
-const ABST={plan:[],idx:0,rank:0,cor:0,wr:0,pts:0,wrongSets:[],done:false,box:null,retry:false};
+const ABST={plan:[],idx:0,rank:0,cor:0,wr:0,full:0,wrongSets:[],done:false,box:null,retry:false};
 
 function abStatInit(){
   const cats=[...new Set(STAT_SETS.map(s=>s.cat))];
   document.getElementById('stat-setup').innerHTML=
-    '<p class="rank-note">분야를 고르면 그 분야의 통계만 나옵니다. 한 통계당 5개 순위, 순위마다 2점입니다.</p>'
+    '<p class="rank-note">분야를 고르면 그 분야의 통계만 나옵니다. 한 통계당 1위부터 5위까지 '
+    +'순서대로 누릅니다. 점수는 매기지 않습니다 — 틀린 통계는 오답으로 모아 두었다가 다시 풀 수 있습니다.</p>'
     +'<div class="chips" id="st-cats">'
     +'<button class="chip on" data-c="">전체 '+STAT_SETS.length+'</button>'
     +cats.map(c=>'<button class="chip" data-c="'+abEsc(c)+'">'+abEsc(c)+' '
@@ -29,7 +33,8 @@ function abStatInit(){
 function abStatLastRun(){
   const r=abLoad('stat_last',null),box=document.getElementById('st-last');
   if(!box)return;
-  box.innerHTML=r?'<p class="rank-note">지난 기록 — '+r.pts+'점 ('+r.cor+'/'+(r.cor+r.wr)+')</p>':'';
+  box.innerHTML=r?'<p class="rank-note">지난 판 — 통계 '+(r.full||0)+'개 완주 · 맞힌 순위 '
+    +(r.cor||0)+'개 · 틀린 통계 '+(r.wr||0)+'개</p>':'';
 }
 /* 오답 모아풀기에서 넘어왔으면 그 묶음으로 바로 시작한다 */
 AB_ON_ENTER['/stat']=function(){
@@ -39,11 +44,11 @@ AB_ON_ENTER['/stat']=function(){
 function abStatStart(sets,retry){
   if(!sets.length)return;
   ABST.plan=abShuffle(sets.slice());ABST.idx=0;ABST.rank=0;
-  ABST.cor=0;ABST.wr=0;ABST.pts=0;ABST.wrongSets=[];ABST.done=false;ABST.retry=!!retry;
+  ABST.cor=0;ABST.wr=0;ABST.full=0;ABST.wrongSets=[];ABST.done=false;ABST.retry=!!retry;
   document.getElementById('stat-setup').hidden=true;
   const play=document.getElementById('stat-play');play.hidden=false;
   play.innerHTML='<div class="play-bar"><span class="q" id="st-q">불러오는 중…</span>'
-    +'<span class="sc" id="st-sc">0점</span></div>'
+    +'<span class="sc" id="st-sc">맞힌 순위 0</span></div>'
     +'<div class="slots" id="st-slots"></div>'
     +'<div class="map-wrap" id="st-map">지도를 불러오는 중…</div>'
     +'<div class="btnrow"><button class="btn ghost" id="st-quit">그만두기</button></div>'
@@ -69,17 +74,18 @@ function abStatSlots(){
     return '<div class="slot '+cls+(ABST.missed&&ABST.missed[i]?' miss':'')+'">'
       +'<b>'+(i+1)+'위</b>'+(shown?abEsc(abName(r[0])):'—')+'</div>';
   }).join('');
-  document.getElementById('st-sc').textContent=ABST.pts+'점';
+  document.getElementById('st-sc').textContent='맞힌 순위 '+ABST.cor;
 }
 function abStatPick(iso){
   if(ABST.revealed)return;
   const s=abStatCur();if(!s)return;
   const want=s.top[ABST.rank][0];
   if(iso===want){
-    ABST.cor++;ABST.pts+=2;ABST.rank++;
+    ABST.cor++;ABST.rank++;
     abMapPaint(ABST.box,iso,'cr');
     if(ABST.rank>=5){
       /* 다섯을 다 맞혔으면 오답 목록에서 빠진다 */
+      ABST.full++;
       abSetDel('wrong','stat:'+s.id);
       abStatSlots();setTimeout(abStatNext,650);return;}
     abStatSlots();
@@ -105,11 +111,11 @@ function abStatNext(){
 }
 function abStatFinish(){
   ABST.done=true;
-  abSave('stat_last',{pts:ABST.pts,cor:ABST.cor,wr:ABST.wr});
-  const max=ABST.plan.length*10;
+  abSave('stat_last',{full:ABST.full,cor:ABST.cor,wr:ABST.wr});
   let h='<div class="result"><h3>통계 순위 테스트 끝</h3>'
-    +'<div class="big">'+ABST.pts+' <span style="font-size:.9rem;color:var(--tx3)">/ '+max+'점</span></div>'
-    +'<p class="rank-note">맞힌 순위 '+ABST.cor+'개 · 틀린 문항 '+ABST.wr+'개</p>';
+    +'<div class="big">'+ABST.full+' <span class="of">/ '+ABST.plan.length+'개 통계</span></div>'
+    +'<p class="rank-note">1위부터 5위까지 다 맞힌 통계입니다 — 맞힌 순위는 모두 '
+    +ABST.cor+'개, 틀린 통계는 '+ABST.wr+'개입니다.</p>';
   if(ABST.wrongSets.length){
     h+='<div class="rev"><b>틀린 통계</b><ol>'
       +ABST.wrongSets.map(s=>'<li>'+abEsc(s.name)+' — '
