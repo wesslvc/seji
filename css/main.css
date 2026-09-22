@@ -782,9 +782,10 @@ body.cq-mode #cq-pins-ov{display:block}
 .cq-card.ng{border-color:#f28b82}
 .cq-chart-svg{width:100%;display:block;overflow:visible}
 .cq-panel-bg{fill:#2a3348;stroke:none}
-.cq-tbar{fill:#dfe3ea}
 .cq-pbar{fill:#8ab4f8}
-.cq-tbar.of,.cq-pbar.of{opacity:.55}
+.cq-tline{fill:none;stroke:var(--wr);stroke-width:1.4;stroke-linejoin:round;stroke-linecap:round}
+.cq-tdot{fill:var(--wr)}
+.cq-pbar.of,.cq-tdot.of{opacity:.55}
 .cq-grid{stroke:rgba(255,255,255,.1);stroke-width:1}
 .cq-tick{font-size:5px;fill:var(--tx2);text-anchor:end;dominant-baseline:middle}
 .cq-l-hint{margin-top:.5rem;font-size:.62rem;line-height:1.6;color:var(--tx2);opacity:.75}
@@ -1109,7 +1110,6 @@ body.in-session #sq-screen{top:42px}
 }
 /* 기후 그래프 패널이 라이트 모드에서 어둡게 남던 것 보정 */
 :root[data-theme="light"] .cq-panel-bg{fill:#eef1f5}
-:root[data-theme="light"] .cq-tbar{fill:#5a6572}
 :root[data-theme="light"] .cq-grid{stroke:rgba(0,0,0,.12)}
 
 #sq-title{font-size:1.05rem;font-weight:700;color:var(--tx);letter-spacing:.02em}

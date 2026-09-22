@@ -506,3 +506,27 @@ table.cmp td .dash{color:var(--tx3)}
 @keyframes abShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}
   75%{transform:translateX(4px)}}
 .shake{animation:abShake .28s ease}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   원그래프 + 아이콘 — 에너지 구성 · 주요 수출 품목
+   ──────────────────────────────────────────────────────────────────────────
+   글자로 나열한 막대 목록 대신, 조각 위에 아이콘을 얹은 도넛 차트다. 품목을
+   하나씩 읽지 않아도 조각 크기와 그림만으로 '이 나라는 광물성 연료가
+   압도적이구나'가 바로 들어와야 '직관적'이라는 말에 맞는다. 정확한 수치는
+   오른쪽(넓은 화면) · 아래(좁은 화면) 범례에 그대로 남겨 둔다.
+   ══════════════════════════════════════════════════════════════════════════ */
+.pie-wrap{display:flex;gap:1.4rem;align-items:center;flex-wrap:wrap}
+.pie-svg{width:132px;height:132px;flex-shrink:0}
+.pie-w{stroke:var(--sf);stroke-width:1.5}
+.pie-legend{flex:1;min-width:180px;display:flex;flex-direction:column;gap:.4rem}
+.pie-lg-row{display:flex;align-items:center;gap:.55rem;font-size:var(--fs-md)}
+.pie-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.pie-lg-ic{width:17px;height:17px;flex-shrink:0}
+.pie-lg-sp{width:17px;flex-shrink:0}
+.pie-lg-k{flex:1;color:var(--tx);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pie-lg-v{color:var(--tx2);font-variant-numeric:tabular-nums;font-size:var(--fs-sm)}
+@media (max-width:560px){
+  .pie-wrap{gap:1rem}
+  .pie-svg{width:104px;height:104px}
+  .pie-lg-row{font-size:var(--fs-sm)}
+}

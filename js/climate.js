@@ -45,10 +45,14 @@ function cqSpatialSample(arr,n,minDist){
    모든 카드가 같은 축 범위를 써야 그래프만 보고 "여긴 덥다/춥다/비가 많다/적다"를
    카드끼리 비교해 직관적으로 알 수 있다. 그래서 지점별로 축을 자동 확대하지 않고
    전형적인 값 범위(온대·건조가 뚜렷이 구분되도록 좁게 잡음)를 고정으로 쓰고,
-   그 범위를 벗어나는 극値(폭염·혹한·폭우 지점)는 막대가 카드 틀 밖으로 삐져나오게
+   그 범위를 벗어나는 극値(폭염·혹한·폭우 지점)는 그림이 카드 틀 밖으로 삐져나오게
    그린다. 삐져나오는 길이는 초과량에 정비례(상한 없음) — 살짝 넘긴 지점은 살짝만,
    체라푼지처럼 압도적인 지점은 실제 초과분만큼 카드 밖으로 계속 뚫고 올라간다.
-   초과된 막대는 반투명하게 그려 뒤(지도)가 비쳐 보이게 한다. */
+   초과된 부분은 반투명하게 그려 뒤(지도)가 비쳐 보이게 한다.
+
+   기온은 최저~최고 범위 막대 대신 월평균 선으로 그린다 — 카드가 150px밖에
+   안 돼서 밴드 두께가 몇 픽셀 안 됐고, 세지 위키·Abyss 국가 아틀라스가
+   이미 선 그래프로 통일돼 있어 여기만 막대로 남겨 둘 이유가 없었다. */
 const CQ_T_LO=-10, CQ_T_HI=30, CQ_T_STEP=10;
 const CQ_P_HI=150, CQ_P_STEP=50;
 function cqChartSVG(loc){
@@ -58,10 +62,12 @@ function cqChartSVG(loc){
   const tLo=CQ_T_LO, tHi=CQ_T_HI, pHi=CQ_P_HI;
   const tPlotH=tH-8;
   const tPxPerDeg=tPlotH/(tHi-tLo), pPxPerMm=(pH-6)/pHi;
+  const mean=loc.tmin.map((v,i)=>(v+loc.tmax[i])/2);
 
-  /* 이 지점이 실제로 축 범위를 얼마나 초과하는지 계산해, 그만큼만 카드를 늘린다 */
-  const tExcessHi=Math.max(0,...loc.tmax.map(t=>t-tHi));
-  const tExcessLo=Math.max(0,...loc.tmin.map(t=>tLo-t));
+  /* 이 지점이 실제로 축 범위를 얼마나 초과하는지 계산해, 그만큼만 카드를 늘린다.
+     기온은 이제 평균 하나만 그리므로 초과량도 평균 기준으로 잰다. */
+  const tExcessHi=Math.max(0,...mean.map(t=>t-tHi));
+  const tExcessLo=Math.max(0,...mean.map(t=>tLo-t));
   const pExcessHi=Math.max(0,...loc.prec.map(p=>p-pHi));
   const mTop=6+Math.round(tExcessHi*tPxPerDeg);
   const gap=10+Math.round(Math.max(tExcessLo*tPxPerDeg,pExcessHi*pPxPerMm));
@@ -81,21 +87,26 @@ function cqChartSVG(loc){
     pgrid+='<line class="cq-grid" x1="'+padL+'" x2="'+(W-padR)+'" y1="'+y.toFixed(1)+'" y2="'+y.toFixed(1)+'"/>';
     ptick+='<text class="cq-tick" x="'+(padL-3)+'" y="'+y.toFixed(1)+'">'+Math.round(p)+'</text>';
   }
-  let tbars='',pbars='';
+  let pbars='';
   for(let m=0;m<12;m++){
     const x=padL+gapW*m+(gapW-barW)/2;
-    const y1=tY(loc.tmax[m]),y2=tY(loc.tmin[m]);
-    const tOver=loc.tmax[m]>tHi||loc.tmin[m]<tLo;
-    tbars+='<rect class="cq-tbar'+(tOver?' of':'')+'" x="'+x.toFixed(1)+'" y="'+Math.min(y1,y2).toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+Math.max(1.4,Math.abs(y2-y1)).toFixed(1)+'" rx="'+(barW/2).toFixed(1)+'"/>';
     const py=pY(loc.prec[m]);
     const pOver=loc.prec[m]>pHi;
     pbars+='<rect class="cq-pbar'+(pOver?' of':'')+'" x="'+x.toFixed(1)+'" y="'+py.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+Math.max(0,(pH-4-py)).toFixed(1)+'" rx="'+(barW*0.28).toFixed(1)+'"/>';
   }
+  const tpts=[]; let tdots='';
+  for(let m=0;m<12;m++){
+    const x=padL+gapW*m+gapW/2, y=tY(mean[m]);
+    const tOver=mean[m]>tHi||mean[m]<tLo;
+    tpts.push(x.toFixed(1)+','+y.toFixed(1));
+    tdots+='<circle class="cq-tdot'+(tOver?' of':'')+'" cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="1.6"/>';
+  }
+  const tline='<polyline class="cq-tline" points="'+tpts.join(' ')+'"/>';
   const totalH=mTop+tH+gap+pH;
   let s='<svg viewBox="0 0 '+W+' '+totalH+'" class="cq-chart-svg" preserveAspectRatio="xMidYMid meet">';
   s+='<g transform="translate(0,'+mTop+')">';
   s+='<rect class="cq-panel-bg" x="0" y="0" width="'+W+'" height="'+tH+'" rx="6"/>';
-  s+=tgrid+tbars+ttick;
+  s+=tgrid+tline+tdots+ttick;
   s+='</g>';
   s+='<g transform="translate(0,'+(mTop+tH+gap)+')">';
   s+='<rect class="cq-panel-bg" x="0" y="0" width="'+W+'" height="'+pH+'" rx="6"/>';

@@ -192,19 +192,23 @@ function abAtlasShow(iso){
     h+='<h4 class="sec">종교 구성 <em>종교를 가진 사람 기준</em></h4>'
       +abBars(rel.map(r=>[RELIG2_NAME[r[0]],r[1]]),rel.map(r=>RELIG2_COLOR[r[0]]));
   }
-  /* 에너지 */
+  /* 에너지 — 막대 목록 대신 원그래프 + 아이콘. 글자를 하나씩 읽지 않아도
+     석탄·가스·원자력이 얼마씩인지 조각 모양과 아이콘만으로 짐작이 간다 */
   const en=(typeof ENERGY_DATA!=='undefined'&&ENERGY_DATA[iso])||null;
-  if(en)h+='<h4 class="sec">에너지 구성</h4>'+abBars(en.map(r=>[ENERGY_NAME[r[0]],r[1]]));
-  /* 무역 */
+  if(en){
+    h+='<h4 class="sec">에너지 구성</h4><div class="card pad">'
+      +abIconPie(en.map(r=>({label:ENERGY_NAME[r[0]],v:r[1],icon:enIcon(r[0]),color:EN_ICON_COLOR[r[0]]||'var(--c8)'})))
+      +'</div>';
+  }
+  /* 무역 — 수입은 뺀다. 이 나라가 세계에 무엇을 파는지가 그 나라 산업의
+     얼굴이고, 수입은 상대적으로 덜 특징적이라 한 화면에 둘 다 넣으면
+     정작 중요한 수출이 반쪽 자리로 묻혔다. */
   const tr=(typeof TRADE_DATA!=='undefined'&&TRADE_DATA[iso])||null;
-  if(tr){
-    h+='<h4 class="sec">무역 구조</h4><div class="grid g-2">';
-    [['x','수출'],['m','수입']].forEach(([w,lab])=>{
-      const a=tr[w]||[];
-      h+='<div class="card pad"><div class="card-t">'+lab+' 상위 품목</div>'
-        +abBars(a.slice(0,8).map(r=>[HS2_KO[r[0]]||r[0],r[1]]))+'</div>';
-    });
-    h+='</div>';
+  if(tr&&tr.x&&tr.x.length){
+    const a=tr.x.slice(0,6);
+    h+='<h4 class="sec">주요 수출 품목</h4><div class="card pad">'
+      +abIconPie(a.map(r=>({label:HS2_KO[r[0]]||r[0],v:r[1],icon:trIconOf(r[0]),color:TR_ICON_COLOR[trIconOf(r[0])]})))
+      +'</div>';
   }
   /* 기후 — 나라 전체를 하나의 순위로 묶지 않는다. 관측소를 평균 내면 넓은
      나라일수록 극값이 뭉개져 순위 자체가 왜곡된다(러시아가 냉대와 온난
