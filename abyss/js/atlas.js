@@ -87,31 +87,102 @@ function abBars(rows,colors){
       +((colors&&colors[i])||AB_SERIES[i%AB_SERIES.length])+'"></i></span>'
     +'<span class="bar-v">'+r[1].toFixed(1)+'%</span></div>').join('')+'</div>';
 }
-/* 기후 그래프 — 기온 꺾은선 + 강수 막대 */
+/* 기후 그래프 — 기온 꺾은선 + 강수 막대
+   ──────────────────────────────────────────────────────────────────────────
+   한때 지점마다 축을 따로 잡았다(그 지점 최저~최고에 맞춰 t0~t1을 계산).
+   그러면 그래프만 보고는 어디가 덥고 어디가 추운지 비교가 안 된다 — 영하
+   40도짜리 지점도, 영상 30도짜리 지점도 그래프 안에서는 똑같이 '위아래로
+   꽉 찬 선'으로 보이기 때문이다. 같은 저울에 올려야 한눈에 비교가 된다.
+
+   그래서 축 범위를 모든 지점에 고정으로 쓴다. 본편 js/climate.js 의
+   CQ_T_LO/CQ_T_HI/CQ_P_HI 와 값을 그대로 맞췄다 — 같은 나라를 본편과
+   Abyss 양쪽에서 봐도 같은 저울이어야 하니까.
+
+   고정 범위를 벗어나는 지점(폭염·혹한·폭우)은 칸 밖으로 튀어나오게 그린다.
+   튀어나온 길이는 초과량에 비례하되, 일정 선에서 늘어나는 속도를 늦춘다.
+   본편의 작은 카드(140px, 여러 장을 나란히 놓고 비교)는 초과분을 상한 없이
+   그대로 늘여도 된다 — 카드가 작아 gap이 아무리 커도 눈에 거슬리지 않는다.
+   여기는 나라 하나를 크게 펼쳐 보는 화면이라 얘기가 다르다. 열대몬순
+   기후는 7월 강수량이 150mm를 우습게 넘는 게 흔한 일이라(뭄바이 600mm대),
+   상한 없이 늘이면 칸 사이에 화면 절반을 잡아먹는 빈 틈이 생긴다. 그래서
+   일정 선(CAP)까지만 늘어난 자리를 넘긴 값은 실제 값을 숫자로 옆에 적어
+   보정한다 — 자리는 아껴도 정보는 잃지 않는다. */
+const AB_CL_T_LO=-10, AB_CL_T_HI=30, AB_CL_T_STEP=10;
+const AB_CL_P_HI=150, AB_CL_P_STEP=50;
+const AB_CL_T_CAP=44, AB_CL_P_CAP=64;   /* 칸 밖으로 늘어날 수 있는 최대 픽셀 */
 function abClimateChart(st){
-  const W=560,H=190,PL=34,PR=34,PT=14,PB=22;
+  const W=560, tH=92, pH=54, PL=34, PR=34, gapBase=12;
+  const plotW=W-PL-PR;
   const mean=st.lo.map((v,i)=>(v+st.hi[i])/2);
-  const tmin=Math.min.apply(null,mean),tmax=Math.max.apply(null,mean);
-  const t0=Math.floor((tmin-4)/5)*5, t1=Math.ceil((tmax+4)/5)*5;
-  const pmax=Math.max(Math.max.apply(null,st.pr),50);
-  const x=i=>PL+(W-PL-PR)*(i+.5)/12;
-  const yT=v=>PT+(H-PT-PB)*(1-(v-t0)/(t1-t0||1));
-  const yP=v=>H-PB-(H-PT-PB)*0.82*(v/pmax);
-  let h='<svg class="cl-chart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="월별 기온과 강수량">';
-  h+='<line x1="'+PL+'" x2="'+(W-PR)+'" y1="'+yT(0)+'" y2="'+yT(0)+'" class="cl-zero"/>';
-  st.pr.forEach((v,i)=>{const bw=(W-PL-PR)/12*0.52;
-    h+='<rect class="cl-p" x="'+(x(i)-bw/2)+'" y="'+yP(v)+'" width="'+bw+'" height="'+(H-PB-yP(v))+'"/>';});
-  h+='<polyline class="cl-t" points="'+mean.map((v,i)=>x(i)+','+yT(v)).join(' ')+'"/>';
-  mean.forEach((v,i)=>{h+='<circle class="cl-d" cx="'+x(i)+'" cy="'+yT(v)+'" r="2.4"/>';});
+  const tLo=AB_CL_T_LO, tHi=AB_CL_T_HI, pHi=AB_CL_P_HI;
+  const tPxPerDeg=tH/(tHi-tLo), pPxPerMm=pH/pHi;
+
+  /* 초과분을 픽셀로 바꾸되 상한(CAP)에서 늘어나는 걸 멈춘다 — 실제 초과량은
+     각 함수가 아래에서 raw(상한 없는 값)와 따로 비교해 라벨을 붙일 때 쓴다 */
+  const tOverHiPx=v=>v>tHi?Math.min(AB_CL_T_CAP,(v-tHi)*tPxPerDeg):0;
+  const tOverLoPx=v=>v<tLo?Math.min(AB_CL_T_CAP,(tLo-v)*tPxPerDeg):0;
+  const pOverPx=v=>v>pHi?Math.min(AB_CL_P_CAP,(v-pHi)*pPxPerMm):0;
+
+  /* 칸 사이 여백은 그 안에서 제일 많이 튀어나오는 값 하나에 맞춰 잡는다 —
+     한 달만 넘쳐도 나머지 열한 달까지 다 같은 여백을 나눠 쓴다 */
+  const mTop=8+Math.round(Math.max(0,...mean.map(tOverHiPx)));
+  const gap=gapBase+Math.round(Math.max(0,...mean.map(tOverLoPx),...st.pr.map(pOverPx)));
+
+  const x=i=>PL+plotW*(i+.5)/12;
+  const tTop=mTop, tBot=mTop+tH, pTop=mTop+tH+gap, pBot=pTop+pH;
+  /* 눈금선은 고정 축 그대로 — 칸 밖으로 나가는 값과 헷갈리면 안 된다 */
+  const yTraw=v=>tTop+tH*(1-(v-tLo)/(tHi-tLo));
+  const yPraw=v=>pTop+pH*(1-v/pHi);
+  const yT=v=>v>tHi?tTop-tOverHiPx(v):(v<tLo?tBot+tOverLoPx(v):yTraw(v));
+  const yP=v=>v>pHi?pTop-pOverPx(v):yPraw(v);
+  const bw=plotW/12*0.52;
+
+  let tgrid='',ttick='';
+  for(let t=tLo;t<=tHi+AB_CL_T_STEP*0.01;t+=AB_CL_T_STEP){
+    const y=yTraw(t);
+    tgrid+='<line class="cl-grid" x1="'+PL+'" x2="'+(W-PR)+'" y1="'+y.toFixed(1)+'" y2="'+y.toFixed(1)+'"/>';
+    ttick+='<text class="cl-y" x="'+(PL-6)+'" y="'+(y+3).toFixed(1)+'">'+t+'°</text>';
+  }
+  let pgrid='',ptick='';
+  for(let p=0;p<=pHi+AB_CL_P_STEP*0.01;p+=AB_CL_P_STEP){
+    const y=yPraw(p);
+    pgrid+='<line class="cl-grid" x1="'+PL+'" x2="'+(W-PR)+'" y1="'+y.toFixed(1)+'" y2="'+y.toFixed(1)+'"/>';
+    /* 온도 눈금과 같은 왼쪽에 붙인다 — 두 칸이 위아래로 떨어져 있어 겹칠
+       일이 없고, 어느 쪽을 봐도 눈금이 같은 자리에 있는 편이 읽기 좋다 */
+    ptick+='<text class="cl-y2" x="'+(PL-6)+'" y="'+(y+3).toFixed(1)+'">'+p+'mm</text>';
+  }
+  let pbars='',plabel='';
+  st.pr.forEach((v,i)=>{
+    const over=v>pHi, y0=yPraw(0), y1=yP(v);
+    pbars+='<rect class="cl-p'+(over?' of':'')+'" x="'+(x(i)-bw/2).toFixed(1)+'" y="'+y1.toFixed(1)
+      +'" width="'+bw.toFixed(1)+'" height="'+Math.max(0,y0-y1).toFixed(1)+'"/>';
+    /* 상한에 닿아 더 못 늘어나는(=raw 초과가 CAP보다 큰) 값만 실제 숫자를
+       옆에 적는다 — 안 그러면 달마다 숫자가 붙어 그래프가 아니라 표가 된다 */
+    if(over&&(v-pHi)*pPxPerMm>AB_CL_P_CAP+0.5)
+      plabel+='<text class="cl-of-lb" x="'+x(i).toFixed(1)+'" y="'+(y1-3).toFixed(1)+'">'+Math.round(v)+'</text>';
+  });
+  const tpts=mean.map((v,i)=>x(i).toFixed(1)+','+yT(v).toFixed(1)).join(' ');
+  let tdots='',tlabel='';
+  mean.forEach((v,i)=>{
+    const over=v>tHi||v<tLo, y=yT(v);
+    tdots+='<circle class="cl-d'+(over?' of':'')+'" cx="'+x(i).toFixed(1)+'" cy="'+y.toFixed(1)+'" r="2.6"/>';
+    const rawPx=v>tHi?(v-tHi)*tPxPerDeg:(v<tLo?(tLo-v)*tPxPerDeg:0);
+    if(over&&rawPx>AB_CL_T_CAP+0.5)
+      tlabel+='<text class="cl-of-lb" x="'+x(i).toFixed(1)+'" y="'+(v>tHi?y-6:y+11).toFixed(1)+'">'+v.toFixed(1)+'°</text>';
+  });
+
+  const totalH=mTop+tH+gap+pH+18;
+  let h='<svg class="cl-chart" viewBox="0 0 '+W+' '+totalH+'" role="img" aria-label="월별 기온과 강수량 — 축 범위는 모든 지점에서 같다">';
+  h+='<rect class="cl-panel-bg" x="'+PL+'" y="'+mTop+'" width="'+plotW+'" height="'+tH+'" rx="6"/>';
+  h+=tgrid+ttick;
+  h+='<rect class="cl-panel-bg" x="'+PL+'" y="'+pTop+'" width="'+plotW+'" height="'+pH+'" rx="6"/>';
+  h+=pgrid+pbars+ptick;
+  h+='<polyline class="cl-t" points="'+tpts+'"/>'+tdots+tlabel+plabel;
   ['1','4','7','10'].forEach(mo=>{const i=+mo-1;
-    h+='<text class="cl-x" x="'+x(i)+'" y="'+(H-6)+'">'+mo+'월</text>';});
-  h+='<text class="cl-y" x="4" y="'+(yT(t1)+4)+'">'+t1+'°</text>';
-  h+='<text class="cl-y" x="4" y="'+(yT(t0)+4)+'">'+t0+'°</text>';
-  h+='<text class="cl-y2" x="'+(W-4)+'" y="'+(PT+10)+'">'+Math.round(pmax)+'mm</text>';
+    h+='<text class="cl-x" x="'+x(i).toFixed(1)+'" y="'+(totalH-4)+'">'+mo+'월</text>';});
   h+='</svg>';
   return h;
 }
-
 function abAtlasShow(iso){
   const d=DICT_DATA[iso]||{}, more=(typeof DICT_MORE!=='undefined'&&DICT_MORE[iso])||[];
   /* 위키에서 온 산문(나라 특징·도시 설명)은 싣지 않는다 — 여기는 원자료 자료실이다 */
@@ -156,10 +227,12 @@ function abAtlasShow(iso){
     });
     h+='</div>';
   }
-  /* 기후 */
+  /* 기후 — 나라 전체를 하나의 순위로 묶지 않는다. 관측소를 평균 내면 넓은
+     나라일수록 극값이 뭉개져 순위 자체가 왜곡된다(러시아가 냉대와 온난
+     기후를 다 갖고 있어도 평균은 그저 그런 숫자가 되는 식이다). 대신
+     관측소별 실측을 그대로 보여 준다. */
   if(cl&&cl.st.length){
     h+='<h4 class="sec">기후 <em>관측소 '+cl.n+'곳</em></h4>';
-    h+='<div class="grid g-4">'+['ctemp','crain','crange','ccold','chot'].map(id=>abStatCell(id,iso)).join('')+'</div>';
     h+='<div class="chips cl-pick" id="cl-pick">'+cl.st.map((s,i)=>
       '<button class="chip'+(i===0?' on':'')+'" data-i="'+i+'">'+abEsc(s.ko||s.en)
       +(s.kop?'<em>'+abEsc(s.kop)+'</em>':'')+'</button>').join('')+'</div>';

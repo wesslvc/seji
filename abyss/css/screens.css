@@ -64,13 +64,19 @@ h4.sec em{font-style:normal;font-weight:400;color:var(--tx3);font-size:var(--fs-
 
 /* 기후 그래프 */
 .cl-pick .chip em{font-style:normal;margin-left:.34rem;font-size:.66rem;color:var(--btn)}
-.cl-chart{width:100%;height:auto;display:block;margin:.3rem 0}
-.cl-zero{stroke:var(--bd2);stroke-width:1;stroke-dasharray:3 4}
-.cl-p{fill:color-mix(in srgb,var(--c1) 34%,transparent)}
+.cl-chart{width:100%;height:auto;display:block;overflow:visible;margin:.3rem 0}
+/* 두 칸(기온·강수)의 바탕 — 본편 .cq-panel-bg 와 같은 결이다 */
+.cl-panel-bg{fill:var(--sf2);stroke:none}
+.cl-grid{stroke:var(--bd);stroke-width:1}
+.cl-p{fill:color-mix(in srgb,var(--c1) 55%,transparent)}
 .cl-t{fill:none;stroke:var(--c4);stroke-width:2.2;stroke-linejoin:round;stroke-linecap:round}
 .cl-d{fill:var(--c4)}
+/* 고정 축 범위를 벗어난 달 — 반투명하게 그려서 '칸을 넘었다'가 바로 보이게 */
+.cl-p.of,.cl-d.of{opacity:.55}
+/* 늘어날 자리가 다 찬(상한에 닿은) 값만 실제 숫자를 적는다 */
+.cl-of-lb{fill:var(--tx2);font-size:9px;font-family:var(--font-sans);text-anchor:middle;font-weight:600}
 .cl-x,.cl-y,.cl-y2{fill:var(--tx3);font-size:10px;font-family:var(--font-sans)}
-.cl-y2{text-anchor:end}
+.cl-y,.cl-y2{text-anchor:end}
 .cl-x{text-anchor:middle}
 .cl-legend{display:flex;gap:1.2rem;font-size:var(--fs-xs);color:var(--tx2);margin-top:.4rem}
 .cl-lg-t::before,.cl-lg-p::before{content:'';display:inline-block;width:14px;height:3px;
