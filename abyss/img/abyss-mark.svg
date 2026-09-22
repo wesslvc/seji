@@ -1,6 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="14" fill="#05080c"/>
-  <circle cx="32" cy="32" r="17" fill="none" stroke="#5fd8c6" stroke-width="2" opacity=".85"/>
-  <path d="M15 32h34M32 15v34" stroke="#2f8478" stroke-width="1.2"/>
-  <circle cx="32" cy="32" r="4.6" fill="#5fd8c6"/>
+  <!-- 수면 한 줄과 그 아래로 내려가는 표시 — 본편 지오글의 파랑을 그대로 쓴다 -->
+  <rect width="64" height="64" rx="14" fill="#0f1319"/>
+  <path d="M10 21h44" stroke="#7fb2e6" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M32 27v20" stroke="#3a424f" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="32" cy="46" r="5.2" fill="#7fb2e6"/>
 </svg>

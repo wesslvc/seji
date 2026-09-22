@@ -147,50 +147,6 @@ h4.sec em{font-style:normal;font-weight:400;color:var(--tx3);font-size:var(--fs-
 .rev ol{margin:.4rem 0 0;padding-left:1.2rem}
 .rev li.miss{color:var(--wr)}
 
-/* ── 지엽개념 ── */
-.wip{display:inline-block;margin-left:.5rem;padding:.1rem .5rem;border-radius:999px;
-  border:1px solid var(--bd2);font-size:.6rem;letter-spacing:.08em;color:var(--gd);
-  vertical-align:middle;font-family:var(--font-sans);font-weight:600}
-.codex-layout{display:grid;grid-template-columns:minmax(0,1fr) 232px;gap:2.2rem;align-items:start}
-@media (max-width:860px){.codex-layout{grid-template-columns:1fr}}
-#codex-toc{position:sticky;top:4.2rem;max-height:calc(100dvh - 6rem);overflow:auto;
-  border-left:1px solid var(--bd);padding-left:.9rem}
-@media (max-width:860px){#codex-toc{position:static;max-height:220px;border-left:none;
-  border-top:1px solid var(--bd);padding-left:0;padding-top:.8rem}}
-#codex-toc a{display:block;padding:.28rem 0;font-size:.78rem;color:var(--tx3)}
-#codex-toc a:hover,#codex-toc a.on{color:var(--ac)}
-.cx-sec{padding:1.8rem 0;border-bottom:1px solid var(--bd)}
-.cx-sec h3{font-family:var(--font-display);font-weight:500;font-size:1.45rem;letter-spacing:-.018em;margin:0 0 .9rem;
-  display:flex;gap:.6rem;align-items:baseline}
-.cx-sec h3 .n{font-family:var(--font-sans);font-size:.68rem;letter-spacing:.14em;color:var(--ac);
-  font-weight:600}
-.cx-sec ul{margin:.3rem 0;padding-left:1.1rem;color:var(--tx2)}
-.cx-sec li{margin:.24rem 0;line-height:1.7}
-.cx-sec .sub-h{font-size:.92rem;color:var(--tx);margin:1rem 0 .3rem;font-weight:500}
-.cx-sec .star{color:var(--tx3);font-size:.82rem;padding-left:.8rem;border-left:2px solid var(--bd2);
-  margin:.5rem 0}
-.cx-fig{margin:1.1rem 0;border:1px solid var(--bd);border-radius:var(--r-md);overflow:hidden;
-  background:var(--bg)}
-.cx-fig img{display:block;width:100%;height:auto}
-.cx-fig figcaption{padding:.5rem .8rem;font-size:.72rem;color:var(--tx3);border-top:1px solid var(--bd)}
-.cx-quiz{margin-top:1.2rem;padding:1rem 1.1rem;border:1px solid var(--bd);border-radius:var(--r-md);
-  background:var(--sf)}
-.cx-quiz .qh{font-size:.72rem;letter-spacing:.02em;color:var(--ac);
-  margin-bottom:.6rem;font-weight:600}
-.cx-q{margin-bottom:.9rem}
-.cx-q p{margin:0 0 .5rem;font-size:.88rem}
-.cx-opt{display:flex;gap:.4rem;flex-wrap:wrap}
-.cx-opt button{padding:.35rem .8rem;border:1px solid var(--bd);border-radius:999px;
-  font-size:.8rem;color:var(--tx2);transition:.15s var(--ease)}
-.cx-opt button:hover{border-color:var(--bd2);color:var(--tx)}
-.cx-opt button.ok{border-color:var(--btn);color:var(--ac);background:color-mix(in srgb,var(--ac) 8%,transparent)}
-.cx-opt button.no{border-color:var(--wr);color:var(--wr)}
-.cx-a{font-size:.8rem;color:var(--tx3);margin-top:.4rem}
-.cx-wip{padding:1rem 1.15rem;border:1px dashed var(--bd2);border-radius:var(--r-md);
-  color:var(--tx2);font-size:.84rem;margin-bottom:1.6rem}
-.cx-wip b{color:var(--gd);font-weight:600}
-.cx-tools{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1.4rem}
-
 /* ══════════ 2차 개편에서 더해진 것들 ══════════ */
 
 /* 밝기 전환 단추 — 본편과 같은 자리·같은 모양 */
@@ -243,39 +199,153 @@ h4.sec em{font-style:normal;font-weight:400;color:var(--tx3);font-size:var(--fs-
 .map-hold{border:1px dashed var(--bd2);border-radius:var(--r-md);padding:2.2rem 1rem;
   text-align:center;color:var(--tx3);font-size:var(--fs-md);background:var(--sf)}
 
-/* ── 지엽개념 ── */
+/* ══════════════════════════════════════════════════════════════════════════
+   지엽개념
+   ──────────────────────────────────────────────────────────────────────────
+   정리본은 'X : Y' 로 적힌 정의가 대부분이다. 앞뒤를 나란한 두 칸으로 세우면
+   글머리표 목록일 때와 달리 눈이 왼쪽 열만 훑고 내려갈 수 있다 — 외울 때
+   실제로 하는 동작이 그것이다.
+
+   묶음(group)은 왼쪽 세로선 하나로만 표시하고 상자를 겹치지 않는다. 상자 안에
+   상자를 넣으면 세 단계쯤에서 화면이 계단이 된다.
+   ══════════════════════════════════════════════════════════════════════════ */
 .seg{display:inline-flex;gap:.25rem;padding:.25rem;border:1px solid var(--bd);
-  border-radius:var(--r-full);background:var(--sf);margin-bottom:1.6rem}
-.seg button{padding:.44rem 1.1rem;border-radius:var(--r-full);font-size:var(--fs-md);
-  color:var(--tx2);transition:.16s var(--ease)}
+  border-radius:var(--r-full);background:var(--sf);margin-bottom:1.5rem}
+.seg button{padding:.44rem 1.05rem;border-radius:var(--r-full);font-size:var(--fs-md);
+  color:var(--tx2);transition:.16s var(--ease);white-space:nowrap}
 .seg button em{font-style:normal;font-size:var(--fs-2xs);color:var(--tx3);margin-left:.3rem}
 .seg button.on{background:var(--ac2);color:var(--ac);font-weight:600}
 .seg button.on em{color:var(--ac)}
+@media (max-width:560px){.seg{display:flex;width:100%;overflow:auto}
+  .seg button{padding:.44rem .7rem;font-size:var(--fs-sm)}}
 
-/* 읽기 — 글줄을 짧게 잡고 'X : Y' 의 앞쪽을 드러낸다 */
-.cx-sec ul{margin:.5rem 0;padding-left:0;list-style:none}
-.cx-sec li{margin:.42rem 0;line-height:1.75;color:var(--tx);font-size:var(--fs-lg);
-  display:flex;gap:.7rem;align-items:baseline;flex-wrap:wrap;
-  padding-left:.9rem;border-left:1px solid var(--bd);max-width:44rem}
-.cx-sec li .k{flex-shrink:0;min-width:6.5rem;color:var(--ac);font-weight:600;font-size:var(--fs-md)}
-.cx-sec li .v{color:var(--tx2);flex:1;min-width:12rem}
-.cx-sec .sub-h{font-size:var(--fs-xl);color:var(--tx);margin:0 0 .5rem;font-weight:600;
-  font-family:var(--font-display);letter-spacing:-.015em}
-.cx-sub{margin:1.5rem 0 0;padding:1.1rem 1.2rem;background:var(--sf);border:1px solid var(--bd);
-  border-radius:var(--r-md)}
-.cx-sec .star{color:var(--tx2);font-size:var(--fs-md);padding:.5rem .9rem;margin:.7rem 0;
-  background:var(--sf2);border-radius:var(--r-xs);max-width:44rem;line-height:1.7}
-.cx-sec .star .k{color:var(--gd);font-weight:600}
-.cx-sec .star .v{color:var(--tx2)}
-.cx-fig{max-width:44rem}
-.cx-fig img{background:#fff}
+/* 대단원 건너뛰기 */
+.cx-jump{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1.6rem}
+.cx-jump a{padding:.34rem .8rem;border:1px solid var(--bd);border-radius:var(--r-full);
+  font-size:var(--fs-sm);color:var(--tx2);background:var(--sf);transition:.16s var(--ease)}
+.cx-jump a:hover{border-color:var(--btn);color:var(--ac)}
+
+.codex-layout{display:grid;grid-template-columns:minmax(0,1fr) 224px;gap:2.4rem;align-items:start}
+.cx-main{min-width:0}
+@media (max-width:900px){.codex-layout{grid-template-columns:minmax(0,1fr)}}
+#codex-toc{position:sticky;top:4rem;max-height:calc(100dvh - 5.5rem);overflow:auto;
+  border-left:1px solid var(--bd);padding-left:.95rem}
+@media (max-width:900px){#codex-toc{display:none}}
+.toc-p{margin-bottom:1rem}
+.toc-h{display:block;font-size:var(--fs-xs);color:var(--tx);font-weight:600;
+  letter-spacing:-.01em;margin-bottom:.25rem}
+#codex-toc a{display:block;padding:.2rem 0;font-size:.76rem;color:var(--tx3);line-height:1.45}
+#codex-toc a[data-n]:hover,#codex-toc a.on{color:var(--ac)}
+
+/* 대단원 */
+.cx-part{margin-bottom:2.6rem;scroll-margin-top:4.6rem}
+.cx-part-h{padding:1.1rem 0 .9rem;border-bottom:2px solid var(--bd2);margin-bottom:.4rem;
+  display:flex;align-items:baseline;gap:.8rem;flex-wrap:wrap}
+.cx-part-h h3{margin:0;font-size:clamp(1.25rem,3.6vw,1.6rem);font-weight:600;letter-spacing:-.02em}
+.cx-part-h p{margin:0;color:var(--tx2);font-size:var(--fs-sm);flex:1;min-width:12rem}
+.cx-part-h span{font-size:var(--fs-xs);color:var(--tx3);font-variant-numeric:tabular-nums}
+
+/* 절 */
+.cx-sec{padding:1.6rem 0;border-bottom:1px solid var(--bd);scroll-margin-top:4.6rem}
+.cx-sec>h3{font-weight:600;font-size:1.22rem;letter-spacing:-.018em;margin:0 0 .95rem;
+  display:flex;gap:.65rem;align-items:baseline}
+.cx-sec>h3 i{font-style:normal;font-family:var(--font-display);font-size:.78rem;
+  color:var(--ac);font-weight:600;font-variant-numeric:tabular-nums}
+
+/* 정의표 — 왼쪽 열만 훑어도 목차가 되게 */
+.cx-defs{display:grid;gap:1px;background:var(--bd);border:1px solid var(--bd);
+  border-radius:var(--r-sm);overflow:hidden;margin:.7rem 0;max-width:48rem}
+.cx-defs .dr{display:grid;grid-template-columns:9.5rem minmax(0,1fr);gap:0;background:var(--sf)}
+.cx-defs .dr b{padding:.58rem .8rem;font-weight:600;font-size:var(--fs-md);color:var(--ac);
+  background:color-mix(in srgb,var(--ac) 5%,transparent);
+  border-right:1px solid var(--bd);word-break:keep-all}
+.cx-defs .dr b.code{font-family:var(--font-display);letter-spacing:.01em}
+.cx-defs .dr span{padding:.58rem .85rem;font-size:var(--fs-lg);color:var(--tx);line-height:1.65}
+@media (max-width:560px){
+  .cx-defs .dr{grid-template-columns:1fr}
+  .cx-defs .dr b{border-right:0;border-bottom:1px solid var(--bd);padding:.4rem .7rem}
+  .cx-defs .dr span{padding:.45rem .7rem}
+}
+
+/* 항목 */
+.cx-list{margin:.6rem 0;padding:0;list-style:none;max-width:48rem}
+.cx-list li{margin:.3rem 0;padding-left:.95rem;position:relative;line-height:1.72;
+  color:var(--tx);font-size:var(--fs-lg)}
+.cx-list li::before{content:'';position:absolute;left:0;top:.72em;width:4px;height:4px;
+  border-radius:50%;background:var(--bd2)}
+.cx-list li.cont{padding-left:2rem;color:var(--tx2);font-size:var(--fs-md);margin-top:-.05rem}
+.cx-list li.cont::before{content:'⌐';left:1rem;top:0;width:auto;height:auto;background:none;
+  color:var(--tx3);transform:scaleY(-1)}
+
+/* 곁말 — 본문과 섞이지 않게 한 톤 낮춘다 */
+.cx-note{color:var(--tx2);font-size:var(--fs-md);line-height:1.72;max-width:48rem;
+  margin:.55rem 0;padding:.5rem .85rem;background:var(--sf);border-left:2px solid var(--gd);
+  border-radius:0 var(--r-xs) var(--r-xs) 0}
+
+/* 묶음 — 세로선 하나로만 */
+.cx-grp{margin:1.15rem 0 1.15rem;padding-left:1rem;border-left:2px solid var(--bd2)}
+.cx-grp>h4{margin:0 0 .5rem;font-size:var(--fs-xl);font-weight:600;letter-spacing:-.012em;
+  color:var(--tx);display:flex;align-items:baseline;gap:.45rem}
+/* 원문에 '1) 2) 3)' 으로 번호가 붙어 있던 소절 — 순서 자체가 외울 거리라 살려 둔다 */
+.cx-grp>h4 i{font-style:normal;font-family:var(--font-display);font-size:.72rem;font-weight:600;
+  color:var(--ac);border:1px solid var(--bd2);border-radius:var(--r-full);
+  min-width:1.25rem;height:1.25rem;display:inline-flex;align-items:center;justify-content:center;
+  flex-shrink:0}
+.cx-grp.d2{border-left-color:var(--bd);margin-left:.1rem}
+.cx-grp.d2>h4{font-size:var(--fs-lg);color:var(--tx2)}
+
+/* 그림 */
+.cx-fig{margin:1.2rem 0;border:1px solid var(--bd);border-radius:var(--r-md);overflow:hidden;
+  background:var(--bg);max-width:48rem}
+.cx-fig .cx-zoom{display:block;width:100%;padding:0;cursor:zoom-in}
+.cx-fig img{display:block;width:100%;height:auto;background:#fff}
+.cx-fig figcaption{padding:.55rem .85rem;font-size:var(--fs-xs);color:var(--tx2);
+  border-top:1px solid var(--bd);display:flex;gap:.7rem;align-items:baseline;flex-wrap:wrap}
+.cx-fig figcaption a{margin-left:auto;color:var(--tx3);white-space:nowrap}
+.cx-fig figcaption a:hover{color:var(--ac)}
+.cx-gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem}
+/* 그림판에서는 칸 높이를 맞춘다 — 세로로 짧은 지도 밑에 빈 바닥이 생기면
+   줄이 어긋나 보인다. 그림은 칸 안에서 통째로 보이게 두고 여백만 흰 바탕. */
+.cx-gal .cx-fig{margin:0;max-width:none;display:flex;flex-direction:column}
+.cx-gal .cx-zoom{aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;
+  background:#fff;overflow:hidden}
+.cx-gal .cx-zoom img{width:auto;max-width:100%;max-height:100%;object-fit:contain}
+.cx-gal figcaption{margin-top:auto}
+.cx-lens{position:fixed;inset:0;z-index:60;background:rgba(3,6,10,.92);cursor:zoom-out;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.9rem;
+  padding:clamp(1rem,4vw,3rem);animation:rise .18s var(--ease)}
+.cx-lens img{max-width:100%;max-height:88%;object-fit:contain;background:#fff;
+  border-radius:var(--r-sm)}
+.cx-lens span{color:#dfe3e8;font-size:var(--fs-sm)}
+
+/* 기후 비교표 — 다섯 절에 흩어져 있던 것을 나란히 */
+.cx-cmp{margin:1.4rem 0;border:1px solid var(--bd);border-radius:var(--r-md);
+  background:var(--sf);overflow:hidden}
+.cmp-t{padding:.6rem .95rem;font-size:var(--fs-md);font-weight:600;
+  border-bottom:1px solid var(--bd);background:var(--sf2)}
+.cmp-scroll{overflow-x:auto}
+table.cmp{border-collapse:collapse;width:100%;min-width:40rem;font-size:var(--fs-md)}
+table.cmp th{text-align:left;font-weight:600;padding:.5rem .8rem;border-bottom:1px solid var(--bd);
+  color:var(--tx2);font-size:var(--fs-sm);white-space:nowrap}
+table.cmp tbody th{color:var(--ac);border-right:1px solid var(--bd);background:var(--bg)}
+table.cmp td{padding:.55rem .8rem;border-bottom:1px solid var(--bd);vertical-align:top;
+  color:var(--tx);line-height:1.6;min-width:11rem}
+table.cmp td i{font-style:normal;display:block;font-size:var(--fs-2xs);color:var(--tx3);margin-top:.1rem}
+table.cmp td .dash{color:var(--tx3)}
 
 /* 퀴즈 — 주제 고르기 */
-.cx-pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:.6rem}
-.cx-card{text-align:left;padding:.85rem 1rem;border:1px solid var(--bd);border-radius:var(--r-md);
+.cx-qpart{margin-top:1.5rem}
+.qp-h{display:flex;align-items:center;gap:.7rem;font-size:var(--fs-md);font-weight:600;
+  margin-bottom:.55rem;padding-bottom:.4rem;border-bottom:1px solid var(--bd)}
+.qp-all{margin-left:auto;font-size:var(--fs-xs);color:var(--tx3);font-weight:400;
+  border:1px solid var(--bd);border-radius:var(--r-full);padding:.2rem .7rem;
+  transition:.16s var(--ease)}
+.qp-all:hover{border-color:var(--btn);color:var(--ac)}
+.cx-pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.5rem}
+.cx-card{text-align:left;padding:.8rem .95rem;border:1px solid var(--bd);border-radius:var(--r-sm);
   background:var(--sf);transition:.16s var(--ease)}
-.cx-card:hover{border-color:var(--ac);transform:translateY(-1px)}
-.cx-card.wide{grid-column:1/-1;background:var(--ac2);border-color:var(--ac)}
+.cx-card:hover{border-color:var(--ac)}
+.cx-card.wide{grid-column:1/-1;background:var(--ac2);border-color:var(--btn)}
 .cx-card b{display:block;font-weight:500;font-size:var(--fs-md)}
 .cx-card span{display:block;font-size:var(--fs-xs);color:var(--tx3);margin-top:.2rem}
 
@@ -288,6 +358,7 @@ h4.sec em{font-style:normal;font-weight:400;color:var(--tx3);font-size:var(--fs-
 .cx-run-h .sc{margin-left:auto;color:var(--ac);font-weight:600;font-size:var(--fs-md);
   font-family:var(--font-display)}
 .cx-ask{font-size:var(--fs-xl);line-height:1.65;margin:0 0 1.2rem;max-width:40rem}
+.cx-opt{display:flex;gap:.4rem;flex-wrap:wrap}
 .cx-opt.big{flex-direction:column;align-items:stretch;gap:.5rem}
 .cx-opt.big button{text-align:left;padding:.7rem 1rem;border-radius:var(--r-sm);
   font-size:var(--fs-lg);color:var(--tx);background:var(--sf2);border:1px solid transparent}
@@ -297,6 +368,3 @@ h4.sec em{font-style:normal;font-weight:400;color:var(--tx3);font-size:var(--fs-
 .cx-a{margin-top:.9rem;font-size:var(--fs-md)}
 .cx-a.ok{color:var(--ac)}
 .cx-a.no{color:var(--wr)}
-
-/* 목차로 뛰었을 때 제목이 상단 바에 가리지 않게 */
-.cx-sec{scroll-margin-top:5rem}

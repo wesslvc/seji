@@ -1,0 +1,1003 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 세계지리 지엽개념 정리 — hwpx 원본을 구조화해 담았다. tools/build-codex.py 가 만든다. -->
+<codex title="세계지리 지엽개념 정리" status="draft" sections="31">
+  <section n="1" title="구소련 국가들(15개국)">
+    <item>발트3국, 캅카스3국, 중앙아시아 5개국, 러시아, 우크라이나, 벨라루스, 몰도바</item>
+  </section>
+  <section n="2" title="인도네시아의 종교명소">
+    <item>자바섬 : 보로부두르 사원 (불교)</item>
+    <item>발리섬 : 힌두교</item>
+  </section>
+  <section n="3" title="중남미 문명">
+    <item>마야 : 멕시코 남부(치아파스 주 이남) ~ 온두라스 &amp; 엘살바도르</item>
+    <item>아즈텍 : 멕시코 중부(멕시코시티 – 당시 테노치티틀란)</item>
+    <item>잉카 : 페루(수도 쿠스코), 에콰도르, 볼리비아,</item>
+    <line>칠레 북부, 콜롬비아남부, 아르헨티나 북서부 등</line>
+    <figure src="img/codex/image1.webp" caption="마야·아즈텍·잉카 문명의 분포"/>
+    <quiz>
+      <q a="마야">
+        <ask>멕시코 남부(치아파스 주 이남) ~ 온두라스 &amp; 엘살바도르</ask>
+        <opt>마야</opt>
+        <opt>아즈텍</opt>
+        <opt>잉카</opt>
+      </q>
+      <q a="아즈텍">
+        <ask>멕시코 중부(멕시코시티 – 당시 테노치티틀란)</ask>
+        <opt>아즈텍</opt>
+        <opt>마야</opt>
+        <opt>잉카</opt>
+      </q>
+      <q a="잉카">
+        <ask>페루(수도 쿠스코), 에콰도르, 볼리비아,</ask>
+        <opt>잉카</opt>
+        <opt>마야</opt>
+        <opt>아즈텍</opt>
+      </q>
+    </quiz>
+  </section>
+  <section n="4" title="지역화 전략들">
+    <item>지리적표시제 : 지적재산권</item>
+    <item>장소마케팅 : 축제 (태국 송끄란 -&gt; 건기끝나는시기에)</item>
+    <item>지역브랜드화 : 상표</item>
+    <quiz>
+      <q a="지리적표시제">
+        <ask>지적재산권</ask>
+        <opt>지리적표시제</opt>
+        <opt>장소마케팅</opt>
+        <opt>지역브랜드화</opt>
+      </q>
+      <q a="장소마케팅">
+        <ask>축제 (태국 송끄란 -&gt; 건기끝나는시기에)</ask>
+        <opt>장소마케팅</opt>
+        <opt>지리적표시제</opt>
+        <opt>지역브랜드화</opt>
+      </q>
+      <q a="지역브랜드화">
+        <ask>상표</ask>
+        <opt>지역브랜드화</opt>
+        <opt>지리적표시제</opt>
+        <opt>장소마케팅</opt>
+      </q>
+    </quiz>
+  </section>
+  <section n="5" title="서양의 고지도">
+    <sub title="1) 프톨레마이오스 지도 (AD)">
+      <item>지구가 구체임을 인식(경위선 사용)</item>
+      <item>원뿔도법</item>
+      <item>인도양 내해(內海)로 표현함(수특에도 있는 내용)</item>
+      <figure src="img/codex/image2.webp" caption="프톨레마이오스 세계지도"/>
+    </sub>
+    <sub title="2) TO지도">
+      <item>아시아 아프리카 경계는 홍해</item>
+      <item>유럽 아시아 경계는 지중해</item>
+      <item>아시아 유럽 경계는 타나이스(돈강)</item>
+      <note>(돈강은 모스크바, 우크라이나 일대를 지난다)</note>
+      <figure src="img/codex/image3.webp" caption="TO 지도"/>
+    </sub>
+    <sub title="3) 마파문디">
+      <figure src="img/codex/image4.webp" caption="마파문디"/>
+    </sub>
+    <sub title="4) 알 이드리시 세계지도">
+      <item>메카를 중심에 둠 (그러려고 뒤집음)</item>
+      <item>지구를 구체로 인식 (등기후선을 곡선으로 그림)</item>
+      <figure src="img/codex/image5.webp" caption="알 이드리시 세계지도"/>
+    </sub>
+    <sub title="5) 포르톨라노 해도海圖">
+      <item>향해용 지도</item>
+      <item>항구와 섬을 자세히 표현</item>
+      <item>나침반에서 여러개의 방사선 -&gt; 항로파악</item>
+      <figure src="img/codex/image6.webp" caption="포르톨라노 해도"/>
+    </sub>
+    <sub title="6) 메르카토르">
+      <item>신대륙 그려져있음</item>
+      <item>원통 도법 -&gt; 방위가 정확함</item>
+      <item>직선 = 등각항로(최단거리X)</item>
+      <item>고위도로 갈수록 면적확대</item>
+      <note>면적 확대의 이유는 실제로 위도가     올라갈수록 경선간 간격이 감소하는데</note>
+      <line>북극점, 남극점을 중심으로 펼치다보니</line>
+      <line>경산간 간격이 적도부터 고위도까지 모두   일치하게 되었기에 왜곡이 발생함</line>
+      <figure src="img/codex/image7.webp" caption="메르카토르 세계지도 (1569)"/>
+    </sub>
+    <quiz>
+      <q a="프톨레마이오스 지도 (AD)">
+        <ask>지구가 구체임을 인식(경위선 사용) · 원뿔도법</ask>
+        <opt>프톨레마이오스 지도 (AD)</opt>
+        <opt>TO지도</opt>
+        <opt>마파문디</opt>
+        <opt>알 이드리시 세계지도</opt>
+      </q>
+      <q a="TO지도">
+        <ask>아시아 아프리카 경계는 홍해 · 유럽 아시아 경계는 지중해</ask>
+        <opt>TO지도</opt>
+        <opt>프톨레마이오스 지도 (AD)</opt>
+        <opt>마파문디</opt>
+        <opt>알 이드리시 세계지도</opt>
+      </q>
+      <q a="알 이드리시 세계지도">
+        <ask>메카를 중심에 둠 (그러려고 뒤집음) · 지구를 구체로 인식 (등기후선을 곡선으로 그림)</ask>
+        <opt>알 이드리시 세계지도</opt>
+        <opt>프톨레마이오스 지도 (AD)</opt>
+        <opt>TO지도</opt>
+        <opt>마파문디</opt>
+      </q>
+      <q a="포르톨라노 해도海圖">
+        <ask>향해용 지도 · 항구와 섬을 자세히 표현</ask>
+        <opt>포르톨라노 해도海圖</opt>
+        <opt>프톨레마이오스 지도 (AD)</opt>
+        <opt>TO지도</opt>
+        <opt>마파문디</opt>
+      </q>
+      <q a="메르카토르">
+        <ask>신대륙 그려져있음 · 원통 도법 -&gt; 방위가 정확함</ask>
+        <opt>메르카토르</opt>
+        <opt>프톨레마이오스 지도 (AD)</opt>
+        <opt>TO지도</opt>
+        <opt>마파문디</opt>
+      </q>
+    </quiz>
+  </section>
+  <section n="6" title="우리나라의 고지도">
+    <sub title="1) 혼일강리역대국도지도 (1402)">
+      <item>중화사상 반영</item>
+      <item>구대륙 ∀반영</item>
+      <item>천원지방</item>
+      <note>대명혼일도와 굳이 구분하자면 한자의 길이, 우리나라의 크기로 구분가능</note>
+      <note>대명혼일도와 굳이 구분하자면22 대명혼일도가 먼저임</note>
+      <figure src="img/codex/image8.webp" caption="혼일강리역대국도지도 (1402)"/>
+    </sub>
+    <sub title="2) 천하도 (조선 중기)">
+      <item>민간에서 제작</item>
+      <item>중화사상</item>
+      <item>내대륙 현실 / 외대륙 상상 (=&gt; 도교사상반영)</item>
+      <item>천원지방</item>
+      <figure src="img/codex/image9.webp" caption="천하도"/>
+    </sub>
+    <sub title="3) 지구전후도">
+      <item>민간에서 제작</item>
+      <item>중화사상 &amp; 천원지방X</item>
+      <item>지구를 구체로 인식 (경위선, 회귀선O)</item>
+      <item>목판본 -&gt; 대량생산</item>
+      <figure src="img/codex/image10.webp" caption="지구전후도"/>
+    </sub>
+    <quiz>
+      <q a="혼일강리역대국도지도 (1402)">
+        <ask>중화사상 반영 · 구대륙 ∀반영</ask>
+        <opt>혼일강리역대국도지도 (1402)</opt>
+        <opt>천하도 (조선 중기)</opt>
+        <opt>지구전후도</opt>
+      </q>
+      <q a="천하도 (조선 중기)">
+        <ask>민간에서 제작 · 중화사상</ask>
+        <opt>천하도 (조선 중기)</opt>
+        <opt>혼일강리역대국도지도 (1402)</opt>
+        <opt>지구전후도</opt>
+      </q>
+      <q a="지구전후도">
+        <ask>민간에서 제작 · 중화사상 &amp; 천원지방X</ask>
+        <opt>지구전후도</opt>
+        <opt>혼일강리역대국도지도 (1402)</opt>
+        <opt>천하도 (조선 중기)</opt>
+      </q>
+    </quiz>
+  </section>
+  <section n="7" title="중국의 고지도">
+    <sub title="1) 화이도 (송나라 12세기)">
+      <item>중국 전체가 표현된 현존 가장 오래된 지도</item>
+      <item>천원지방</item>
+      <item>중화사상 (중국 확대, 타 지역 축소)</item>
+      <figure src="img/codex/image11.webp" caption="화이도"/>
+    </sub>
+    <sub title="2) 대명혼일도 (14세기 末)">
+      <item>천원지방</item>
+      <item>중화사상</item>
+      <figure src="img/codex/image12.webp" caption="대명혼일도"/>
+    </sub>
+    <sub title="3) 곤여만국전도 (17세기 초)">
+      <item>마테오리치(ITA) + 明 학자</item>
+      <item>태평양을 중앙에 배치</item>
+      <item>중화사상 &amp; 천원지방 OUT</item>
+      <item>지구를 구체로 인식</item>
+      <figure src="img/codex/image13.webp" caption="곤여만국전도"/>
+    </sub>
+    <quiz>
+      <q a="화이도 (송나라 12세기)">
+        <ask>중국 전체가 표현된 현존 가장 오래된 지도 · 천원지방</ask>
+        <opt>화이도 (송나라 12세기)</opt>
+        <opt>대명혼일도 (14세기 末)</opt>
+        <opt>곤여만국전도 (17세기 초)</opt>
+      </q>
+      <q a="대명혼일도 (14세기 末)">
+        <ask>천원지방 · 중화사상</ask>
+        <opt>대명혼일도 (14세기 末)</opt>
+        <opt>화이도 (송나라 12세기)</opt>
+        <opt>곤여만국전도 (17세기 초)</opt>
+      </q>
+      <q a="곤여만국전도 (17세기 초)">
+        <ask>마테오리치(ITA) + 明 학자 · 태평양을 중앙에 배치</ask>
+        <opt>곤여만국전도 (17세기 초)</opt>
+        <opt>화이도 (송나라 12세기)</opt>
+        <opt>대명혼일도 (14세기 末)</opt>
+      </q>
+    </quiz>
+  </section>
+  <section n="8" title="지리정보">
+    <item>공간정보 : 수리적 위치 &amp; 모양</item>
+    <item>관계정보 : 다른 장소의 이름과 함께 제시됨(수교 등)</item>
+    <item>속성 : (공간U관계)^c</item>
+    <quiz>
+      <q a="공간정보">
+        <ask>수리적 위치 &amp; 모양</ask>
+        <opt>공간정보</opt>
+        <opt>관계정보</opt>
+        <opt>속성</opt>
+      </q>
+      <q a="관계정보">
+        <ask>다른 장소의 이름과 함께 제시됨(수교 등)</ask>
+        <opt>관계정보</opt>
+        <opt>공간정보</opt>
+        <opt>속성</opt>
+      </q>
+      <q a="속성">
+        <ask>(공간U관계)^c</ask>
+        <opt>속성</opt>
+        <opt>공간정보</opt>
+        <opt>관계정보</opt>
+      </q>
+    </quiz>
+  </section>
+  <section n="9" title="시차 계산">
+    <item>동경 : GMT + -&gt; 시간 빠름</item>
+    <item>서경 : GMT - -&gt; 시간 느림</item>
+    <item>&gt; 15°당 1시간</item>
+  </section>
+  <section n="10" title="주요 위선">
+    <line>0°=&gt; 적도기니 케냐 싱가포르 에콰도르</line>
+    <note>사실 적도기니는 적도보다 아주 살짝 북쪽에 있어 지나지 않음 즉 가봉과 DRC가 적도를 지나는 것</note>
+    <line>23.5°N =&gt; 서사하라, UAE, 대만, 캘리포니아반도 끝</line>
+    <line>23.5°S =&gt; 나미비아, 호주관통, 남미 접선</line>
+  </section>
+  <section n="11" title="주요 경선">
+    <line>120°W =&gt; LA, SF</line>
+    <line>75°W -&gt; NY, DC</line>
+    <line>0°-&gt; 영국 &amp; 기니만</line>
+    <line>75°E -&gt; 인도관통</line>
+    <line>120°E -&gt; 북경, 호주서부</line>
+  </section>
+  <section n="12" title="지리정보 수집방법">
+    <item>직접조사 : 가서</item>
+    <item>원격조사 : 위성이나 드론으로</item>
+    <item>간접조사 : 인터넷, 문헌</item>
+    <quiz>
+      <q a="직접조사">
+        <ask>가서</ask>
+        <opt>직접조사</opt>
+        <opt>원격조사</opt>
+        <opt>간접조사</opt>
+      </q>
+      <q a="원격조사">
+        <ask>위성이나 드론으로</ask>
+        <opt>원격조사</opt>
+        <opt>직접조사</opt>
+        <opt>간접조사</opt>
+      </q>
+      <q a="간접조사">
+        <ask>인터넷, 문헌</ask>
+        <opt>간접조사</opt>
+        <opt>직접조사</opt>
+        <opt>원격조사</opt>
+      </q>
+    </quiz>
+  </section>
+  <section n="13" title="GPS VS GIS">
+    <line>GPS = Global Positioning System =&gt; 위치정보 수집</line>
+    <line>GIS = Geographic Information System =&gt; 분석 &amp; 시각화</line>
+  </section>
+  <section n="14" title="권역구분">
+    <item>자연적지표 : 기후, 식생, 토양, 지표, 자연 등</item>
+    <item>문화적 지표 : 언어, 종교, 음식 등 (애매하고 복잡)</item>
+    <item>기능적 지표 : 행정권, 생활권, 교통권 등 (ex 수도권)</item>
+    <quiz>
+      <q a="자연적지표">
+        <ask>기후, 식생, 토양, 지표, 자연 등</ask>
+        <opt>자연적지표</opt>
+        <opt>문화적 지표</opt>
+        <opt>기능적 지표</opt>
+      </q>
+      <q a="문화적 지표">
+        <ask>언어, 종교, 음식 등 (애매하고 복잡)</ask>
+        <opt>문화적 지표</opt>
+        <opt>자연적지표</opt>
+        <opt>기능적 지표</opt>
+      </q>
+      <q a="기능적 지표">
+        <ask>행정권, 생활권, 교통권 등 (ex 수도권)</ask>
+        <opt>기능적 지표</opt>
+        <opt>자연적지표</opt>
+        <opt>문화적 지표</opt>
+      </q>
+    </quiz>
+  </section>
+  <section n="15" title="계절풍">
+    <item>원리 : 대륙 &amp; 해양의 비열차로 바생</item>
+    <item>여름 : 남서풍 / 겨울 : 북동풍 (남아시아 기준)</item>
+  </section>
+  <section n="16" title="열대 이동성 저기압 명칭">
+    <item>태풍 : 동아시아,</item>
+    <item>허리케인 : 북대서양 북동태평양</item>
+    <item>사이클론 : 남반구 + 인도양</item>
+    <quiz>
+      <q a="태풍">
+        <ask>동아시아,</ask>
+        <opt>태풍</opt>
+        <opt>허리케인</opt>
+        <opt>사이클론</opt>
+      </q>
+      <q a="허리케인">
+        <ask>북대서양 북동태평양</ask>
+        <opt>허리케인</opt>
+        <opt>태풍</opt>
+        <opt>사이클론</opt>
+      </q>
+      <q a="사이클론">
+        <ask>남반구 + 인도양</ask>
+        <opt>사이클론</opt>
+        <opt>태풍</opt>
+        <opt>허리케인</opt>
+      </q>
+    </quiz>
+  </section>
+  <section n="17" title="다우지 多雨地">
+    <item>열대수렴대 지역 (Af, Am)</item>
+    <line>최대강수 : 방글라데시 삼각주 북쪽 (아삼주, 메갈라야주 – 체라푼지 11000mm+)</line>
+    <item>한대전선대 지역</item>
+    <line>노르웨이 서안 : 베르겐(Bergen) - 2250~2550mm</line>
+    <line>뉴질랜드 남서부 해안 : 밀포드 사운드(Milford Sound) - 6880mm</line>
+    <line>칠레 남부 해안 : 푸에트로 시스네스 (Puetro Cisnes) - 4336mm</line>
+    <line>캐나다 남서부 해안 : 밴쿠버(Vancouver) 후쿡툴리스 호수 – 6903mm</line>
+    <figure src="img/codex/image14.webp" caption="세계 연강수량"/>
+    <quiz>
+      <q a="최대강수">
+        <ask>방글라데시 삼각주 북쪽 (아삼주, 메갈라야주 – 체라푼지 11000mm+)</ask>
+        <opt>최대강수</opt>
+        <opt>노르웨이 서안</opt>
+        <opt>뉴질랜드 남서부 해안</opt>
+        <opt>칠레 남부 해안</opt>
+      </q>
+      <q a="노르웨이 서안">
+        <ask>베르겐(Bergen) - 2250~2550mm</ask>
+        <opt>노르웨이 서안</opt>
+        <opt>최대강수</opt>
+        <opt>뉴질랜드 남서부 해안</opt>
+        <opt>칠레 남부 해안</opt>
+      </q>
+      <q a="뉴질랜드 남서부 해안">
+        <ask>밀포드 사운드(Milford Sound) - 6880mm</ask>
+        <opt>뉴질랜드 남서부 해안</opt>
+        <opt>최대강수</opt>
+        <opt>노르웨이 서안</opt>
+        <opt>칠레 남부 해안</opt>
+      </q>
+      <q a="칠레 남부 해안">
+        <ask>푸에트로 시스네스 (Puetro Cisnes) - 4336mm</ask>
+        <opt>칠레 남부 해안</opt>
+        <opt>최대강수</opt>
+        <opt>노르웨이 서안</opt>
+        <opt>뉴질랜드 남서부 해안</opt>
+      </q>
+      <q a="캐나다 남서부 해안">
+        <ask>밴쿠버(Vancouver) 후쿡툴리스 호수 – 6903mm</ask>
+        <opt>캐나다 남서부 해안</opt>
+        <opt>최대강수</opt>
+        <opt>노르웨이 서안</opt>
+        <opt>뉴질랜드 남서부 해안</opt>
+      </q>
+    </quiz>
+  </section>
+  <section n="18" title="정오의 태양고도각">
+    <item>태양 고도각이 90도인 지점으로부터 거리에 반비례</item>
+  </section>
+  <section n="19" title="백야와 극야">
+    <item>부분 백/극야 (48~66.5도) - 박명(Twilight)이 이어져 초저녁같음</item>
+    <item>백/극야 (66.5도↑) - 자정에도 태양이 수평선보다 높게 떠있음</item>
+  </section>
+  <section n="20" title="낮길이">
+    <line>하지 : 90°N = 24시간 -&gt; 90°S 0시간</line>
+    <line>동지 : 90°S = 24시간 / 90°N  0시간</line>
+    <line>춘/추분 : 전지구 낮길이 동일(12시간)</line>
+    <quiz>
+      <q a="하지">
+        <ask>90°N = 24시간 -&gt; 90°S 0시간</ask>
+        <opt>하지</opt>
+        <opt>동지</opt>
+        <opt>춘/추분</opt>
+      </q>
+      <q a="동지">
+        <ask>90°S = 24시간 / 90°N  0시간</ask>
+        <opt>동지</opt>
+        <opt>하지</opt>
+        <opt>춘/추분</opt>
+      </q>
+      <q a="춘/추분">
+        <ask>전지구 낮길이 동일(12시간)</ask>
+        <opt>춘/추분</opt>
+        <opt>하지</opt>
+        <opt>동지</opt>
+      </q>
+    </quiz>
+  </section>
+  <section n="21" title="쾨펜의 기후구분 (경계값)">
+    <item>무수목 ↔ 수목 (연강수령 500+ &amp; 최난월기온 10+)</item>
+    <item>A열대 : 최한월 18+</item>
+    <item>B건조 : 연강수량 500-</item>
+    <item>C온대 : 최한월 -3~18</item>
+    <item>D냉대 : 최한월 –3↓</item>
+    <item>E한대 : 최난월 10↓</item>
+    <note>서안해양성은 최난월 기온 22도↓</note>
+    <note>열대의 건기 기준은 60+- / 온대 기준은 30 +</note>
+    <quiz>
+      <q a="A열대">
+        <ask>최한월 18+</ask>
+        <opt>A열대</opt>
+        <opt>B건조</opt>
+        <opt>C온대</opt>
+        <opt>D냉대</opt>
+      </q>
+      <q a="B건조">
+        <ask>연강수량 500-</ask>
+        <opt>B건조</opt>
+        <opt>A열대</opt>
+        <opt>C온대</opt>
+        <opt>D냉대</opt>
+      </q>
+      <q a="C온대">
+        <ask>최한월 -3~18</ask>
+        <opt>C온대</opt>
+        <opt>A열대</opt>
+        <opt>B건조</opt>
+        <opt>D냉대</opt>
+      </q>
+      <q a="D냉대">
+        <ask>최한월 –3↓</ask>
+        <opt>D냉대</opt>
+        <opt>A열대</opt>
+        <opt>B건조</opt>
+        <opt>C온대</opt>
+      </q>
+      <q a="E한대">
+        <ask>최난월 10↓</ask>
+        <opt>E한대</opt>
+        <opt>A열대</opt>
+        <opt>B건조</opt>
+        <opt>C온대</opt>
+      </q>
+    </quiz>
+  </section>
+  <section n="22" title="쾨펜의 기후구분별 구체적 위치">
+    <line>Af : 적도일대,</line>
+    <note>의외로 아프리카는 Af가 거의 없다 – 키상가니(DRC)이외에는 거의 출제되지 않는 듯 하다</note>
+    <line>Am : 아마존, 마이애미, 뭄바이, 인도차이나, 필리핀</line>
+    <line>Aw : 적도 – 회귀선 사이 분포</line>
+    <note>마사이마라(케냐) =&gt; 적도이지만 Aw</note>
+    <line>BW</line>
+    <note>일부 난류지역에 한류사막이 존재한다면 그것은 용승으로 인한 것</note>
+    <figure src="img/codex/image15.webp" caption="쾨펜·가이거 기후 구분 (1991–2020)"/>
+    <sub title="1) 연중아열대 고압대 사막">
+      <line>사하라 사막 / 아라비아사막</line>
+      <line>소노란 사막 (미국 남서부, 멕시코 북서부 – 캘리포니아반도)</line>
+      <line>치와와 사막 (미국 남서부, 멕시코) / 칼라하리 사막 – (아프리카 남동부)</line>
+      <line>그레이트빅토리아 &amp; 그레이트 샌디 사막 (호주) / 타르 사막 (인도-파키스탄)</line>
+      <figure src="img/codex/image16.webp" caption="세계의 사막 분류 — 아열대 고압대·한류·내륙·비그늘"/>
+    </sub>
+    <sub title="2) 한류사막">
+      <line>아타카마 사막 (칠레) - 페루헤류 / 나미브 사막 (나미비아) - 벵겔라해류</line>
+      <line>바히칼리포르니아 사막(멕시코) – 캘리포니아 한류</line>
+    </sub>
+    <sub title="3) 내륙사막">
+      <line>고비사막 (몽골- 중국) /타클라마칸 사막 (중국 신장지구)</line>
+      <line>투르케스탄/카라쿰 사막 (투르크메니스탄)</line>
+      <line>키질쿰 사막 (우즈벡 – 카자흐)</line>
+    </sub>
+    <sub title="4) 비그늘사막">
+      <line>파타고니아 산맥(아르헨티나) – 안데스산맥</line>
+      <line>모하비사막(미국) - 시에라네바다산맥</line>
+      <line>그레이트베이슨 사막 – 시에라네바다 &amp; 케스케이드 산맥</line>
+      <note>베네수엘라 마라카이보호수 남동부는 일대는 번개가 가장 많이 치는 호수이지만 북서부는 아열대고압대 사막</note>
+      <note>마라카이보호수의 카타툼보 번개는 출제확률이 낮으나 알아두면 좋을듯</note>
+      <line>BS</line>
+      <line>사헬(사하라 남쪽)</line>
+      <line>중앙아시아 &amp; 몽골의 초원</line>
+      <line>ET</line>
+      <line>푼타아레나스, 우수아이아 + 북극해연안</line>
+      <line>EF</line>
+      <line>그린란드 내륙 + 남극대륙</line>
+    </sub>
+    <quiz>
+      <q a="Af">
+        <ask>적도일대,</ask>
+        <opt>Af</opt>
+        <opt>Am</opt>
+        <opt>Aw</opt>
+      </q>
+      <q a="Am">
+        <ask>아마존, 마이애미, 뭄바이, 인도차이나, 필리핀</ask>
+        <opt>Am</opt>
+        <opt>Af</opt>
+        <opt>Aw</opt>
+      </q>
+      <q a="Aw">
+        <ask>적도 – 회귀선 사이 분포</ask>
+        <opt>Aw</opt>
+        <opt>Af</opt>
+        <opt>Am</opt>
+      </q>
+    </quiz>
+  </section>
+  <section n="23" title="열대기후">
+    <item>이동식 화전(자급적, 광범위) / 플랜테이션(기업적, 국지적)</item>
+    <item>토양 : 라테라이트(산화철 -&gt; 적색) =&gt; 벽돌로 주로 사용됨</item>
+    <line>Af (열대우림)</line>
+    <item>이동식화전 : 옥수수, 카사바 재배</item>
+    <item>플랜테이션 : 기호작물, 공업원료</item>
+    <item>식생 : 상록활엽수, 밀림, 생물 다양성 가장큼</item>
+    <item>가옥 : 고상가옥 or 수상가옥 (지붕경사↑-강수량 多때문)</item>
+    <note>스콜을 피하기 위해 한쪽벽이 없는 회랑구조도 많이 이용된다</note>
+    <note>고상가옥은 해충과 지열, 호우로부터 집을 지켜준다</note>
+    <line>Aw (사바나)</line>
+    <item>플랜테이션 : 목화, 커피, 사탕수수</item>
+    <item>식생 : 소림(ex 아카시아), 장초</item>
+    <line>Am (열대몬순)</line>
+    <item>플랜테이션 : 차(스리랑카 인도네시아 등)</item>
+    <item>쌀의 2~3기작</item>
+    <item>식생 : 밀림(정글)</item>
+    <item>가옥 : 고상가옥 or 수상가옥</item>
+    <note>캄보디아의 앙코르와트는 라테라이트로 만든 벽돌을 이용해 만들었음</note>
+    <note>케냐와 탄자니아의 마사이족은 유목을 함</note>
+    <note>AH는 감자와 맥류 등 냉량성 작물을 재배함. 야크(TIBET) / 라마&amp;알파카(ANDES)</note>
+    <quiz>
+      <q a="라테라이트(산화철 -&gt; 적색) =&gt; 벽돌로 주로 사용됨">
+        <ask>「열대기후」의 토양은?</ask>
+        <opt>라테라이트(산화철 -&gt; 적색) =&gt; 벽돌로 주로 사용됨</opt>
+        <opt>회백색의 강산성 (포드졸)</opt>
+        <opt>사막토(염류토)</opt>
+        <opt>흑토(초원의 유기물이 풍부해 가장 비옥함)</opt>
+      </q>
+      <q a="상록활엽수, 밀림, 생물 다양성 가장큼">
+        <ask>「열대기후」의 식생은?</ask>
+        <opt>상록활엽수, 밀림, 생물 다양성 가장큼</opt>
+        <opt>혼합림(활엽수 + 침엽수)- 토양 : 갈색토</opt>
+        <opt>경엽수림 (올리브, 오렌즈 등) -&gt; 여름건기에 버틸수있도록</opt>
+        <opt>침엽수림(타이가) -&gt; 단일수종 집적 =&gt; 세계적 임업지역</opt>
+      </q>
+      <q a="고상가옥 or 수상가옥 (지붕경사↑-강수량 多때문)">
+        <ask>「열대기후」의 가옥은?</ask>
+        <opt>고상가옥 or 수상가옥 (지붕경사↑-강수량 多때문)</opt>
+        <opt>건물의 외벽 흰색 -&gt; 햇빛 반사 / 작은창, 두꺼운 벽, 좁은 골목</opt>
+        <opt>두꺼운 흙벽, 평평한 지붕, 좁은 골목 -&gt; 그늘형성, 작은창문</opt>
+        <opt>유목이 용이하도록 이동식 가옥</opt>
+      </q>
+    </quiz>
+  </section>
+  <section n="24" title="온대기후">
+    <item>식생 : 혼합림(활엽수 + 침엽수)- 토양 : 갈색토</item>
+    <line>Cs (지중해성)</line>
+    <item>여름 : 수목樹木농업</item>
+    <item>겨울 : 냉량성작물 + 채소</item>
+    <item>식생 : 경엽수림 (올리브, 오렌즈 등) -&gt; 여름건기에 버틸수있도록</item>
+    <item>가옥 : 건물의 외벽 흰색 -&gt; 햇빛 반사 / 작은창, 두꺼운 벽, 좁은 골목</item>
+    <note>(모로코 – 카사블랑카 / 그리스 – 산토리니섬 등이 대표적)</note>
+    <note>사막의 가옥과 상당히 유사하다. 여름철 기후가 사막기후와 비슷하게 일조시간이 길고 뜨거우므로</note>
+    <line>단열에 적합하도록 지어졌다</line>
+    <line>Cfb (서안해양성)</line>
+    <item>혼합농업(식량+가축+사료) / 낙농업+원예농업(북해연안)</item>
+    <item>냉량성작물 재배</item>
+    <line>Cfa or Cw (동안형기후)</line>
+    <item>동아시아 : 벼농사</item>
+    <item>북미 남동부 : 옥수수(오대호 남쪽) / 목화(미국 남동부)</item>
+    <item>남미 남동부 : 팜파스 -&gt; 밀농사 + 목축업</item>
+    <quiz>
+      <q a="혼합림(활엽수 + 침엽수)- 토양 : 갈색토">
+        <ask>「온대기후」의 식생은?</ask>
+        <opt>혼합림(활엽수 + 침엽수)- 토양 : 갈색토</opt>
+        <opt>상록활엽수, 밀림, 생물 다양성 가장큼</opt>
+        <opt>소림(ex 아카시아), 장초</opt>
+        <opt>밀림(정글)</opt>
+      </q>
+      <q a="건물의 외벽 흰색 -&gt; 햇빛 반사 / 작은창, 두꺼운 벽, 좁은 골목">
+        <ask>「온대기후」의 가옥은?</ask>
+        <opt>건물의 외벽 흰색 -&gt; 햇빛 반사 / 작은창, 두꺼운 벽, 좁은 골목</opt>
+        <opt>고상가옥 or 수상가옥 (지붕경사↑-강수량 多때문)</opt>
+        <opt>두꺼운 흙벽, 평평한 지붕, 좁은 골목 -&gt; 그늘형성, 작은창문</opt>
+        <opt>유목이 용이하도록 이동식 가옥</opt>
+      </q>
+      <q a="여름">
+        <ask>수목樹木농업</ask>
+        <opt>여름</opt>
+        <opt>겨울</opt>
+        <opt>동아시아</opt>
+        <opt>북미 남동부</opt>
+      </q>
+      <q a="겨울">
+        <ask>냉량성작물 + 채소</ask>
+        <opt>겨울</opt>
+        <opt>여름</opt>
+        <opt>동아시아</opt>
+        <opt>북미 남동부</opt>
+      </q>
+      <q a="동아시아">
+        <ask>벼농사</ask>
+        <opt>동아시아</opt>
+        <opt>여름</opt>
+        <opt>겨울</opt>
+        <opt>북미 남동부</opt>
+      </q>
+      <q a="북미 남동부">
+        <ask>옥수수(오대호 남쪽) / 목화(미국 남동부)</ask>
+        <opt>북미 남동부</opt>
+        <opt>여름</opt>
+        <opt>겨울</opt>
+        <opt>동아시아</opt>
+      </q>
+      <q a="남미 남동부">
+        <ask>팜파스 -&gt; 밀농사 + 목축업</ask>
+        <opt>남미 남동부</opt>
+        <opt>여름</opt>
+        <opt>겨울</opt>
+        <opt>동아시아</opt>
+      </q>
+    </quiz>
+  </section>
+  <section n="25" title="냉대기후(Dw, Df)">
+    <item>냉량성작물 재배</item>
+    <item>식생 : 침엽수림(타이가) -&gt; 단일수종 집적 =&gt; 세계적 임업지역</item>
+    <item>토양 : 회백색의 강산성 (포드졸)</item>
+    <quiz>
+      <q a="침엽수림(타이가) -&gt; 단일수종 집적 =&gt; 세계적 임업지역">
+        <ask>「냉대기후(Dw, Df)」의 식생은?</ask>
+        <opt>침엽수림(타이가) -&gt; 단일수종 집적 =&gt; 세계적 임업지역</opt>
+        <opt>상록활엽수, 밀림, 생물 다양성 가장큼</opt>
+        <opt>소림(ex 아카시아), 장초</opt>
+        <opt>밀림(정글)</opt>
+      </q>
+      <q a="회백색의 강산성 (포드졸)">
+        <ask>「냉대기후(Dw, Df)」의 토양은?</ask>
+        <opt>회백색의 강산성 (포드졸)</opt>
+        <opt>라테라이트(산화철 -&gt; 적색) =&gt; 벽돌로 주로 사용됨</opt>
+        <opt>사막토(염류토)</opt>
+        <opt>흑토(초원의 유기물이 풍부해 가장 비옥함)</opt>
+      </q>
+    </quiz>
+  </section>
+  <section n="26" title="건조기후">
+    <line>BW(사막)</line>
+    <item>관개농업 : 오아시스, 외래하천, 지하관개수로(카나트), 안개집수, 해수담수화</item>
+    <note>외래하천이란 건조기후가 아닌곳에서 발원하여 사막을 통과하는 하천</note>
+    <item>작물 : 대추야자, 밀(내건성 내한성↑)</item>
+    <item>가축 : 염소, 양, 낙타</item>
+    <item>토양 : 사막토(염류토)</item>
+    <item>가옥 : 두꺼운 흙벽, 평평한 지붕, 좁은 골목 -&gt; 그늘형성, 작은창문</item>
+    <note>강수량이 적고 건조하므로 단열성능을 높이고 햇빛을 피하기위한 구조가 나타난다</note>
+    <note>식생은 선인장 등을 제외하면 거의 없다고 보면 된다</note>
+    <line>스텝(BS)</line>
+    <item>목축(구대륙은 유목, 신대륙은 방목, 알프스는 이목)</item>
+    <item>밀농사</item>
+    <item>호주의 대찬정분지</item>
+    <item>가옥 : 유목이 용이하도록 이동식 가옥</item>
+    <item>식생 : 단초초원</item>
+    <item>토양 : 흑토(초원의 유기물이 풍부해 가장 비옥함)</item>
+    <item>흑토의 분포– 체르노젬(우크라이나 일대) / 프레리토 (로키-오대호 사이) -&gt; 밀</item>
+    <note>명칭 – 중국 파오, 몽골 게르, 중앙아시아 유르트*수특에도 있는 내용이지만 툰드라와 알프스의 이목은 상당히 비슷한데</note>
+    <line>여름같은경우는 고지대도 풀이 있고 저지대도 풀이있으니까 저지대 풀을 아끼고 겨울에는 저지대에만 있으니까</line>
+    <line>저지대 풀을 먹이는 식으로 작동한다.</line>
+    <quiz>
+      <q a="사막토(염류토)">
+        <ask>「건조기후」의 토양은?</ask>
+        <opt>사막토(염류토)</opt>
+        <opt>라테라이트(산화철 -&gt; 적색) =&gt; 벽돌로 주로 사용됨</opt>
+        <opt>회백색의 강산성 (포드졸)</opt>
+      </q>
+      <q a="두꺼운 흙벽, 평평한 지붕, 좁은 골목 -&gt; 그늘형성, 작은창문">
+        <ask>「건조기후」의 가옥은?</ask>
+        <opt>두꺼운 흙벽, 평평한 지붕, 좁은 골목 -&gt; 그늘형성, 작은창문</opt>
+        <opt>고상가옥 or 수상가옥 (지붕경사↑-강수량 多때문)</opt>
+        <opt>건물의 외벽 흰색 -&gt; 햇빛 반사 / 작은창, 두꺼운 벽, 좁은 골목</opt>
+        <opt>춈(텐트형주거시설) -&gt; 순록유목을 위함 / 이글루 : 사냥용 임시가옥</opt>
+      </q>
+      <q a="단초초원">
+        <ask>「건조기후」의 식생은?</ask>
+        <opt>단초초원</opt>
+        <opt>상록활엽수, 밀림, 생물 다양성 가장큼</opt>
+        <opt>소림(ex 아카시아), 장초</opt>
+        <opt>밀림(정글)</opt>
+      </q>
+      <q a="관개농업">
+        <ask>오아시스, 외래하천, 지하관개수로(카나트), 안개집수, 해수담수화</ask>
+        <opt>관개농업</opt>
+        <opt>작물</opt>
+        <opt>가축</opt>
+      </q>
+      <q a="작물">
+        <ask>대추야자, 밀(내건성 내한성↑)</ask>
+        <opt>작물</opt>
+        <opt>관개농업</opt>
+        <opt>가축</opt>
+      </q>
+      <q a="가축">
+        <ask>염소, 양, 낙타</ask>
+        <opt>가축</opt>
+        <opt>관개농업</opt>
+        <opt>작물</opt>
+      </q>
+    </quiz>
+  </section>
+  <section n="27" title="한대 기후">
+    <line>툰드라(ET)</line>
+    <item>여름에 고위도 / 겨울에 저위도로 이동 -&gt; 순록 유목</item>
+    <item>지구온난화 -&gt; 농경 &amp; 목축 일부 가능</item>
+    <item>가옥 : 춈(텐트형주거시설) -&gt; 순록유목을 위함 / 이글루 : 사냥용 임시가옥</item>
+    <item>) 고상가옥 – 난방열로인해 활동층이 융해되는 것을 방지한다</item>
+    <note>고상가옥은 그래서 기둥을 영구동토층에 심는데, 영구동토층이 지구온난화로 융해되면서 사고가 발생하는 중</note>
+    <note>춈은 러시아 북서시베리아 지역에서, 이글루는 이누이트족(알래스카, 캐나다, 그린란드)</note>
+    <line>빙설(EF)</line>
+    <item>농업X</item>
+    <item>식생X</item>
+    <item>남극 : 세종기지, 장보고기지 / 평균해발고도가 가장 높은 대륙</item>
+    <item>북극 : 다산기지(스발바르제도 NOR)</item>
+    <item>북극항로 : 지구온난화로 이용가능기간이 늘어나며 주목</item>
+    <note>남극의 평균 해발고도는2300m이며 두꺼운 대륙빙하로 인해 해발고도가 높은 것이다.</note>
+    <note>북극은 자원 등으로 인해 분쟁이 많으나 남극은 협약으로 인해 분쟁이 없다</note>
+    <note>전 기후 중 유일하게 빙설기후는 사람이 살지않는다</note>
+    <quiz>
+      <q a="춈(텐트형주거시설) -&gt; 순록유목을 위함 / 이글루 : 사냥용 임시가옥">
+        <ask>「한대 기후」의 가옥은?</ask>
+        <opt>춈(텐트형주거시설) -&gt; 순록유목을 위함 / 이글루 : 사냥용 임시가옥</opt>
+        <opt>고상가옥 or 수상가옥 (지붕경사↑-강수량 多때문)</opt>
+        <opt>건물의 외벽 흰색 -&gt; 햇빛 반사 / 작은창, 두꺼운 벽, 좁은 골목</opt>
+        <opt>두꺼운 흙벽, 평평한 지붕, 좁은 골목 -&gt; 그늘형성, 작은창문</opt>
+      </q>
+      <q a="남극">
+        <ask>세종기지, 장보고기지 / 평균해발고도가 가장 높은 대륙</ask>
+        <opt>남극</opt>
+        <opt>북극</opt>
+        <opt>북극항로</opt>
+      </q>
+      <q a="북극">
+        <ask>다산기지(스발바르제도 NOR)</ask>
+        <opt>북극</opt>
+        <opt>남극</opt>
+        <opt>북극항로</opt>
+      </q>
+      <q a="북극항로">
+        <ask>지구온난화로 이용가능기간이 늘어나며 주목</ask>
+        <opt>북극항로</opt>
+        <opt>남극</opt>
+        <opt>북극</opt>
+      </q>
+    </quiz>
+  </section>
+  <section n="28" title="대지형">
+    <line>내적영력 = 맨틀의 대류</line>
+    <item>조륙(융기, 침강), 조산(습곡, 단층), 화산 활동 등을 일으킴</item>
+    <line>안정육괴</line>
+    <item>시생누대, 원생누대에 조산운동을 받음 -&gt; 오랜침식으로 평탄</item>
+    <item>분포 : 대륙 내부(시베리아, 발트, 로렌시아, 아프리카 브라질, 호주, 인도)</item>
+    <item>자원 : 철광석 풍부</item>
+    <line>고기습곡산지</line>
+    <item>고생대 조산운동을 받음 -&gt; 오랜침식으로 완만 (과거 판의 경계)</item>
+    <item>분포 : 그레이트디바이딩, 애팔래치아, 드라켄즈버그, 스칸디나비아, 우랄 등</item>
+    <item>자원 : 석탄 등이 풍부</item>
+    <line>신기습곡산지</line>
+    <item>중생대 말 ~ 신생대에 조산운동을 받음 -&gt; 현재 판의 경계</item>
+    <item>&gt; 지진과 화산이 활발하고 높고 험준한 산지</item>
+    <item>환태평양 조산대 : 태평양 연안 대부분에 위치</item>
+    <item>알프스 히말라야 조산대</item>
+    <item>&gt; (유라시아판)과 (아프리카판, 아라비아판, 인도호주판)이 만나는 지점 모두</item>
+    <item>자원 : 석유 천연가스, 구리, 주석 (석유와 천연가스의 60%가량 매장됨)</item>
+    <note>110611 -수마트라섬과 자바섬은 알프스 히말라야 조산대임을 알아야하는 기출이 있다</note>
+    <note>발산형경계는 조산대가 아니다.(신기습곡X)</note>
+    <figure src="img/codex/image17.webp" caption="관련 기출 — 수마트라섬과 자바섬"/>
+  </section>
+  <section n="29" title="판 구조">
+    <line>대륙판</line>
+    <line>아라비아판</line>
+    <line>해양판</line>
+    <line>코코스판, 필리핀판, 나스카판, 태평양판</line>
+    <note>지도상 육지는 대륙판, 바다는 해양판으로 간주하면 됨</note>
+    <line>(기타생략)</line>
+    <line>보존형경계</line>
+    <line>후안데푸카판 남쪽 태평양판 + 북미판 -&gt; 산안드레아스 단층</line>
+    <line>뉴질랜드 알파인 단층대 -&gt; 남섬에 위치(화산X, 빙하 多)</line>
+    <figure src="img/codex/image18.webp" caption="세계의 판 구조"/>
+  </section>
+  <section n="30" title="화산">
+    <line>현무암질</line>
+    <item>순상화산 : 하와이(열점)</item>
+    <item>용암대지 : 열하분출 (미국 북서부 컬럼비아고원, 데칸고원 북서부)</item>
+    <item>용암동굴 : 높은 유동성의 현무암질이 흘러내리며 형성</item>
+    <line>유문, 조면, 안산암질</line>
+    <item>성층화산 : 용암과 화산쇄설물이 교대로 분출 (세계 유명화산 대부분)</item>
+    <note>킬리만자로, 후지, 마욘산 등이 해당함</note>
+    <item>용암돔(종상화산) : 가장 용암의 점성이 강함, 화구 함몰 -&gt; 칼데라(분지)</item>
+    <note>화구호는 함몰되지않은채로 물이 고인 것이고, 칼데라호는 함몰이후에 물이고인 것(천지, 백록담은 화구호)</note>
+    <note>중앙화구구는 함몰 이후에 형성된다*대표적 위치는 크레이터호, 로토루아호, 토바호, 아이라칼데라, 옐로스톤국립공원 등이 있다.</note>
+    <line>기타 화산지형</line>
+    <item>주상절리 – 용암의 냉각수축 -&gt; 기둥모양으로 형성됨</item>
+    <item>간헐천 : 온천수 + 수증기 -&gt; 주기적으로 솟구치는 온천</item>
+    <line>화산지대장점</line>
+    <item>무기질 多 토양 -&gt; 농업에 유리함(일본의 간토평야)</item>
+    <item>관광자원 : 온천 -&gt; 일본(벳푸), 아이슬란드(블루라곤) / 간헐천 -&gt; 옐로스톤</item>
+    <item>지열발전 가능</item>
+    <item>지하자원 多 -&gt; 각종 금속광물 (칠레 구리1위, 멕시코 은 1위)</item>
+    <quiz>
+      <q a="순상화산">
+        <ask>하와이(열점)</ask>
+        <opt>순상화산</opt>
+        <opt>용암대지</opt>
+        <opt>용암동굴</opt>
+        <opt>성층화산</opt>
+      </q>
+      <q a="용암대지">
+        <ask>열하분출 (미국 북서부 컬럼비아고원, 데칸고원 북서부)</ask>
+        <opt>용암대지</opt>
+        <opt>순상화산</opt>
+        <opt>용암동굴</opt>
+        <opt>성층화산</opt>
+      </q>
+      <q a="용암동굴">
+        <ask>높은 유동성의 현무암질이 흘러내리며 형성</ask>
+        <opt>용암동굴</opt>
+        <opt>순상화산</opt>
+        <opt>용암대지</opt>
+        <opt>성층화산</opt>
+      </q>
+      <q a="성층화산">
+        <ask>용암과 화산쇄설물이 교대로 분출 (세계 유명화산 대부분)</ask>
+        <opt>성층화산</opt>
+        <opt>순상화산</opt>
+        <opt>용암대지</opt>
+        <opt>용암동굴</opt>
+      </q>
+      <q a="간헐천">
+        <ask>온천수 + 수증기 -&gt; 주기적으로 솟구치는 온천</ask>
+        <opt>간헐천</opt>
+        <opt>순상화산</opt>
+        <opt>용암대지</opt>
+        <opt>용암동굴</opt>
+      </q>
+      <q a="관광자원">
+        <ask>온천 -&gt; 일본(벳푸), 아이슬란드(블루라곤) / 간헐천 -&gt; 옐로스톤</ask>
+        <opt>관광자원</opt>
+        <opt>순상화산</opt>
+        <opt>용암대지</opt>
+        <opt>용암동굴</opt>
+      </q>
+    </quiz>
+  </section>
+  <section n="31" title="소지형(외적영력)">
+    <line>외적영력</line>
+    <item>태양, 바람, 파도, 강물 등 -&gt; 풍화와 침식, 운반, 퇴적, 등</item>
+    <item>풍화 : 때리지 않아도 깨지거나(기계적) 녹는 것(화학적)</item>
+    <item>침식 : 물리적 타격으로 깨짐</item>
+    <line>카르스트지형</line>
+    <item>석회함의 용식으로 형성된 지형들(탄산수에 더 쉽게 용식됨)</item>
+    <item>배수가 양호해 밭농사 / 대부분 건천</item>
+    <item>고온다습할수록 용식작용 활발</item>
+    <sub title="1) 와지(웅덩이)">
+      <item>돌리네 여러개 우발라 더 크면 폴리예(평탄한 분지)</item>
+    </sub>
+    <sub title="2) 카렌">
+      <item>차별 용식 + 부분침식</item>
+      <item>뾰족한 기둥군락</item>
+      <item>마다가스카르 그랑칭기, 중국 원난성 석림</item>
+    </sub>
+    <sub title="3) 탑 카르스트">
+      <item>차별 용식 + 부분침식</item>
+      <item>봉우리</item>
+      <item>중국 남부 구이린, 베트남 하롱베이, 필리핀 초콜릿 힐스</item>
+    </sub>
+    <sub title="4) 석회화 단구">
+      <item>경사지 -&gt; 침전</item>
+      <item>터키 파묵칼레, 중국 쓰촨성 황룽</item>
+    </sub>
+    <sub title="5) 석회동굴">
+      <item>바닥에서 석순, 천장에서 종유석 자라나고, 합쳐지면 석주</item>
+    </sub>
+    <sub title="6) 테라로사 – 비가용성 물질이 잔류하여 붉게보이는 토양">
+      <line>(라테라이트처럼 농사에 어려움이있음)</line>
+      <line>건조지형</line>
+      <line>바람</line>
+      <item>사구 : 바람받이 완사면 (여러개 바르한) - 퇴적</item>
+      <item>버섯바위 : 차별침식</item>
+      <item>삼릉석 : 차별침식</item>
+      <item>사막포도 : 침식(무거운 돌만 남고 가벼운것들은 날아가서 형성됨)</item>
+      <line>유수</line>
+      <item>와디 : 건천(교통로) (포상홍수침식 -&gt; 비가 오면 흐름)</item>
+      <item>플라야 : 염호 -&gt; NaCl, Li 등 채취</item>
+      <item>선상지 : 경사가 급변하는 곡구에서 형성되는 퇴적완사면 (여러개 바하다)</item>
+      <note>분급이 양호하지는 않으나 대체로 아래로 내려갈수록 입자 크기 작아짐</note>
+      <item>메사 &amp; 뷰트 : 상단이 경암층, 미국 남서부 내륙, 유수에 의한 차별침식</item>
+      <line>빙하지형</line>
+      <item>과거 빙하 지역 (영국이북, 오대호이북, 뉴질랜드 남섬, 칠레 남부)</item>
+      <note>과거 배링해, 북해, 황해, 남해, 호주-뉴기니섬 사이 등이 육지였음</note>
+      <line>침식</line>
+      <item>산정빙하 (혼 : 봉우리 / 권곡 : 삼면이 절벽인 반구형 와지)</item>
+      <item>U자곡 : V자곡(하식곡)이 빙하에 의해 침식 -&gt; 이후 물이 차면 피오르</item>
+      <item>현곡 : 지류빙하는 본류빙하보다 약해서 덜파임</item>
+      <item>&gt; 다 파이고나서 보면 위에 걸려있음 =&gt; 폭포형성됨 (수력발전에 유리)</item>
+      <note>노르웨이가 대표적이다</note>
+      <line>퇴적</line>
+      <item>모레인(빙퇴석) : 빙하 테두리 따라 밀려온 것(분급X) -&gt; 앞에있는게 더 이름</item>
+      <item>드럼린 : 부딪히는 쪽이 급사면, 집단적 분포, 숟가락 엎은 모양</item>
+      <item>에스커 : 융빙수 퇴적 -&gt; 분급양호, 제방모양</item>
+      <item>빙력토 평원 : 빙하 퇴적물이 있는 평원 -&gt; 평평해서 물이 자주 고여 습지 多</item>
+      <line>기타(빙하호)</line>
+      <item>빙하 녹은 물이 고이거나, 빙하 퇴적물이 하천을 막아 형성 or 권곡호</item>
+      <note>오대호는 대표적인 빙하호이다.</note>
+      <line>주빙하지형</line>
+      <item>툰드라 기후에서 주로 나타남</item>
+      <item>결빙과 융해 반복 -&gt; 지형형성</item>
+      <item>구조토 : 활동층의 결빙과 융해 -&gt; 패턴 (여름에는 물이 고여 거북등 연못)</item>
+      <note>활동층은 배수가 불량하다</note>
+      <item>솔리플럭션 : 활동층 -&gt; 여름철 융해되며 활동층 흘러내림(경사지)</item>
+      <item>기계적풍화 : 얼음의 쐐기작용 -&gt; 애추 형성</item>
+      <note>바위 고인틈 물이 얼면서 팽창 -&gt; 얼음이 부서져내리며 산사면에서 송곳모양의 애추가 나타남</note>
+    </sub>
+    <quiz>
+      <q a="카렌">
+        <ask>차별 용식 + 부분침식 · 뾰족한 기둥군락</ask>
+        <opt>카렌</opt>
+        <opt>와지(웅덩이)</opt>
+        <opt>탑 카르스트</opt>
+        <opt>석회화 단구</opt>
+      </q>
+      <q a="탑 카르스트">
+        <ask>차별 용식 + 부분침식 · 중국 남부 구이린, 베트남 하롱베이, 필리핀 초콜릿 힐스</ask>
+        <opt>탑 카르스트</opt>
+        <opt>와지(웅덩이)</opt>
+        <opt>카렌</opt>
+        <opt>석회화 단구</opt>
+      </q>
+      <q a="석회화 단구">
+        <ask>경사지 -&gt; 침전 · 터키 파묵칼레, 중국 쓰촨성 황룽</ask>
+        <opt>석회화 단구</opt>
+        <opt>와지(웅덩이)</opt>
+        <opt>카렌</opt>
+        <opt>탑 카르스트</opt>
+      </q>
+      <q a="테라로사 – 비가용성 물질이 잔류하여 붉게보이는 토양">
+        <ask>사구 : 바람받이 완사면 (여러개 바르한) - 퇴적 · 버섯바위 : 차별침식</ask>
+        <opt>테라로사 – 비가용성 물질이 잔류하여 붉게보이는 토양</opt>
+        <opt>와지(웅덩이)</opt>
+        <opt>카렌</opt>
+        <opt>탑 카르스트</opt>
+      </q>
+      <q a="풍화">
+        <ask>때리지 않아도 깨지거나(기계적) 녹는 것(화학적)</ask>
+        <opt>풍화</opt>
+        <opt>침식</opt>
+        <opt>사구</opt>
+        <opt>버섯바위</opt>
+      </q>
+      <q a="침식">
+        <ask>물리적 타격으로 깨짐</ask>
+        <opt>침식</opt>
+        <opt>풍화</opt>
+        <opt>사구</opt>
+        <opt>버섯바위</opt>
+      </q>
+      <q a="사구">
+        <ask>바람받이 완사면 (여러개 바르한) - 퇴적</ask>
+        <opt>사구</opt>
+        <opt>풍화</opt>
+        <opt>침식</opt>
+        <opt>버섯바위</opt>
+      </q>
+      <q a="버섯바위">
+        <ask>차별침식</ask>
+        <opt>버섯바위</opt>
+        <opt>풍화</opt>
+        <opt>침식</opt>
+        <opt>사구</opt>
+      </q>
+    </quiz>
+  </section>
+</codex>

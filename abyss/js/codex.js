@@ -1,92 +1,187 @@
 /* ══════════════════════════════════════════════════════════════════════════
-   지엽개념 정리 — 읽기와 확인을 나눈다
+   지엽개념 — 읽기 · 그림 · 퀴즈
    ──────────────────────────────────────────────────────────────────────────
-   data/concepts.xml 한 장이 전부다. 정리본이 아직 쓰이는 중이라, 파일만 다시
-   만들어 넣으면 화면은 그대로 따라온다(tools/build-codex.py).
+   data/concepts.xml 한 장이 전부다(tools/restructure-codex.py 가 만든다).
+   파일에는 대단원(part) → 절(section) → 묶음(group) 이 들어 있고, 절 안의
+   내용은 네 가지뿐이다 — 정의 d, 항목 li, 곁말 note, 그림 figure.
 
-   읽는 화면과 푸는 화면을 갈라 놓았다. 본문 사이사이에 문제가 끼어 있으면
-   읽는 흐름이 끊기고, 답이 눈에 먼저 들어와 문제 구실도 못 한다.
+   화면을 셋으로 나눈다. 읽을 때는 정의가 표로 줄을 맞춰 서야 눈으로 훑히고,
+   지도는 본문 사이에 끼어 있으면 작아서 안 보이므로 따로 모아 크게 건다.
+   문제는 본문 옆에 있으면 답이 먼저 눈에 들어와 문제 구실을 못 한다.
    ══════════════════════════════════════════════════════════════════════════ */
-let CODEX_SECTIONS=[], CODEX_META={};
+let CODEX_PARTS=[], CODEX_SECTIONS=[];
 const ABCX={tab:'read', quiz:null};
 
 function abCodexInit(){
   fetch('data/concepts.xml').then(r=>r.text()).then(txt=>{
     const doc=new DOMParser().parseFromString(txt,'application/xml');
-    const root=doc.querySelector('codex');
-    if(!root)throw new Error('정리본을 읽지 못했습니다');
-    CODEX_META={title:root.getAttribute('title')||'',status:root.getAttribute('status')||''};
+    if(!doc.querySelector('codex'))throw new Error('정리본을 읽지 못했습니다');
+    CODEX_PARTS=[...doc.querySelectorAll('part')];
     CODEX_SECTIONS=[...doc.querySelectorAll('section')];
-    const m=document.getElementById('m-codex');
-    if(m)m.textContent=CODEX_SECTIONS.length+'개 주제';
+    abCodexHome();
     abCodexShell();
   }).catch(e=>{
     document.getElementById('codex-body').innerHTML=
       '<p class="none">정리본을 불러오지 못했습니다 — '+abEsc(e.message)+'</p>';
   });
 }
+/* 본편 홈에 걸어 둔 한 칸 — 숫자는 파일에서 센다 */
+function abCodexHome(){
+  const m=document.getElementById('m-codex');
+  if(m)m.textContent=CODEX_SECTIONS.length+'개 주제 · 그림 '+abCodexFigs().length+'장';
+  const p=document.getElementById('m-codex-parts');
+  if(p)p.innerHTML=CODEX_PARTS.map(pt=>'<i>'+abEsc(pt.getAttribute('title'))+'</i>').join('');
+}
+function abCodexFigs(){
+  const out=[];
+  CODEX_SECTIONS.forEach(sec=>sec.querySelectorAll('figure').forEach(f=>out.push({
+    src:f.getAttribute('src'), cap:f.getAttribute('caption')||'',
+    n:sec.getAttribute('n'), sec:sec.getAttribute('title')})));
+  return out;
+}
+function abCodexQs(sec){return [...sec.querySelectorAll('q')];}
+
 function abCodexShell(){
-  const nq=CODEX_SECTIONS.reduce((a,s)=>a+s.querySelectorAll('quiz > q').length,0);
+  const nq=CODEX_SECTIONS.reduce((a,s)=>a+abCodexQs(s).length,0);
   document.getElementById('codex-body').innerHTML=
-    '<div class="cx-wip"><b>아직 쓰는 중인 정리본입니다.</b> '
-      +'지금까지 '+CODEX_SECTIONS.length+'개 주제가 정리됐고, 뒤쪽은 계속 붙습니다.</div>'
-    +'<div class="seg" id="cx-tabs">'
+    '<div class="seg" id="cx-tabs">'
       +'<button class="on" data-t="read">개념 읽기</button>'
+      +'<button data-t="fig">그림으로 보기 <em>'+abCodexFigs().length+'</em></button>'
       +'<button data-t="quiz">개념 퀴즈 <em>'+nq+'</em></button></div>'
     +'<div id="cx-pane"></div>';
   document.getElementById('cx-tabs').addEventListener('click',e=>{
     const b=e.target.closest('button');if(!b)return;
     document.querySelectorAll('#cx-tabs button').forEach(x=>x.classList.toggle('on',x===b));
     ABCX.tab=b.dataset.t;
-    (ABCX.tab==='read'?abCodexRead:abCodexQuizHome)();
+    ({read:abCodexRead,fig:abCodexGallery,quiz:abCodexQuizHome})[ABCX.tab]();
   });
   abCodexRead();
 }
 
-/* ══════ 읽기 ══════ */
-function abCodexRead(){
-  let toc='', main='';
-  main+='<div class="cx-tools">'
-    +'<a class="btn ghost" href="data/concepts.xml" download>정리본 XML 받기</a></div>';
-  CODEX_SECTIONS.forEach(sec=>{
-    const n=sec.getAttribute('n'), t=sec.getAttribute('title');
-    toc+='<a href="#cx-'+n+'" data-n="'+n+'">'+abEsc(n)+'. '+abEsc(t)+'</a>';
-    main+='<section class="cx-sec" id="cx-'+n+'">'
-      +'<h3><span class="n">'+String(n).padStart(2,'0')+'</span>'+abEsc(t)+'</h3>'
-      +abCodexBody(sec)
-      +[...sec.children].filter(c=>c.tagName==='sub').map(sb=>
-        '<div class="cx-sub"><div class="sub-h">'+abEsc(sb.getAttribute('title'))+'</div>'
-        +abCodexBody(sb)+'</div>').join('')
-      +'</section>';
-  });
-  document.getElementById('cx-pane').innerHTML=
-    '<div class="codex-layout"><div>'+main+'</div><nav id="codex-toc">'+toc+'</nav></div>';
-  abCodexSpy();
+/* ══════ 본문 ══════ */
+/* 화살표는 원문에 -> 와 => 로 섞여 있다. 뜻이 같으니 화면에서는 한 글자로 눕힌다 */
+function abCx(t){
+  return abEsc(t).replace(/=+&gt;/g,'→').replace(/-+&gt;/g,'→').replace(/&lt;-+/g,'←');
 }
-function abCodexBody(node){
-  let h='', ul=[];
-  const flush=()=>{if(ul.length){h+='<ul>'+ul.join('')+'</ul>';ul=[];}};
+function abCodexBlocks(node,depth){
+  let h='', defs=[], list=[];
+  const flushD=()=>{if(defs.length){h+='<div class="cx-defs">'+defs.join('')+'</div>';defs=[];}};
+  const flushL=()=>{if(list.length){h+='<ul class="cx-list">'+list.join('')+'</ul>';list=[];}};
+  const flush=()=>{flushD();flushL();};
   [...node.children].forEach(el=>{
     const tag=el.tagName;
-    if(tag==='item'||tag==='line'){ul.push('<li>'+abCodexInline(el.textContent)+'</li>');}
-    else if(tag==='note'){flush();h+='<p class="star">'+abCodexInline(el.textContent)+'</p>';}
-    else if(tag==='figure'){flush();
-      h+='<figure class="cx-fig"><img loading="lazy" src="'+abEsc(el.getAttribute('src'))
-        +'" alt="'+abEsc(el.getAttribute('caption')||'')+'">'
-        +(el.getAttribute('caption')?'<figcaption>'+abEsc(el.getAttribute('caption'))+'</figcaption>':'')
-        +'</figure>';}
+    if(tag==='d'){
+      flushL();
+      const k=el.getAttribute('k')||'';
+      defs.push('<div class="dr"><b'+(/^[A-Z][A-Za-z]{0,3}$/.test(k)?' class="code"':'')+'>'
+        +abCx(k)+'</b><span>'+abCx(el.getAttribute('v')||'')+'</span></div>');
+    }
+    else if(tag==='li'){
+      flushD();
+      list.push('<li'+(el.getAttribute('c')?' class="cont"':'')+'>'+abCx(el.textContent)+'</li>');
+    }
+    else if(tag==='note'){flush();h+='<p class="cx-note">'+abCx(el.textContent)+'</p>';}
+    else if(tag==='figure'){flush();h+=abCodexFig(el.getAttribute('src'),el.getAttribute('caption'));}
+    else if(tag==='compare'){flush();h+=abCodexCompare(el);}
+    else if(tag==='group'){
+      flush();
+      const gi=el.getAttribute('i');
+      h+='<section class="cx-grp d'+depth+'">'
+        +'<h4>'+(gi?'<i>'+abEsc(gi)+'</i>':'')+abCx(el.getAttribute('title'))+'</h4>'
+        +abCodexBlocks(el,depth+1)+'</section>';
+    }
   });
   flush();
   return h;
 }
-/* 'X : Y' 는 앞쪽을 드러내 준다 — 목록이 길어도 무엇에 대한 말인지 먼저 보인다 */
-function abCodexInline(txt){
-  const t=abEsc(txt);
-  const m=t.match(/^([^:：]{1,24})\s*[:：]\s*(.+)$/);
-  return m?'<b class="k">'+m[1].trim()+'</b><span class="v">'+m[2]+'</span>':t;
+function abCodexFig(src,cap){
+  return '<figure class="cx-fig"><button type="button" class="cx-zoom" data-src="'+abEsc(src)
+    +'" data-cap="'+abEsc(cap||'')+'"><img loading="lazy" src="'+abEsc(src)
+    +'" alt="'+abEsc(cap||'')+'"></button>'
+    +(cap?'<figcaption>'+abEsc(cap)+'</figcaption>':'')+'</figure>';
+}
+/* 기후 다섯 절에 흩어져 있던 토양·식생·가옥을 한 표로 — 원문에 없는 표지만,
+   칸을 채운 글자는 전부 원문 그대로다. 빈 칸은 비워 둔다. */
+function abCodexCompare(el){
+  const cols=el.getAttribute('cols').split('|').map(s=>s.trim());
+  let h='<div class="cx-cmp"><div class="cmp-t">'+abEsc(el.getAttribute('title'))+'</div>'
+    +'<div class="cmp-scroll"><table class="cmp"><thead><tr><th></th>'
+    +cols.map(c=>'<th>'+abEsc(c)+'</th>').join('')+'</tr></thead><tbody>';
+  [...el.children].forEach(r=>{
+    const cells=r.getAttribute('v').split('|').map(s=>s.trim());
+    h+='<tr><th>'+abEsc(r.getAttribute('k'))+'</th>'
+      +cols.map((_c,i)=>'<td>'+(cells[i]?abCx(cells[i]).replace(/〔([^〕]*)〕/,'<i>$1</i>')
+        :'<span class="dash">—</span>')+'</td>').join('')+'</tr>';
+  });
+  return h+'</tbody></table></div></div>';
+}
+
+function abCodexRead(){
+  let toc='', main='';
+  CODEX_PARTS.forEach(pt=>{
+    const pid=pt.getAttribute('id'), secs=[...pt.querySelectorAll('section')];
+    toc+='<div class="toc-p"><a class="toc-h" href="#cx-p-'+pid+'">'
+      +abEsc(pt.getAttribute('title'))+'</a>'
+      +secs.map(s=>'<a href="#cx-'+s.getAttribute('n')+'" data-n="'+s.getAttribute('n')+'">'
+        +abEsc(s.getAttribute('title'))+'</a>').join('')+'</div>';
+    main+='<div class="cx-part" id="cx-p-'+pid+'">'
+      +'<div class="cx-part-h"><h3>'+abEsc(pt.getAttribute('title'))+'</h3>'
+        +'<p>'+abEsc(pt.getAttribute('desc'))+'</p>'
+        +'<span>'+secs.length+'개 주제</span></div>'
+      +secs.map(sec=>'<article class="cx-sec" id="cx-'+sec.getAttribute('n')+'">'
+        +'<h3><i>'+String(sec.getAttribute('n')).padStart(2,'0')+'</i>'
+        +abEsc(sec.getAttribute('title'))+'</h3>'
+        +abCodexBlocks(sec,1)+'</article>').join('')
+      +'</div>';
+  });
+  document.getElementById('cx-pane').innerHTML=
+    '<div class="cx-jump">'+CODEX_PARTS.map(pt=>'<a href="#cx-p-'+pt.getAttribute('id')+'">'
+      +abEsc(pt.getAttribute('title'))+'</a>').join('')+'</div>'
+    +'<div class="codex-layout"><div class="cx-main">'+main+'</div>'
+    +'<nav id="codex-toc">'+toc+'</nav></div>';
+  abCodexZoom();
+  abCodexSpy();
+}
+/* ══════ 그림으로 보기 ══════ */
+function abCodexGallery(){
+  const figs=abCodexFigs();
+  document.getElementById('cx-pane').innerHTML=
+    '<p class="rank-note">정리본에 실린 지도와 그림을 모았습니다. 눌러서 크게 보고, '
+      +'아래 제목을 누르면 그 주제의 본문으로 갑니다.</p>'
+    +'<div class="cx-gal">'+figs.map(f=>
+      '<figure class="cx-fig"><button type="button" class="cx-zoom" data-src="'+abEsc(f.src)
+        +'" data-cap="'+abEsc(f.cap)+'"><img loading="lazy" src="'+abEsc(f.src)
+        +'" alt="'+abEsc(f.cap)+'"></button>'
+      +'<figcaption>'+abEsc(f.cap)
+        +'<a href="#cx-'+f.n+'" data-go="'+f.n+'">'+abEsc(f.sec)+'</a></figcaption>'
+      +'</figure>').join('')+'</div>';
+  abCodexZoom();
+  document.querySelectorAll('#cx-pane figcaption a').forEach(a=>{
+    a.addEventListener('click',e=>{
+      e.preventDefault();
+      document.querySelector('#cx-tabs button[data-t="read"]').click();
+      const t=document.getElementById('cx-'+a.dataset.go);
+      if(t)t.scrollIntoView({behavior:'smooth',block:'start'});
+    });
+  });
+}
+/* 크게 보기 — 지도는 글씨가 작아 원래 크기로 봐야 쓸모가 있다 */
+function abCodexZoom(){
+  document.querySelectorAll('.cx-zoom').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const bd=abEl('div','cx-lens',
+        '<img src="'+abEsc(b.dataset.src)+'" alt="'+abEsc(b.dataset.cap)+'">'
+        +(b.dataset.cap?'<span>'+abEsc(b.dataset.cap)+'</span>':''));
+      const close=()=>{bd.remove();document.removeEventListener('keydown',esc);};
+      const esc=e=>{if(e.key==='Escape')close();};
+      bd.addEventListener('click',close);
+      document.addEventListener('keydown',esc);
+      document.body.appendChild(bd);
+    });
+  });
 }
 function abCodexSpy(){
-  const links=[...document.querySelectorAll('#codex-toc a')];
+  const links=[...document.querySelectorAll('#codex-toc a[data-n]')];
   if(!links.length)return;
   const io=new IntersectionObserver(es=>{
     es.forEach(en=>{
@@ -94,26 +189,40 @@ function abCodexSpy(){
       const n=en.target.id.replace('cx-','');
       links.forEach(a=>a.classList.toggle('on',a.dataset.n===n));
     });
-  },{rootMargin:'-20% 0px -70% 0px'});
+  },{rootMargin:'-18% 0px -72% 0px'});
   document.querySelectorAll('.cx-sec').forEach(s=>io.observe(s));
 }
 
 /* ══════ 퀴즈 ══════ */
 function abCodexQuizHome(){
-  const withQ=CODEX_SECTIONS.filter(s=>s.querySelectorAll('quiz > q').length);
-  document.getElementById('cx-pane').innerHTML=
-    '<p class="rank-note">주제를 고르면 그 주제의 문제만 풉니다. 문제는 정리본 본문에서 뽑은 것이라, '
-      +'정리본이 늘어나면 문제도 같이 늘어납니다.</p>'
-    +'<div class="cx-pick">'
-      +'<button class="cx-card wide" data-n="all"><b>전부 풀기</b>'
-        +'<span>'+withQ.reduce((a,s)=>a+s.querySelectorAll('quiz > q').length,0)+'문항</span></button>'
-      +withQ.map(s=>'<button class="cx-card" data-n="'+s.getAttribute('n')+'">'
-        +'<b>'+abEsc(s.getAttribute('title'))+'</b>'
-        +'<span>'+s.querySelectorAll('quiz > q').length+'문항</span></button>').join('')
-    +'</div><div id="cx-run"></div>';
-  document.getElementById('cx-pane').addEventListener('click',e=>{
-    const b=e.target.closest('.cx-card');if(!b)return;
-    const secs=b.dataset.n==='all'?withQ:withQ.filter(s=>s.getAttribute('n')===b.dataset.n);
+  const withQ=CODEX_SECTIONS.filter(s=>abCodexQs(s).length);
+  const total=withQ.reduce((a,s)=>a+abCodexQs(s).length,0);
+  let h='<p class="rank-note">문제는 정리본 본문에서 뽑은 것이라, 정리본이 늘어나면 문제도 '
+    +'같이 늘어납니다. 보기는 같은 묶음의 이웃에서만 가져옵니다.</p>'
+    +'<div class="cx-pick"><button class="cx-card wide" data-pick="all"><b>전부 풀기</b>'
+      +'<span>'+total+'문항</span></button></div>';
+  CODEX_PARTS.forEach(pt=>{
+    const secs=[...pt.querySelectorAll('section')].filter(s=>abCodexQs(s).length);
+    if(!secs.length)return;
+    const n=secs.reduce((a,s)=>a+abCodexQs(s).length,0);
+    h+='<div class="cx-qpart"><div class="qp-h">'+abEsc(pt.getAttribute('title'))
+      +'<button class="qp-all" data-pick="p:'+pt.getAttribute('id')+'">이 대단원 '+n+'문항</button></div>'
+      +'<div class="cx-pick">'+secs.map(s=>'<button class="cx-card" data-pick="s:'+s.getAttribute('n')+'">'
+        +'<b>'+abEsc(s.getAttribute('title'))+'</b><span>'+abCodexQs(s).length+'문항</span></button>').join('')
+      +'</div></div>';
+  });
+  const pane=document.getElementById('cx-pane');
+  pane.innerHTML=h+'<div id="cx-run"></div>';
+  pane.addEventListener('click',e=>{
+    const b=e.target.closest('[data-pick]');if(!b)return;
+    const v=b.dataset.pick;
+    let secs=withQ;
+    if(v.startsWith('p:')){
+      const pt=CODEX_PARTS.find(x=>x.getAttribute('id')===v.slice(2));
+      secs=[...pt.querySelectorAll('section')].filter(s=>abCodexQs(s).length);
+    }else if(v.startsWith('s:')){
+      secs=withQ.filter(s=>s.getAttribute('n')===v.slice(2));
+    }
     abCodexQuizStart(secs);
   });
 }
@@ -121,7 +230,7 @@ function abCodexQuizStart(secs){
   const qs=[];
   secs.forEach(sec=>{
     const t=sec.getAttribute('title');
-    sec.querySelectorAll('quiz > q').forEach(q=>qs.push({
+    abCodexQs(sec).forEach(q=>qs.push({
       a:q.getAttribute('a'),
       ask:(q.querySelector('ask')||{}).textContent||'',
       opts:abShuffle([...q.querySelectorAll('opt')].map(o=>o.textContent)),
@@ -140,9 +249,9 @@ function abCodexQuizStep(){
     +'<div class="cx-run-h"><span>'+(q.i+1)+' / '+q.qs.length+'</span>'
       +'<span class="from">'+abEsc(cur.from)+'</span>'
       +'<span class="sc">'+q.cor+'점</span></div>'
-    +'<p class="cx-ask">'+abEsc(cur.ask)+'</p>'
+    +'<p class="cx-ask">'+abCx(cur.ask)+'</p>'
     +'<div class="cx-opt big">'+cur.opts.map(o=>
-      '<button data-v="'+abEsc(o)+'">'+abEsc(o)+'</button>').join('')+'</div>'
+      '<button data-v="'+abEsc(o)+'">'+abCx(o)+'</button>').join('')+'</div>'
     +'<div class="cx-a" hidden></div>'
     +'<div class="btnrow"><button class="btn" id="cx-next" hidden>다음</button>'
       +'<button class="btn ghost" id="cx-stop">그만두기</button></div></div>';
@@ -160,7 +269,7 @@ function abCodexQuizStep(){
     if(ok)q.cor++;else q.wrong.push(cur);
     const note=box.querySelector('.cx-a');
     note.hidden=false;note.className='cx-a '+(ok?'ok':'no');
-    note.textContent=ok?'맞습니다.':'정답은 「'+cur.a+'」입니다.';
+    note.innerHTML=ok?'맞습니다.':'정답은 「'+abCx(cur.a)+'」입니다.';
     document.getElementById('cx-next').hidden=false;
   });
   document.getElementById('cx-next').addEventListener('click',()=>{q.i++;abCodexQuizStep();});
@@ -173,7 +282,7 @@ function abCodexQuizEnd(){
     +'<div class="big">'+q.cor+' <span style="font-size:.9rem;color:var(--tx3)">/ '+done+'문항</span></div>';
   if(q.wrong.length){
     h+='<div class="rev"><b>틀린 문제</b><ol>'+q.wrong.map(w=>
-      '<li class="miss">'+abEsc(w.ask)+' → '+abEsc(w.a)+'</li>').join('')+'</ol></div>';
+      '<li class="miss">'+abCx(w.ask)+' → '+abCx(w.a)+'</li>').join('')+'</ol></div>';
   }
   h+='<div class="btnrow">'
     +(q.wrong.length?'<button class="btn" id="cx-again-wrong">틀린 것만 다시 ('+q.wrong.length+')</button>':'')
