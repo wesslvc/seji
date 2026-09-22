@@ -892,9 +892,27 @@ body.cq-mode #cq-pins-ov{display:block}
 .wd-bar-tr{flex:1;height:3px;border-radius:999px;background:var(--bd);overflow:hidden}
 .wd-bar-f{display:block;height:100%;border-radius:999px}
 .wd-bar-v{width:44px;flex-shrink:0;font-size:.7rem;color:var(--tx2);font-variant-numeric:tabular-nums}
-.wd-chart{margin-top:.55rem;background:var(--sf);border:1px solid var(--bd);border-left:3px solid var(--wd-c1,#e2c07a);border-radius:10px;padding:.6rem .7rem;max-width:250px;transition:border-left-color .3s}
+/* 예전엔 140px짜리 퀴즈 카드 그래프를 그대로 썼어서 250px면 충분했다.
+   지금은 Abyss 국가 아틀라스와 같은 큰 그래프(기온·강수를 한 칸에 겹치고
+   축이 늘어나는 방식)라 그만큼 자리를 넉넉히 준다 — 2단 칼럼(무려 600px
+   안팎) 안에서도 여유 있게 들어간다. */
+.wd-chart{margin-top:.55rem;background:var(--sf);border:1px solid var(--bd);border-left:3px solid var(--wd-c1,#e2c07a);border-radius:10px;padding:.6rem .7rem;max-width:480px;transition:border-left-color .3s}
 .wd-chart-cap{font-size:.7rem;color:var(--tx2);margin-bottom:.35rem}
 .wd-chart .cq-chart-svg{overflow:visible}
+/* 기후그래프 — 기온 선과 강수 막대를 한 칸에 겹친다. Abyss 국가 아틀라스의
+   .cl-* 와 같은 그림이지만, 이름은 main.css 에 이미 있는 다른 뜻의
+   .cl-*(완료 목록 모달)와 겹치지 않게 wcc- 를 쓴다. */
+.wcc-chart{width:100%;height:auto;display:block;overflow:visible;margin:.3rem 0}
+.wcc-grid{stroke:var(--bd);stroke-width:1}
+.wcc-grid.zero{stroke:var(--bd2,var(--bd));stroke-dasharray:3 3}
+.wcc-tick2{stroke:var(--bd2,var(--bd));stroke-width:1}
+.wcc-p{fill:color-mix(in srgb,var(--c1) 45%,transparent)}
+.wcc-t{fill:none;stroke:var(--wr);stroke-width:2.2;stroke-linejoin:round;stroke-linecap:round}
+.wcc-d{fill:var(--wr)}
+.wcc-x,.wcc-y,.wcc-y2{fill:var(--tx2);font-size:10px;font-family:var(--font-sans)}
+.wcc-y{text-anchor:end}
+.wcc-y2{text-anchor:start}
+.wcc-x{text-anchor:middle}
 .wd-map{background:#10151c;border:1px solid var(--bd);border-left:3px solid var(--wd-c1,#e2c07a);border-radius:10px;padding:.45rem;margin-bottom:.5rem;transition:border-left-color .3s}
 .wd-map svg{width:100%;max-height:260px;display:block}
 .wd-map-lg{display:flex;gap:.9rem;justify-content:center;padding:.35rem 0 .1rem;font-size:.7rem;color:var(--tx2)}

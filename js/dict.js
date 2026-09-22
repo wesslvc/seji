@@ -695,13 +695,74 @@ async function wdLoadViewCount(iso){
     if(el&&counts[iso]){el.innerHTML=' · <span data-ic="eye"></span>'+counts[iso];injectIcons(el);}
   }catch(e){console.error('[세지위키] 조회수 처리 실패:',e);}
 }
-/* 기후그래프 카드 내부(그래프 + 캡션 + 도시 설명) */
+/* 기후그래프 카드 내부(그래프 + 캡션 + 도시 설명)
+   ──────────────────────────────────────────────────────────────────────────
+   퀴즈 카드(cqChartSVG)는 140px짜리를 여러 장 나란히 놓고 비교하는 화면이라
+   막대(최저~최고 범위)로 압축해 그린다. 여기는 나라 하나를 크게 펼쳐 보는
+   화면이라 얘기가 다르다 — Abyss 국가 아틀라스와 같은 성격이라, 거기서 쓰는
+   그래프(기온 선 + 강수 막대를 한 칸에 겹치고, 축을 -10~30°C·0~150mm
+   기본으로 두되 모자라면 10°C·50mm 단위로 늘어나는 방식)를 그대로 옮겨 왔다.
+   클래스 이름은 main.css 에 이미 있는 다른 뜻의 .cl-* (완료 목록 모달)와
+   겹치지 않게 wcc- 를 쓴다. */
 let _wdClimateLocs=[];
+const WCC_T_LO=-10, WCC_T_HI=30, WCC_T_STEP=10, WCC_T_PX=2.6;
+const WCC_P_HI=150, WCC_P_STEP=50, WCC_P_PX=0.5;
+function wdClimateChartSVG(loc){
+  const W=560, PL=34, PR=40, PT=12, PB=22;
+  const plotW=W-PL-PR;
+  const mean=loc.tmin.map((v,i)=>(v+loc.tmax[i])/2);
+
+  const stepDown=(v,step)=>Math.floor(v/step)*step;
+  const stepUp=(v,step)=>Math.ceil(v/step)*step;
+  const tLo=Math.min(WCC_T_LO,stepDown(Math.min.apply(null,mean),WCC_T_STEP));
+  const tHi=Math.max(WCC_T_HI,stepUp(Math.max.apply(null,mean),WCC_T_STEP));
+  const pHi=Math.max(WCC_P_HI,stepUp(Math.max.apply(null,loc.prec),WCC_P_STEP));
+
+  const tH=(tHi-tLo)*WCC_T_PX, pH=pHi*WCC_P_PX;
+  const plotH=Math.max(tH,pH);
+
+  const x=i=>PL+plotW*(i+.5)/12;
+  const yT=v=>PT+(tHi-v)*WCC_T_PX;
+  const yP=v=>PT+plotH-v*WCC_P_PX;
+  const bw=plotW/12*0.52;
+
+  let tgrid='',ttick='';
+  for(let t=tLo;t<=tHi+WCC_T_STEP*0.01;t+=WCC_T_STEP){
+    const y=yT(t);
+    tgrid+='<line class="wcc-grid'+(t===0?' zero':'')+'" x1="'+PL+'" x2="'+(W-PR)+'" y1="'+y.toFixed(1)+'" y2="'+y.toFixed(1)+'"/>';
+    ttick+='<text class="wcc-y" x="'+(PL-6)+'" y="'+(y+3).toFixed(1)+'">'+t+'°</text>';
+  }
+  let ptick='';
+  for(let p=0;p<=pHi+WCC_P_STEP*0.01;p+=WCC_P_STEP){
+    const y=yP(p);
+    ptick+='<text class="wcc-y2" x="'+(W-PR+8)+'" y="'+(y+3).toFixed(1)+'">'+p+'</text>'
+      +'<line class="wcc-tick2" x1="'+(W-PR)+'" x2="'+(W-PR+4)+'" y1="'+y.toFixed(1)+'" y2="'+y.toFixed(1)+'"/>';
+  }
+  let pbars='';
+  loc.prec.forEach((v,i)=>{
+    const y1=yP(v), y0=yP(0);
+    pbars+='<rect class="wcc-p" x="'+(x(i)-bw/2).toFixed(1)+'" y="'+y1.toFixed(1)
+      +'" width="'+bw.toFixed(1)+'" height="'+Math.max(0,y0-y1).toFixed(1)+'"/>';
+  });
+  const tpts=mean.map((v,i)=>x(i).toFixed(1)+','+yT(v).toFixed(1)).join(' ');
+  let tdots='';
+  mean.forEach((v,i)=>{tdots+='<circle class="wcc-d" cx="'+x(i).toFixed(1)+'" cy="'+yT(v).toFixed(1)+'" r="2.6"/>';});
+
+  const totalH=PT+plotH+PB;
+  let h='<svg class="wcc-chart" viewBox="0 0 '+W+' '+totalH+'" role="img" aria-label="월별 기온과 강수량 — 왼쪽은 기온, 오른쪽은 강수량">';
+  h+=tgrid+ttick+ptick;
+  h+=pbars;
+  h+='<polyline class="wcc-t" points="'+tpts+'"/>'+tdots;
+  ['1','4','7','10'].forEach(mo=>{const i=+mo-1;
+    h+='<text class="wcc-x" x="'+x(i).toFixed(1)+'" y="'+(totalH-4)+'">'+mo+'월</text>';});
+  h+='</svg>';
+  return h;
+}
 function wdChartInner(l){
   const blurb=(typeof DICT_CITY!=='undefined'&&DICT_CITY[cqCityName(l)])||'';
   return '<div class="wd-chart-cap">'+cqCityName(l)+' ('+l.kop+') 기후그래프 · '
     +(l.lat>=0?'북위 ':'남위 ')+Math.abs(l.lat).toFixed(1)+'°</div>'
-    +cqChartSVG(l)
+    +wdClimateChartSVG(l)
     +(blurb?'<div class="wd-city-blurb">'+blurb+'</div>':'');
 }
 
