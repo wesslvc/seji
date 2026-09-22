@@ -88,26 +88,46 @@ const TR_ICON_MAP={
   '418':'chocolate',
   '417':'candy','419':'candy'
 };
-/* 아이콘마다 계열색을 하나씩 고정으로 준다 — 같은 품목이면 나라가 달라도
-   늘 같은 색이라, 여러 나라를 오가며 봐도 '이 색은 그 품목'이 눈에 익는다 */
-const TR_ICON_COLOR={
-  fuel:'var(--c4)',gear:'var(--c8)',chip:'var(--c1)',steel:'var(--c8)',
-  gem:'var(--c5)',plastic:'var(--c6)',car:'var(--c1)',fish:'var(--c6)',
-  fruit:'var(--c2)',medical:'var(--c1)',metal:'var(--c8)',ore:'var(--c7)',
-  pill:'var(--c4)',wine:'var(--c5)',wood:'var(--c7)',veg:'var(--c2)',
-  shirt:'var(--c5)',brick:'var(--c7)',coffee:'var(--c7)',seed:'var(--c3)',
-  flask:'var(--c1)',ship:'var(--c1)',plane:'var(--c1)',grain:'var(--c3)',
-  meat:'var(--c4)',furniture:'var(--c7)',perfume:'var(--c5)',tire:'var(--c8)',
-  sprout:'var(--c2)',chocolate:'var(--c7)',candy:'var(--c4)',box:'var(--c8)'
+/* 색은 품목 하나하나에 따로 매기지 않는다 — 32가지 품목에 색을 8가지뿐인
+   계열색으로 나누다 보면 어차피 여럿이 한 색을 나눠 쓰게 되는데, 그렇다면
+   '아무 품목이나 걸리는 대로' 나누는 대신 실제로 한 갈래인 품목끼리 묶어서
+   나누는 편이 맞다 — 그래야 두 조각이 같은 색이어도 '왜 같은 색인지'가
+   보인다(둘 다 기계·운송이라서, 둘 다 금속·광물이라서…). 갈래:
+   기계·전자·운송(파랑) · 연료(빨강) · 금속·광물·건자재(회색) · 목재(갈색) ·
+   농수축산 원자재(초록) · 곡물·씨앗(노랑) · 화학·플라스틱·의료(청록) ·
+   섬유·사치·기호식품(보라). 미분류(box)는 실제로는 다 다른 품목이 섞인
+   자리라 계열색을 주지 않고 중립회색(--tx3)으로 둔다. */
+const TR_CAT_COLOR={
+  machine:'var(--c1)', fuel:'var(--c4)', mineral:'var(--c8)', timber:'var(--c7)',
+  farm:'var(--c2)', grain:'var(--c3)', chem:'var(--c6)', luxury:'var(--c5)'
 };
+const TR_ICON_CAT={
+  gear:'machine',chip:'machine',car:'machine',ship:'machine',plane:'machine',tire:'machine',
+  fuel:'fuel',
+  steel:'mineral',metal:'mineral',ore:'mineral',brick:'mineral',
+  wood:'timber',furniture:'timber',
+  fruit:'farm',veg:'farm',sprout:'farm',coffee:'farm',meat:'farm',fish:'farm',
+  grain:'grain',seed:'grain',
+  plastic:'chem',flask:'chem',medical:'chem',pill:'chem',
+  gem:'luxury',wine:'luxury',shirt:'luxury',perfume:'luxury',chocolate:'luxury',candy:'luxury'
+};
+const TR_ICON_COLOR=Object.assign(
+  {box:'var(--tx3)'},
+  Object.fromEntries(Object.entries(TR_ICON_CAT).map(([k,cat])=>[k,TR_CAT_COLOR[cat]]))
+);
 function trIconOf(code){return TR_ICON_MAP[String(code)]||'box';}
 
 /* 에너지 구성 — ENERGY_NAME 순서(labels.js)와 자리를 맞춘 9칸 고정 사전.
    품목 수가 적어 전부 그렸다 — 못 찾는 경우가 없다. 아이콘 자체는 위 TR_ICON에
-   같이 두고, 여기서는 그 키만 순서대로 골라 쓴다(석유는 무역 아이콘의 fuel을 그대로 씀). */
+   같이 두고, 여기서는 그 키만 순서대로 골라 쓴다. 이 9개는 한 차트에 늘
+   다 같이 나오므로(나라마다 있고 없고가 갈리지 않는다) 겹치는 색 없이
+   여덟 계열색을 하나씩만 쓰고, 아홉 번째(기타재생)만 '기타' 조각과 같은
+   중립회색을 쓴다 — 그 자체가 '어디에도 안 묶이는 나머지'라는 뜻이라
+   실제로 그 취급이 맞다. 석유만은 무역의 연료(빨강)와 일부러 같은 색을
+   써서, 아래 무역 카드까지 내려봐도 '이 빨강은 화석연료'로 읽히게 했다. */
 const EN_ICON_KEY=['coal','flame','fuel','atom','wave','sun','fan','leaf','recycle'];
 function enIcon(i){return EN_ICON_KEY[i]||'box';}
-const EN_ICON_COLOR=['var(--c8)','var(--c7)','var(--c4)','var(--c3)','var(--c1)','var(--c3)','var(--c6)','var(--c2)','var(--c2)'];
+const EN_ICON_COLOR=['var(--c8)','var(--c7)','var(--c4)','var(--c5)','var(--c1)','var(--c3)','var(--c6)','var(--c2)','var(--tx3)'];
 
 /* ══════ 파이 차트 + 아이콘 범례 ══════
    조각 위에 그 품목의 아이콘을 얹는다 — 글자를 읽지 않아도 무엇인지 짐작이
