@@ -73,8 +73,6 @@ h4.sec em{font-style:normal;font-weight:400;color:var(--tx3);font-size:var(--fs-
 .cl-d{fill:var(--c4)}
 /* 고정 축 범위를 벗어난 달 — 반투명하게 그려서 '칸을 넘었다'가 바로 보이게 */
 .cl-p.of,.cl-d.of{opacity:.55}
-/* 늘어날 자리가 다 찬(상한에 닿은) 값만 실제 숫자를 적는다 */
-.cl-of-lb{fill:var(--tx2);font-size:9px;font-family:var(--font-sans);text-anchor:middle;font-weight:600}
 .cl-x,.cl-y,.cl-y2{fill:var(--tx3);font-size:10px;font-family:var(--font-sans)}
 .cl-y,.cl-y2{text-anchor:end}
 .cl-x{text-anchor:middle}

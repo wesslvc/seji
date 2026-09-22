@@ -98,18 +98,13 @@ function abBars(rows,colors){
    CQ_T_LO/CQ_T_HI/CQ_P_HI 와 값을 그대로 맞췄다 — 같은 나라를 본편과
    Abyss 양쪽에서 봐도 같은 저울이어야 하니까.
 
-   고정 범위를 벗어나는 지점(폭염·혹한·폭우)은 칸 밖으로 튀어나오게 그린다.
-   튀어나온 길이는 초과량에 비례하되, 일정 선에서 늘어나는 속도를 늦춘다.
-   본편의 작은 카드(140px, 여러 장을 나란히 놓고 비교)는 초과분을 상한 없이
-   그대로 늘여도 된다 — 카드가 작아 gap이 아무리 커도 눈에 거슬리지 않는다.
-   여기는 나라 하나를 크게 펼쳐 보는 화면이라 얘기가 다르다. 열대몬순
-   기후는 7월 강수량이 150mm를 우습게 넘는 게 흔한 일이라(뭄바이 600mm대),
-   상한 없이 늘이면 칸 사이에 화면 절반을 잡아먹는 빈 틈이 생긴다. 그래서
-   일정 선(CAP)까지만 늘어난 자리를 넘긴 값은 실제 값을 숫자로 옆에 적어
-   보정한다 — 자리는 아껴도 정보는 잃지 않는다. */
+   고정 범위를 벗어나는 지점(폭염·혹한·폭우)은 칸 밖으로 그냥 뚫고 나가게
+   그린다. 튀어나온 길이는 초과량에 정비례한다(상한 없음) — 체라푼지처럼
+   압도적인 지점은 실제 초과분만큼 계속 튀어나온다. 본편 climate.js 의
+   cqChartSVG 와 같은 방식이다. 그 구간은 반투명하게 그려서 '칸을 넘었다'가
+   바로 보이게 한다. */
 const AB_CL_T_LO=-10, AB_CL_T_HI=30, AB_CL_T_STEP=10;
 const AB_CL_P_HI=150, AB_CL_P_STEP=50;
-const AB_CL_T_CAP=44, AB_CL_P_CAP=64;   /* 칸 밖으로 늘어날 수 있는 최대 픽셀 */
 function abClimateChart(st){
   const W=560, tH=92, pH=54, PL=34, PR=34, gapBase=12;
   const plotW=W-PL-PR;
@@ -117,58 +112,46 @@ function abClimateChart(st){
   const tLo=AB_CL_T_LO, tHi=AB_CL_T_HI, pHi=AB_CL_P_HI;
   const tPxPerDeg=tH/(tHi-tLo), pPxPerMm=pH/pHi;
 
-  /* 초과분을 픽셀로 바꾸되 상한(CAP)에서 늘어나는 걸 멈춘다 — 실제 초과량은
-     각 함수가 아래에서 raw(상한 없는 값)와 따로 비교해 라벨을 붙일 때 쓴다 */
-  const tOverHiPx=v=>v>tHi?Math.min(AB_CL_T_CAP,(v-tHi)*tPxPerDeg):0;
-  const tOverLoPx=v=>v<tLo?Math.min(AB_CL_T_CAP,(tLo-v)*tPxPerDeg):0;
-  const pOverPx=v=>v>pHi?Math.min(AB_CL_P_CAP,(v-pHi)*pPxPerMm):0;
-
-  /* 칸 사이 여백은 그 안에서 제일 많이 튀어나오는 값 하나에 맞춰 잡는다 —
-     한 달만 넘쳐도 나머지 열한 달까지 다 같은 여백을 나눠 쓴다 */
-  const mTop=8+Math.round(Math.max(0,...mean.map(tOverHiPx)));
-  const gap=gapBase+Math.round(Math.max(0,...mean.map(tOverLoPx),...st.pr.map(pOverPx)));
+  /* 이 지점이 고정 범위를 얼마나 넘는지 계산해, 그만큼(상한 없이) 칸을
+     늘린다 — 살짝 넘긴 달은 살짝만, 체라푼지처럼 압도적인 지점은 실제
+     초과분만큼 계속 튀어나온다 */
+  const tExcessHi=Math.max(0,...mean.map(v=>v-tHi));
+  const tExcessLo=Math.max(0,...mean.map(v=>tLo-v));
+  const pExcessHi=Math.max(0,...st.pr.map(v=>v-pHi));
+  const mTop=8+Math.round(tExcessHi*tPxPerDeg);
+  const gap=gapBase+Math.round(Math.max(tExcessLo*tPxPerDeg,pExcessHi*pPxPerMm));
 
   const x=i=>PL+plotW*(i+.5)/12;
-  const tTop=mTop, tBot=mTop+tH, pTop=mTop+tH+gap, pBot=pTop+pH;
-  /* 눈금선은 고정 축 그대로 — 칸 밖으로 나가는 값과 헷갈리면 안 된다 */
-  const yTraw=v=>tTop+tH*(1-(v-tLo)/(tHi-tLo));
-  const yPraw=v=>pTop+pH*(1-v/pHi);
-  const yT=v=>v>tHi?tTop-tOverHiPx(v):(v<tLo?tBot+tOverLoPx(v):yTraw(v));
-  const yP=v=>v>pHi?pTop-pOverPx(v):yPraw(v);
+  const tTop=mTop, tBot=mTop+tH, pTop=mTop+tH+gap;
+  const yT=v=>tTop+tH*(1-(v-tLo)/(tHi-tLo));
+  const yP=v=>pTop+pH*(1-v/pHi);
   const bw=plotW/12*0.52;
 
   let tgrid='',ttick='';
   for(let t=tLo;t<=tHi+AB_CL_T_STEP*0.01;t+=AB_CL_T_STEP){
-    const y=yTraw(t);
+    const y=yT(t);
     tgrid+='<line class="cl-grid" x1="'+PL+'" x2="'+(W-PR)+'" y1="'+y.toFixed(1)+'" y2="'+y.toFixed(1)+'"/>';
     ttick+='<text class="cl-y" x="'+(PL-6)+'" y="'+(y+3).toFixed(1)+'">'+t+'°</text>';
   }
   let pgrid='',ptick='';
   for(let p=0;p<=pHi+AB_CL_P_STEP*0.01;p+=AB_CL_P_STEP){
-    const y=yPraw(p);
+    const y=yP(p);
     pgrid+='<line class="cl-grid" x1="'+PL+'" x2="'+(W-PR)+'" y1="'+y.toFixed(1)+'" y2="'+y.toFixed(1)+'"/>';
     /* 온도 눈금과 같은 왼쪽에 붙인다 — 두 칸이 위아래로 떨어져 있어 겹칠
        일이 없고, 어느 쪽을 봐도 눈금이 같은 자리에 있는 편이 읽기 좋다 */
     ptick+='<text class="cl-y2" x="'+(PL-6)+'" y="'+(y+3).toFixed(1)+'">'+p+'mm</text>';
   }
-  let pbars='',plabel='';
+  let pbars='';
   st.pr.forEach((v,i)=>{
-    const over=v>pHi, y0=yPraw(0), y1=yP(v);
+    const over=v>pHi, y0=yP(0), y1=yP(v);
     pbars+='<rect class="cl-p'+(over?' of':'')+'" x="'+(x(i)-bw/2).toFixed(1)+'" y="'+y1.toFixed(1)
       +'" width="'+bw.toFixed(1)+'" height="'+Math.max(0,y0-y1).toFixed(1)+'"/>';
-    /* 상한에 닿아 더 못 늘어나는(=raw 초과가 CAP보다 큰) 값만 실제 숫자를
-       옆에 적는다 — 안 그러면 달마다 숫자가 붙어 그래프가 아니라 표가 된다 */
-    if(over&&(v-pHi)*pPxPerMm>AB_CL_P_CAP+0.5)
-      plabel+='<text class="cl-of-lb" x="'+x(i).toFixed(1)+'" y="'+(y1-3).toFixed(1)+'">'+Math.round(v)+'</text>';
   });
   const tpts=mean.map((v,i)=>x(i).toFixed(1)+','+yT(v).toFixed(1)).join(' ');
-  let tdots='',tlabel='';
+  let tdots='';
   mean.forEach((v,i)=>{
-    const over=v>tHi||v<tLo, y=yT(v);
-    tdots+='<circle class="cl-d'+(over?' of':'')+'" cx="'+x(i).toFixed(1)+'" cy="'+y.toFixed(1)+'" r="2.6"/>';
-    const rawPx=v>tHi?(v-tHi)*tPxPerDeg:(v<tLo?(tLo-v)*tPxPerDeg:0);
-    if(over&&rawPx>AB_CL_T_CAP+0.5)
-      tlabel+='<text class="cl-of-lb" x="'+x(i).toFixed(1)+'" y="'+(v>tHi?y-6:y+11).toFixed(1)+'">'+v.toFixed(1)+'°</text>';
+    const over=v>tHi||v<tLo;
+    tdots+='<circle class="cl-d'+(over?' of':'')+'" cx="'+x(i).toFixed(1)+'" cy="'+yT(v).toFixed(1)+'" r="2.6"/>';
   });
 
   const totalH=mTop+tH+gap+pH+18;
@@ -177,7 +160,7 @@ function abClimateChart(st){
   h+=tgrid+ttick;
   h+='<rect class="cl-panel-bg" x="'+PL+'" y="'+pTop+'" width="'+plotW+'" height="'+pH+'" rx="6"/>';
   h+=pgrid+pbars+ptick;
-  h+='<polyline class="cl-t" points="'+tpts+'"/>'+tdots+tlabel+plabel;
+  h+='<polyline class="cl-t" points="'+tpts+'"/>'+tdots;
   ['1','4','7','10'].forEach(mo=>{const i=+mo-1;
     h+='<text class="cl-x" x="'+x(i).toFixed(1)+'" y="'+(totalH-4)+'">'+mo+'월</text>';});
   h+='</svg>';
