@@ -186,6 +186,25 @@ function abAtlasShow(iso){
     +'</div>';
   if(d.ll)h+='<p class="ct-note">수도 좌표 '+d.ll[0].toFixed(3)+'°, '+d.ll[1].toFixed(3)+'°</p>';
 
+  /* 인구 구조 — 도시화율·출산율은 값 하나짜리라 규모 카드와 같은 칸으로,
+     연령 구성은 유소년·청장년·노년이 100%를 나눠 갖는 구성비라 막대로 */
+  const wdt=(typeof WORLD_DATA!=='undefined'&&WORLD_DATA[iso])||null;
+  if(wdt&&(wdt.ur!=null||wdt.tfr!=null||wdt.y0!=null)){
+    h+='<h4 class="sec">인구 구조</h4>';
+    if(wdt.ur!=null||wdt.tfr!=null)
+      h+='<div class="grid g-2">'+['urban','tfr'].map(id=>abStatCell(id,iso)).join('')+'</div>';
+    if(wdt.y0!=null&&wdt.y1!=null&&wdt.y2!=null)
+      h+=abBars([['유소년층(0~14세)',wdt.y0],['청장년층(15~64세)',wdt.y1],['노년층(65세 이상)',wdt.y2]],
+                ['var(--c3)','var(--c1)','var(--c8)']);
+  }
+  /* 산업 구조 — 1·2·3차산업이 GDP에서 차지하는 몫. 합쳐서 100%에 가까운
+     구성비라 종교·에너지처럼 막대로 그린다 */
+  if(wdt&&wdt.i1!=null&&wdt.i2!=null&&wdt.i3!=null){
+    h+='<h4 class="sec">산업 구조 <em>GDP 대비</em></h4>'
+      +abBars([['1차산업(농림수산업)',wdt.i1],['2차산업(광공업)',wdt.i2],['3차산업(서비스업)',wdt.i3]],
+              ['var(--c2)','var(--c8)','var(--c1)']);
+  }
+
   /* 종교 */
   const rel=(typeof RELIG2_DATA!=='undefined'&&RELIG2_DATA[iso])||null;
   if(rel){
@@ -196,8 +215,29 @@ function abAtlasShow(iso){
      석탄·가스·원자력이 얼마씩인지 조각 모양과 아이콘만으로 짐작이 간다 */
   const en=(typeof ENERGY_DATA!=='undefined'&&ENERGY_DATA[iso])||null;
   if(en){
-    h+='<h4 class="sec">에너지 구성</h4><div class="card pad">'
+    h+='<h4 class="sec">에너지 구성 <em>1차에너지 소비 — 수송·난방 포함</em></h4><div class="card pad">'
       +abIconPie(en.map(r=>({label:ENERGY_NAME[r[0]],v:r[1],icon:enIcon(r[0]),color:EN_ICON_COLOR[r[0]]||'var(--c8)'})))
+      +'</div>';
+  }
+  /* 발전원 — 위 에너지 구성과 헷갈리기 쉬워 부제로 갈라 둔다. 저건 나라가
+     쓰는 에너지 전체(수송·난방까지)고, 이건 전력만 무엇으로 만드는지다.
+     같은 나라라도 두 그래프의 석유 비중이 크게 다를 수 있다 — 발전에는
+     석유를 거의 안 써도 자동차·공장은 여전히 석유를 쓰기 때문이다. */
+  if(wdt&&wdt.el){
+    const elSum=wdt.el.reduce((a,b)=>a+b,0);
+    if(elSum>0){
+      h+='<h4 class="sec">발전원 구성 <em>전력 생산만</em></h4><div class="card pad">'
+        +abIconPie(ENERGY_NAME.slice(0,8).map((nm,k)=>(
+          {label:nm,v:wdt.el[k]/elSum*100,icon:enIcon(k),color:EN_ICON_COLOR[k]||'var(--c8)'})).filter(r=>r.v>0))
+        +'</div>';
+    }
+  }
+  /* 에너지 자원 — 생산량·소비량과 자급률. 자급률이 100%를 넘으면 캐낸
+     만큼 다 못 쓰고 수출로 넘기는 나라, 밑돌면 모자라 사 오는 나라다 */
+  if(wdt&&(wdt.cp!=null||wdt.op!=null||wdt.gp!=null||wdt.cc!=null||wdt.oc!=null||wdt.gc!=null)){
+    h+='<h4 class="sec">에너지 자원 <em>1차에너지 환산 · TWh</em></h4><div class="grid g-3">'
+      +['coalProd','coalCons','coalSelf','oilProd','oilCons','oilSelf','gasProd','gasCons','gasSelf']
+        .map(id=>abStatCell(id,iso)).join('')
       +'</div>';
   }
   /* 무역 — 수입은 뺀다. 이 나라가 세계에 무엇을 파는지가 그 나라 산업의
@@ -208,6 +248,13 @@ function abAtlasShow(iso){
     const a=tr.x.slice(0,6);
     h+='<h4 class="sec">주요 수출 품목</h4><div class="card pad">'
       +abIconPie(a.map(r=>({label:HS2_KO[r[0]]||r[0],v:r[1],icon:trIconOf(r[0]),color:TR_ICON_COLOR[trIconOf(r[0])]})))
+      +'</div>';
+  }
+  /* 주요 농축산물 — 곡물 생산량과 가축 사육두수. 구성비가 아니라 저마다
+     단위가 다른 절대량이라 원그래프 대신 '규모와 위치'와 같은 값+순위 칸을 쓴다 */
+  if(wdt&&(wdt.wh!=null||wdt.ri!=null||wdt.co!=null||wdt.ct!=null||wdt.sh!=null)){
+    h+='<h4 class="sec">주요 농축산물</h4><div class="grid g-3">'
+      +['wheat','rice','corn','cattle','sheep'].map(id=>abStatCell(id,iso)).join('')
       +'</div>';
   }
   /* 기후 — 나라 전체를 하나의 순위로 묶지 않는다. 관측소를 평균 내면 넓은

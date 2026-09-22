@@ -45,6 +45,9 @@ function abFmt(v,unit){
   if(u==='km')return Math.round(v).toLocaleString()+' km';
   if(u==='°')return v.toFixed(2)+'°';
   if(u==='명/km²')return Math.round(v).toLocaleString()+' 명/km²';
+  if(u==='자녀수')return v.toFixed(2)+'명';
+  if(u==='TWh')return v.toFixed(1)+' TWh';
+  if(u==='만 톤'||u==='만 두')return v.toFixed(1)+' '+u;
   return Math.round(v).toLocaleString()+(u?' '+u:'');
 }
 
@@ -137,6 +140,64 @@ const AB_METRICS=[
               const c=a.find(x=>String(x[0])===code);return c?c[1]:null;}});
     });
   }
+})();
+
+/* 세계은행 국가 지표(world-data.js) — 인구 구조 · 산업 구조 · 발전원 ·
+   에너지 자원 생산·소비 · 주요 농축산물. 0인 항목은 world-data.js에서부터
+   키를 만들지 않으므로, 여기서는 키가 있는지만 보면 '자료 없음'과
+   '진짜 0'이 자연히 갈린다. */
+(function(){
+  if(typeof WORLD_DATA==='undefined')return;
+  const wd=i=>WORLD_DATA[i]||{};
+  AB_METRICS.push(
+    {id:'urban',cat:'인구 구조',name:'도시인구비율',unit:'%',src:'World Bank WDI',
+     f:i=>wd(i).ur!=null?wd(i).ur:null},
+    {id:'tfr',cat:'인구 구조',name:'합계출산율',unit:'자녀수',src:'World Bank WDI',
+     f:i=>wd(i).tfr!=null?wd(i).tfr:null,
+     note:'여성 한 명이 평생 낳을 것으로 기대되는 자녀 수입니다.'},
+    {id:'y0',cat:'인구 구조',name:'유소년층비중',unit:'%',src:'World Bank WDI',
+     f:i=>wd(i).y0!=null?wd(i).y0:null,note:'0~14세 인구가 전체에서 차지하는 비율입니다.'},
+    {id:'y1',cat:'인구 구조',name:'청장년층비중',unit:'%',src:'World Bank WDI',
+     f:i=>wd(i).y1!=null?wd(i).y1:null,note:'15~64세, 이른바 생산연령인구 비율입니다.'},
+    {id:'y2',cat:'인구 구조',name:'노년층비중',unit:'%',src:'World Bank WDI',
+     f:i=>wd(i).y2!=null?wd(i).y2:null,note:'65세 이상 인구가 전체에서 차지하는 비율입니다.'},
+    {id:'ind1',cat:'산업 구조',name:'1차산업비중',unit:'%',src:'World Bank WDI',
+     f:i=>wd(i).i1!=null?wd(i).i1:null},
+    {id:'ind2',cat:'산업 구조',name:'2차산업비중',unit:'%',src:'World Bank WDI',
+     f:i=>wd(i).i2!=null?wd(i).i2:null},
+    {id:'ind3',cat:'산업 구조',name:'3차산업비중',unit:'%',src:'World Bank WDI',
+     f:i=>wd(i).i3!=null?wd(i).i3:null}
+  );
+  /* 발전원 — '무엇으로 전력을 만드는지'다. data.js의 에너지 구성(1차에너지
+     소비 전체)과는 다른 항목이라 분류 이름도 갈라 둔다. */
+  if(typeof ENERGY_NAME!=='undefined')ENERGY_NAME.slice(0,8).forEach((nm,k)=>{
+    AB_METRICS.push({id:'elec'+k,cat:'발전원',name:nm+' 발전 비중',unit:'%',
+      src:'World Bank WDI · 발전량 기준',
+      f:i=>{const el=wd(i).el;if(!el)return null;
+            const sum=el.reduce((a,b)=>a+b,0);if(!sum)return null;
+            return el[k]/sum*100;}});
+  });
+  /* 에너지 자원 — 생산량·소비량과 자급률(생산÷소비). 100을 넘으면 쓰는
+     것보다 더 캐내 수출로 남기는 나라, 밑돌면 수입에 기대는 나라다. */
+  [['coal','석탄','cp','cc'],['oil','석유','op','oc'],['gas','천연가스','gp','gc']]
+    .forEach(([key,nm,pk,ck])=>{
+      AB_METRICS.push({id:key+'Prod',cat:'에너지 자원',name:nm+' 생산량',unit:'TWh',
+        src:'World Bank WDI · 1차에너지 환산',f:i=>{const v=wd(i)[pk];return v!=null?v:null;}});
+      AB_METRICS.push({id:key+'Cons',cat:'에너지 자원',name:nm+' 소비량',unit:'TWh',
+        src:'World Bank WDI · 1차에너지 환산',f:i=>{const v=wd(i)[ck];return v!=null?v:null;}});
+      AB_METRICS.push({id:key+'Self',cat:'에너지 자원',name:nm+' 자급률',unit:'%',
+        src:'World Bank WDI · 생산량÷소비량',
+        note:'100%를 넘으면 쓰는 양보다 많이 캐내는 나라(순수출), 밑돌면 모자라 들여오는 나라(순수입)입니다.',
+        f:i=>{const d=wd(i),c=d[ck];if(!c)return null;return (d[pk]||0)/c*100;}});
+    });
+  /* 주요 농축산물 */
+  [['wheat','밀 생산량','wh','만 톤'],['rice','쌀 생산량','ri','만 톤'],
+   ['corn','옥수수 생산량','co','만 톤'],['cattle','소 사육두수','ct','만 두'],
+   ['sheep','양 사육두수','sh','만 두']]
+    .forEach(([id,nm,k,unit])=>{
+      AB_METRICS.push({id:id,cat:'농축산물',name:nm,unit:unit,src:'World Bank WDI',
+        f:i=>{const v=wd(i)[k];return v!=null?v:null;}});
+    });
 })();
 
 /* 한 항목의 전체 순위 — [{iso, v, rank}] */
