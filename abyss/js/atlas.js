@@ -87,79 +87,75 @@ function abBars(rows,colors){
       +((colors&&colors[i])||AB_SERIES[i%AB_SERIES.length])+'"></i></span>'
     +'<span class="bar-v">'+r[1].toFixed(1)+'%</span></div>').join('')+'</div>';
 }
-/* 기후 그래프 — 기온 꺾은선 + 강수 막대
+/* 기후 그래프 — 기온 꺾은선 + 강수 막대를 한 칸에 겹쳐 그린다
    ──────────────────────────────────────────────────────────────────────────
-   한때 지점마다 축을 따로 잡았다(그 지점 최저~최고에 맞춰 t0~t1을 계산).
-   그러면 그래프만 보고는 어디가 덥고 어디가 추운지 비교가 안 된다 — 영하
-   40도짜리 지점도, 영상 30도짜리 지점도 그래프 안에서는 똑같이 '위아래로
-   꽉 찬 선'으로 보이기 때문이다. 같은 저울에 올려야 한눈에 비교가 된다.
+   기온과 강수를 위아래로 떼어 놓으니 칸이 둘로 나뉘어 갑갑했다. 원래대로
+   한 칸에 겹쳐 그리는 편이 낫다 — 기온 선이 강수 막대 위를 지나가는 모양
+   자체가 그 달이 덥고 비가 많은지를 한눈에 보여 준다(전통적인 기후그래프·
+   발터-리트 도표가 쓰는 방식이다).
 
-   그래서 축 범위를 모든 지점에 고정으로 쓴다. 본편 js/climate.js 의
-   CQ_T_LO/CQ_T_HI/CQ_P_HI 와 값을 그대로 맞췄다 — 같은 나라를 본편과
-   Abyss 양쪽에서 봐도 같은 저울이어야 하니까.
-
-   고정 범위를 벗어나는 지점(폭염·혹한·폭우)은 칸 밖으로 그냥 뚫고 나가게
-   그린다. 튀어나온 길이는 초과량에 정비례한다(상한 없음) — 체라푼지처럼
-   압도적인 지점은 실제 초과분만큼 계속 튀어나온다. 본편 climate.js 의
-   cqChartSVG 와 같은 방식이다. 그 구간은 반투명하게 그려서 '칸을 넘었다'가
-   바로 보이게 한다. */
-const AB_CL_T_LO=-10, AB_CL_T_HI=30, AB_CL_T_STEP=10;
-const AB_CL_P_HI=150, AB_CL_P_STEP=50;
+   축은 -10~30°C · 0~150mm 를 기본 범위로 하되, 그걸로 모자란 지점
+   (폭염·혹한·폭우)에서는 눈금을 필요한 만큼 더 그린다 — 늘어나는 쪽으로만
+   넓어지고, 기본 범위 아래로 줄어들지는 않는다. 한 눈금(10°C·50mm)이
+   차지하는 픽셀 수는 어떤 지점이든 항상 같다. 그래야 오이먀콘처럼 여섯 달이
+   한꺼번에 범위를 넘는 지점도, 모스크바처럼 안 넘는 지점도 '한 칸이 몇 도인지'
+   같은 잣대로 읽힌다 — 범위를 넘겼다고 눈금 없는 여백으로 밀어내는 대신,
+   그 자리에도 똑같이 눈금과 숫자를 그린다. */
+const AB_CL_T_LO=-10, AB_CL_T_HI=30, AB_CL_T_STEP=10, AB_CL_T_PX=2.6;
+const AB_CL_P_HI=150, AB_CL_P_STEP=50, AB_CL_P_PX=0.5;
 function abClimateChart(st){
-  const W=560, tH=92, pH=54, PL=34, PR=34, gapBase=12;
+  const W=560, PL=34, PR=40, PT=12, PB=22;
   const plotW=W-PL-PR;
   const mean=st.lo.map((v,i)=>(v+st.hi[i])/2);
-  const tLo=AB_CL_T_LO, tHi=AB_CL_T_HI, pHi=AB_CL_P_HI;
-  const tPxPerDeg=tH/(tHi-tLo), pPxPerMm=pH/pHi;
 
-  /* 이 지점이 고정 범위를 얼마나 넘는지 계산해, 그만큼(상한 없이) 칸을
-     늘린다 — 살짝 넘긴 달은 살짝만, 체라푼지처럼 압도적인 지점은 실제
-     초과분만큼 계속 튀어나온다 */
-  const tExcessHi=Math.max(0,...mean.map(v=>v-tHi));
-  const tExcessLo=Math.max(0,...mean.map(v=>tLo-v));
-  const pExcessHi=Math.max(0,...st.pr.map(v=>v-pHi));
-  const mTop=8+Math.round(tExcessHi*tPxPerDeg);
-  const gap=gapBase+Math.round(Math.max(tExcessLo*tPxPerDeg,pExcessHi*pPxPerMm));
+  /* 기본 범위 아래로는 안 줄고, 필요한 만큼만(10°C·50mm 단위로) 늘어난다 */
+  const stepDown=(v,step)=>Math.floor(v/step)*step;
+  const stepUp=(v,step)=>Math.ceil(v/step)*step;
+  const tLo=Math.min(AB_CL_T_LO,stepDown(Math.min.apply(null,mean),AB_CL_T_STEP));
+  const tHi=Math.max(AB_CL_T_HI,stepUp(Math.max.apply(null,mean),AB_CL_T_STEP));
+  const pHi=Math.max(AB_CL_P_HI,stepUp(Math.max.apply(null,st.pr),AB_CL_P_STEP));
+
+  /* 두 축을 한 칸에 겹친다. 칸 높이는 두 축이 각자 필요로 하는 높이 중
+     큰 쪽을 따르고, 짧은 쪽은 그 안에서 자기 범위만큼만 차지한다 — 강수가
+     평범한 달에는 강수 눈금이 칸의 위쪽까지 안 닿고, 몬순처럼 강수가 압도적인
+     지점에서는 반대로 기온 눈금이 칸 바닥까지 안 닿는다. 둘 다 정상이다. */
+  const tH=(tHi-tLo)*AB_CL_T_PX, pH=pHi*AB_CL_P_PX;
+  const plotH=Math.max(tH,pH);
 
   const x=i=>PL+plotW*(i+.5)/12;
-  const tTop=mTop, tBot=mTop+tH, pTop=mTop+tH+gap;
-  const yT=v=>tTop+tH*(1-(v-tLo)/(tHi-tLo));
-  const yP=v=>pTop+pH*(1-v/pHi);
+  const yT=v=>PT+(tHi-v)*AB_CL_T_PX;
+  const yP=v=>PT+plotH-v*AB_CL_P_PX;
   const bw=plotW/12*0.52;
 
   let tgrid='',ttick='';
   for(let t=tLo;t<=tHi+AB_CL_T_STEP*0.01;t+=AB_CL_T_STEP){
     const y=yT(t);
-    tgrid+='<line class="cl-grid" x1="'+PL+'" x2="'+(W-PR)+'" y1="'+y.toFixed(1)+'" y2="'+y.toFixed(1)+'"/>';
+    tgrid+='<line class="cl-grid'+(t===0?' zero':'')+'" x1="'+PL+'" x2="'+(W-PR)+'" y1="'+y.toFixed(1)+'" y2="'+y.toFixed(1)+'"/>';
     ttick+='<text class="cl-y" x="'+(PL-6)+'" y="'+(y+3).toFixed(1)+'">'+t+'°</text>';
   }
-  let pgrid='',ptick='';
+  /* 강수 눈금은 오른쪽에 숫자만 적는다 — 기온 눈금과 같은 자리에 가로선을
+     또 그으면 두 벌의 그리드가 서로 어긋난 간격으로 겹쳐 지저분해진다.
+     막대 자체가 강수량을 보여 주므로 숫자는 눈금이 아니라 참고선이면 된다. */
+  let ptick='';
   for(let p=0;p<=pHi+AB_CL_P_STEP*0.01;p+=AB_CL_P_STEP){
     const y=yP(p);
-    pgrid+='<line class="cl-grid" x1="'+PL+'" x2="'+(W-PR)+'" y1="'+y.toFixed(1)+'" y2="'+y.toFixed(1)+'"/>';
-    /* 온도 눈금과 같은 왼쪽에 붙인다 — 두 칸이 위아래로 떨어져 있어 겹칠
-       일이 없고, 어느 쪽을 봐도 눈금이 같은 자리에 있는 편이 읽기 좋다 */
-    ptick+='<text class="cl-y2" x="'+(PL-6)+'" y="'+(y+3).toFixed(1)+'">'+p+'mm</text>';
+    ptick+='<text class="cl-y2" x="'+(W-PR+8)+'" y="'+(y+3).toFixed(1)+'">'+p+'</text>'
+      +'<line class="cl-tick2" x1="'+(W-PR)+'" x2="'+(W-PR+4)+'" y1="'+y.toFixed(1)+'" y2="'+y.toFixed(1)+'"/>';
   }
   let pbars='';
   st.pr.forEach((v,i)=>{
-    const over=v>pHi, y0=yP(0), y1=yP(v);
-    pbars+='<rect class="cl-p'+(over?' of':'')+'" x="'+(x(i)-bw/2).toFixed(1)+'" y="'+y1.toFixed(1)
+    const y1=yP(v), y0=yP(0);
+    pbars+='<rect class="cl-p" x="'+(x(i)-bw/2).toFixed(1)+'" y="'+y1.toFixed(1)
       +'" width="'+bw.toFixed(1)+'" height="'+Math.max(0,y0-y1).toFixed(1)+'"/>';
   });
   const tpts=mean.map((v,i)=>x(i).toFixed(1)+','+yT(v).toFixed(1)).join(' ');
   let tdots='';
-  mean.forEach((v,i)=>{
-    const over=v>tHi||v<tLo;
-    tdots+='<circle class="cl-d'+(over?' of':'')+'" cx="'+x(i).toFixed(1)+'" cy="'+yT(v).toFixed(1)+'" r="2.6"/>';
-  });
+  mean.forEach((v,i)=>{tdots+='<circle class="cl-d" cx="'+x(i).toFixed(1)+'" cy="'+yT(v).toFixed(1)+'" r="2.6"/>';});
 
-  const totalH=mTop+tH+gap+pH+18;
-  let h='<svg class="cl-chart" viewBox="0 0 '+W+' '+totalH+'" role="img" aria-label="월별 기온과 강수량 — 축 범위는 모든 지점에서 같다">';
-  h+='<rect class="cl-panel-bg" x="'+PL+'" y="'+mTop+'" width="'+plotW+'" height="'+tH+'" rx="6"/>';
-  h+=tgrid+ttick;
-  h+='<rect class="cl-panel-bg" x="'+PL+'" y="'+pTop+'" width="'+plotW+'" height="'+pH+'" rx="6"/>';
-  h+=pgrid+pbars+ptick;
+  const totalH=PT+plotH+PB;
+  let h='<svg class="cl-chart" viewBox="0 0 '+W+' '+totalH+'" role="img" aria-label="월별 기온과 강수량 — 왼쪽은 기온, 오른쪽은 강수량">';
+  h+=tgrid+ttick+ptick;
+  h+=pbars;
   h+='<polyline class="cl-t" points="'+tpts+'"/>'+tdots;
   ['1','4','7','10'].forEach(mo=>{const i=+mo-1;
     h+='<text class="cl-x" x="'+x(i).toFixed(1)+'" y="'+(totalH-4)+'">'+mo+'월</text>';});
