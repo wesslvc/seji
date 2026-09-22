@@ -67,9 +67,11 @@ function abRankView(){
   const rows=abRank(AB_RANK.id);
   const box=document.getElementById('rank-view');
   if(!m||!rows.length){box.innerHTML='<p class="none">자료가 없습니다.</p>';return;}
-  const mx=Math.max.apply(null,rows.map(r=>r.v))||1;
-  const mn=Math.min.apply(null,rows.map(r=>r.v));
-  const span=(mx-mn)||1;
+  /* 선 길이는 값 그대로다 — 1위 대비 몇 할인지가 눈에 보여야 한다.
+     한때 최솟값을 0으로 잡고 최소~최대 폭으로 늘였더니, 꼴찌는 늘 길이가
+     0이고 2위와 꼴찌의 차이가 실제보다 훨씬 크게 보였다.
+     음수가 섞이는 항목(수도의 위도)은 크기만 보므로 절댓값을 쓴다. */
+  const mx=Math.max.apply(null,rows.map(r=>Math.abs(r.v)))||1;
   let h='<div class="rank-head"><h3>'+abEsc(m.name)+abStarHTML('metric:'+m.id,m.name)+'</h3>'
     +'<span class="src">'+abEsc(m.src)+' · '+rows.length
     +(abTerrOn()?'개 나라·속령':'개국')+'</span></div>';
@@ -80,7 +82,7 @@ function abRankView(){
   /* 대륙마다 색을 달리한다 — 순위표를 훑을 때 어느 대륙이 위를 차지했는지가
      막대 색으로 먼저 보인다. 숫자를 하나씩 읽지 않아도 된다. */
   rows.forEach(r=>{
-    const w=((r.v-mn)/span*100);
+    const w=Math.abs(r.v)/mx*100;
     const c=abCont(r.iso);
     h+='<tr'+(r.rank<=3?' class="top"':'')+'><td class="rk">'+r.rank+'</td>'
       +'<td class="nm"><a href="#/atlas?'+r.iso+'">'+abFlag(r.iso,18)+abEsc(abName(r.iso))+'</a></td>'

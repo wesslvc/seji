@@ -358,11 +358,13 @@ function wdFilter(q){
 function wdSec(title,inner,note){
   return inner?'<div class="wd-sec"><div class="wd-sec-t">'+title+(note?' <small class="wd-sec-note">'+note+'</small>':'')+'</div>'+inner+'</div>':'';
 }
+/* 구성비 그래프 — 선 길이는 100%를 기준으로 잰다.
+   1위 값에 맞춰 늘이면 62%짜리가 바탕선을 꽉 채워서, 바탕선을 100% 자리로
+   읽는 사람에게 '거의 전부'로 보인다. 62%는 62% 자리에 있어야 한다. */
 function wdBars(rows){ /* rows: [[label,pct,color]] */
-  const mx=Math.max(...rows.map(r=>r[1]),1);
   return '<div class="wd-bars">'+rows.map(([lb,v,col])=>
     '<div class="wd-bar-row"><span class="wd-bar-lb">'+lb+'</span>'
-    +'<span class="wd-bar-tr"><span class="wd-bar-f" style="width:'+(v/mx*100).toFixed(1)+'%;background:'+col+'"></span></span>'
+    +'<span class="wd-bar-tr"><span class="wd-bar-f" style="width:'+Math.max(1.5,Math.min(100,v)).toFixed(1)+'%;background:'+col+'"></span></span>'
     +'<span class="wd-bar-v">'+v+'%</span></div>').join('')+'</div>';
 }
 

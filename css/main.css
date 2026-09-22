@@ -887,7 +887,9 @@ body.cq-mode #cq-pins-ov{display:block}
 .wd-bars{display:flex;flex-direction:column;gap:.3rem}
 .wd-bar-row{display:flex;align-items:center;gap:.5rem}
 .wd-bar-lb{width:110px;flex-shrink:0;font-size:.7rem;color:var(--tx);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.wd-bar-tr{flex:1;height:10px;border-radius:999px;background:var(--sf2);overflow:hidden}
+/* 그래프는 선 한 줄이다 — 어비스와 같은 모양. 면으로 칠하면 색 덩어리가
+   숫자보다 먼저 읽힌다. 바탕선이 100% 자리를 알려 준다. */
+.wd-bar-tr{flex:1;height:3px;border-radius:999px;background:var(--bd);overflow:hidden}
 .wd-bar-f{display:block;height:100%;border-radius:999px}
 .wd-bar-v{width:44px;flex-shrink:0;font-size:.7rem;color:var(--tx2);font-variant-numeric:tabular-nums}
 .wd-chart{margin-top:.55rem;background:var(--sf);border:1px solid var(--bd);border-left:3px solid var(--wd-c1,#e2c07a);border-radius:10px;padding:.6rem .7rem;max-width:250px;transition:border-left-color .3s}
@@ -1146,81 +1148,6 @@ body.sq-pin #sq-box{max-height:56vh;max-height:56dvh}
 #new-build button{border:none;border-radius:999px;padding:.4rem .9rem;background:var(--btn);color:#fff;font-family:inherit;font-size:.76rem;font-weight:700;cursor:pointer}
 #new-build button.x{background:transparent;color:var(--tx2);padding:.3rem .4rem;font-size:.92rem;font-weight:400}
 
-/* ── 접경국 하드코어 ── */
-/* 적어 둔 나라는 맞았는지 알려 주지 않으므로 중립색으로 둔다 */
-.rbq-entry-tag{
-  cursor:pointer;background:var(--sf2);color:var(--tx);
-  border:1px solid var(--bd);
-}
-.rbq-entry-tag:hover{border-color:var(--wr);color:var(--wr);}
-.rbq-hard-submit{
-  margin-left:auto;padding:.34rem .8rem;border-radius:.5rem;
-  border:1px solid #81c995;background:#81c99522;color:#81c995;
-  font-size:.7rem;font-weight:700;cursor:pointer;white-space:nowrap;
-}
-.rbq-hard-submit:hover:not(:disabled){background:#81c99538;}
-.rbq-hard-submit:disabled{opacity:.4;cursor:default;}
-/* 하드코어: 건너뛰기는 눌러도 안 되는 버튼으로 남겨 둔다 */
-.bq-skip.dead{opacity:.45;text-decoration:line-through;cursor:not-allowed;}
-/* 문항 배점 — 아프리카는 60점이라 눈에 띄게 */
-.rbq-base{font-size:.7rem;color:var(--tx2);font-weight:600;}
-.rbq-base.af{color:#e8b820;}
-/* 하드코어 연속 오답 놀림말 */
-.br-taunt{margin-top:.35rem;font-size:.76rem;font-weight:600;color:var(--gd);opacity:.95;}
-
-/* ══════════ 통계 순위 테스트 ══════════ */
-#st-end{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:800;display:none;align-items:center;justify-content:center}
-#st-end.on{display:flex}
-/* 유럽이 순위에 자주 나오므로 카드를 아래쪽에 둔다 — 위에 두면 EU를 가린다.
-   오답일 때 흔드는 .shake가 transform을 덮어쓰므로, 가운데 정렬은
-   translateX가 아니라 좌우 0 + margin auto로 잡는다. */
-#st-box{
-  position:absolute;left:0;right:0;bottom:1rem;margin:0 auto;
-  z-index:12;background:color-mix(in srgb,var(--sf) 96%,transparent);
-  border:1px solid var(--bd);border-radius:12px;padding:.7rem .9rem;
-  box-shadow:var(--shadow2);backdrop-filter:blur(10px);
-  width:min(560px,calc(100vw - 2rem));display:none;
-}
-#st-box.on{display:block}
-.st-meta{font-size:.7rem;color:var(--tx2);text-align:center;margin:.25rem 0 .5rem}
-.st-slots{display:flex;flex-direction:column;gap:.25rem}
-.st-slot{
-  display:flex;align-items:center;gap:.5rem;padding:.3rem .5rem;
-  border:1px solid var(--bd);border-radius:8px;background:var(--sf2);
-  font-size:.82rem;font-weight:600;color:var(--tx);
-}
-.st-slot.now{border-color:var(--ac);background:var(--ac2)}
-.st-slot.ok{border-color:#81c995;background:color-mix(in srgb,#81c995 14%,transparent)}
-.st-slot.miss{border-color:var(--wr);background:color-mix(in srgb,var(--wr) 12%,transparent)}
-.st-rank{
-  flex-shrink:0;font-size:.62rem;font-weight:800;color:var(--tx2);
-  min-width:2.1rem;text-align:center;
-}
-.st-slot.now .st-rank{color:var(--ac)}
-.st-slot.ok .st-rank{color:#81c995}
-.st-slot.miss .st-rank{color:var(--wr)}
-.st-ask{color:var(--tx2);font-weight:500}
-.st-slot.now .st-ask{color:var(--ac);font-weight:700}
-.st-val{margin-left:auto;font-size:.7rem;font-weight:600;color:var(--tx2)}
-.st-note{
-  margin-top:.5rem;padding-top:.5rem;border-top:1px dashed var(--bd);
-  font-size:.7rem;line-height:1.55;color:var(--tx2);
-}
-.st-note-list{margin:.3rem 0 .4rem;padding-left:1.2rem;font-size:.76rem;line-height:1.7}
-.st-note-list li.miss{color:var(--wr);font-weight:700}
-.st-note-p{margin:.2rem 0 0;font-size:.7rem;color:var(--tx2);line-height:1.6}
-body.printing-st>*:not(#st-end){display:none!important}
-@media print{
-  body.printing-st #st-end{position:static;background:#fff;display:block}
-  body.printing-st #st-end .reb{display:none}
-  body.printing-st #st-end .rq-end-card{box-shadow:none;border:0;max-height:none;overflow:visible}
-}
-@media (max-width:640px){
-  #st-box{bottom:.5rem;padding:.55rem .6rem}
-  .st-slot{font-size:.76rem;padding:.26rem .4rem}
-  .st-val{font-size:.62rem}
-}
-.st-warn{display:block;margin-top:.15rem;font-size:.62rem;font-weight:600;color:var(--wr);opacity:.9}
 .sv-btn.del{background:transparent;border:1px solid var(--bd);color:var(--tx2)}
 .sv-btn.del:hover{border-color:var(--wr);color:var(--wr)}
 .sv-wipe{

@@ -43,7 +43,9 @@ h4.sec em{font-style:normal;font-weight:400;color:var(--tx3);font-size:var(--fs-
 .bars{display:flex;flex-direction:column;gap:.44rem}
 .bar-row{display:grid;grid-template-columns:7.6rem 1fr 3.4rem;gap:.75rem;align-items:center}
 .bar-k{font-size:var(--fs-sm);color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.bar-t{height:9px;background:var(--sf2);border-radius:var(--r-xs);overflow:hidden}
+/* 그래프는 선 한 줄이다 — 면으로 칠하면 표가 무거워지고, 옆에 적힌 숫자보다
+   색 덩어리가 먼저 읽힌다. 바탕선은 100%(또는 1위) 자리를 알려 주는 눈금이다. */
+.bar-t{height:3px;background:var(--bd);border-radius:2px;overflow:hidden}
 .bar-t i{display:block;height:100%;border-radius:var(--r-xs);transition:width .5s var(--ease)}
 .bar-v{font-size:var(--fs-sm);text-align:right;font-variant-numeric:tabular-nums;color:var(--tx);
   font-family:var(--font-display);font-weight:500}
@@ -470,3 +472,32 @@ table.cmp td .dash{color:var(--tx3)}
   font-variant-numeric:tabular-nums}
 /* 끝낸 뒤 큰 숫자 옆의 '/ 전체' — 점수가 아니라 개수다 */
 .result .big .of{font-size:var(--fs-lg);color:var(--tx2);font-weight:500}
+
+/* ══════════ 본편에서 옮겨 온 두 모드에 딸린 것들 ══════════ */
+/* 순위 칸 — 맞힌 자리에는 이름 옆에 실제 값을 적는다 */
+.slot i{font-style:normal;margin-left:auto;font-size:var(--fs-xs);color:var(--tx2);
+  font-variant-numeric:tabular-nums;padding-left:.6rem}
+/* 왜 틀렸는지 짚어 주는 한 줄 */
+.st-fb{min-height:1.4em;font-size:var(--fs-md);color:var(--tx2);margin:.5rem 0}
+.st-fb.bad{color:var(--wr)}
+/* 통계마다 붙은 곁말 */
+.st-note{font-size:var(--fs-md);color:var(--tx2);line-height:1.7;max-width:46rem;
+  margin:.8rem 0;padding:.6rem .9rem;background:var(--sf);border-left:2px solid var(--gd);
+  border-radius:0 var(--r-xs) var(--r-xs) 0}
+.st-side{margin-top:1rem}
+/* 끝낸 뒤 — 틀린 통계는 다섯 자리를 다 펴 놓고 놓친 자리를 표시한다 */
+.st-wrong{margin:.9rem 0 0;padding:.8rem 1rem;background:var(--sf2);border-radius:var(--r-sm)}
+.st-wrong h4{margin:0 0 .4rem;font-size:var(--fs-lg);font-weight:600}
+.st-wrong h4 small{font-weight:400;color:var(--tx2);font-size:var(--fs-xs);margin-left:.4rem}
+.st-wrong ol{margin:0;padding-left:1.3rem;font-size:var(--fs-md);line-height:1.8}
+.st-wrong li.miss{color:var(--wr);font-weight:600}
+.st-wrong li i{font-style:normal;color:var(--tx2);font-size:var(--fs-sm);margin-left:.3rem}
+.st-wrong .st-note{margin:.5rem 0 0;background:var(--bg)}
+/* 접경국 — 놀림말과, 눌러도 안 되는 건너뛰기 */
+.bq-taunt{font-size:var(--fs-md);color:var(--gd);font-weight:600;margin:.6rem 0 0;min-height:1.4em}
+.btn.ghost.dead{opacity:.45;text-decoration:line-through;cursor:not-allowed}
+.btn.sm{padding:.24rem .75rem;font-size:var(--fs-xs);font-weight:600;box-shadow:none;
+  vertical-align:middle;margin-left:.2rem}
+@keyframes abShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}
+  75%{transform:translateX(4px)}}
+.shake{animation:abShake .28s ease}

@@ -105,18 +105,6 @@ const AB_METRICS=[
          return m?parseFloat(m[1].replace(/,/g,'')):null;}},
   {id:'nb',    cat:'위치', name:'접경국 수',   unit:'개국', src:'지오글 접경 자료',
    f:i=>{const b=(typeof BORDERS!=='undefined'&&BORDERS[i])||null;return b?b.length:null;}},
-  {id:'ctemp', cat:'기후', name:'연평균 기온', unit:'°C',  src:'관측소 평균',
-   f:i=>{const c=AB_CLIMATE_BY_ISO[i];return c?c.mean:null;}, dec:1,
-   note:'나라 안 관측소들의 평균이라, 넓은 나라일수록 한 값으로 뭉뚱그려집니다.'},
-  {id:'crain', cat:'기후', name:'연강수량',    unit:'mm',  src:'관측소 평균',
-   f:i=>{const c=AB_CLIMATE_BY_ISO[i];return c?c.rain:null;}},
-  {id:'crange',cat:'기후', name:'기온 연교차', unit:'°C',  src:'관측소 평균',
-   f:i=>{const c=AB_CLIMATE_BY_ISO[i];return c?c.range:null;}, dec:1,
-   },
-  {id:'ccold', cat:'기후', name:'최한월 기온', unit:'°C',  src:'관측소 평균',
-   f:i=>{const c=AB_CLIMATE_BY_ISO[i];return c?c.cold:null;}, dec:1},
-  {id:'chot',  cat:'기후', name:'최난월 기온', unit:'°C',  src:'관측소 평균',
-   f:i=>{const c=AB_CLIMATE_BY_ISO[i];return c?c.hot:null;}, dec:1},
   {id:'rvlen', cat:'물',   name:'지나는 하천 수', unit:'개', src:'지오글 하천 자료',
    f:i=>{const r=AB_RIVERS_BY_ISO[i];return r?r.length:null;}}
 ];

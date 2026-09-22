@@ -76,12 +76,14 @@ function abStatCell(id,iso){
    '무엇이 무엇인지'가 사라진다. 여덟 가지를 돌려 쓴다. */
 const AB_SERIES=['var(--c1)','var(--c2)','var(--c3)','var(--c4)',
                  'var(--c5)','var(--c6)','var(--c7)','var(--c8)'];
+/* 구성비 그래프 — 선 길이는 100%를 기준으로 잰다.
+   1위 값에 맞춰 늘이면 62%짜리가 바탕선을 꽉 채워서, 바탕선을 100% 자리로
+   읽는 사람에게 '거의 전부'로 보인다. 62%는 62% 자리에 있어야 한다. */
 function abBars(rows,colors){
   if(!rows||!rows.length)return '<p class="none">자료 없음</p>';
-  const mx=Math.max.apply(null,rows.map(r=>r[1]))||1;
   return '<div class="bars">'+rows.map((r,i)=>
     '<div class="bar-row"><span class="bar-k">'+abEsc(r[0])+'</span>'
-    +'<span class="bar-t"><i style="width:'+Math.max(2,r[1]/mx*100).toFixed(1)+'%;background:'
+    +'<span class="bar-t"><i style="width:'+Math.max(2,Math.min(100,r[1])).toFixed(1)+'%;background:'
       +((colors&&colors[i])||AB_SERIES[i%AB_SERIES.length])+'"></i></span>'
     +'<span class="bar-v">'+r[1].toFixed(1)+'%</span></div>').join('')+'</div>';
 }

@@ -183,8 +183,8 @@ function setMode(mob){
 /* 3×3 그리드: 한국지리(korea)를 정중앙(5번째 항목)에 놓고 세계지리 항목들이 둘러싼다 */
 const LD_SLIDES=[
  {act:'name',  ic:'globe', mc:'#6fa6e0', tt:'나라 이름 맞히기', ds:'지도에서 나라를 클릭하고 이름을 맞혀요. 3번 안에 맞히면 색이 칠해져요.', pts:'국가당 1점'},
- {act:'border', ic:'border',mc:'#5f9ad6', tt:'접경국 퀴즈', ds:'국경을 맞댄 이웃 나라로 추리하는 퀴즈. 난이도에 따라 방식이 달라져요.', pts:'1 · 3 · 9 · 40~60점', diff:'bdiff', levels:['L','M','H','X'],
-  dd:{L:'하 · 지도에서 클릭해 맞히기 (1점)',M:'중 · 지도 없이 이름 입력 (3점)',H:'상 · 접한 나라 모두 쓰기 (비율별 2·5·9점)',X:'하드코어 · 4개국 이상과 접한 나라만. 개수도 안 알려 주고 건너뛰기도 없어요. 완벽해야 40점(아프리카 60점), 하나라도 어긋나면 놓친 곳 −2 · 잘못 적은 곳 −5만 남아요'}},
+ {act:'border', ic:'border',mc:'#5f9ad6', tt:'접경국 퀴즈', ds:'국경을 맞댄 이웃 나라로 추리하는 퀴즈. 난이도에 따라 방식이 달라져요.', pts:'1 · 3 · 9점', diff:'bdiff', levels:['L','M','H'],
+  dd:{L:'하 · 지도에서 클릭해 맞히기 (1점)',M:'중 · 지도 없이 이름 입력 (3점)',H:'상 · 접한 나라 모두 쓰기 (비율별 2·5·9점)'}},
  {act:'religion',ic:'book', mc:'#e0bd94', tt:'종교 구성', ds:'원그래프를 보고 나라별 종교 구성을 맞혀요.', pts:'1 · 2 · 3점', diff:'rdiff',
   dd:{L:'하 · 상위 종교 70%+ 국가만 (1점)',M:'중 · 모든 국가 · 힌트 있음 (2점)',H:'상 · 3번 틀려야 공개 (3점)'}},
  {act:'river', ic:'wave',  mc:'#79b4e8', tt:'하천 맞히기', ds:'세계 주요 하천 60개를 경로·통과국으로 맞혀요.', pts:'3~10점', diff:'vdiff',
@@ -197,10 +197,6 @@ const LD_SLIDES=[
  {act:'tenergy',ic:'power', mc:'#dcb184', tt:'에너지 구성', ds:'발전·에너지 믹스를 보고 나라를 맞혀요. 유형 필터도 고를 수 있어요.', pts:'2 · 4 · 6점', diff:'ediff',
   dd:{L:'하 · 특징 뚜렷한 국가만 (2점)',M:'중 · 모든 국가 · 힌트 있음 (4점)',H:'상 · 힌트 없음 (6점)'}, esub:true},
  {act:'worlddict', ic:'dict', mc:'#d3bb92', tt:'세지 위키', ds:'국가별 수도·인구·GDP·기후·수출·에너지·종교·접경국 정보를 한눈에 봐요. 설명은 누구나 수정을 제안할 수 있어요.', pts:'모두가 만드는 사전', dict:true},
- {act:'stat', ic:'trade', mc:'#78b2ce', tt:'통계 순위 테스트', wide:true,
-  tt2:'지도에서 1위부터 5위까지 순서대로',
-  ds:'종교 신자 수 · 쌀·밀·옥수수의 생산/수출/소비/수입 · 소·양·돼지 사육두수 · 석유·석탄·천연가스의 생산/수출/수입. 28개 통계를 순위대로 클릭해요.',
-  pts:'순위당 2점 (통계당 10점)', stcat:true},
  /* 3×3 배치를 흐트러뜨리지 않도록 맨 아래 가로 한 칸으로 붙인다 */
  {act:'suteuk', ic:'book', mc:'#cc9fa8', tt:'9모대비 수특퀴즈', wide:true,
   ds:'수특지엽 1~4강과 「이것이 수특 정리다」 특강 자료 01~25에 나온 내용만 물어봐요. 지도에 찍힌 지점의 기후 그래프 고르기, 순서 직접 입력, 지도 클릭 등 외운 대로 써야 풀리는 형태예요. 아래에서 주제·형식을 골라 그 부분만 집중해서 풀 수 있어요. 암기법은 힌트 버튼을 눌러야 보이고, 보면 그 문항 배점이 절반이 돼요. 틀린 문항은 오답노트 PDF로 저장할 수 있어요.',
@@ -211,13 +207,13 @@ const TRADE_DD={
  m:{L:'하 · 주요국만 · 힌트 있음 (3점)',M:'중 · 모든 국가 · 힌트 있음 (6점)',H:'상 · 힌트 없음 (9점)'}
 };
 
-const LD={sel:new Set(),bdiff:'M',rdiff:'M',ediff:'M',tdiff:'M',kdiff:'M',vdiff:'M',cldiff:'M',sqcat:new Set(),sqfmt:new Set(),stcat:new Set(),esub:'all',tkind:'x'};
+const LD={sel:new Set(),bdiff:'M',rdiff:'M',ediff:'M',tdiff:'M',kdiff:'M',vdiff:'M',cldiff:'M',sqcat:new Set(),sqfmt:new Set(),esub:'all',tkind:'x'};
 const LD_ESUB_LABEL={all:'전체',ff:'화석연료만',re:'신재생만'};
 const LD_SAVE_KEY='g3_ld_v1';
 function ldSave(){
   try{
     localStorage.setItem(LD_SAVE_KEY,JSON.stringify({
-      sel:[...LD.sel],bdiff:LD.bdiff,rdiff:LD.rdiff,ediff:LD.ediff,tdiff:LD.tdiff,kdiff:LD.kdiff,vdiff:LD.vdiff,cldiff:LD.cldiff,sqcat:[...LD.sqcat],sqfmt:[...LD.sqfmt],stcat:[...LD.stcat],esub:LD.esub,tkind:LD.tkind,
+      sel:[...LD.sel],bdiff:LD.bdiff,rdiff:LD.rdiff,ediff:LD.ediff,tdiff:LD.tdiff,kdiff:LD.kdiff,vdiff:LD.vdiff,cldiff:LD.cldiff,sqcat:[...LD.sqcat],sqfmt:[...LD.sqfmt],esub:LD.esub,tkind:LD.tkind,
       conts:[...document.querySelectorAll('.ld-cont-cb')].filter(c=>c.checked).map(c=>c.value),
       big:!!(document.getElementById('ld-big')||{}).checked,
       noisle:!!(document.getElementById('ld-noisle')||{}).checked,
@@ -229,7 +225,7 @@ function ldSave(){
 function ldRestore(){
   let d;try{d=JSON.parse(localStorage.getItem(LD_SAVE_KEY));}catch(e){}
   if(!d)return null;
-  if(['L','M','H','X'].includes(d.bdiff))LD.bdiff=d.bdiff;
+  if(['L','M','H'].includes(d.bdiff))LD.bdiff=d.bdiff;
   if(['L','M','H'].includes(d.rdiff))LD.rdiff=d.rdiff;
   if(['L','M','H'].includes(d.ediff))LD.ediff=d.ediff;
   if(['L','M','H'].includes(d.tdiff))LD.tdiff=d.tdiff;
@@ -240,7 +236,6 @@ function ldRestore(){
   if(['L','M','H'].includes(d.cldiff))LD.cldiff=d.cldiff;
   if(Array.isArray(d.sqcat))LD.sqcat=new Set(d.sqcat);
   if(Array.isArray(d.sqfmt))LD.sqfmt=new Set(d.sqfmt);
-  if(Array.isArray(d.stcat))LD.stcat=new Set(d.stcat);
   return d;
 }
 /* ── 모드 그리드 (한눈에 보이는 선택) ── */
@@ -290,13 +285,6 @@ function ldRenderDetail(){
       +chip('','전체',!LD.sqfmt.size)+SQ_FMTS.map(f=>chip(f.k,f.lb,LD.sqfmt.has(f.k))).join('')+'</div>';
     rows+='<div class="ld-chip-desc" data-sqcount>'+ldSqCountText()+'</div>';
   }
-  /* 통계 순위 — 분류로 범위를 좁힌다 */
-  if(sl.stcat&&typeof stCats==='function'){
-    const chip=(v,lb,on)=>'<button type="button" class="ld-chip'+(on?' on':'')+'" data-v="'+v+'">'+lb+'</button>';
-    rows+='<div class="ld-dt-row" data-stcat><span class="ld-dt-lb">분류</span>'
-      +chip('','전체',!LD.stcat.size)+stCats().map(c=>chip(c,c,LD.stcat.has(c))).join('')+'</div>';
-    rows+='<div class="ld-chip-desc" data-stcount>'+ldStCountText()+'</div>';
-  }
   /* 상(H) 기후 맞히기는 한 게임 100지점이지만 여러 게임에 걸쳐 전체 풀을 누적으로 다 돈다 —
      지금까지 얼마나 누적됐는지 미리보기 + 누적 자체를 초기화하는 버튼 */
   const climateCov=(sl.act==='climate'&&LD.cldiff==='H');
@@ -312,7 +300,7 @@ function ldRenderDetail(){
     ldSave();ldRenderDetail(); /* 기후는 난이도(상)에 따라 누적 진행 표시가 붙었다 빠졌다 하므로 전체 다시 렌더 */
   }));
   /* 주제·형식은 여러 개 고를 수 있고, '전체'를 누르면 선택을 비운다 */
-  [['[data-sqcat]','sqcat'],['[data-sqfmt]','sqfmt'],['[data-stcat]','stcat']].forEach(([selr,key])=>{
+  [['[data-sqcat]','sqcat'],['[data-sqfmt]','sqfmt']].forEach(([selr,key])=>{
     box.querySelectorAll(selr+' .ld-chip').forEach(ch=>ch.addEventListener('click',()=>{
       const v=ch.dataset.v;
       if(!v)LD[key].clear();
@@ -341,11 +329,6 @@ function ldSqCountText(){
   let n=0;try{n=sqCountFor(LD.sqcat,LD.sqfmt);}catch(e){}
   if(!n)return '이 범위에는 문항이 없어요. 주제나 형식을 더 골라 주세요.';
   return '선택한 범위 '+n+'문항 — 한 판에 전부 나옵니다';
-}
-function ldStCountText(){
-  let n=0;try{n=stCountFor(LD.stcat);}catch(e){}
-  if(!n)return '이 분류에는 통계가 없어요.';
-  return '선택한 범위 '+n+'개 통계 — 한 판에 전부 나옵니다 (만점 '+(n*10)+'점)';
 }
 function ldToggle(act,forceOn){
   /* 단일 선택 */
@@ -429,12 +412,12 @@ function startFromLanding(){
   if(!sel.length)sel=['name'];
   if(sel.includes('korea')){ldSave();startSession('korea',['korea'],LD.kdiff==='L'?'L':null);return;}
   sel=sel.map(a=>a==='trade'?(LD.tkind==='m'?'timp':'texp'):a);
-  const order=['name','border','rborder','religion','texp','timp','tenergy','river','climate','stat'];
+  const order=['name','border','rborder','religion','texp','timp','tenergy','river','climate'];
   let rawActs=sel.slice();
   const borderDiff=LD.bdiff||'M';
   if(rawActs.includes('border')){
     rawActs=rawActs.filter(a=>a!=='border');
-    rawActs.push((borderDiff==='H'||borderDiff==='X')?'rborder':'border');
+    rawActs.push(borderDiff==='H'?'rborder':'border');
   }
   const acts=rawActs.sort((a,b)=>order.indexOf(a)-order.indexOf(b));
   if(!acts.length)return;
@@ -460,19 +443,8 @@ function startFromLanding(){
       return;
     }
   }
-  if(acts.includes('stat')){
-    key+='_st';
-    if(LD.stcat.size)key+='_stc'+encodeURIComponent([...LD.stcat].sort().join('+'));
-    let n=0;try{n=stCountFor(LD.stcat);}catch(e){}
-    if(n<1){
-      const warn=document.getElementById('ld-warn');
-      if(warn)warn.textContent='선택한 분류에 통계가 없어요. 분류를 더 골라 주세요.';
-      return;
-    }
-  }
   if(acts.includes('religion'))key+='_r'+(LD.rdiff||'M');
   if(acts.includes('tenergy')){key+='_e'+(LD.ediff||'M');if((LD.esub||'all')!=='all')key+='_esub'+(LD.esub||'all');}
-  if(acts.includes('rborder')&&borderDiff==='X')key+='_hard';
   if((acts.includes('border')&&borderDiff==='M')||acts.includes('rborder'))key+='_nomap';
   if(acts.includes('climate')&&cqEstimateRounds(key)<1){
     const warn=document.getElementById('ld-warn');
@@ -510,7 +482,6 @@ function startSession(cat,acts,filterKey,rqContKey){
     if(acts.includes('river')){rvInit(filterKey);}
     if(acts.includes('climate')){cqInit(filterKey);}
     if(acts.includes('suteuk')){try{sqInit(filterKey);}catch(e){}}
-    if(acts.includes('stat')){try{stInit(filterKey);}catch(e){}}
     if(acts.includes('religion')){tqInit('r',filterKey);}
     if(acts.includes('texp')){tqInit('x',filterKey);}
     if(acts.includes('timp')){tqInit('m',filterKey);}
@@ -542,8 +513,7 @@ function switchTab(key){
   const rvDraw=(key==='river'&&RV.diff==='H');
   const climateOn=(key==='climate');
   const suteukOn=(key==='suteuk');
-  const statOn=(key==='stat');
-  const showMap=(key==='name'||(key==='border'&&!BQ.noMap)||(key==='rborder'&&!RBQ.noMap)||rvMap||rvDraw||climateOn||statOn);
+  const showMap=(key==='name'||(key==='border'&&!BQ.noMap)||(key==='rborder'&&!RBQ.noMap)||rvMap||rvDraw||climateOn);
   document.getElementById('rq-screen').classList.remove('on');
   document.getElementById('kr-screen').classList.toggle('on',key==='korea');
   document.getElementById('rv-screen').classList.toggle('on',key==='river'&&RV.diff==='L');
@@ -556,30 +526,27 @@ function switchTab(key){
   document.getElementById('rvc-box').classList.toggle('on',rvMap);
   document.getElementById('rvd-box').classList.toggle('on',rvDraw);
   document.getElementById('cq-box').classList.toggle('on',climateOn);
-  const stb=document.getElementById('st-box');if(stb)stb.classList.toggle('on',statOn);
   const cqw=document.getElementById('cq-world-svg');if(cqw)cqw.classList.toggle('on',climateOn);
   if(!rvDraw)rvdStop();
   if(!climateOn)cqPinsStop();
-  document.body.classList.toggle('border-mode',key==='border'||key==='rborder'||rvMap||rvDraw||climateOn||statOn);
+  document.body.classList.toggle('border-mode',key==='border'||key==='rborder'||rvMap||rvDraw||climateOn);
   /* 소국 마커 원 표시 — border-mode보다 범위가 넓음(나라이름 모드도 포함) */
-  document.body.classList.toggle('circ-on',key==='name'||key==='border'||key==='rborder'||rvMap||rvDraw||climateOn||statOn);
+  document.body.classList.toggle('circ-on',key==='name'||key==='border'||key==='rborder'||rvMap||rvDraw||climateOn);
   document.body.classList.toggle('cq-mode',climateOn);
   const listBtn=document.getElementById('ui-list-btn');
-  if(listBtn)listBtn.style.display=(rvMap||rvDraw||climateOn||suteukOn||statOn)?'none':'';
+  if(listBtn)listBtn.style.display=(rvMap||rvDraw||climateOn||suteukOn)?'none':'';
   if(showMap){
     mapMode=rvDraw?'rvd':(rvMap?'rvc':(climateOn?'climate':key));
     const logo=document.getElementById('ui-logo');
-    logo.innerHTML=(key==='name')?'나라 이름 <span>/ Countries</span>':(rvMap||rvDraw)?'하천 <span>/ Rivers</span>':climateOn?'기후 <span>/ Climate</span>':statOn?'통계 순위 <span>/ Stats</span>':'접경국 <span>/ Borders</span>';
-    if(statOn){try{dynMask.textContent='';}catch(e){}}  /* 다른 모드의 출제 범위 마스크가 남아 지도가 잠기는 걸 막는다 */
+    logo.innerHTML=(key==='name')?'나라 이름 <span>/ Countries</span>':(rvMap||rvDraw)?'하천 <span>/ Rivers</span>':climateOn?'기후 <span>/ Climate</span>':'접경국 <span>/ Borders</span>';
     repaintMap();
     if(key==='name'){stats();}
     else if(key==='border'){bqStats();bqShowCurrent();}
     else if(rvMap||rvDraw){rvStats2();rvShow();}
     else if(climateOn){cqEnter();}
-    else if(statOn){stEnter();}
     else{rbqStats();rbqShowCurrent();}
   }else if(key==='border'){ /* 지도 없는 접경국 */ mapMode='border';document.getElementById('ui-logo').innerHTML='접경국 <span>/ Borders</span>';bqStats();bqShowCurrent(); }
-  else if(key==='rborder'){ /* 지도 없는 역접경국 */ mapMode='rborder';document.getElementById('ui-logo').innerHTML=(RBQ.hard?'접경국 하드코어':'접경국 쓰기')+' <span>/ Borders</span>';rbqStats();rbqShowCurrent(); }
+  else if(key==='rborder'){ /* 지도 없는 역접경국 */ mapMode='rborder';document.getElementById('ui-logo').innerHTML='접경국 쓰기 <span>/ Borders</span>';rbqStats();rbqShowCurrent(); }
   else if(key==='river'){ rvEnter(); }
   else if(key==='religion'){tqEnter('r');}
   else if(key==='texp'){tqEnter('x');}
@@ -632,7 +599,6 @@ function endSession(){
   const sqs=document.getElementById('sq-screen');if(sqs)sqs.classList.remove('on');
   const sqb=document.getElementById('sq-box');if(sqb)sqb.classList.remove('on');
   try{if(_has('suteuk')&&SQ.inited&&!SQ.recorded)sqSave();}catch(e){}
-  try{if(_has('stat')&&ST.inited&&!ST.recorded)stSave();}catch(e){}
   const cqb=document.getElementById('cq-box');if(cqb)cqb.classList.remove('on');
   const cqw=document.getElementById('cq-world-svg');if(cqw)cqw.classList.remove('on');
   try{cqPinsStop();}catch(e){}
@@ -644,7 +610,7 @@ function endSession(){
   updateStartState();
 }
 /* 지도 헤더 액션 — 현재 모드(나라이름/접경국)에 따라 분기 */
-function mapListAction(){if(mapMode==='suteuk'||mapMode==='stat')return;if(mapMode==='border')openBQList();else if(mapMode==='rborder')openRBQList();else openCountryList();}
+function mapListAction(){if(mapMode==='suteuk')return;if(mapMode==='border')openBQList();else if(mapMode==='rborder')openRBQList();else openCountryList();}
 /* 여기서 끝내기 — 현재 진행 상황으로 점수를 기록하고 결과 화면 표시 */
 const FINISH_MSG='여기서 끝낼까요?\n지금까지 진행한 내용으로 점수가 기록돼요.';
 /* 결과창이 닫힐 때 실행되는 이연 리셋 — 모달이 떠 있는 동안 보드가 바뀌거나
@@ -652,42 +618,7 @@ const FINISH_MSG='여기서 끝낼까요?\n지금까지 진행한 내용으로 �
 function runPendingReset(){const f=window._pendingReset;window._pendingReset=null;if(f)try{f();}catch(e){}}
 /* confirm() 닫힌 뒤 브라우저가 입력 포커스를 복원해 모바일 키보드가 완료창을 가리는 것 방지 */
 function _blurActive(){const b=()=>{try{if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();}catch(e){}};b();setTimeout(b,60);setTimeout(b,250);}
-/* 연속으로 틀릴 때 던지는 말 — 연속 횟수가 열쇠 */
-const RBQ_HARD_STREAK={
-  3:'ㅋㅋ 세 번 연속이요. 하부터 하고 오셔야 할 듯',
-  5:'다섯 번 연속. 이쯤이면 하드코어가 아니라 그냥 모르시는 것 같은데',
-  7:'일곱 번 연속이요. 접경국 "하"가 저쪽에 있어요',
-  10:'열 번 연속... 제가 다 민망하네요',
-  15:'열다섯 번 연속. 이건 이것대로 재능이에요'
-};
-function rbqHardTaunt(){
-  if(!RBQ.hard)return '';
-  const n=RBQ.streak;
-  if(RBQ_HARD_STREAK[n])return RBQ_HARD_STREAK[n];
-  /* 열다섯을 넘기면 다섯 번마다 한 번씩 */
-  if(n>15&&n%5===0)return n+'번 연속이에요. 하부터 하고 오세요, 진심으로';
-  /* 연속은 끊겼어도 총점이 마이너스로 가라앉아 있으면 한 번씩 */
-  const done=Object.keys(RBQ.scoreCounts).length;
-  const tot=Object.values(RBQ.scoreCounts).reduce((s,x)=>s+(typeof x.p==='number'?x.p:0),0);
-  if(done>=5&&tot<0&&done%5===0)return '총점 '+tot+'점이요. 하부터 하고 오시는 게...';
-  return '';
-}
-/* 하드코어에서 도망가려 할 때 던지는 말 */
-const RBQ_HARD_TAUNT=[
-  '벌써요? 아직 {n}개국 남았는데요.',
-  '4개국이랑 접한 나라가 그렇게 어렵던가요?',
-  '여기서 끝내면 {n}개국은 영원히 모르는 겁니다.',
-  '지도 한 번 더 보고 오세요. 기다릴게요.',
-  '하드코어 고른 사람이 할 소리는 아닌 것 같은데요.',
-  '{n}개국 남기고 접는 건 좀... 그래도 끝낼래요?'
-];
 function mapFinishAction(){
-  if(mapMode==='rborder'&&RBQ.hard){
-    const left=(RBQ.activeSet?RBQ.activeSet.size:0)-Object.keys(RBQ.status).length;
-    const t=RBQ_HARD_TAUNT[Math.floor(Math.random()*RBQ_HARD_TAUNT.length)].replace('{n}',left);
-    if(!confirm(t+'\n\n'+FINISH_MSG))return;
-    _blurActive();rbqEnd();return;
-  }
   if(!confirm(FINISH_MSG))return;
   _blurActive();
   if(mapMode==='border')bqEnd();
@@ -695,7 +626,6 @@ function mapFinishAction(){
   else if(mapMode==='rvc'||mapMode==='rvd')rvEnd();
   else if(mapMode==='climate')cqFinishNow();
   else if(mapMode==='suteuk')sqFinishNow();
-  else if(mapMode==='stat')stFinishNow();
   else endScreen();
 }
 /* ── 결과 자랑하기: 공유 카드 이미지 생성 → 공유/저장 ── */
@@ -852,7 +782,7 @@ function borderReviewDone(){
   const cb=window._brCb;window._brCb=null;if(cb)cb();
 }
 function krFinishNow(){if(!confirm(FINISH_MSG))return;_blurActive();krEndScreen();}
-function mapResetAction(){if(mapMode==='stat'){stResetConfirm();return;}if(mapMode==='suteuk'){sqResetConfirm();return;}if(mapMode==='border')resetBorderQuiz();else if(mapMode==='rborder')resetRBQ();else if(mapMode==='rvc'||mapMode==='rvd')rvReset();else if(mapMode==='climate')cqReset();else resetMapQuiz();}
+function mapResetAction(){if(mapMode==='suteuk'){sqResetConfirm();return;}if(mapMode==='border')resetBorderQuiz();else if(mapMode==='rborder')resetRBQ();else if(mapMode==='rvc'||mapMode==='rvd')rvReset();else if(mapMode==='climate')cqReset();else resetMapQuiz();}
 function openReligionTab(){if(!RQ.list||!RQ.list.length){if(!loadRQ())buildRQList();}showRQCard();}
 function openKoreaTab(){setTimeout(()=>{initKorea();applyModeUI();},30);}
 
@@ -1081,22 +1011,15 @@ function openBQList(){
 }
 
 /* ══════════ 역접경국 퀴즈 (RBQ) ══════════ */
-const RBQ={activeSet:null,total:0,queue:[],status:{},scoreCounts:{},correct:0,wrong:0,curWrong:0,target:null,remaining:null,saveKey:'rbq_all',recorded:false,isRetry:false,noMap:false,
-  hard:false,entries:null,streak:0,skipTries:0};
-/* 하드코어에서 다루는 나라 — 접경국이 4개 이상인 나라만 */
-const RBQ_HARD_MIN=4;
+const RBQ={activeSet:null,total:0,queue:[],status:{},scoreCounts:{},correct:0,wrong:0,curWrong:0,target:null,remaining:null,saveKey:'rbq_all',recorded:false,isRetry:false,noMap:false,streak:0};
 function rbqPool(){
-  let base=S.activeSet?[...S.activeSet]:Object.keys(COUNTRIES);
-  const min=RBQ.hard?RBQ_HARD_MIN:1;
-  return base.filter(i=>BORDERS[i]&&BORDERS[i].length>=min);
+  const base=S.activeSet?[...S.activeSet]:Object.keys(COUNTRIES);
+  return base.filter(i=>BORDERS[i]&&BORDERS[i].length>=1);
 }
 function rbqInit(filterKey){
   RBQ.saveKey='rbq_'+(filterKey||'all');
   RBQ.noMap=true;
-  /* 범위 키에 담아 두면 이어하기로 들어와도 하드코어인지 알 수 있다 */
-  RBQ.hard=/_hard(_|$)/.test(filterKey||'');
-  RBQ.entries=new Set();
-  TAB_META.rborder.label=RBQ.hard?'접경국 하드코어':'접경국 쓰기';
+  TAB_META.rborder.label='접경국 쓰기';
   RBQ.activeSet=new Set(rbqPool());
   RBQ.total=0;RBQ.activeSet.forEach(iso=>{RBQ.total+=(BORDERS[iso]||[]).length;});
   RBQ.status={};RBQ.scoreCounts={};RBQ.correct=0;RBQ.wrong=0;RBQ.curWrong=0;RBQ.target=null;RBQ.remaining=null;RBQ.recorded=false;RBQ.isRetry=false;RBQ.streak=0;
@@ -1131,32 +1054,19 @@ function rbqShowCurrent(){
   if(!RBQ.queue||!RBQ.queue.length){if(box)box.classList.remove('on');rbqEnd();return;}
   const iso=RBQ.queue[0];
   RBQ.target=iso;RBQ.remaining=new Set(BORDERS[iso]||[]);RBQ.curWrong=0;
-  RBQ.entries=new Set();
   rbqSetDots(0);
   const tEl=document.getElementById('rbq-target-name');if(tEl)tEl.textContent=COUNTRIES[iso]?COUNTRIES[iso].k:iso;
   const prog=document.getElementById('rbq-progress');
-  /* 하드코어는 접경국이 몇 개인지 알려 주지 않는다 — 세어서 맞히는 걸 막는다 */
-  if(prog){prog.textContent=RBQ.hard?'':'0 / '+RBQ.remaining.size+'개';prog.style.display=RBQ.hard?'none':'';}
-  const dots=document.querySelector('#rbq-box .bq-dots');if(dots)dots.style.display=RBQ.hard?'none':'';
+  if(prog){prog.textContent='0 / '+RBQ.remaining.size+'개';prog.style.display='';}
+  const dots=document.querySelector('#rbq-box .bq-dots');if(dots)dots.style.display='';
   const found=document.getElementById('rbq-found');if(found)found.innerHTML='';
   const qEl=document.getElementById('rbq-q-text');
-  if(qEl)qEl.innerHTML=RBQ.hard
-    ? '이 나라와 접한 나라를 <b>빠짐없이</b> 입력하고 제출하세요 <span style="font-size:.6rem;color:var(--tx2)">(개수는 알려 주지 않아요 · 하나라도 빠지면 오답)</span>'
-    : '이 나라와 접한 나라를 <b>모두</b> 입력하세요 <span style="font-size:.6rem;color:var(--tx2)">(한 나라씩)</span>';
+  if(qEl)qEl.innerHTML='이 나라와 접한 나라를 <b>모두</b> 입력하세요 <span style="font-size:.6rem;color:var(--tx2)">(한 나라씩)</span>';
   const tp=document.getElementById('rbq-type');if(tp)tp.style.display='flex';
   const gi0=document.getElementById('rbq-gi');
-  if(gi0)gi0.placeholder=RBQ.hard?'접한 나라를 하나씩 입력 (Enter)':'접한 나라 이름 입력...';
-  const hs=document.getElementById('rbq-hard-submit');
-  if(hs){hs.style.display=RBQ.hard?'':'none';hs.disabled=true;hs.textContent='제출 (0개 입력)';}
+  if(gi0)gi0.placeholder='접한 나라 이름 입력...';
   const sk=document.getElementById('rbq-skip');
-  if(sk){sk.textContent=RBQ.hard?'건너뛰기 없음':'건너뛰기';sk.classList.toggle('dead',!!RBQ.hard);}
-  /* 아프리카는 60점짜리라는 걸 알려 준다 */
-  const bd=document.getElementById('rbq-base');
-  if(bd){
-    bd.style.display=RBQ.hard?'':'none';
-    bd.textContent=RBQ.hard?rbqHardBase(iso)+'점 문항':'';
-    bd.classList.toggle('af',RBQ.hard&&rbqIsAfrica(iso));
-  }
+  if(sk){sk.textContent='건너뛰기';sk.classList.remove('dead');}
   document.body.classList.add('bq-nomap');
   const gi=document.getElementById('rbq-gi');if(gi){gi.value='';setTimeout(()=>{try{if(!document.getElementById('rbq-end').classList.contains('on'))gi.focus();}catch(e){}},50);}
   const fb=document.getElementById('rbq-fb');if(fb){fb.textContent='';fb.className='bq-fb';}
@@ -1164,26 +1074,10 @@ function rbqShowCurrent(){
   if(!RBQ.noMap){try{clearMapColors();for(const[k,v]of Object.entries(RBQ.status)){if(v&&v!=='blink')colors[k]=v;}paint();setColor(iso,'c1');centerCountry(iso);}catch(e){}}
 }
 /* 하드코어 배점 — 기본 점수에서 깎는다. 아래로 뚫려서 마이너스도 나온다. */
-const RBQ_HARD_BASE=40;    /* 문항 기본 점수 */
-const RBQ_HARD_BASE_AF=60; /* 아프리카는 국경이 얽혀 있어 더 준다 */
-const RBQ_HARD_MISS=2;     /* 놓친 접경국 한 곳당 차감 */
-const RBQ_HARD_EXTRA=5;    /* 접하지 않는데 적은 나라 한 곳당 차감 */
 let _AF_SET=null;
-function rbqIsAfrica(iso){
-  if(!_AF_SET)_AF_SET=new Set(CONT.af||[]);
-  return _AF_SET.has(iso);
-}
-function rbqHardBase(iso){return rbqIsAfrica(iso)?RBQ_HARD_BASE_AF:RBQ_HARD_BASE;}
-/* 기본 점수는 완벽하게 맞혔을 때만 준다. 하나라도 어긋나면 그 점수는
-   통째로 날아가고 깎인 만큼만 남는다 — 그래서 대개 마이너스가 된다. */
-function rbqHardPts(iso,missed,extra){
-  if(!missed&&!extra)return rbqHardBase(iso);
-  return -(RBQ_HARD_MISS*missed+RBQ_HARD_EXTRA*extra);
-}
 function rbqCountryPts(found,total){
   if(!total)return 0;
   /* 옛 저장본 대비 — 지금은 채점할 때 점수를 그대로 적어 둔다 */
-  if(RBQ.hard)return rbqHardPts(RBQ.target,Math.max(0,total-found),0);
   const r=found/total;
   if(r>=1)return 9;
   if(r>=0.7)return 5;
@@ -1192,7 +1086,6 @@ function rbqCountryPts(found,total){
 }
 function rbqHandleClick(iso){
   if(!RBQ.remaining||!RBQ.remaining.size)return;
-  if(RBQ.hard){if(iso!==RBQ.target)rbqHardAdd(iso);return;}
   const fb=document.getElementById('rbq-fb');
   /* 이미 찾은 접경국을 또 입력 — 오답 처리하지 않고 안내만 (기회 유지) */
   if((BORDERS[RBQ.target]||[]).includes(iso)&&!RBQ.remaining.has(iso)){
@@ -1245,81 +1138,10 @@ function rbqHandleClick(iso){
     }
   }
 }
-/* ── 하드코어: 맞았는지 알려 주지 않고 적어 두기만 한다 ── */
-function rbqRenderEntries(){
-  const found=document.getElementById('rbq-found');
-  if(found){
-    found.innerHTML='';
-    [...RBQ.entries].forEach(iso=>{
-      const sp=document.createElement('span');
-      sp.className='bq-nb rbq-entry-tag';
-      sp.textContent=(COUNTRIES[iso]?COUNTRIES[iso].k:iso)+' ×';
-      sp.title='눌러서 지우기';
-      sp.onclick=()=>{RBQ.entries.delete(iso);rbqRenderEntries();};
-      found.appendChild(sp);
-    });
-  }
-  const hs=document.getElementById('rbq-hard-submit');
-  if(hs){hs.disabled=RBQ.entries.size===0;hs.textContent='제출 ('+RBQ.entries.size+'개 입력)';}
-}
-function rbqHardAdd(iso){
-  if(RBQ.entries.has(iso)){bqFlash('이미 적었어요','bfng');return;}
-  RBQ.entries.add(iso);
-  rbqRenderEntries();
-  const fb=document.getElementById('rbq-fb');
-  /* 맞았는지 틀렸는지는 제출할 때까지 말하지 않는다 */
-  if(fb){fb.textContent='‘'+(COUNTRIES[iso]?COUNTRIES[iso].k:iso)+'’ 추가';fb.className='bq-fb';}
-}
-/* 적어 둔 나라가 접경국 전체와 정확히 같아야만 정답이다.
-   하나라도 빠지거나 엉뚱한 나라가 섞여 있으면 0점. */
-function rbqHardGrade(){
-  if(!RBQ.hard||!RBQ.target)return;
-  if(!RBQ.entries||!RBQ.entries.size)return;
-  if(!RBQ.remaining||!RBQ.remaining.size)return;   /* 이미 채점됨 */
-  const tgt=RBQ.target;
-  const nbs=(BORDERS[tgt]||[]);
-  const hit=nbs.filter(i=>RBQ.entries.has(i));
-  const missed=nbs.filter(i=>!RBQ.entries.has(i));
-  const extra=[...RBQ.entries].filter(i=>!nbs.includes(i));
-  const perfect=missed.length===0&&extra.length===0;
-  const nm=i=>COUNTRIES[i]?COUNTRIES[i].k:i;
-  const pts=rbqHardPts(tgt,missed.length,extra.length);
-
-  RBQ.correct+=hit.length;RBQ.wrong+=missed.length;
-  RBQ.streak=perfect?0:(RBQ.streak||0)+1;
-  RBQ.status[tgt]=perfect?'c2':'cr';
-  RBQ.scoreCounts[tgt]={c:hit.length,w:missed.length,x:extra.length,p:pts};
-  RBQ.remaining=new Set();
-  if(perfect)playCorrectSound();else playWrongSound();
-
-  /* 무엇 때문에 몇 점이 깎였는지 그대로 보여 준다 */
-  const cut=[];
-  if(missed.length)cut.push('놓침 '+missed.length+'개 −'+(RBQ_HARD_MISS*missed.length));
-  if(extra.length){
-    /* 이름이 너무 길어지면 앞의 넷만 보여 준다 */
-    const names=extra.slice(0,4).map(nm).join(', ')+(extra.length>4?' 외 '+(extra.length-4)+'개':'');
-    cut.push('잘못 적음 '+extra.length+'개 −'+(RBQ_HARD_EXTRA*extra.length)+' ('+names+')');
-  }
-  const title=(typeof wdFlagImg==='function'?wdFlagImg(tgt,20):'')+' <b>'+nm(tgt)+'</b>의 접경국 '+nbs.length+'개 — '
-    +(perfect?'완벽! +'+rbqHardBase(tgt)+'점'
-            :pts+'점 · '+rbqHardBase(tgt)+'점 날아감 · '+cut.join(' · '));
-  RBQ.queue.shift();rbqSave();rbqStats();
-  const inp0=document.getElementById('rbq-gi');if(inp0)inp0.value='';
-  const taunt=rbqHardTaunt();
-  const full=title+(taunt?'<div class="br-taunt">'+taunt+'</div>':'');
-  setTimeout(()=>borderReview({blue:[tgt],green:hit,red:missed,title:full},rbqShowCurrent),perfect?700:900);
-}
 function rbqTypeSubmit(){
   if(!RBQ.remaining||!RBQ.remaining.size)return;
   const inp=document.getElementById('rbq-gi');if(!inp)return;
   const t=inp.value.trim();if(!t)return;inp.value='';
-  if(RBQ.hard){
-    const hit=Object.keys(COUNTRIES).find(i=>check(t,i));
-    if(hit)rbqHardAdd(hit);
-    else{playWrongSound();bqFlash('그런 나라가 없어요','bfng');inp.classList.add('shake');setTimeout(()=>inp.classList.remove('shake'),360);}
-    try{inp.focus();}catch(e){}
-    return;
-  }
   let iso=[...RBQ.remaining].find(i=>check(t,i));
   if(iso){rbqHandleClick(iso);try{inp.focus();}catch(e){}return;}
   const any=Object.keys(COUNTRIES).find(i=>check(t,i));
@@ -1327,31 +1149,11 @@ function rbqTypeSubmit(){
   else{playWrongSound();bqFlash('그런 나라가 없어요','bfng');inp.classList.add('shake');setTimeout(()=>inp.classList.remove('shake'),360);}
   try{inp.focus();}catch(e){}
 }
-/* 건너뛰기를 누를 때마다 한 마디씩. 누를수록 말이 세진다. */
-const RBQ_HARD_SKIP=[
-  '하드코어에 건너뛰기는 없어요',
-  '없다니까요',
-  '버튼에 줄 그어 놓은 거 안 보이세요?',
-  '누른다고 생기지 않아요',
-  '이럴 시간에 지도를 보시는 게',
-  '건너뛰기 누른 횟수도 세고 있어요',
-  '진짜 안 돼요. 그만 누르세요',
-  '이쯤 되면 접경국보다 이 버튼을 더 열심히 하시는데요'
-];
 function rbqSkip(){
-  if(RBQ.hard){
-    RBQ.skipTries=(RBQ.skipTries||0)+1;
-    /* 목록을 다 쓰면, 앞에서 세고 있다고 한 그 횟수를 실제로 들이민다 */
-    const n=RBQ.skipTries;
-    bqFlash(n>RBQ_HARD_SKIP.length?n+'번 눌렀어요. 그래도 안 돼요':RBQ_HARD_SKIP[n-1],'bfng');
-    try{const sk=document.getElementById('rbq-skip');
-        if(sk){sk.classList.add('shake');setTimeout(()=>sk.classList.remove('shake'),360);}}catch(e){}
-    return;
-  }
   if(RBQ.queue&&RBQ.queue.length>1){const g=RBQ.queue.shift();RBQ.queue.push(g);rbqShowCurrent();}
 }
 function resetRBQ(skipConfirm){
-  if(skipConfirm!==true&&!confirm((RBQ.hard?'접경국 하드코어':'접경국 쓰기')+' 진행 상황을 초기화할까요?'))return;
+  if(skipConfirm!==true&&!confirm('접경국 쓰기 진행 상황을 초기화할까요?'))return;
   localStorage.removeItem(RBQ.saveKey);
   RBQ.status={};RBQ.scoreCounts={};RBQ.correct=0;RBQ.wrong=0;RBQ.recorded=false;RBQ.streak=0;
   try{if(SESSION.cat==='world'&&SESSION.filterKey)initActiveSet(SESSION.filterKey);}catch(e){} /* 표본 재추첨 */
@@ -1362,14 +1164,12 @@ function resetRBQ(skipConfirm){
 function rbqEnd(){
   const el=document.getElementById('rbq-end');if(!el)return;
   const points=Object.values(RBQ.scoreCounts).reduce((s,sc)=>s+(typeof sc.p==='number'?sc.p:rbqCountryPts(sc.c,sc.c+sc.w)),0);
-  const maxPts=RBQ.hard
-    ? Object.keys(RBQ.scoreCounts).reduce((s,iso)=>s+rbqHardBase(iso),0)
-    : Object.values(RBQ.scoreCounts).length*9;
+  const maxPts=Object.values(RBQ.scoreCounts).length*9;
   document.getElementById('rbq-escore').textContent=points+'점';
   document.getElementById('rbq-e1').textContent=RBQ.correct;
   document.getElementById('rbq-e2').textContent=RBQ.wrong;
   el.classList.add('on');
-  window._lastResult={title:RBQ.hard?'접경국 하드코어':'접경국 쓰기',score:points+'점',
+  window._lastResult={title:'접경국 쓰기',score:points+'점',
     rows:[['맞춘 접경국',RBQ.correct,'#81c995'],['놓친 접경국',RBQ.wrong,'#f28b82']]};
   if(!RBQ.recorded){RBQ.recorded=true;try{rbqSave();}catch(e){}
     try{window.SejiAccount&&window.SejiAccount.submitScore({category:'rborder',correct:RBQ.correct,total:(RBQ.correct+RBQ.wrong)||0,accuracy:Math.round(RBQ.correct/((RBQ.correct+RBQ.wrong)||1)*1000)/10,scope:SESSION.filterKey,points,maxPoints:maxPts,isRetry:RBQ.isRetry});}catch(e){}}
@@ -2147,7 +1947,6 @@ function paintMask(){
 /* 지금 모드에서 이 나라가 실제로 출제 대상인지 — 소국 강조(반짝임)와 마커 원의
    클릭 허용 여부를 정하는 기준. 모드마다 출제 집합이 달라서 따로 본다. */
 function circIsActive(iso){
-  if(mapMode==='stat')return true;
   if(mapMode==='border')return !!(BQ.activeSet&&BQ.activeSet.has(iso));
   if(mapMode==='rborder')return !!(RBQ.activeSet&&RBQ.activeSet.has(iso));
   if(mapMode==='suteuk')return true; /* 수특퀴즈는 세계 어디든 정답이 될 수 있다 */
@@ -3352,7 +3151,6 @@ function initMap(){
     if(dragged)return;
     const cel=findCountryEl(e.target);if(!cel)return;
     const iso=iso4el(cel);if(!iso)return;
-    if(mapMode==='stat'){try{stMapClick(iso);}catch(err){}return;}
     if(mapMode==='border'){bqHandleClick(iso);return;}
     if(mapMode==='rborder'){rbqHandleClick(iso);return;}
     if(mapMode==='rvc'){rvcHandleClick(iso);return;}
@@ -3495,8 +3293,7 @@ function initMap(){
             else{
             const cel=findCountryEl(el);
             if(cel){const iso=iso4el(cel);if(iso){hit=true;
-              if(mapMode==='stat'){try{stMapClick(iso);}catch(err){}}
-              else if(mapMode==='border'){bqHandleClick(iso);}
+              if(mapMode==='border'){bqHandleClick(iso);}
               else if(mapMode==='rborder'){rbqHandleClick(iso);}
               else if(mapMode==='rvc'){rvcHandleClick(iso);}
               else if(mapMode==='suteuk'){try{sqMapClick(iso);}catch(err){}}
@@ -3603,11 +3400,7 @@ function listSaves(){
       if(!d.plan||!d.plan.length)continue;
       const done=(d.cor||0)+(d.wr||0);if(!done)continue; /* 시작만 한 건 제외 */
       out.push({type:'suteuk',key:k,scope:k.replace(/^sq_/,'suteuk_'),done,total:d.plan.length,wrong:d.wr||0,recorded:!!d.recorded});
-    }else if(k.startsWith('st_')&&!k.includes('__')){
-      if(!Array.isArray(d.ids)||!d.ids.length)continue;
-      const done=d.idx||0;if(!done)continue;   /* 시작만 한 건 제외 */
-      out.push({type:'stat',key:k,scope:k.slice(3),done,total:d.ids.length,wrong:d.wr||0,recorded:!!d.recorded});
-    }else if(k.startsWith('cq_')&&!k.includes('__')){
+        }else if(k.startsWith('cq_')&&!k.includes('__')){
       if(!d.attempted)continue; /* 시작만 한 건 제외 */
       const m=k.match(/^cq_([LMH])_(.+)$/);if(!m)continue;
       const diff=m[1],fk=m[2];
@@ -3644,7 +3437,6 @@ function _resumeStart(type,key){
     let fk='';try{fk=(JSON.parse(localStorage.getItem(key))||{}).fk||'';}catch(e){}
     startSession('world',['suteuk'],fk||'all_sq');
   }
-  else if(type==='stat'){const fk=key.slice(3);startSession('world',['stat'],fk,fk);}
 }
 function resumeSave(type,key){_resumeStart(type,key);}
 /* 저장본에서 종교 오답 ISO 목록을 미리 읽음 (startSession이 새로 만들며 비우기 전에) */
@@ -4586,7 +4378,6 @@ function deleteSave(key){
   try{if(RBQ&&RBQ.saveKey===key){RBQ.status={};RBQ.scoreCounts={};RBQ.correct=0;RBQ.wrong=0;}}catch(e){}
   try{if(TQ&&TQ.saveKey===key){TQ.done=[];TQ.wrong=[];}}catch(e){}
   try{if(SQ&&SQ.saveKey===key){SQ.plan=[];SQ.idx=0;SQ.cor=0;SQ.wr=0;SQ.inited=false;}}catch(e){}
-  try{if(ST&&ST.saveKey===key){ST.plan=[];ST.idx=0;ST.cor=0;ST.wr=0;ST.inited=false;}}catch(e){}
 }
 /* 이 기기의 모든 퀴즈 진행 기록을 지운다 (계정에 로그인돼 있으면 서버도 함께) */
 function deleteAllSaves(){
