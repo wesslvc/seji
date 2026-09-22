@@ -120,7 +120,8 @@ function abAtlasShow(iso){
   h+='<div class="ct-head"><div class="ct-id">'
     +abFlag(iso,72,'big')
     +'<div><div class="ct-rg">'+abEsc(d.rg||CONT_NAME[abCont(iso)]||'')+'</div>'
-    +'<h3>'+abEsc(abName(iso))+(abIsTerr(iso)?' <em class="terr">속령</em>':'')+'</h3>'
+    +'<h3>'+abEsc(abName(iso))+(abIsTerr(iso)?' <em class="terr">속령</em>':'')
+      +abStarHTML('country:'+iso,abName(iso))+'</h3>'
     +'<div class="ct-en">'+abEsc(c.e||'')+' · '+iso.toUpperCase()+'</div></div></div>'
     +'<div class="ct-cap"><b>'+abEsc(d.cap||'—')+'</b><span>수도</span>'
     +(d.big?'<b>'+abEsc(d.big)+'</b><span>최대도시</span>':'')

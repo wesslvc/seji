@@ -8,7 +8,8 @@ const AB_SCREENS={
   '/ranks': {el:'s-ranks',  depth:0.38,  label:'점심층'},
   '/stat':  {el:'s-stat',   depth:0.58,  label:'심해층'},
   '/border':{el:'s-border', depth:0.78,  label:'심연층'},
-  '/codex': {el:'s-codex',  depth:0.95,  label:'해구'}
+  '/codex': {el:'s-codex',  depth:0.95,  label:'해구'},
+  '/review':{el:'s-review', depth:0.66,  label:'되짚기'}
 };
 
 function abGo(hash){

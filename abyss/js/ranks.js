@@ -17,6 +17,11 @@ function abFindMetric(id){
   return id.indexOf('set:')===0 ? abStatSetList().find(m=>m.id===id) : abMetric(id);
 }
 
+/* 즐겨찾기에서 '#/ranks?<항목>' 으로 바로 들어올 수 있게 */
+AB_ON_ENTER['/ranks']=function(key){
+  const id=(key.split('?')[1]||'').trim();
+  if(id&&abFindMetric(id)){AB_RANK.id=id;abRankList();abRankView();}
+};
 function abRanksInit(){
   const cats=[...new Set(abAllMetrics().map(m=>m.cat))];
   const box=document.getElementById('rank-cats');
@@ -65,7 +70,7 @@ function abRankView(){
   const mx=Math.max.apply(null,rows.map(r=>r.v))||1;
   const mn=Math.min.apply(null,rows.map(r=>r.v));
   const span=(mx-mn)||1;
-  let h='<div class="rank-head"><h3>'+abEsc(m.name)+'</h3>'
+  let h='<div class="rank-head"><h3>'+abEsc(m.name)+abStarHTML('metric:'+m.id,m.name)+'</h3>'
     +'<span class="src">'+abEsc(m.src)+' · '+rows.length
     +(abTerrOn()?'개 나라·속령':'개국')+'</span></div>';
   if(m.note)h+='<p class="rank-note">'+abEsc(m.note)+'</p>';
@@ -96,7 +101,7 @@ function abContLegend(rows){
 function abRankViewSet(m){
   const s=m.set, box=document.getElementById('rank-view');
   const mx=Math.max.apply(null,s.top.map(t=>t[1]))||1;
-  let h='<div class="rank-head"><h3>'+abEsc(m.name)+'</h3>'
+  let h='<div class="rank-head"><h3>'+abEsc(m.name)+abStarHTML('metric:'+m.id,m.name)+'</h3>'
     +'<span class="src">'+abEsc(m.src)+'</span></div>';
   h+='<p class="rank-note">통계 순위 테스트에 나오는 자료입니다. 원자료가 상위 5위까지라 '
     +'전체 순위 대신 1~5위만 싣습니다.</p>';

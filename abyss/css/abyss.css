@@ -216,3 +216,29 @@ body.home{background:radial-gradient(1100px 620px at 50% -12%,#1d222a 0%,var(--b
 .stat .v{font-size:var(--fs-3xl);margin-top:.25rem;font-variant-numeric:tabular-nums;
   letter-spacing:-.015em;font-family:var(--font-display);font-weight:700}
 .stat .r{font-size:var(--fs-xs);color:var(--ac);margin-top:.15rem}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   가라앉아 들어온 자리 — 본편 홈에서 물이 덮인 채로 넘어왔을 때
+   본편의 차오르는 물(css/main.css 의 #dive)과 같은 색·같은 물결이다.
+   여기서는 반대로 아래로 빠진다. js/dive-in.js 가 ?dive=1 일 때만 붙인다.
+   ══════════════════════════════════════════════════════════════════════════ */
+#dive-in{position:fixed;inset:0;z-index:9100;pointer-events:none}
+#dive-in .dive-water{position:absolute;left:0;right:0;bottom:0;height:130%;
+  background:linear-gradient(180deg,
+    color-mix(in srgb,#0f1d2b 78%,transparent) 0%,
+    color-mix(in srgb,#0a1622 92%,transparent) 42%, #060f18 100%);
+  transition:height 1.05s cubic-bezier(.4,0,.25,1)}
+#dive-in.out .dive-water{height:0}
+#dive-in .dive-wave{position:absolute;left:-20%;bottom:100%;width:140%;height:3.2rem;display:block}
+#dive-in .dive-wave path{fill:color-mix(in srgb,#0f1d2b 78%,transparent)}
+#dive-in .dive-wave .w2{fill:color-mix(in srgb,#0f1d2b 40%,transparent)}
+#dive-in .dive-wave .w1{animation:diveDrift 9s linear infinite}
+#dive-in .dive-wave .w2{animation:diveDrift 14s linear infinite reverse}
+@keyframes diveDrift{from{transform:translateX(0)}to{transform:translateX(-33.34%)}}
+/* 물이 빠지는 동안 화면은 아주 조금 떠오른다 — 가라앉던 움직임을 되돌린다 */
+html.diving-in body{opacity:0;transform:translateY(-14px)}
+body{transition:opacity .75s var(--ease),transform .9s cubic-bezier(.4,0,.25,1)}
+@media (prefers-reduced-motion: reduce){
+  #dive-in .dive-wave .w1,#dive-in .dive-wave .w2{animation:none}
+  body{transition:none}
+}

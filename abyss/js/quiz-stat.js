@@ -31,6 +31,11 @@ function abStatLastRun(){
   if(!box)return;
   box.innerHTML=r?'<p class="rank-note">지난 기록 — '+r.pts+'점 ('+r.cor+'/'+(r.cor+r.wr)+')</p>':'';
 }
+/* 오답 모아풀기에서 넘어왔으면 그 묶음으로 바로 시작한다 */
+AB_ON_ENTER['/stat']=function(){
+  const p=typeof abTakePending==='function'&&abTakePending('stat');
+  if(p&&p.sets.length)abStatStart(p.sets.slice(),true);
+};
 function abStatStart(sets,retry){
   if(!sets.length)return;
   ABST.plan=abShuffle(sets.slice());ABST.idx=0;ABST.rank=0;
@@ -73,7 +78,10 @@ function abStatPick(iso){
   if(iso===want){
     ABST.cor++;ABST.pts+=2;ABST.rank++;
     abMapPaint(ABST.box,iso,'cr');
-    if(ABST.rank>=5){abStatSlots();setTimeout(abStatNext,650);return;}
+    if(ABST.rank>=5){
+      /* 다섯을 다 맞혔으면 오답 목록에서 빠진다 */
+      abSetDel('wrong','stat:'+s.id);
+      abStatSlots();setTimeout(abStatNext,650);return;}
     abStatSlots();
   }else{
     /* 한 번 틀리면 이 문항은 끝 — 다섯을 다 열어 준다 */
@@ -81,6 +89,7 @@ function abStatPick(iso){
     for(let i=ABST.rank;i<5;i++)ABST.missed[i]=true;
     ABST.revealed=true;
     ABST.wrongSets.push(s);
+    abSetAdd('wrong','stat:'+s.id,{k:'stat',n:s.name});
     abMapPaint(ABST.box,iso,'wr');
     s.top.forEach((r,i)=>{if(i>=ABST.rank)abMapPaint(ABST.box,r[0],'hi');});
     abStatSlots();

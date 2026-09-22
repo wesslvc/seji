@@ -46,6 +46,11 @@ function abBorderInit(){
     abBorderStart(list);
   });
 }
+/* 오답 모아풀기에서 넘어왔으면 그 나라들로 바로 시작한다 */
+AB_ON_ENTER['/border']=function(){
+  const p=typeof abTakePending==='function'&&abTakePending('border');
+  if(p&&p.list.length)abBorderStart(p.list.slice());
+};
 function abBorderStart(list){
   ABBQ.plan=list;ABBQ.idx=0;ABBQ.pts=0;ABBQ.log=[];ABBQ.done=false;ABBQ.streak=0;
   document.getElementById('bq-setup').hidden=true;
@@ -120,6 +125,9 @@ function abBorderGrade(){
   ABBQ.pts+=pts;
   ABBQ.streak=pts>0?0:ABBQ.streak+1;
   ABBQ.log.push({iso:iso,pts:pts,missed:missed,extra:extra,hit:hit.length,total:want.length});
+  /* 하나도 빠뜨리지 않았으면 오답에서 빠지고, 아니면 쌓인다 */
+  if(!missed.length&&!extra.length)abSetDel('wrong','border:'+iso);
+  else abSetAdd('wrong','border:'+iso,{k:'border',n:abName(iso)});
   document.getElementById('bq-hold').hidden=true;
   document.getElementById('bq-map').hidden=false;
   abMapPaint(ABBQ.box,iso,'sel');

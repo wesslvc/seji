@@ -15,6 +15,7 @@
   if(typeof abStatInit==='function')abStatInit();
   if(typeof abBorderInit==='function')abBorderInit();
   if(typeof abCodexInit==='function')abCodexInit();
+  if(typeof abReviewInit==='function')abReviewInit();
 
   window.addEventListener('hashchange',()=>abGo());
   abGo();

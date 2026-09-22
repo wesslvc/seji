@@ -39,6 +39,22 @@ function abCodexFigs(){
 }
 function abCodexQs(sec){return [...sec.querySelectorAll('q')];}
 
+/* 오답 모아풀기에서 넘어왔으면 퀴즈 칸으로 가서 그 문항만 푼다 */
+AB_ON_ENTER['/codex']=function(){
+  const p=typeof abTakePending==='function'&&abTakePending('codex');
+  if(!p)return;
+  const go=()=>{
+    const qs=abCodexQuizByIds(p.ids);
+    if(!qs.length)return;
+    const b=document.querySelector('#cx-tabs button[data-t="quiz"]');
+    if(b){document.querySelectorAll('#cx-tabs button').forEach(x=>x.classList.toggle('on',x===b));}
+    ABCX.tab='quiz';
+    document.getElementById('cx-pane').innerHTML='<div id="cx-run"></div>';
+    abCodexQuizRun(qs);
+  };
+  /* 정리본을 아직 못 읽었으면 다 읽고 나서 */
+  if(CODEX_SECTIONS.length)go();else setTimeout(go,600);
+};
 function abCodexShell(){
   const nq=CODEX_SECTIONS.reduce((a,s)=>a+abCodexQs(s).length,0);
   document.getElementById('codex-body').innerHTML=
@@ -128,7 +144,8 @@ function abCodexRead(){
         +'<span>'+secs.length+'개 주제</span></div>'
       +secs.map(sec=>'<article class="cx-sec" id="cx-'+sec.getAttribute('n')+'">'
         +'<h3><i>'+String(sec.getAttribute('n')).padStart(2,'0')+'</i>'
-        +abEsc(sec.getAttribute('title'))+'</h3>'
+        +abEsc(sec.getAttribute('title'))
+        +abStarHTML('codex:'+sec.getAttribute('n'),sec.getAttribute('title'))+'</h3>'
         +abCodexBlocks(sec,1)+'</article>').join('')
       +'</div>';
   });
@@ -224,19 +241,38 @@ function abCodexQuizHome(){
     abCodexQuizStart(secs);
   });
 }
+function abCodexQ(sec,q){
+  return {
+    a:q.getAttribute('a'),
+    ask:(q.querySelector('ask')||{}).textContent||'',
+    opts:abShuffle([...q.querySelectorAll('opt')].map(o=>o.textContent)),
+    from:sec.getAttribute('title'),
+    /* 오답 목록에 쓸 이름 — 절 번호와 물음이면 정리본이 늘어나도 같은 문항을
+       다시 찾을 수 있다 */
+    key:'codex:'+sec.getAttribute('n')+'|'+((q.querySelector('ask')||{}).textContent||'')
+  };
+}
 function abCodexQuizStart(secs){
   const qs=[];
-  secs.forEach(sec=>{
-    const t=sec.getAttribute('title');
-    abCodexQs(sec).forEach(q=>qs.push({
-      a:q.getAttribute('a'),
-      ask:(q.querySelector('ask')||{}).textContent||'',
-      opts:abShuffle([...q.querySelectorAll('opt')].map(o=>o.textContent)),
-      from:t
-    }));
-  });
+  secs.forEach(sec=>abCodexQs(sec).forEach(q=>qs.push(abCodexQ(sec,q))));
+  abCodexQuizRun(qs);
+}
+/* 오답 모아풀기 — 저장해 둔 이름으로 문항을 도로 찾아 푼다 */
+function abCodexQuizByIds(ids){
+  const want=new Set(ids), qs=[];
+  CODEX_SECTIONS.forEach(sec=>abCodexQs(sec).forEach(q=>{
+    const o=abCodexQ(sec,q);
+    if(want.has(o.key))qs.push(o);
+  }));
+  return qs;
+}
+function abCodexQuizRun(qs){
   abShuffle(qs);
   ABCX.quiz={qs:qs,i:0,cor:0,wrong:[]};
+  const pane=document.getElementById('cx-pane');
+  if(!document.getElementById('cx-run')){
+    pane.innerHTML='<div id="cx-run"></div>';
+  }
   abCodexQuizStep();
 }
 function abCodexQuizStep(){
@@ -264,7 +300,8 @@ function abCodexQuizStep(){
       else if(x===b)x.classList.add('no');
     });
     const ok=b.dataset.v===cur.a;
-    if(ok)q.cor++;else q.wrong.push(cur);
+    if(ok){q.cor++;abSetDel('wrong',cur.key);}
+    else{q.wrong.push(cur);abSetAdd('wrong',cur.key,{k:'codex',n:cur.ask});}
     const note=box.querySelector('.cx-a');
     note.hidden=false;note.className='cx-a '+(ok?'ok':'no');
     note.innerHTML=ok?'맞습니다.':'정답은 「'+abCx(cur.a)+'」입니다.';
