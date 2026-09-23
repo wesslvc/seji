@@ -99,6 +99,13 @@ function abBorderStart(list,resume,review){
     +'<div id="bq-end"></div>';
   ABBQ.box=document.getElementById('bq-map');
   const inp=document.getElementById('bq-in');
+  document.getElementById('bq-list').addEventListener('click',e=>{
+    const b=e.target.closest('.tag.del');if(b)abBorderRemove(b.dataset.iso);
+  });
+  inp.addEventListener('keydown',e=>{
+    if(e.key==='Backspace'&&!inp.value&&!e.isComposing&&ABBQ.entered.length)
+      abBorderRemove(ABBQ.entered[ABBQ.entered.length-1]);
+  });
   ABBQ.ac=abNameInput(inp,document.getElementById('bq-sug'),iso=>{
     if(abBorderType(iso))ABBQ.ac.clear();
   });
@@ -200,9 +207,20 @@ function abBorderType(iso){
   if(ABBQ.entered.indexOf(iso)>=0){abBorderShake(inp,'이미 적었습니다');ABBQ.ac.clear();return false;}
   const tn=document.getElementById('bq-taunt');if(tn){tn.textContent='';tn.hidden=true;}
   ABBQ.entered.push(iso);
-  document.getElementById('bq-list').innerHTML=ABBQ.entered.map(i=>
-    '<span class="tag">'+abFlag(i,18)+abEsc(abName(i))+'</span>').join('');
+  abBorderList();
   return true;
+}
+/* 적은 나라 — 채점 전에는 눌러서 지울 수 있다(빈 입력칸에서 Backspace 는 마지막 것) */
+function abBorderList(){
+  document.getElementById('bq-list').innerHTML=ABBQ.entered.map(i=>
+    '<button type="button" class="tag del" data-iso="'+i+'" title="지우기">'
+    +abFlag(i,18)+abEsc(abName(i))+'<i aria-hidden="true">✕</i></button>').join('');
+}
+function abBorderRemove(iso){
+  if(ABBQ.graded)return;
+  const k=ABBQ.entered.indexOf(iso);if(k<0)return;
+  ABBQ.entered.splice(k,1);abBorderList();
+  document.getElementById('bq-in').focus();
 }
 /* 틀린 입력은 흔들어서 알려 준다 — 맞았는지는 채점할 때까지 말하지 않는다 */
 function abBorderShake(inp,msg){

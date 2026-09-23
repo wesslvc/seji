@@ -552,3 +552,8 @@ table.cmp td .dash{color:var(--tx3)}
 .cx-opt.multi button.no .cx-box{background:var(--wr);border-color:var(--wr)}
 .cx-opt button.miss{border-style:dashed!important;border-color:var(--ac)!important;color:var(--ac)!important}
 .cx-opt.multi button.miss .cx-box{border-color:var(--ac);border-style:dashed}
+/* 접경국 — 채점 전 적은 나라는 눌러서 지운다 */
+.tag.del{cursor:pointer;font:inherit;color:inherit;background:var(--sf);align-items:center}
+.tag.del i{font-style:normal;font-size:.7em;color:var(--tx3)}
+.tag.del:hover{border-color:var(--wr)}
+.tag.del:hover i{color:var(--wr)}
