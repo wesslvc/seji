@@ -32,7 +32,7 @@ function abReviewBadge(){
   const a=document.querySelector('#nav a[href="#/review"]');
   if(!a)return;
   const paint=()=>{
-    const n=abSetLive('wrong').length;
+    const n=abSetLive('wrong').filter(abReviewAlive).length;
     a.innerHTML='오답·즐겨찾기'+(n?'<i class="nv-n">'+n+'</i>':'');
   };
   paint();
@@ -40,8 +40,14 @@ function abReviewBadge(){
   document.addEventListener('ab-auth',paint);
 }
 
+function abReviewAlive(w){
+  if(w.k==='stat')return STAT_SETS.some(s=>'stat:'+s.id===w.id);
+  return true;
+}
+
 function abReviewRender(){
-  const wrong=abSetLive('wrong'), fav=abSetLive('fav');
+  /* 없어진 문항(통계 항목을 줄였을 때 등)이 남긴 오답은 세지도 보이지도 않는다 */
+  const wrong=abSetLive('wrong').filter(abReviewAlive), fav=abSetLive('fav');
   const g={stat:[],border:[],codex:[]};
   wrong.forEach(w=>{if(g[w.k])g[w.k].push(w);});
   const live=Object.keys(g).filter(k=>g[k].length);

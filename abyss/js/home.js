@@ -14,7 +14,7 @@ const AB_MODES=[
   {go:'#/ranks', ic:'chart', mc:'#8aa6cf', tt:'순위 도감',
    ds:'원자료로 낼 수 있는 모든 항목의 전체 순위', meta:'m-ranks'},
   {go:'#/stat',  ic:'trade', mc:'#78b2ce', tt:'통계 순위 테스트',
-   ds:'지도에서 1위부터 5위까지 순서대로 — 한 번 틀리면 답이 열린다', meta:'m-stat'},
+   ds:'1위부터 5위까지 나라 이름을 순서대로 — 한 번 틀리면 답이 열린다', meta:'m-stat'},
   {go:'#/border',ic:'border',mc:'#5f9ad6', tt:'접경국 하드코어',
    ds:'개수를 알려 주지 않고, 맞닿은 나라를 다 적어야 채점', meta:'m-border'}
 ];

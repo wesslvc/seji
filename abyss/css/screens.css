@@ -160,6 +160,13 @@ h4.sec em{font-style:normal;font-weight:400;color:var(--tx3);font-size:var(--fs-
 
 .answer-in{display:flex;gap:.5rem;flex-wrap:wrap;margin:.9rem 0}
 .answer-in .field{flex:1;min-width:220px}
+.st-field{position:relative}
+.st-sug{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:30;background:var(--sf);
+  border:1px solid var(--bd);border-radius:var(--r-sm);box-shadow:var(--shadow2);padding:.25rem;
+  display:flex;flex-direction:column}
+.st-sug-it{display:flex;align-items:center;gap:.5rem;text-align:left;background:none;border:0;
+  color:var(--tx);font:inherit;font-size:var(--fs-md);padding:.45rem .6rem;border-radius:var(--r-xs);cursor:pointer}
+.st-sug-it.on,.st-sug-it:hover{background:var(--ac2)}
 .entered{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.7rem;min-height:1.9rem}
 .entered .tag{cursor:default}
 .entered .tag.ok{border-color:var(--btn);color:var(--ac)}
