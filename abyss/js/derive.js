@@ -142,7 +142,7 @@ const AB_METRICS=[
   }
 })();
 
-/* 세계은행 국가 지표(world-data.js) — 인구 구조 · 산업 구조 · 발전원 ·
+/* 국가 지표(world-data.js — WDI·OWID·FAOSTAT) — 인구 구조 · 산업 구조 · 발전원 ·
    에너지 자원 생산·소비 · 주요 농축산물. 0인 항목은 world-data.js에서부터
    키를 만들지 않으므로, 여기서는 키가 있는지만 보면 '자료 없음'과
    '진짜 0'이 자연히 갈린다. */
@@ -172,7 +172,7 @@ const AB_METRICS=[
      소비 전체)과는 다른 항목이라 분류 이름도 갈라 둔다. */
   if(typeof ENERGY_NAME!=='undefined')ENERGY_NAME.slice(0,8).forEach((nm,k)=>{
     AB_METRICS.push({id:'elec'+k,cat:'발전원',name:nm+' 발전 비중',unit:'%',
-      src:'World Bank WDI · 발전량 기준',
+      src:'Our World in Data(Ember·Energy Institute) · 발전량 기준',
       f:i=>{const el=wd(i).el;if(!el)return null;
             const sum=el.reduce((a,b)=>a+b,0);if(!sum)return null;
             return el[k]/sum*100;}});
@@ -182,11 +182,11 @@ const AB_METRICS=[
   [['coal','석탄','cp','cc'],['oil','석유','op','oc'],['gas','천연가스','gp','gc']]
     .forEach(([key,nm,pk,ck])=>{
       AB_METRICS.push({id:key+'Prod',cat:'에너지 자원',name:nm+' 생산량',unit:'TWh',
-        src:'World Bank WDI · 1차에너지 환산',f:i=>{const v=wd(i)[pk];return v!=null?v:null;}});
+        src:'Our World in Data(Energy Institute) · 1차에너지 환산',f:i=>{const v=wd(i)[pk];return v!=null?v:null;}});
       AB_METRICS.push({id:key+'Cons',cat:'에너지 자원',name:nm+' 소비량',unit:'TWh',
-        src:'World Bank WDI · 1차에너지 환산',f:i=>{const v=wd(i)[ck];return v!=null?v:null;}});
+        src:'Our World in Data(Energy Institute) · 1차에너지 환산',f:i=>{const v=wd(i)[ck];return v!=null?v:null;}});
       AB_METRICS.push({id:key+'Self',cat:'에너지 자원',name:nm+' 자급률',unit:'%',
-        src:'World Bank WDI · 생산량÷소비량',
+        src:'Our World in Data(Energy Institute) · 생산량÷소비량',
         note:'100%를 넘으면 쓰는 양보다 많이 캐내는 나라(순수출), 밑돌면 모자라 들여오는 나라(순수입)입니다.',
         f:i=>{const d=wd(i),c=d[ck];if(!c)return null;return (d[pk]||0)/c*100;}});
     });
@@ -195,7 +195,7 @@ const AB_METRICS=[
    ['corn','옥수수 생산량','co','만 톤'],['cattle','소 사육두수','ct','만 두'],
    ['sheep','양 사육두수','sh','만 두']]
     .forEach(([id,nm,k,unit])=>{
-      AB_METRICS.push({id:id,cat:'농축산물',name:nm,unit:unit,src:'World Bank WDI',
+      AB_METRICS.push({id:id,cat:'농축산물',name:nm,unit:unit,src:'FAOSTAT',
         f:i=>{const v=wd(i)[k];return v!=null?v:null;}});
     });
 })();

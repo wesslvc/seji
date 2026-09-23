@@ -25,10 +25,10 @@
      이렇게 만든 광역권 1위가 사전의 수위도시를 품고 있는지 이름으로 확인한다
      (GeoNames 한국어 별칭으로 사전 표기를 찾는다). 어긋나면 목록으로 알려 준다.
 
-   ■ 종주도시화 — '4도시 지수' = 1위 광역권 인구 ÷ (2·3·4위 광역권 인구 합).
-     1.0 이상이면 종주도시화. 흔히 쓰는 '2위 대비 배수'는 폴란드·베트남이
-     대한민국과 같은 칸에 들어가 쓸모가 없다. 광역권 인구는 UN World
-     Urbanization Prospects(30만 이상 도시권)를 두 번째 인자로 주면 그걸 쓴다.
+   ■ 종주도시화 — 1위 광역권 인구가 2위 광역권 인구의 2배 이상이면 종주도시화.
+     교과서 정의(수위도시가 2위 도시 인구의 2배 이상)를 광역권 인구로 잰다.
+     pi = 1위 ÷ 2위. 광역권 인구는 UN World Urbanization Prospects(30만 이상
+     도시권)를 두 번째 인자로 주면 그걸 쓴다.
      반경 근사만으로는 LA·시카고처럼 넓게 퍼진 도시권을 작게 세어 미국·폴란드가
      '종주'로 나오므로, UN 자료 없이 만든 판에서는 종주도시화를 묻지 않는다.
 
@@ -153,10 +153,8 @@ Object.keys(CO).forEach(iso => {
     return dist(rank[0].lat, rank[0].lon, c.lat, c.lon) <= Math.max(30, radius(rank[0].pop));
   };
 
-  if (rank.length >= 4) {
-    const rest = rank[1].pop + rank[2].pop + rank[3].pop;
-    if (rest) pi = rank[0].pop / rest;
-  } else why = '도시 자료 부족';
+  if (rank.length >= 2 && rank[1].pop) pi = rank[0].pop / rank[1].pop;
+  else why = '도시 자료 부족';
   if (!wupPath) { pi = null; why = 'UN 도시권 인구 자료 없이 만든 판'; }
 
   /* 사전의 수위도시가 광역권 1위 안에 있는가 */
@@ -170,7 +168,7 @@ Object.keys(CO).forEach(iso => {
   }
   if (bigCity == null && capCity == null) { pi = null; why = why || '도시 이름을 찾지 못함'; }
 
-  if (pi != null) prim = pi >= 1 ? 'y' : 'n';
+  if (pi != null) prim = pi >= 2 ? 'y' : 'n';
   if (prim === 'y') y++; else if (prim === 'n') n++; else q++;
   out[iso] = { cap: d.cap, caps: [cap], big, ll: d.ll,
                pi: pi == null ? null : Math.round(pi * 100) / 100,
@@ -187,8 +185,8 @@ const head = `/* ═════════════════════
    caps 채점에 인정하는 수도 이름
    big  수위도시 — 광역권(도시권) 인구 1위
    ll   수도 좌표
-   pi   4도시 지수 — 1위 광역권 인구 ÷ (2·3·4위 광역권 인구 합)
-   prim 종주도시화 — y(지수 1.0 이상) · n(1.0 미만) · ?(묻지 않음)
+   pi   1위 광역권 인구 ÷ 2위 광역권 인구
+   prim 종주도시화 — y(2배 이상) · n(2배 미만) · ?(묻지 않음)
    why  묻지 않는 까닭
    top  인구 상위 네 광역권 [이름, 인구] — 판단 근거로 보여 준다
 

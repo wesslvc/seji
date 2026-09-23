@@ -8,8 +8,8 @@
      ③ 수위도시 이름을 적는다 (수도와 같으면 같다고 적으면 된다)
      ④ 종주도시화  O / X
 
-   ④는 '4도시 지수 1.0 이상'이라는 규칙을 미리 알려 주고 묻는다. 채점한 뒤에는
-   상위 네 도시와 지수를 같이 보여 주므로, 외운 답이 아니라 규칙을 따라가며
+   ④는 '1위 광역권이 2위 광역권의 2배 이상'이라는 규칙을 미리 알려 주고 묻는다.
+   채점한 뒤에는 상위 네 광역권과 배수를 같이 보여 주므로, 외운 답이 아니라 규칙을 따라가며
    판단하게 된다. 자료가 미심쩍은 나라(prim='?')는 아예 묻지 않는다.
    ══════════════════════════════════════════════════════════════════════════ */
 const ABCT={plan:[],idx:0,step:0,got:[],score:0,max:0,log:[],box:null,graded:false};
@@ -115,7 +115,7 @@ function abCityStage(){
   }
   if(st===3){
     box.innerHTML='<p class="ct-ask">이 나라는 <b>종주도시화</b>가 나타납니까?'
-      +'<span class="ct-rule">1위 도시 인구 ÷ (2·3·4위 인구 합) ≥ 1.0 이면 종주도시</span></p>'
+      +'<span class="ct-rule">1위 광역권 인구가 2위 광역권의 2배 이상이면 종주도시</span></p>'
       +'<div class="btnrow"><button class="btn" data-v="y">그렇다</button>'
       +'<button class="btn ghost" data-v="n">아니다</button></div>';
     box.addEventListener('click',e=>{
@@ -188,7 +188,7 @@ function abCityAnswerCard(iso,c){
     h+='<div class="ct-ans"><span class="k">종주도시화</span><span class="v">'
       +'묻지 않음 — '+abEsc(c.why||'자료가 미심쩍습니다')+'</span></div>';
   }else{
-    h+=line('종주도시화',(c.prim==='y'?'그렇다':'아니다')+' · 4도시 지수 '+c.pi,ABCT.got[3]);
+    h+=line('종주도시화',(c.prim==='y'?'그렇다':'아니다')+' · 1위가 2위의 '+c.pi+'배',ABCT.got[3]);
   }
   if(c.top&&c.top.length){
     const mx=c.top[0][1]||1;
