@@ -221,8 +221,8 @@ function abCodexSpy(){
 function abCodexQuizHome(){
   const withQ=CODEX_SECTIONS.filter(s=>abCodexQs(s).length);
   const total=withQ.reduce((a,s)=>a+abCodexQs(s).length,0);
-  let h='<p class="rank-note">정리본의 내용을 사례·까닭·계산으로 바꿔 물은 문제입니다. '
-    +'답을 고르면 왜 그게 답인지 한 줄 풀이가 나옵니다.</p>'
+  let h='<p class="rank-note">문항마다 맞는 보기를 <b>전부</b> 고릅니다. 몇 개가 맞는지는 알려 주지 않고, '
+    +'하나라도 더하거나 빠뜨리면 틀립니다. 숫자 키로 고르고 Enter 로 채점할 수 있습니다.</p>'
     +'<div class="cx-pick"><button class="cx-card wide" data-pick="all"><b>전부 풀기</b>'
       +'<span>'+total+'문항</span></button></div>';
   CODEX_PARTS.forEach(pt=>{
@@ -252,9 +252,9 @@ function abCodexQuizHome(){
 }
 function abCodexQ(sec,q){
   return {
-    a:q.getAttribute('a'),
     ask:(q.querySelector('ask')||{}).textContent||'',
-    opts:abShuffle([...q.querySelectorAll('opt')].map(o=>o.textContent)),
+    /* 맞는 보기가 몇 개인지는 알려 주지 않는다 — 전부 골라야 맞는다 */
+    opts:abShuffle([...q.querySelectorAll('opt')].map(o=>({t:o.textContent,ok:o.getAttribute('ok')==='1'}))),
     why:(q.querySelector('why')||{}).textContent||'',
     from:sec.getAttribute('title'),
     /* 오답 목록에 쓸 이름 — 절 번호와 물음이면 정리본이 늘어나도 같은 문항을
@@ -285,6 +285,9 @@ function abCodexQuizRun(qs){
   }
   abCodexQuizStep();
 }
+/* 모두 고르기 — 몇 개가 맞는지 모르는 채로 골라 '채점'. 하나라도 더하거나
+   빠뜨리면 틀린다. 아는 사람은 몇 번 누르고 끝나고, 어렴풋이 알면 지우기로
+   맞힐 수 없다. 숫자 키로 보기를, Enter 로 채점·다음을 누를 수 있다. */
 function abCodexQuizStep(){
   const q=ABCX.quiz, cur=q.qs[q.i];
   const box=document.getElementById('cx-run');
@@ -294,32 +297,58 @@ function abCodexQuizStep(){
       +'<span class="from">'+abEsc(cur.from)+'</span>'
       +'<span class="sc">맞힘 '+q.cor+'</span></div>'
     +'<p class="cx-ask">'+abCx(cur.ask)+'</p>'
-    +'<div class="cx-opt big">'+cur.opts.map(o=>
-      '<button data-v="'+abEsc(o)+'">'+abCx(o)+'</button>').join('')+'</div>'
+    +'<p class="cx-hint">맞는 것을 전부 고르세요 — 몇 개인지는 알려 주지 않습니다</p>'
+    +'<div class="cx-opt big multi">'+cur.opts.map((o,i)=>
+      '<button data-i="'+i+'" aria-pressed="false"><i class="cx-box"></i><span>'+abCx(o.t)+'</span></button>').join('')+'</div>'
     +'<div class="cx-a" hidden></div>'
-    +'<div class="btnrow"><button class="btn" id="cx-next" hidden>다음</button>'
+    +'<div class="btnrow"><button class="btn" id="cx-check" disabled>채점</button>'
+      +'<button class="btn" id="cx-next" hidden>다음</button>'
       +'<button class="btn ghost" id="cx-stop">그만두기</button></div></div>';
   box.scrollIntoView({behavior:'smooth',block:'nearest'});
-  const opt=box.querySelector('.cx-opt');
-  opt.addEventListener('click',e=>{
-    const b=e.target.closest('button');if(!b||opt.dataset.done)return;
-    opt.dataset.done='1';
+  if(document.activeElement&&!box.contains(document.activeElement))document.activeElement.blur();
+  const opt=box.querySelector('.cx-opt'), chk=document.getElementById('cx-check'),
+        nx=document.getElementById('cx-next');
+  let done=false;
+  const toggle=b=>{
+    if(done||!b)return;
+    const on=b.getAttribute('aria-pressed')!=='true';
+    b.setAttribute('aria-pressed',on);b.classList.toggle('sel',on);
+    chk.disabled=!opt.querySelector('.sel');
+  };
+  const check=()=>{
+    if(done||chk.disabled)return;
+    done=true;
+    let ok=true;
     opt.querySelectorAll('button').forEach(x=>{
+      const o=cur.opts[+x.dataset.i], picked=x.classList.contains('sel');
       x.disabled=true;
-      if(x.dataset.v===cur.a)x.classList.add('ok');
-      else if(x===b)x.classList.add('no');
+      if(o.ok&&picked)x.classList.add('ok');
+      else if(o.ok){x.classList.add('miss');ok=false;}
+      else if(picked){x.classList.add('no');ok=false;}
     });
-    const ok=b.dataset.v===cur.a;
     if(ok){q.cor++;abSetDel('wrong',cur.key);}
     else{q.wrong.push(cur);abSetAdd('wrong',cur.key,{k:'codex',n:cur.ask});}
     const note=box.querySelector('.cx-a');
     note.hidden=false;note.className='cx-a '+(ok?'ok':'no');
-    note.innerHTML=(ok?'맞습니다.':'정답은 「'+abCx(cur.a)+'」입니다.')
+    note.innerHTML=(ok?'맞습니다.':'틀렸습니다 — 빠뜨린 정답은 점선, 잘못 고른 것은 붉게 표시했습니다.')
       +(cur.why?'<p class="cx-why">'+abCx(cur.why)+'</p>':'');
-    document.getElementById('cx-next').hidden=false;
-  });
-  document.getElementById('cx-next').addEventListener('click',()=>{q.i++;abCodexQuizStep();});
+    chk.hidden=true;nx.hidden=false;nx.focus({preventScroll:true});
+  };
+  opt.addEventListener('click',e=>toggle(e.target.closest('button')));
+  chk.addEventListener('click',check);
+  nx.addEventListener('click',()=>{q.i++;abCodexQuizStep();});
   document.getElementById('cx-stop').addEventListener('click',abCodexQuizEnd);
+  /* 키보드 — 이 문항이 화면에 있는 동안만 */
+  if(ABCX.key)document.removeEventListener('keydown',ABCX.key);
+  ABCX.key=e=>{
+    if(!document.body.contains(opt)){document.removeEventListener('keydown',ABCX.key);ABCX.key=null;return;}
+    const t=e.target;if(t&&/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))return;
+    if(/^[1-9]$/.test(e.key)){toggle(opt.querySelectorAll('button')[+e.key-1]);e.preventDefault();}
+    /* Enter 는 늘 여기서 받는다 — 주제 카드에 초점이 남아 있으면 브라우저가 그
+       카드를 다시 눌러 퀴즈가 처음부터 시작된다 */
+    else if(e.key==='Enter'){e.preventDefault();done?nx.click():check();}
+  };
+  document.addEventListener('keydown',ABCX.key);
 }
 function abCodexQuizEnd(){
   const q=ABCX.quiz;
@@ -328,7 +357,7 @@ function abCodexQuizEnd(){
     +'<div class="big">'+q.cor+' <span class="of">/ '+done+'문항</span></div>';
   if(q.wrong.length){
     h+='<div class="rev"><b>틀린 문제</b><ol>'+q.wrong.map(w=>
-      '<li class="miss">'+abCx(w.ask)+' → '+abCx(w.a)+'</li>').join('')+'</ol></div>';
+      '<li class="miss">'+abCx(w.ask)+' → '+w.opts.filter(o=>o.ok).map(o=>abCx(o.t)).join(', ')+'</li>').join('')+'</ol></div>';
   }
   h+='<div class="btnrow">'
     +(q.wrong.length?'<button class="btn" id="cx-again-wrong">틀린 것만 다시 ('+q.wrong.length+')</button>':'')

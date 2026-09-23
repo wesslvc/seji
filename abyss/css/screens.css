@@ -540,3 +540,16 @@ table.cmp td .dash{color:var(--tx3)}
   .pie-svg{width:104px;height:104px}
   .pie-lg-row{font-size:var(--fs-sm)}
 }
+
+/* 지엽개념 퀴즈 — 모두 고르기. 고른 보기는 칸이 채워지고, 채점 뒤에는
+   맞게 고름(ok) · 빠뜨림(miss, 점선) · 잘못 고름(no) 셋으로 나뉜다 */
+.cx-hint{margin:-.6rem 0 1rem;color:var(--tx3);font-size:var(--fs-xs)}
+.cx-opt.multi button{display:flex;gap:.7rem;align-items:flex-start}
+.cx-box{flex:none;width:1rem;height:1rem;margin-top:.18rem;border:1.5px solid var(--bd2,var(--bd));border-radius:4px;
+  transition:.12s var(--ease)}
+.cx-opt.multi button.sel{border-color:var(--tx2)}
+.cx-opt.multi button.sel .cx-box{background:var(--tx);border-color:var(--tx)}
+.cx-opt.multi button.ok .cx-box{background:var(--ac);border-color:var(--ac)}
+.cx-opt.multi button.no .cx-box{background:var(--wr);border-color:var(--wr)}
+.cx-opt button.miss{border-style:dashed!important;border-color:var(--ac)!important;color:var(--ac)!important}
+.cx-opt.multi button.miss .cx-box{border-color:var(--ac);border-style:dashed}

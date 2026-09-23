@@ -277,10 +277,11 @@ import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from codex_quiz import QUIZ
 quiz = {}
-for n, ask, a, wrong, why in QUIZ:
+for n, ask, right, wrong, why in QUIZ:
     assert n in built, '없는 절 %d: %s' % (n, ask)
-    assert a not in wrong and len(set(wrong)) == len(wrong), ask
-    quiz.setdefault(n, []).append({'ask': ask, 'a': a, 'opts': [a] + wrong, 'why': why})
+    opts = right + wrong
+    assert right and wrong and len(set(opts)) == len(opts), ask
+    quiz.setdefault(n, []).append({'ask': ask, 'right': right, 'wrong': wrong, 'why': why})
 asks = [q[1] for q in QUIZ]
 assert len(asks) == len(set(asks)), '같은 물음이 두 번 있다'
 
@@ -328,9 +329,11 @@ for pid, ptitle, pdesc, nums in PARTS:
                 buf.append('        <row k="%s" v="%s"/>' % (esc(label), esc(' | '.join(cells))))
             buf.append('      </compare>')
         for q in quiz.get(n, []):
-            buf.append('      <q a="%s">' % esc(q['a']))
+            buf.append('      <q>')
             buf.append('        <ask>%s</ask>' % esc(q['ask']))
-            for o in q['opts']:
+            for o in q['right']:
+                buf.append('        <opt ok="1">%s</opt>' % esc(o))
+            for o in q['wrong']:
                 buf.append('        <opt>%s</opt>' % esc(o))
             if q.get('why'):
                 buf.append('        <why>%s</why>' % esc(q['why']))
