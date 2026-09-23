@@ -23,7 +23,8 @@
      묻지 않는다.
 
    ■ 종주도시화 — 1위 도시 인구가 2위 도시 인구의 2배 이상이면 종주도시화.
-     pi = 1위 ÷ 2위.
+     pi = 1위 ÷ 2위. 1.8~2.2배(2배 ±10%)는 자료 연도나 도시권 경계에 따라
+     판정이 뒤집히므로 묻지 않는다(브라질 1.99·캐나다 2.06·폴란드 2.17 등).
    ══════════════════════════════════════════════════════════════════════════ */
 const fs = require('fs');
 const src = process.argv[2];
@@ -32,6 +33,7 @@ if (!src) { console.error('GeoNames cities1000.txt 경로를 주세요'); proces
 const DD = new Function(fs.readFileSync('js/dict-data.js', 'utf8') + ';return DICT_DATA;')();
 const CO = new Function(fs.readFileSync('js/data.js', 'utf8') + ';return COUNTRIES;')();
 const WUP = JSON.parse(fs.readFileSync('tools/data/wup2025-cities.json', 'utf8'));
+const BORDER = 0.1;   /* 2배 ±10% 는 애매하다고 보고 묻지 않는다 */
 
 /* 통근권까지 넣은 광역권으로는 1위가 달라지는 나라 — 사전은 광역권을 따른다 */
 const LEGAL_METRO = {
@@ -110,7 +112,10 @@ Object.keys(CO).forEach(iso => {
     }
     else pi = W[0][1] / W[1][1];
   }
-  if (pi != null) prim = pi >= 2 ? 'y' : 'n';
+  /* 2배 언저리(1.8~2.2배)는 자료 연도·도시권 경계에 따라 판정이 뒤집히므로 묻지 않는다 */
+  if (pi != null && pi >= 2 * (1 - BORDER) && pi <= 2 * (1 + BORDER))
+    why = `경계값 근처 — 1위가 2위의 ${pi.toFixed(2)}배라 자료·기준에 따라 판정이 갈림`;
+  else if (pi != null) prim = pi >= 2 ? 'y' : 'n';
   if (prim === 'y') y++; else if (prim === 'n') n++; else q++;
   out[iso] = { cap: d.cap, caps, big, ll: d.ll,
                pi: pi == null ? null : Math.round(pi * 100) / 100,
@@ -131,7 +136,7 @@ const head = `/* ═════════════════════
    big  수위도시 — UN 1위 도시(광역권으로 뒤집히는 나라는 광역권 1위)
    ll   수도 좌표
    pi   1위 도시 인구 ÷ 2위 도시 인구
-   prim 종주도시화 — y(2배 이상) · n(2배 미만) · ?(묻지 않음)
+   prim 종주도시화 — y(2.2배 초과) · n(1.8배 미만) · ?(묻지 않음 — 1.8~2.2배 포함)
    why  묻지 않는 까닭
    pnote pi 없이 판단한 근거(2위 도시가 UN 목록 밖인 나라)
    top  인구 상위 네 도시 [UN 이름, 인구] — 판단 근거로 보여 준다
