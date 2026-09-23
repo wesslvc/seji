@@ -2,7 +2,7 @@
    숨은 출구 — 맨 위에서 세 번 더 올라가면 본편으로
    ──────────────────────────────────────────────────────────────────────────
    본편 홈 맨 아래에서 세 번 더 내려오면 여기로 가라앉는다(js/dive.js). 그
-   반대 길이다. 어느 화면이든 맨 위에 닿은 뒤로도 계속 올리면 그 '헛도는'
+   반대 길이다. 홈 화면 맨 위에 닿은 뒤로도 계속 올리면 그 '헛도는'
    양을 모아 두고, 세 번째에 물이 위에서부터 화면을 덮은 뒤 본편으로 떠오른다.
    본편은 ?surface=1 을 보고 덮인 채로 시작해 물이 아래로 빠진다
    (js/surface-in.js).
@@ -28,7 +28,10 @@
     }
     return false;
   }
-  const atTop=()=>(window.scrollY||document.documentElement.scrollTop)<=0;
+  /* 홈에서만 — 본편도 홈 맨 아래에서만 가라앉는다. 퀴즈나 도감을 보다가 위로
+     몇 번 올렸다고 어비스 밖으로 튕겨 나가면 곤란하다 */
+  const onHome=()=>/^#?\/?$/.test(location.hash);
+  const atTop=()=>onHome()&&(window.scrollY||document.documentElement.scrollTop)<=0;
 
   function relax(){
     clearTimeout(decayTimer);
