@@ -553,14 +553,3 @@ table.cmp td .dash{color:var(--tx3)}
 .cx-opt.multi button.no .cx-box{background:var(--wr);border-color:var(--wr)}
 .cx-opt button.miss{border-style:dashed!important;border-color:var(--ac)!important;color:var(--ac)!important}
 .cx-opt.multi button.miss .cx-box{border-color:var(--ac);border-style:dashed}
-/* 방금 푼 문항 — 채점하면 바로 다음으로 넘어가므로 결과는 새 문항 위에 남긴다 */
-.cx-last{margin:0 0 1.2rem;padding:.8rem 1rem;border-radius:var(--r-sm);border:1px solid var(--bd);
-  border-left:3px solid var(--ac);font-size:var(--fs-sm);line-height:1.6}
-.cx-last.no{border-left-color:var(--wr)}
-.cx-last-h{display:flex;gap:.6rem;align-items:baseline}
-.cx-last-h b{flex:none;color:var(--ac)}
-.cx-last.no .cx-last-h b{color:var(--wr)}
-.cx-last-h span{color:var(--tx2)}
-.cx-last p{margin:.3rem 0 0}
-.cx-last p.m{color:var(--ac)}
-.cx-last p.x{color:var(--wr)}

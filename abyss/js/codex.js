@@ -278,7 +278,7 @@ function abCodexQuizByIds(ids){
 }
 function abCodexQuizRun(qs){
   abShuffle(qs);
-  ABCX.quiz={qs:qs,i:0,cor:0,wrong:[],last:null};
+  ABCX.quiz={qs:qs,i:0,cor:0,wrong:[]};
   const pane=document.getElementById('cx-pane');
   if(!document.getElementById('cx-run')){
     pane.innerHTML='<div id="cx-run"></div>';
@@ -287,30 +287,12 @@ function abCodexQuizRun(qs){
 }
 /* 모두 고르기 — 몇 개가 맞는지 모르는 채로 골라 '채점'. 하나라도 더하거나
    빠뜨리면 틀린다. 아는 사람은 몇 번 누르고 끝나고, 어렴풋이 알면 지우기로
-   맞힐 수 없다.
-
-   버튼은 '채점' 하나뿐이다. 누르면 채점하고 곧바로 다음 문항으로 넘어가며,
-   방금 푼 문항의 결과(빠뜨린 것·잘못 고른 것·풀이)는 새 문항 위에 남긴다.
-   숫자 키로 보기를 고르고 Enter 로 채점한다. */
-function abCodexLast(r){
-  if(!r)return '';
-  const t=a=>a.map(o=>'「'+abCx(o.t)+'」').join(' ');
-  let h='<div class="cx-last '+(r.ok?'ok':'no')+'"><div class="cx-last-h"><b>'+(r.ok?'맞음':'틀림')+'</b>'
-    +'<span>'+abCx(r.cur.ask)+'</span></div>';
-  if(!r.ok){
-    h+='<p>정답 '+t(r.cur.opts.filter(o=>o.ok))+'</p>';
-    if(r.miss.length)h+='<p class="m">빠뜨림 '+t(r.miss)+'</p>';
-    if(r.extra.length)h+='<p class="x">잘못 고름 '+t(r.extra)+'</p>';
-  }
-  if(r.cur.why)h+='<p class="cx-why">'+abCx(r.cur.why)+'</p>';
-  return h+'</div>';
-}
+   맞힐 수 없다. 숫자 키로 보기를, Enter 로 채점·다음을 누를 수 있다. */
 function abCodexQuizStep(){
   const q=ABCX.quiz, cur=q.qs[q.i];
   const box=document.getElementById('cx-run');
   if(!cur)return abCodexQuizEnd();
   box.innerHTML='<div class="cx-run">'
-    +abCodexLast(q.last)
     +'<div class="cx-run-h"><span>'+(q.i+1)+' / '+q.qs.length+'</span>'
       +'<span class="from">'+abEsc(cur.from)+'</span>'
       +'<span class="sc">맞힘 '+q.cor+'</span></div>'
@@ -318,11 +300,14 @@ function abCodexQuizStep(){
     +'<p class="cx-hint">맞는 것을 전부 고르세요 — 몇 개인지는 알려 주지 않습니다</p>'
     +'<div class="cx-opt big multi">'+cur.opts.map((o,i)=>
       '<button data-i="'+i+'" aria-pressed="false"><i class="cx-box"></i><span>'+abCx(o.t)+'</span></button>').join('')+'</div>'
+    +'<div class="cx-a" hidden></div>'
     +'<div class="btnrow"><button class="btn" id="cx-check" disabled>채점</button>'
+      +'<button class="btn" id="cx-next" hidden>다음</button>'
       +'<button class="btn ghost" id="cx-stop">그만두기</button></div></div>';
-  if(!q.last)box.scrollIntoView({behavior:'smooth',block:'nearest'});
+  box.scrollIntoView({behavior:'smooth',block:'nearest'});
   if(document.activeElement&&!box.contains(document.activeElement))document.activeElement.blur();
-  const opt=box.querySelector('.cx-opt'), chk=document.getElementById('cx-check');
+  const opt=box.querySelector('.cx-opt'), chk=document.getElementById('cx-check'),
+        nx=document.getElementById('cx-next');
   let done=false;
   const toggle=b=>{
     if(done||!b)return;
@@ -333,17 +318,25 @@ function abCodexQuizStep(){
   const check=()=>{
     if(done||chk.disabled)return;
     done=true;
-    const picked=new Set([...opt.querySelectorAll('.sel')].map(x=>+x.dataset.i));
-    const miss=cur.opts.filter((o,i)=>o.ok&&!picked.has(i)),
-          extra=cur.opts.filter((o,i)=>!o.ok&&picked.has(i)),
-          ok=!miss.length&&!extra.length;
+    let ok=true;
+    opt.querySelectorAll('button').forEach(x=>{
+      const o=cur.opts[+x.dataset.i], picked=x.classList.contains('sel');
+      x.disabled=true;
+      if(o.ok&&picked)x.classList.add('ok');
+      else if(o.ok){x.classList.add('miss');ok=false;}
+      else if(picked){x.classList.add('no');ok=false;}
+    });
     if(ok){q.cor++;abSetDel('wrong',cur.key);}
     else{q.wrong.push(cur);abSetAdd('wrong',cur.key,{k:'codex',n:cur.ask});}
-    q.last={cur,ok,miss,extra};
-    q.i++;abCodexQuizStep();
+    const note=box.querySelector('.cx-a');
+    note.hidden=false;note.className='cx-a '+(ok?'ok':'no');
+    note.innerHTML=(ok?'맞습니다.':'틀렸습니다 — 빠뜨린 정답은 점선, 잘못 고른 것은 붉게 표시했습니다.')
+      +(cur.why?'<p class="cx-why">'+abCx(cur.why)+'</p>':'');
+    chk.hidden=true;nx.hidden=false;nx.focus({preventScroll:true});
   };
   opt.addEventListener('click',e=>toggle(e.target.closest('button')));
   chk.addEventListener('click',check);
+  nx.addEventListener('click',()=>{q.i++;abCodexQuizStep();});
   document.getElementById('cx-stop').addEventListener('click',abCodexQuizEnd);
   /* 키보드 — 이 문항이 화면에 있는 동안만 */
   if(ABCX.key)document.removeEventListener('keydown',ABCX.key);
@@ -353,14 +346,14 @@ function abCodexQuizStep(){
     if(/^[1-9]$/.test(e.key)){toggle(opt.querySelectorAll('button')[+e.key-1]);e.preventDefault();}
     /* Enter 는 늘 여기서 받는다 — 주제 카드에 초점이 남아 있으면 브라우저가 그
        카드를 다시 눌러 퀴즈가 처음부터 시작된다 */
-    else if(e.key==='Enter'){e.preventDefault();check();}
+    else if(e.key==='Enter'){e.preventDefault();done?nx.click():check();}
   };
   document.addEventListener('keydown',ABCX.key);
 }
 function abCodexQuizEnd(){
   const q=ABCX.quiz;
   const done=q.i;
-  let h=abCodexLast(q.last)+'<div class="result"><h3>개념 퀴즈 끝</h3>'
+  let h='<div class="result"><h3>개념 퀴즈 끝</h3>'
     +'<div class="big">'+q.cor+' <span class="of">/ '+done+'문항</span></div>';
   if(q.wrong.length){
     h+='<div class="rev"><b>틀린 문제</b><ol>'+q.wrong.map(w=>
@@ -372,7 +365,7 @@ function abCodexQuizEnd(){
   document.getElementById('cx-run').innerHTML=h;
   const rw=document.getElementById('cx-again-wrong');
   if(rw)rw.addEventListener('click',()=>{
-    ABCX.quiz={qs:abShuffle(q.wrong.slice()),i:0,cor:0,wrong:[],last:null};
+    ABCX.quiz={qs:abShuffle(q.wrong.slice()),i:0,cor:0,wrong:[]};
     abCodexQuizStep();
   });
   document.getElementById('cx-back').addEventListener('click',abCodexQuizHome);
