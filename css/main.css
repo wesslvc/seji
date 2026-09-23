@@ -1258,6 +1258,11 @@ body.diving #landing-overlay .ld-stage{
   from{transform:none;opacity:1;filter:blur(0)}
   to{transform:translateY(26px) scale(.985);opacity:0;filter:blur(3px)}
 }
+/* 떠올라 들어온 자리 — Abyss 에서 물에 덮인 채로 넘어오면 물이 아래로 빠진다
+   (js/surface-in.js, ?surface=1 일 때만) */
+#surface-in{position:fixed;inset:0;z-index:9100;pointer-events:none}
+#surface-in .dive-water{height:130%;transition:height 1.05s cubic-bezier(.4,0,.25,1)}
+#surface-in.out .dive-water{height:0}
 @media (prefers-reduced-motion: reduce){
   .dive-wave .w1,.dive-wave .w2{animation:none}
   body.diving #landing-overlay .ld-stage{animation:none}

@@ -242,3 +242,25 @@ body{transition:opacity .75s var(--ease),transform .9s cubic-bezier(.4,0,.25,1)}
   #dive-in .dive-wave .w1,#dive-in .dive-wave .w2{animation:none}
   body{transition:none}
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   떠오르는 자리 — 맨 위에서 세 번 더 올리면(js/surface.js)
+   가라앉을 때와 같은 물이 이번엔 위에서부터 내려와 화면을 덮는다. 수면(물결)은
+   물의 아래 끝에 거꾸로 달린다. 본편은 덮인 채로 받아 물을 아래로 뺀다.
+   ══════════════════════════════════════════════════════════════════════════ */
+#surface{position:fixed;inset:0;z-index:9100;pointer-events:none}
+#surface .dive-water{position:absolute;left:0;right:0;top:0;height:0;
+  background:linear-gradient(0deg,
+    color-mix(in srgb,#0f1d2b 78%,transparent) 0%,
+    color-mix(in srgb,#0a1622 92%,transparent) 42%, #060f18 100%);
+  transition:height 1.05s cubic-bezier(.5,0,.35,1)}
+#surface.go .dive-water{height:130%}
+#surface .dive-wave{position:absolute;left:-20%;top:100%;width:140%;height:3.2rem;display:block;transform:scaleY(-1)}
+#surface .dive-wave path{fill:color-mix(in srgb,#0f1d2b 78%,transparent)}
+#surface .dive-wave .w2{fill:color-mix(in srgb,#0f1d2b 40%,transparent)}
+#surface .dive-wave .w1{animation:diveDrift 9s linear infinite}
+#surface .dive-wave .w2{animation:diveDrift 14s linear infinite reverse}
+/* 덮이는 동안 화면은 조금 떠오르며 흐려진다 — 가라앉을 때의 반대 */
+html.surfacing .wrap{transition:transform 1.05s cubic-bezier(.5,0,.35,1),opacity 1.05s,filter 1.05s;
+  transform:translateY(-26px) scale(.985);opacity:0;filter:blur(3px)}
+html.surfacing #theme-toggle{opacity:0;transition:opacity .4s}
