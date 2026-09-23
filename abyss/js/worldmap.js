@@ -35,6 +35,10 @@ function abMapMount(box,onPick){
       +'<div class="map-svg">'+txt+'</div>';
     const svg=box.querySelector('svg');
     svg.setAttribute('preserveAspectRatio','xMidYMid meet');
+    /* 본편 SVG 파일에는 본편 화면에 맞춘 고정 크기(style="width:1280px; …")가 박혀
+       있다. 그대로 두면 칸보다 넓게 그려져 오른쪽(아시아·오세아니아)이 잘리고,
+       처음 배율에서는 옮길 수도 없다 — 떼어 내고 칸 너비에 맞춘다. */
+    svg.removeAttribute('style');svg.removeAttribute('width');svg.removeAttribute('height');
     svg.querySelectorAll('[class]').forEach(el=>{
       const o=abIsoOf(el);
       if(o){el.dataset.iso=o;el.classList.remove('unxx');}

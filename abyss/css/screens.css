@@ -108,7 +108,7 @@ h4.sec em{font-style:normal;font-weight:400;color:var(--tx3);font-size:var(--fs-
 
 .map-wrap{position:relative;border:1px solid var(--bd);border-radius:var(--r-md);overflow:hidden;
   background:var(--bg);touch-action:none}
-.map-wrap svg{display:block;width:100%;height:auto}
+.map-wrap svg{display:block;width:100%;height:auto;max-width:100%}
 /* 지도 색은 본편 #world-svg 와 같은 토큰을 쓴다. 한때 여기만 #16222c/#070c11 을
    박아 두어, 본편과 나란히 놓으면 바다와 땅이 다른 색이었고 밝은 화면에서는
    흰 바탕 위에 시커먼 덩어리가 떴다. */
