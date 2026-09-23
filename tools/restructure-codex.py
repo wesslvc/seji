@@ -19,8 +19,7 @@
   · 기후 다섯 절에서 토양·식생·가옥을 뽑아 비교표를 만든다. 원문에 흩어져 있어
     나란히 볼 수 없던 것이라, 새로 쓰는 것이 아니라 모으는 것이다.
 
-퀴즈도 새 뼈대에서 다시 뽑는다. 보기는 같은 묶음의 이웃에서만 가져오므로
-'수목농업 → 여름/겨울/동아시아' 처럼 층이 다른 것끼리 섞이지 않는다.
+퀴즈 문항은 tools/codex_quiz.py 에 손으로 쓴 것을 절마다 붙인다.
 """
 import re, html, xml.etree.ElementTree as ET
 
@@ -272,73 +271,18 @@ for n, label in CMP_ROWS:
 
 
 # ── 퀴즈 ─────────────────────────────────────────────────────────────────
-def josa(w, a, b):
-    if not w:
-        return a
-    c = ord(w[-1])
-    if 0xAC00 <= c <= 0xD7A3:
-        return a if (c - 0xAC00) % 28 else b
-    return a
-
-
-def walk(box, path, out):
-    out.append((box, path))
-    for c in box.children:
-        if c[0] == 'group':
-            walk(c[1], path + [c[1].title], out)
-
-
+# 퀴즈는 tools/codex_quiz.py 에 손으로 쓴 문항을 쓴다. 전에는 'X : Y' 줄을
+# 뒤집어 뽑았는데, 메모 조각('가서', '상표')이 그대로 물음이 되어 쓸모가 없었다.
+import os, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from codex_quiz import QUIZ
 quiz = {}
-# (가) 여러 절에 똑같이 나오는 열쇠 — 「열대기후」의 토양은?
-from collections import defaultdict
-by_key = defaultdict(list)
-for n, box in built.items():
-    seen = set()
-    for k, v, _g in box.defs():
-        if k in seen:
-            continue
-        seen.add(k)
-        by_key[k].append((n, v))
-for k, lst in by_key.items():
-    if len(lst) < 3 or len(k) > 6:
-        continue
-    vals = [v for _n, v in lst]
-    for n, v in lst:
-        others = [x for x in vals if x != v][:3]
-        if len(others) < 2:
-            continue
-        quiz.setdefault(n, []).append({
-            'ask': '「%s」%s %s%s?' % (built[n].title, josa(built[n].title, '의', '의'),
-                                      k, josa(k, '은', '는')),
-            'a': v, 'opts': [v] + others})
-
-# (나) 같은 묶음 안의 이웃끼리 — 설명을 주고 이름을 고르게
-for n, box in built.items():
-    boxes = []
-    walk(box, [], boxes)
-    for b, path in boxes:
-        ds = [c for c in b.children if c[0] == 'd']
-        # 여러 절에 걸친 열쇠(토양·식생 …)는 (가)에서 이미 물었다
-        ds = [c for c in ds if len(by_key.get(c[1], [])) < 3]
-        if len(ds) < 3:
-            continue
-        where = ' · '.join([built[n].title] + path)
-        for c in ds:
-            opts = [c[1]] + [o[1] for o in ds if o[1] != c[1]][:3]
-            if len(opts) < 3:
-                continue
-            quiz.setdefault(n, []).append({
-                'ask': '「%s」 — %s' % (where, c[2]), 'a': c[1], 'opts': opts})
-
-# 같은 문제를 두 번 묻지 않는다
-for n in quiz:
-    seen, keep = set(), []
-    for q in quiz[n]:
-        if q['ask'] in seen:
-            continue
-        seen.add(q['ask'])
-        keep.append(q)
-    quiz[n] = keep
+for n, ask, a, wrong, why in QUIZ:
+    assert n in built, '없는 절 %d: %s' % (n, ask)
+    assert a not in wrong and len(set(wrong)) == len(wrong), ask
+    quiz.setdefault(n, []).append({'ask': ask, 'a': a, 'opts': [a] + wrong, 'why': why})
+asks = [q[1] for q in QUIZ]
+assert len(asks) == len(set(asks)), '같은 물음이 두 번 있다'
 
 
 # ── 쓰기 ─────────────────────────────────────────────────────────────────
@@ -388,6 +332,8 @@ for pid, ptitle, pdesc, nums in PARTS:
             buf.append('        <ask>%s</ask>' % esc(q['ask']))
             for o in q['opts']:
                 buf.append('        <opt>%s</opt>' % esc(o))
+            if q.get('why'):
+                buf.append('        <why>%s</why>' % esc(q['why']))
             buf.append('      </q>')
         buf.append('    </section>')
     buf.append('  </part>')

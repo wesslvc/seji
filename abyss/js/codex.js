@@ -13,13 +13,14 @@ let CODEX_PARTS=[], CODEX_SECTIONS=[];
 const ABCX={tab:'read', quiz:null};
 
 function abCodexInit(){
-  fetch('data/concepts.xml').then(r=>r.text()).then(txt=>{
+  fetch('data/concepts.xml',{cache:'no-cache'}).then(r=>r.text()).then(txt=>{
     const doc=new DOMParser().parseFromString(txt,'application/xml');
     if(!doc.querySelector('codex'))throw new Error('정리본을 읽지 못했습니다');
     CODEX_PARTS=[...doc.querySelectorAll('part')];
     CODEX_SECTIONS=[...doc.querySelectorAll('section')];
     abCodexHome();
     abCodexShell();
+    document.dispatchEvent(new Event('ab-codex-ready'));
   }).catch(e=>{
     document.getElementById('codex-body').innerHTML=
       '<p class="none">정리본을 불러오지 못했습니다 — '+abEsc(e.message)+'</p>';
@@ -38,6 +39,14 @@ function abCodexFigs(){
   return out;
 }
 function abCodexQs(sec){return [...sec.querySelectorAll('q')];}
+/* 지금 있는 문항의 오답 이름 — 문항을 고쳐 쓰면 옛 오답은 짝을 잃는다.
+   정리본을 아직 못 읽었으면 null */
+function abCodexKeys(){
+  if(!CODEX_SECTIONS.length)return null;
+  const ks=new Set();
+  CODEX_SECTIONS.forEach(sec=>abCodexQs(sec).forEach(q=>ks.add(abCodexQ(sec,q).key)));
+  return ks;
+}
 
 /* 오답 모아풀기에서 넘어왔으면 퀴즈 칸으로 가서 그 문항만 푼다 */
 AB_ON_ENTER['/codex']=function(){
@@ -212,8 +221,8 @@ function abCodexSpy(){
 function abCodexQuizHome(){
   const withQ=CODEX_SECTIONS.filter(s=>abCodexQs(s).length);
   const total=withQ.reduce((a,s)=>a+abCodexQs(s).length,0);
-  let h='<p class="rank-note">문제는 정리본 본문에서 뽑은 것이라, 정리본이 늘어나면 문제도 '
-    +'같이 늘어납니다. 보기는 같은 묶음의 이웃에서만 가져옵니다.</p>'
+  let h='<p class="rank-note">정리본의 내용을 사례·까닭·계산으로 바꿔 물은 문제입니다. '
+    +'답을 고르면 왜 그게 답인지 한 줄 풀이가 나옵니다.</p>'
     +'<div class="cx-pick"><button class="cx-card wide" data-pick="all"><b>전부 풀기</b>'
       +'<span>'+total+'문항</span></button></div>';
   CODEX_PARTS.forEach(pt=>{
@@ -246,6 +255,7 @@ function abCodexQ(sec,q){
     a:q.getAttribute('a'),
     ask:(q.querySelector('ask')||{}).textContent||'',
     opts:abShuffle([...q.querySelectorAll('opt')].map(o=>o.textContent)),
+    why:(q.querySelector('why')||{}).textContent||'',
     from:sec.getAttribute('title'),
     /* 오답 목록에 쓸 이름 — 절 번호와 물음이면 정리본이 늘어나도 같은 문항을
        다시 찾을 수 있다 */
@@ -304,7 +314,8 @@ function abCodexQuizStep(){
     else{q.wrong.push(cur);abSetAdd('wrong',cur.key,{k:'codex',n:cur.ask});}
     const note=box.querySelector('.cx-a');
     note.hidden=false;note.className='cx-a '+(ok?'ok':'no');
-    note.innerHTML=ok?'맞습니다.':'정답은 「'+abCx(cur.a)+'」입니다.';
+    note.innerHTML=(ok?'맞습니다.':'정답은 「'+abCx(cur.a)+'」입니다.')
+      +(cur.why?'<p class="cx-why">'+abCx(cur.why)+'</p>':'');
     document.getElementById('cx-next').hidden=false;
   });
   document.getElementById('cx-next').addEventListener('click',()=>{q.i++;abCodexQuizStep();});

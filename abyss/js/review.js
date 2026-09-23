@@ -38,10 +38,13 @@ function abReviewBadge(){
   paint();
   document.addEventListener('ab-set-change',paint);
   document.addEventListener('ab-auth',paint);
+  document.addEventListener('ab-codex-ready',paint);
 }
 
 function abReviewAlive(w){
   if(w.k==='stat')return STAT_SETS.some(s=>'stat:'+s.id===w.id);
+  /* 지엽개념은 정리본을 다 읽은 뒤에야 알 수 있다 — 그 전에는 살려 둔다 */
+  if(w.k==='codex'&&typeof abCodexKeys==='function'){const ks=abCodexKeys();if(ks)return ks.has(w.id);}
   return true;
 }
 

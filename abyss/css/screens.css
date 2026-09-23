@@ -397,6 +397,7 @@ table.cmp td .dash{color:var(--tx3)}
 .cx-a{margin-top:.9rem;font-size:var(--fs-md)}
 .cx-a.ok{color:var(--ac)}
 .cx-a.no{color:var(--wr)}
+.cx-why{margin:.45rem 0 0;color:var(--tx2);font-size:var(--fs-sm);line-height:1.6;max-width:40rem}
 
 /* ══════════════════════════════════════════════════════════════════════════
    로그인 · 오답 · 즐겨찾기
