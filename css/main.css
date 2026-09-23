@@ -878,6 +878,8 @@ body.cq-mode #cq-pins-ov{display:block}
 .wd-info-it{background:var(--sf);border:1px solid var(--bd);border-left:3px solid var(--wd-c1,#e2c07a);border-radius:10px;padding:.45rem .6rem;display:flex;flex-direction:column;gap:.12rem;transition:border-left-color .3s}
 .wd-info-it small{font-size:.62rem;color:var(--tx2)}
 .wd-info-it b{font-size:.76rem;color:var(--tx);font-weight:700;line-height:1.35;word-break:keep-all}
+.wd-cap-role{font-style:normal;font-size:.58rem;font-weight:600;color:var(--ac);border:1px solid currentColor;border-radius:999px;padding:0 .35rem;margin-left:.15rem;vertical-align:1px}
+.wd-info-it .wd-cap-alt{display:block;font-size:.62rem;font-weight:400;color:var(--tx2);margin-top:.1rem}
 .wd-sec{margin-top:.85rem}
 .wd-sec-t{font-size:.7rem;font-weight:800;color:var(--tx2);letter-spacing:.04em;margin-bottom:.4rem;position:relative;padding-left:.85rem}
 .wd-nbs{margin:0}

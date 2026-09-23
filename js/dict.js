@@ -540,6 +540,16 @@ function wdMiniMapSVG(iso){
 
 /* ── 국가 상세 ── */
 let _wdCurIso=null;
+/* 수도가 여럿이면 '라파스(행정)·수크레(헌법)'처럼 행정수도가 맨 앞이다.
+   맨 앞(행정수도)만 크게 해발과 함께, 나머지는 한 줄 아래 작게 붙인다. */
+function wdCapHtml(cap,elev){
+  const parts=String(cap).split('·').map(p=>{const m=p.trim().match(/^(.*?)\((.*?)\)$/);
+    return m?{n:m[1].trim(),r:m[2].trim()}:{n:p.trim(),r:''};});
+  const [a,...rest]=parts;
+  let h=a.n+(elev?' ('+elev+')':'')+(a.r?' <em class="wd-cap-role">'+a.r+'</em>':'');
+  if(rest.length)h+='<small class="wd-cap-alt">'+rest.map(p=>p.n+(p.r?' ('+p.r+')':'')).join(' · ')+'</small>';
+  return h;
+}
 function wdShow(iso){
   const c=COUNTRIES[iso];if(!c)return;
   const d=DICT_DATA[iso]||{};
@@ -552,7 +562,7 @@ function wdShow(iso){
   /* 기본 정보 그리드 — CSV/게임 데이터 기반, 댓글만 가능(직접 수정 불가) */
   const more=(typeof DICT_MORE!=='undefined'&&DICT_MORE[iso])||null; /* [수도 해발, 공용어, 통화] */
   const info=[];
-  if(d.cap)info.push(['수도 (해발)',d.cap+(more&&more[0]?' ('+more[0]+')':'')]);
+  if(d.cap)info.push(['수도 (해발)',wdCapHtml(d.cap,more&&more[0])]);
   if(d.big)info.push(['최대도시 (광역권 · 해발)',d.big]);
   if(d.pop)info.push(['인구',d.pop]);
   if(d.gdp&&d.gdp!=='-')info.push(['GDP (명목)',d.gdp]);

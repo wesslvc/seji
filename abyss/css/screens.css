@@ -26,6 +26,8 @@
   text-align:right;direction:rtl}
 .ct-cap b{font-weight:500;font-size:.88rem;direction:ltr}
 .ct-cap span{font-size:.66rem;color:var(--tx3);direction:ltr}
+.ct-cap .cap-role{font-style:normal;font-size:.62rem;font-weight:600;color:var(--ac);border:1px solid currentColor;border-radius:999px;padding:0 .35rem;margin-left:.2rem;vertical-align:1px}
+.ct-cap .cap-alt{display:block;font-size:.7rem;font-weight:400;color:var(--tx3);margin-top:.1rem}
 @media (max-width:620px){.ct-cap{text-align:left;direction:ltr;grid-template-columns:auto auto;justify-content:start}}
 .ct-fact{margin:1.3rem 0 0;color:var(--tx);max-width:46rem;font-size:var(--fs-lg);line-height:1.85;
   padding-left:1rem;border-left:2px solid var(--bd2)}

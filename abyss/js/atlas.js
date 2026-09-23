@@ -162,6 +162,17 @@ function abClimateChart(st){
   h+='</svg>';
   return h;
 }
+/* 수도가 여럿이면 행정수도가 맨 앞이다('라파스(행정)·수크레(헌법)').
+   행정수도만 크게, 나머지는 한 줄 아래 작게. */
+function abCapHtml(cap){
+  if(!cap)return '—';
+  const parts=String(cap).split('·').map(p=>{const m=p.trim().match(/^(.*?)\((.*?)\)$/);
+    return m?{n:m[1].trim(),r:m[2].trim()}:{n:p.trim(),r:''};});
+  const a=parts[0],rest=parts.slice(1);
+  let h=abEsc(a.n)+(a.r?' <em class="cap-role">'+abEsc(a.r)+'</em>':'');
+  if(rest.length)h+='<small class="cap-alt">'+rest.map(p=>abEsc(p.n)+(p.r?' ('+abEsc(p.r)+')':'')).join(' · ')+'</small>';
+  return h;
+}
 function abAtlasShow(iso){
   const d=DICT_DATA[iso]||{}, more=(typeof DICT_MORE!=='undefined'&&DICT_MORE[iso])||[];
   /* 위키에서 온 산문(나라 특징·도시 설명)은 싣지 않는다 — 여기는 원자료 자료실이다 */
@@ -175,7 +186,7 @@ function abAtlasShow(iso){
     +'<h3>'+abEsc(abName(iso))+(abIsTerr(iso)?' <em class="terr">속령</em>':'')
       +abStarHTML('country:'+iso,abName(iso))+'</h3>'
     +'<div class="ct-en">'+abEsc(c.e||'')+' · '+iso.toUpperCase()+'</div></div></div>'
-    +'<div class="ct-cap"><b>'+abEsc(d.cap||'—')+'</b><span>수도</span>'
+    +'<div class="ct-cap"><b>'+abCapHtml(d.cap)+'</b><span>수도</span>'
     +(d.big?'<b>'+abEsc(d.big)+'</b><span>최대도시 · 광역권</span>':'')
     +(more[1]?'<b>'+abEsc(more[1])+'</b><span>공용어</span>':'')
     +(more[2]?'<b>'+abEsc(more[2])+'</b><span>통화</span>':'')

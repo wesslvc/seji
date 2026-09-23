@@ -9,8 +9,8 @@
    수도와 수위도시 이름은 우리 사전(js/dict-data.js)에서 그대로 쓰고, 이 스크립트는
    그 이름이 광역권 인구로 따져도 맞는지 확인하고 종주도시화 여부를 계산한다.
 
-   ■ 수도 — 사전에 수도가 여럿 적혀 있으면 행정수도를 쓴다(사전 쪽에서 이미
-     하나로 정리해 둔다).
+   ■ 수도 — 사전에 수도가 여럿이면 행정수도가 맨 앞이다('라파스(행정)·수크레(헌법)').
+     광역권 대조는 행정수도로 하고, 채점은 적힌 수도 어느 것이든 인정한다.
 
    ■ 수위도시 — 행정구역이 아니라 광역권(도시권) 인구로 따진다. 행정구역으로
      세면 마닐라 광역권 안의 케손시티, 수바 광역권 안의 나시누처럼 광역권의
@@ -127,7 +127,9 @@ const review = [];
 let y = 0, n = 0, q = 0;
 Object.keys(CO).forEach(iso => {
   const d = DD[iso]; if (!d) return;
-  const cap = bare(d.cap), big = bare(d.big);
+  /* 수도가 여럿이면 행정수도가 맨 앞 — 광역권 대조는 행정수도로, 채점은 어느 것이든 인정 */
+  const caps = String(d.cap || '').split('·').map(bare).filter(Boolean);
+  const cap = caps[0], big = bare(d.big);
   if (!cap || !big) return;
   const list = by[iso] || [];
   const capCity = findCity(list, cap), bigCity = findCity(list, big);
@@ -160,7 +162,7 @@ Object.keys(CO).forEach(iso => {
   /* 사전의 수위도시가 광역권 1위 안에 있는가 */
   let ok;
   if (bigCity) ok = inFirst(bigCity);
-  else if (capCity && rank[0]) ok = (cap === big) === inFirst(capCity);
+  else if (capCity && rank[0]) ok = caps.includes(big) === inFirst(capCity);
   if (rank.length && ok === false) {
     review.push(`${iso} ${CO[iso].k}: 사전=${big} · 광역권 1위=${top[0][0]}(${Math.round(rank[0].pop / 1e4)}만)`
       + (wup.length ? ' [UN]' : ' [근사]'));
@@ -170,7 +172,7 @@ Object.keys(CO).forEach(iso => {
 
   if (pi != null) prim = pi >= 2 ? 'y' : 'n';
   if (prim === 'y') y++; else if (prim === 'n') n++; else q++;
-  out[iso] = { cap: d.cap, caps: [cap], big, ll: d.ll,
+  out[iso] = { cap: d.cap, caps, big, ll: d.ll,
                pi: pi == null ? null : Math.round(pi * 100) / 100,
                prim, top, why: why || undefined };
 });
@@ -181,8 +183,8 @@ const head = `/* ═════════════════════
    tools/build-cities.js 가 만든다. 다시 만들려면:
        node tools/build-cities.js <GeoNames cities1000.txt> [wup_agglomerations.json]
 
-   cap  수도 — 사전에 여럿이면 행정수도
-   caps 채점에 인정하는 수도 이름
+   cap  수도 — 여럿이면 행정수도가 맨 앞
+   caps 채점에 인정하는 수도 이름(행정수도가 [0])
    big  수위도시 — 광역권(도시권) 인구 1위
    ll   수도 좌표
    pi   1위 광역권 인구 ÷ 2위 광역권 인구

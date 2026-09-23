@@ -183,7 +183,7 @@ function abCityAnswerCard(iso,c){
   let h='<div class="ct-card">';
   h+=line('위치',abName(iso)+' · '+(CONT_NAME[abCont(iso)]||''),ABCT.got[0]);
   h+=line('수도',c.cap,ABCT.got[1]);
-  h+=line('수위도시',c.big+(c.caps&&c.caps.indexOf(c.big)>=0?' (수도와 같음)':''),ABCT.got[2]);
+  h+=line('수위도시',c.big+(c.caps&&c.caps[0]===c.big?' (수도와 같음)':''),ABCT.got[2]);
   if(c.prim==='?'){
     h+='<div class="ct-ans"><span class="k">종주도시화</span><span class="v">'
       +'묻지 않음 — '+abEsc(c.why||'자료가 미심쩍습니다')+'</span></div>';
