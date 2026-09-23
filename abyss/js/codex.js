@@ -165,6 +165,29 @@ function abCodexRead(){
     +'<nav id="codex-toc">'+toc+'</nav></div>';
   abCodexZoom();
   abCodexSpy();
+  abCodexAnchors();
+}
+/* 목차·대단원 바로가기 — href="#cx-12" 를 그대로 두면 주소의 해시가 바뀌어
+   라우터가 '#cx-12' 라는 없는 화면으로 보내 버린다. 눌림을 가로채 그 자리로
+   스크롤만 한다. */
+function abCodexAnchors(){
+  document.querySelectorAll('#cx-pane a[href^="#cx-"]').forEach(a=>{
+    if(a.dataset.go)return;               /* 그림 칸의 링크는 따로 처리한다 */
+    a.addEventListener('click',e=>{
+      e.preventDefault();
+      abCodexGoTo(a.getAttribute('href').slice(1));
+    });
+  });
+}
+/* 그 자리로 간다. 본문의 그림은 늦게 불러와져(lazy) 지나가는 동안 위쪽 높이가
+   늘어나므로, 부드럽게 굴리면 도착 전에 목표가 아래로 밀려 엉뚱한 데서 멈춘다.
+   바로 뛰고, 그림이 다 자리를 잡을 때까지 잠깐 다시 맞춘다. */
+function abCodexGoTo(id){
+  const t=document.getElementById(id);if(!t)return;
+  t.scrollIntoView({block:'start'});
+  let n=0;
+  const again=()=>{t.scrollIntoView({block:'start'});if(++n<6)setTimeout(again,250);};
+  setTimeout(again,120);
 }
 /* ══════ 그림으로 보기 ══════ */
 function abCodexGallery(){
@@ -184,8 +207,7 @@ function abCodexGallery(){
     a.addEventListener('click',e=>{
       e.preventDefault();
       document.querySelector('#cx-tabs button[data-t="read"]').click();
-      const t=document.getElementById('cx-'+a.dataset.go);
-      if(t)t.scrollIntoView({behavior:'smooth',block:'start'});
+      abCodexGoTo('cx-'+a.dataset.go);
     });
   });
 }
