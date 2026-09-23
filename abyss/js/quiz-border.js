@@ -85,8 +85,9 @@ function abBorderStart(list,resume,review){
   const play=document.getElementById('bq-play');play.hidden=false;
   play.innerHTML='<div class="play-bar"><span class="q" id="bq-q"></span>'
     +'<span class="sc" id="bq-sc">완벽 0</span></div>'
-    +'<div class="answer-in"><div class="field">'
-      +'<input id="bq-in" type="text" placeholder="맞닿은 나라를 하나씩 입력하고 Enter" autocomplete="off"></div>'
+    +'<div class="answer-in"><div class="field st-field">'
+      +'<input id="bq-in" type="text" placeholder="맞닿은 나라를 하나씩 — 두세 글자 치고 Enter" autocomplete="off">'
+      +'<div class="st-sug" id="bq-sug" hidden></div></div>'
       +'<button class="btn" id="bq-grade">다 적었습니다</button></div>'
     +'<div class="entered" id="bq-list"></div>'
     +'<p class="bq-taunt" id="bq-taunt" hidden></p>'
@@ -98,7 +99,9 @@ function abBorderStart(list,resume,review){
     +'<div id="bq-end"></div>';
   ABBQ.box=document.getElementById('bq-map');
   const inp=document.getElementById('bq-in');
-  inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();abBorderType(inp.value);inp.value='';}});
+  ABBQ.ac=abNameInput(inp,document.getElementById('bq-sug'),iso=>{
+    if(abBorderType(iso))ABBQ.ac.clear();
+  });
   /* 채점 버튼은 '채점 → 다음 문제'로 역할이 번갈아 바뀐다. addEventListener 로
      걸어 두면 역할을 바꿔도 옛 핸들러가 남아 채점이 두 번 돈다 — onclick 하나만 쓴다. */
   document.getElementById('bq-grade').onclick=abBorderGrade;
@@ -116,6 +119,7 @@ function abBorderShow(){
   document.getElementById('bq-q').innerHTML=abFlag(iso,26)+abEsc(abName(iso))
     +'<em>와 맞닿은 나라를 모두 · '+(ABBQ.idx+1)+'/'+ABBQ.plan.length+'</em>';
   document.getElementById('bq-list').innerHTML='';
+  if(ABBQ.ac)ABBQ.ac.clear();
   const tn=document.getElementById('bq-taunt');if(tn){tn.textContent='';tn.hidden=true;}
   document.getElementById('bq-sc').textContent='완벽 '+abBorderPerfect();
   document.getElementById('bq-in').focus();
@@ -133,15 +137,72 @@ function abFindIso(txt){
   }
   return null;
 }
-function abBorderType(txt){
-  if(ABBQ.graded)return;            /* 채점이 끝난 문항에는 더 못 적는다 */
+/* 나라 이름 입력 + 자동완성 — 통계 테스트와 접경국 하드코어가 같이 쓴다.
+   두세 글자만 쳐도 후보가 뜨고, Enter 는 첫 후보(또는 화살표로 고른 후보)를
+   넣는다. 이름을 끝까지 정확히 치지 않아도 되게 하려는 것.
+     submit(iso|null) — 못 찾으면 null
+   돌려주는 clear() 로 입력칸과 후보를 비운다. */
+function abNameCands(q){
+  const t=String(q||'').trim().toLowerCase().replace(/\s+/g,'');
+  if(!t)return [];
+  const hits=[];
+  const tabs=[typeof COUNTRIES!=='undefined'?COUNTRIES:{},
+              typeof TERR_COUNTRIES!=='undefined'?TERR_COUNTRIES:{}];
+  tabs.forEach((tab,ti)=>{for(const iso in tab){
+    if(ti&&tabs[0][iso])continue;
+    const c=tab[iso];
+    const names=[c.k,c.e].concat(c.x||[]).map(v=>String(v||'').toLowerCase().replace(/\s+/g,''));
+    /* 우리말 이름이 그 글자로 시작하는 것 → 다른 이름(영문·별칭)이 시작하는 것 →
+       중간에 든 것. 속령은 나라보다 뒤로 */
+    const head=names[0].startsWith(t), pre=head||names.some(v=>v.startsWith(t)),
+          mid=!pre&&names.some(v=>v.includes(t));
+    if(pre||mid)hits.push({iso:iso,score:(head?0:pre?1:3)+ti*2,k:String(c.k||'')});
+  }});
+  return hits.sort((a,b)=>a.score-b.score||a.k.length-b.k.length||a.k.localeCompare(b.k,'ko'))
+    .slice(0,6).map(h=>h.iso);
+}
+function abNameInput(inp,box,submit){
+  const st={list:[],at:0};
+  const paint=()=>{
+    if(!st.list.length){box.hidden=true;box.innerHTML='';return;}
+    box.innerHTML=st.list.map((iso,i)=>'<button type="button" class="st-sug-it'+(i===st.at?' on':'')
+      +'" data-iso="'+iso+'">'+abFlag(iso,18)+abEsc(abName(iso))+'</button>').join('');
+    box.hidden=false;
+  };
+  const sug=q=>{st.list=abNameCands(q);st.at=0;paint();};
+  inp.addEventListener('input',()=>sug(inp.value));
+  inp.addEventListener('keydown',e=>{
+    if(e.isComposing)return;               /* 한글 조합 중 Enter 는 글자 확정용이다 */
+    const n=st.list.length;
+    if(e.key==='ArrowDown'&&n){e.preventDefault();st.at=(st.at+1)%n;paint();}
+    else if(e.key==='ArrowUp'&&n){e.preventDefault();st.at=(st.at-1+n)%n;paint();}
+    else if(e.key==='Escape'){sug('');}
+    else if(e.key==='Enter'){
+      e.preventDefault();
+      if(!inp.value.trim())return;
+      const exact=abFindIso(inp.value);
+      const moved=st.at>0?st.list[st.at]:null;
+      submit(moved||exact||st.list[0]||null);
+    }
+  });
+  /* mousedown 에서 막아야 입력칸 포커스가 안 빠진다 */
+  box.addEventListener('mousedown',e=>{
+    const b=e.target.closest('[data-iso]');if(!b)return;
+    e.preventDefault();submit(b.dataset.iso);
+  });
+  return {clear(){inp.value='';sug('');}};
+}
+/* 적힌 나라를 받는다. 받았으면 true — 그때만 입력칸을 비운다(틀린 글자는 고쳐 쓰게 남긴다) */
+function abBorderType(iso){
+  if(ABBQ.graded)return false;      /* 채점이 끝난 문항에는 더 못 적는다 */
   const inp=document.getElementById('bq-in');
-  const iso=abFindIso(txt);
-  if(!iso){abBorderShake(inp,'그런 나라가 없습니다');return;}
-  if(ABBQ.entered.indexOf(iso)>=0){abBorderShake(inp,'이미 적었습니다');return;}
+  if(!iso){abBorderShake(inp,'그런 나라가 없습니다');return false;}
+  if(ABBQ.entered.indexOf(iso)>=0){abBorderShake(inp,'이미 적었습니다');ABBQ.ac.clear();return false;}
+  const tn=document.getElementById('bq-taunt');if(tn){tn.textContent='';tn.hidden=true;}
   ABBQ.entered.push(iso);
   document.getElementById('bq-list').innerHTML=ABBQ.entered.map(i=>
     '<span class="tag">'+abFlag(i,18)+abEsc(abName(i))+'</span>').join('');
+  return true;
 }
 /* 틀린 입력은 흔들어서 알려 준다 — 맞았는지는 채점할 때까지 말하지 않는다 */
 function abBorderShake(inp,msg){

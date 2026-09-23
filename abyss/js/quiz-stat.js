@@ -127,68 +127,23 @@ function abStatShow(){
   document.getElementById('st-side').innerHTML='';
   document.getElementById('st-reveal').hidden=false;
   const inp=document.getElementById('st-in');
-  inp.disabled=false;inp.value='';abStatSug('');inp.focus();
+  inp.disabled=false;ABST.ac.clear();inp.focus();
   abStatSlots();
 }
 /* ── 이름 입력 ──
    적는 대로 아래에 후보 나라를 띄운다. Enter 는 정확히 맞는 이름이 있으면 그
    나라, 없으면 첫 후보를 낸다. 위아래 화살표로 후보를 고를 수 있다.
    후보는 198개국 전체에서 이름으로만 거르므로 답을 흘리지 않는다. */
-const AB_ST_SUG={list:[],at:0};
-function abStatCandidates(q){
-  const t=String(q||'').trim().toLowerCase().replace(/\s+/g,'');
-  if(!t)return [];
-  const hits=[];
-  for(const iso in COUNTRIES){
-    const c=COUNTRIES[iso];
-    const names=[c.k,c.e].concat(c.x||[]).map(v=>String(v).toLowerCase().replace(/\s+/g,''));
-    const pre=names.some(v=>v.startsWith(t)), mid=!pre&&names.some(v=>v.includes(t));
-    if(pre||mid)hits.push({iso:iso,score:(pre?0:1),k:c.k});
-  }
-  return hits.sort((a,b)=>a.score-b.score||a.k.length-b.k.length||a.k.localeCompare(b.k,'ko'))
-    .slice(0,6).map(h=>h.iso);
-}
-function abStatSug(q){
-  const box=document.getElementById('st-sug');if(!box)return;
-  AB_ST_SUG.list=abStatCandidates(q);AB_ST_SUG.at=0;
-  if(!AB_ST_SUG.list.length){box.hidden=true;box.innerHTML='';return;}
-  box.innerHTML=AB_ST_SUG.list.map((iso,i)=>'<button type="button" class="st-sug-it'+(i===0?' on':'')
-    +'" data-iso="'+iso+'">'+abFlag(iso,18)+abEsc(abName(iso))+'</button>').join('');
-  box.hidden=false;
-}
-function abStatSugMove(d){
-  const n=AB_ST_SUG.list.length;if(!n)return;
-  AB_ST_SUG.at=(AB_ST_SUG.at+d+n)%n;
-  document.querySelectorAll('#st-sug .st-sug-it').forEach((b,i)=>b.classList.toggle('on',i===AB_ST_SUG.at));
-}
 function abStatSubmit(iso){
   const inp=document.getElementById('st-in');
   if(!iso){abStatFb('그런 나라가 없습니다','bad');
     inp.classList.add('shake');setTimeout(()=>inp.classList.remove('shake'),360);return;}
-  inp.value='';abStatSug('');
+  ABST.ac.clear();
   abStatPick(iso);
   if(!ABST.revealed&&ABST.rank<5)inp.focus();
 }
 function abStatInput(){
-  const inp=document.getElementById('st-in');
-  inp.addEventListener('input',()=>abStatSug(inp.value));
-  inp.addEventListener('keydown',e=>{
-    if(e.isComposing)return;               /* 한글 조합 중 Enter 는 글자 확정용이다 */
-    if(e.key==='ArrowDown'){e.preventDefault();abStatSugMove(1);}
-    else if(e.key==='ArrowUp'){e.preventDefault();abStatSugMove(-1);}
-    else if(e.key==='Escape'){abStatSug('');}
-    else if(e.key==='Enter'){
-      e.preventDefault();
-      const exact=abFindIso(inp.value);
-      const moved=AB_ST_SUG.at>0?AB_ST_SUG.list[AB_ST_SUG.at]:null;
-      abStatSubmit(moved||exact||AB_ST_SUG.list[0]||null);
-    }
-  });
-  /* mousedown 에서 막아야 입력칸 포커스가 안 빠진다 */
-  document.getElementById('st-sug').addEventListener('mousedown',e=>{
-    const b=e.target.closest('[data-iso]');if(!b)return;
-    e.preventDefault();abStatSubmit(b.dataset.iso);
-  });
+  ABST.ac=abNameInput(document.getElementById('st-in'),document.getElementById('st-sug'),abStatSubmit);
 }
 /* 순위 칸 — 맞힌 자리에는 이름과 함께 실제 값을 적는다. 값이 있어야 왜 그
    순서인지가 남고, 다음에 같은 통계를 만났을 때 근거로 쓴다. */
@@ -261,7 +216,7 @@ function abStatRevealRest(s){
 function abStatDone(s){
   document.getElementById('st-reveal').hidden=true;
   const inp=document.getElementById('st-in');
-  if(inp){inp.disabled=true;inp.value='';abStatSug('');}
+  if(inp){inp.disabled=true;ABST.ac.clear();}
   const side=document.getElementById('st-side');
   const last=(ABST.idx+1>=ABST.plan.length);
   side.innerHTML=(s.note?'<p class="st-note">'+abEsc(s.note)+'</p>':'')
