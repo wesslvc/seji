@@ -188,11 +188,11 @@ function abCityAnswerCard(iso,c){
     h+='<div class="ct-ans"><span class="k">종주도시화</span><span class="v">'
       +'묻지 않음 — '+abEsc(c.why||'자료가 미심쩍습니다')+'</span></div>';
   }else{
-    h+=line('종주도시화',(c.prim==='y'?'그렇다':'아니다')+' · 1위가 2위의 '+c.pi+'배',ABCT.got[3]);
+    h+=line('종주도시화',(c.prim==='y'?'그렇다':'아니다')+' · '+(c.pi!=null?'1위가 2위의 '+c.pi+'배':(c.pnote||'')),ABCT.got[3]);
   }
   if(c.top&&c.top.length){
     const mx=c.top[0][1]||1;
-    h+='<div class="ct-top"><div class="ct-top-h">인구 상위 도시 <em>광역권 기준</em></div>'
+    h+='<div class="ct-top"><div class="ct-top-h">인구 상위 도시 <em>UN 도시권 2025</em></div>'
       +c.top.map((t,i)=>'<div class="bar-row"><span class="bar-k">'+(i+1)+'. '+abEsc(t[0])+'</span>'
         +'<span class="bar-t"><i style="width:'+Math.max(3,t[1]/mx*100).toFixed(0)+'%;background:'
         +(i===0?'var(--ac)':'var(--c8)')+'"></i></span>'
