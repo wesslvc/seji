@@ -510,7 +510,6 @@ table.cmp td .dash{color:var(--tx3)}
 .st-wrong .st-note{margin:.5rem 0 0;background:var(--bg)}
 /* 접경국 — 놀림말과, 눌러도 안 되는 건너뛰기 */
 .bq-taunt{font-size:var(--fs-md);color:var(--gd);font-weight:600;margin:.6rem 0 0;min-height:1.4em}
-.btn.ghost.dead{opacity:.45;text-decoration:line-through;cursor:not-allowed}
 .btn.sm{padding:.24rem .75rem;font-size:var(--fs-xs);font-weight:600;box-shadow:none;
   vertical-align:middle;margin-left:.2rem}
 @keyframes abShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}
