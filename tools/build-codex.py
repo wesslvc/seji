@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
-"""hwpx 정리본 → abyss/data/concepts.xml
+"""hwpx 정리본 → tools/codex-source.xml (1차 구조본)
 
     python3 tools/build-codex.py <정리본.hwpx>
+    python3 tools/restructure-codex.py        # → abyss/data/concepts.xml
+
+그림은 abyss/img/codex/imageN.webp 로 따로 바꿔 둔다(image20 은 hwpx 밖의
+'세계의 사막 — 형성 원인별 분포' A4 PDF 를 그림으로 뜬 것).
 
 느슨하게 쓰인 한글 문서를 구조가 있는 XML 한 장으로 눌러 담는다. 문단을 순서대로
 읽으면서 '(n) 제목'은 절, '1) 제목'은 소절, '-'로 시작하면 항목, '*'로 시작하면
@@ -14,7 +18,7 @@
 import re, sys, html, os, zipfile, io
 
 SRC = sys.argv[1]
-OUT = 'abyss/data/concepts.xml'
+OUT = 'tools/codex-source.xml'
 # 그림이 무엇인지는 눈으로 확인해 적었다. 한글 문서에서 그림은 설명글 뒤에
 # 떠 있어 흐름만 따라가면 한 칸씩 밀린다 — 실제로 프톨레마이오스 자리에 TO지도가
 # 들어가 있었다. 그래서 흐름을 믿지 않고 여기에 못 박는다.
@@ -37,16 +41,69 @@ FIGCAP = {
  'image16':'세계의 사막 분류 — 아열대 고압대·한류·내륙·비그늘',
  'image17':'관련 기출 — 수마트라섬과 자바섬',
  'image18':'세계의 판 구조',
+ 'image19':'해안 지형 — 곶·만·사주·석호·시스택',
+ 'image20':'세계의 사막 — 형성 원인별 분포 (아열대 고압대·한류·내륙·비그늘)',
 }
+
+# 원문에서 틀렸거나 빠진 것 — 원문 줄 그대로를 열쇠로 고친다. 새 정리본을 받아도
+# 같은 줄이 있으면 다시 고쳐진다.
+FIX = {
+ '- 유럽 아시아 경계는 지중해': '- 유럽 아프리카 경계는 지중해',
+ '*화구호는 함몰되지않은채로 물이 고인 것이고, 칼데라호는 함몰이후에 물이고인 것(천지, 백록담은 화구호)':
+   '*화구호는 함몰되지않은채로 물이 고인 것이고, 칼데라호는 함몰이후에 물이고인 것(백록담은 화구호, 천지는 칼데라호)',
+ '- 종파 : 수나피 / 시아파(시아파 1위국가 : 이란, 이라크, 바레인)':
+   '- 종파 : 수니파 / 시아파(시아파가 다수인 나라 : 이란, 이라크, 바레인)',
+ '*노령화 지수 ->  =>': '*노령화 지수 = 노년층 인구 ÷ 유소년층 인구 × 100',
+ '미크로네시아 – 웨노 – 팔리키르': '미크로네시아 : 웨노(종주) – 팔리키르',
+ '7, 브라질 : 2.12억': '7. 브라질 : 2.12억',
+ '20. 태국 0.7억': '20. 태국 : 0.7억',
+ '21. 탄자니아 0.7억 – 아프리카 5위': '21. 탄자니아 : 0.7억 – 아프리카 5위',
+ '22. 영국 0.69억': '22. 영국 : 0.69억',
+ '23. 프랑스 0.66억': '23. 프랑스 : 0.66억',
+ '29. 미얀마 0.517억': '29. 미얀마 : 0.517억',
+ '우크라이나 -> 폴란드, 독일 등으로 이동': '우크라이나(전쟁) -> 폴란드, 독일 등으로 이동',
+ '피라미드형 -> 종형 -> 방추형 -> 역피라미드형': '피라미드형 → 종형 → 방추형 → 역피라미드형',
+ '청장년층 최소 국가 중앙아프리카공화국(49.1%)': '*청장년층 비율이 가장 낮은 나라는 중앙아프리카공화국(49.1%)',
+ '*볼드처리된 수위도시는 종주도시화가 된 경우임': '*(종주)가 붙은 수위도시는 종주도시화가 된 경우임',
+}
+# 원문 뒤에 덧붙이는 줄 — (이 줄 다음에, 넣을 줄들)
+ADD_AFTER = {
+ '그레이트베이슨 사막 – 시에라네바다 & 케스케이드 산맥':
+   ['투르판분지 (중국 신장, 타림분지 동쪽) – 톈산산맥 (6월 모평 출제)'],
+}
+# 본문이 굵게 쓴 수위도시 = 종주도시화된 곳. 굵은 글씨는 텍스트로 뽑으면 사라지므로
+# 이 절에서만 '(종주)'로 옮겨 적는다.
+BOLD_MARK_SEC = 47
 
 z = zipfile.ZipFile(SRC)
 xml = z.read('Contents/section0.xml').decode('utf-8')
 paras = re.findall(r'<hp:p\b.*?</hp:p>|<hp:p\b[^>]*/>', xml, re.S)
+hdr = z.read('Contents/header.xml').decode('utf-8')
+BOLD = {m.group(1) for m in re.finditer(r'<hh:charPr\b[^>]*\bid="(\d+)"[^>]*>(.*?)</hh:charPr>', hdr, re.S)
+        if '<hh:bold' in m.group(2)}
 rows = []
+cur_n = None
 for p in paras:
-    t = ''.join(html.unescape(x) for x in re.findall(r'<hp:t>(.*?)</hp:t>', p, re.S))
-    t = re.sub(r'<[^>]+>', '', t).strip()
+    runs = re.findall(r'<hp:run\b[^>]*charPrIDRef="(\d+)"[^>]*>(.*?)</hp:run>', p, re.S)
+    plain = ''.join(html.unescape(x) for x in re.findall(r'<hp:t>(.*?)</hp:t>', p, re.S))
+    plain = re.sub(r'<[^>]+>', '', plain).strip()
+    m = re.match(r'^\(\s*(\d+)\s*\)', plain)
+    if m:
+        cur_n = int(m.group(1))
+    t = plain
+    if cur_n == BOLD_MARK_SEC and ' : ' in plain:
+        t = ''
+        for cid, body in runs:
+            piece = html.unescape(''.join(re.findall(r'<hp:t>(.*?)</hp:t>', body, re.S)))
+            piece = re.sub(r'<[^>]+>', '', piece)
+            if cid in BOLD and piece.strip() and not piece.strip().endswith(':'):
+                piece = piece.rstrip() + '(종주) '
+            t += piece
+        t = re.sub(r'\s+', ' ', t).strip()
+    t = FIX.get(t, t)
     rows.append((t, re.findall(r'binaryItemIDRef="([^"]+)"', p)))
+    for extra in ADD_AFTER.get(t, []):
+        rows.append((extra, []))
 
 SEC = re.compile(r'^\(\s*(\d+)\s*\)\s*(.+)$')
 SUB = re.compile(r'^(\d+)\)\s*(.+)$')
@@ -98,6 +155,8 @@ PLACE = {
  'image16': (22, '연중아열대'),   # 사막 네 갈래 분류 — BW 소절 앞머리
  'image17': (28, None),
  'image18': (29, None),
+ 'image19': (31, '테라로사'),     # 해안 지형 — 소절 6) 뒤로 이어진 꼬리에 붙는다
+ 'image20': (22, '연중아열대'),   # 사막 지도(A4 PDF) — 사막 소절 앞머리
 }
 # 먼저 문서에서 딸려 온 그림을 전부 걷어 낸다
 for sec in secs:
