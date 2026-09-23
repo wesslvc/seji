@@ -176,7 +176,7 @@ function abAtlasShow(iso){
       +abStarHTML('country:'+iso,abName(iso))+'</h3>'
     +'<div class="ct-en">'+abEsc(c.e||'')+' · '+iso.toUpperCase()+'</div></div></div>'
     +'<div class="ct-cap"><b>'+abEsc(d.cap||'—')+'</b><span>수도</span>'
-    +(d.big?'<b>'+abEsc(d.big)+'</b><span>최대도시</span>':'')
+    +(d.big?'<b>'+abEsc(d.big)+'</b><span>최대도시 · 광역권</span>':'')
     +(more[1]?'<b>'+abEsc(more[1])+'</b><span>공용어</span>':'')
     +(more[2]?'<b>'+abEsc(more[2])+'</b><span>통화</span>':'')
     +'</div></div>';

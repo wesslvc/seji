@@ -553,7 +553,7 @@ function wdShow(iso){
   const more=(typeof DICT_MORE!=='undefined'&&DICT_MORE[iso])||null; /* [수도 해발, 공용어, 통화] */
   const info=[];
   if(d.cap)info.push(['수도 (해발)',d.cap+(more&&more[0]?' ('+more[0]+')':'')]);
-  if(d.big)info.push(['최대도시 (해발)',d.big]);
+  if(d.big)info.push(['최대도시 (광역권 · 해발)',d.big]);
   if(d.pop)info.push(['인구',d.pop]);
   if(d.gdp&&d.gdp!=='-')info.push(['GDP (명목)',d.gdp]);
   if(d.pc&&d.pc!=='-')info.push(['1인당 GDP',d.pc]);

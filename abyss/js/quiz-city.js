@@ -192,7 +192,7 @@ function abCityAnswerCard(iso,c){
   }
   if(c.top&&c.top.length){
     const mx=c.top[0][1]||1;
-    h+='<div class="ct-top"><div class="ct-top-h">인구 상위 도시 <em>행정구역 기준</em></div>'
+    h+='<div class="ct-top"><div class="ct-top-h">인구 상위 도시 <em>광역권 기준</em></div>'
       +c.top.map((t,i)=>'<div class="bar-row"><span class="bar-k">'+(i+1)+'. '+abEsc(t[0])+'</span>'
         +'<span class="bar-t"><i style="width:'+Math.max(3,t[1]/mx*100).toFixed(0)+'%;background:'
         +(i===0?'var(--ac)':'var(--c8)')+'"></i></span>'
