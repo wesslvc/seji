@@ -3,6 +3,10 @@ const HS2_KO={"101":"산동물","102":"육류","103":"어패류","104":"동물�
 const RELIG2_NAME=["기독교","이슬람교","불교","힌두교","유대교","기타"];
 const RELIG2_COLOR=["#4f86c6","#2e9e6b","#e0a13a","#d9663a","#8a6bd0","#888888"];
 const ENERGY_NAME=["석탄","가스","석유","원자력","수력","태양광","풍력","바이오","기타재생"];
+/* 발전원 구성(world-data.js el)만 쓰는 이름표 — 위 ENERGY_NAME(1차에너지
+   소비, data.js ENERGY_DATA)과는 다른 배열이다. IRENA 원자료가 기술별로
+   갈라져 있어 지열·해양을 '기타재생'으로 뭉치지 않고 따로 뺐다. */
+const EL_NAME=["석탄","가스","석유","원자력","수력","태양광","풍력","바이오","지열","해양"];
 const CONT_NAME={af:'아프리카',as:'아시아',eu:'유럽',na:'북아메리카',sa:'남아메리카',oc:'오세아니아'};
 const CONT={
   af:['dz','ao','bj','bw','bf','bi','cm','cv','cf','td','km','cd','cg','ci','dj','eg','gq','er','et','ga','gm','gh','gn','gw','ke','ls','lr','ly','mg','mw','ml','ma','mr','mu','mz','na','ne','ng','rw','st','sn','sc','sl','so','za','ss','sd','sz','tz','tg','tn','ug','zm','zw','eh'],

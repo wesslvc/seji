@@ -170,12 +170,12 @@ const AB_METRICS=[
   );
   /* 발전원 — '무엇으로 전력을 만드는지'다. data.js의 에너지 구성(1차에너지
      소비 전체)과는 다른 항목이라 분류 이름도 갈라 둔다. */
-  if(typeof ENERGY_NAME!=='undefined')ENERGY_NAME.slice(0,8).forEach((nm,k)=>{
+  if(typeof EL_NAME!=='undefined')EL_NAME.forEach((nm,k)=>{
     AB_METRICS.push({id:'elec'+k,cat:'발전원',name:nm+' 발전 비중',unit:'%',
-      src:'Our World in Data(Ember·Energy Institute) · 발전량 기준',
+      src:'IRENASTAT · 2023년 발전량 기준',
       f:i=>{const el=wd(i).el;if(!el)return null;
             const sum=el.reduce((a,b)=>a+b,0);if(!sum)return null;
-            return el[k]/sum*100;}});
+            return (el[k]||0)/sum*100;}});
   });
   /* 에너지 자원 — 생산량·소비량과 자급률(생산÷소비). 100을 넘으면 쓰는
      것보다 더 캐내 수출로 남기는 나라, 밑돌면 수입에 기대는 나라다. */

@@ -51,7 +51,9 @@ const TR_ICON={
   sun:'<circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2.5M12 19v2.5M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M2.5 12H5M19 12h2.5M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/>',
   fan:'<path d="M12 12V2.5c2.8 0 5 2 5 4.8s-2.2 4.7-5 4.7z"/><path d="M12 12l8 3.6c-1.1 2.5-3.9 3.9-6.4 2.8s-3.7-4-2.6-6.4z"/><path d="M12 12L4 15.6c-1.1-2.5-.1-5.4 2.4-6.5s5.4.1 6.5 2.5z"/>',
   leaf:'<path d="M20 4c-9 0-15 6-15 15 9 0 15-6 15-15z"/><path d="M5 19c3-5 7-9 12-11"/>',
-  recycle:'<path d="M7 7l3-3 3 3M10 4v6a4 4 0 0 0 4 4h3M17 17l-3 3-3-3M14 20v-6a4 4 0 0 0-4-4H7"/>'
+  recycle:'<path d="M7 7l3-3 3 3M10 4v6a4 4 0 0 0 4 4h3M17 17l-3 3-3-3M14 20v-6a4 4 0 0 0-4-4H7"/>',
+  geo:'<path d="M3 12h18M3 18h18"/><path d="M8 12c0-3.2 1.5-5 1.5-8M12 12c0-4 2-6.5 2-10M16 12c0-2.6 1-4.3 1-6.6"/>',
+  tide:'<path d="M12 3a5 5 0 1 0 3.6 8.5A6 6 0 0 1 12 3z"/><path d="M2 15c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0M2 20c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0"/>'
 };
 /* HS2_KO 코드 → 아이콘 키. 빈도순으로 추렸다(226개국 수출 상위 12개를 다
    세어서, 자주 나오는 것부터). 못 찾으면 box(상자) 아이콘으로 뭉뚱그린다. */
@@ -128,6 +130,14 @@ function trIconOf(code){return TR_ICON_MAP[String(code)]||'box';}
 const EN_ICON_KEY=['coal','flame','fuel','atom','wave','sun','fan','leaf','recycle'];
 function enIcon(i){return EN_ICON_KEY[i]||'box';}
 const EN_ICON_COLOR=['var(--c8)','var(--c7)','var(--c4)','var(--c5)','var(--c1)','var(--c3)','var(--c6)','var(--c2)','var(--tx3)'];
+
+/* 발전원 구성(el, EL_NAME과 자리를 맞춘 열 칸) 전용 사전 — 위 EN_ICON_*은
+   그대로 두고(ENERGY_DATA가 여전히 아홉 번째를 '기타재생'으로 쓴다) 따로
+   둔다. 지열·해양을 갈라 뺀 만큼 여덟 계열색이 다 차서, 두 자리는 새 색
+   (--c9 지열·rust, --c10 해양·짙은 청록)을 abyss.css에 더해 썼다. */
+const EL_ICON_KEY=['coal','flame','fuel','atom','wave','sun','fan','leaf','geo','tide'];
+function elIcon(i){return EL_ICON_KEY[i]||'box';}
+const EL_ICON_COLOR=['var(--c8)','var(--c7)','var(--c4)','var(--c5)','var(--c1)','var(--c3)','var(--c6)','var(--c2)','var(--c9)','var(--c10)'];
 
 /* ══════ 파이 차트 + 아이콘 범례 ══════
    조각 위에 그 품목의 아이콘을 얹는다 — 글자를 읽지 않아도 무엇인지 짐작이

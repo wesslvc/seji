@@ -252,8 +252,8 @@ function abAtlasShow(iso){
     if(elSum>0){
       G.econ+='<h4 class="sec" id="at-elec">발전원 구성'
         +abSecEm('전력 생산만',abSrcOf(['elec0']))+'</h4><div class="card pad">'
-        +abIconPie(ENERGY_NAME.slice(0,8).map((nm,k)=>(
-          {label:nm,v:wdt.el[k]/elSum*100,icon:enIcon(k),color:EN_ICON_COLOR[k]||'var(--c8)'})).filter(r=>r.v>0))
+        +abIconPie(EL_NAME.map((nm,k)=>(
+          {label:nm,v:(wdt.el[k]||0)/elSum*100,icon:elIcon(k),color:EL_ICON_COLOR[k]||'var(--c8)'})).filter(r=>r.v>0))
         +'</div>';
     }
   }
