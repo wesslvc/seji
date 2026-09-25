@@ -268,6 +268,16 @@ function abAtlasShow(iso){
       +['wheat','rice','corn','cattle','sheep'].map(id=>abStatCell(id,iso)).join('')
       +'</div>';
   }
+  /* 주요 광물 — 여덟 가지 다 캐는 나라는 없으니, 이 나라가 값을 가진
+     항목만 추려서 보여 준다(다섯 칸짜리 빈 칸이 줄줄이 뜨는 걸 막는다) */
+  if(wdt){
+    const minIds=['iron_ore','gold','silver','copper','cobalt','chromium','manganese','bauxite']
+      .filter(id=>{const m=abMetric(id);return m&&m.f(iso)!=null;});
+    if(minIds.length)
+      h+='<h4 class="sec">주요 광물 <em>USGS 2025년 추정치</em></h4><div class="grid g-3">'
+        +minIds.map(id=>abStatCell(id,iso)).join('')
+        +'</div>';
+  }
   /* 기후 — 나라 전체를 하나의 순위로 묶지 않는다. 관측소를 평균 내면 넓은
      나라일수록 극값이 뭉개져 순위 자체가 왜곡된다(러시아가 냉대와 온난
      기후를 다 갖고 있어도 평균은 그저 그런 숫자가 되는 식이다). 대신

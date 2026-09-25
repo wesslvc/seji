@@ -198,6 +198,15 @@ const AB_METRICS=[
       AB_METRICS.push({id:id,cat:'농축산물',name:nm,unit:unit,src:'FAOSTAT',
         f:i=>{const v=wd(i)[k];return v!=null?v:null;}});
     });
+  /* 주요 광물 — USGS Mineral Commodity Summaries 2026, 2025년 추정치(2025e) */
+  [['iron_ore','철광석 생산량','ior','만 톤'],['gold','금 생산량','gld','톤'],
+   ['silver','은 생산량','slv','톤'],['copper','구리 생산량','cop','만 톤'],
+   ['cobalt','코발트 생산량','cbt','톤'],['chromium','크롬 생산량','chr','만 톤'],
+   ['manganese','망간 생산량','mng','만 톤'],['bauxite','보크사이트 생산량','bux','만 톤']]
+    .forEach(([id,nm,k,unit])=>{
+      AB_METRICS.push({id:id,cat:'광물',name:nm,unit:unit,src:'USGS Mineral Commodity Summaries 2026',
+        f:i=>{const v=wd(i)[k];return v!=null?v:null;}});
+    });
 })();
 
 /* 한 항목의 전체 순위 — [{iso, v, rank}] */
