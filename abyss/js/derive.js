@@ -189,18 +189,33 @@ const AB_METRICS=[
             return (cap[k]||0)/sum*100;}});
   });
   /* 에너지 자원 — 생산량·소비량과 자급률(생산÷소비). 100을 넘으면 쓰는
-     것보다 더 캐내 수출로 남기는 나라, 밑돌면 수입에 기대는 나라다. */
-  [['coal','석탄','cp','cc'],['oil','석유','op','oc'],['gas','천연가스','gp','gc']]
-    .forEach(([key,nm,pk,ck])=>{
+     것보다 더 캐내 수출로 남기는 나라, 밑돌면 수입에 기대는 나라다.
+     석유 생산량(op)만 출처가 다르다(EIA — 위 world-data.js 머리말 참고) */
+  [['coal','석탄','cp','cc','Our World in Data(Energy Institute) · 1차에너지 환산'],
+   ['oil','석유','op','oc','EIA International(생산) · Our World in Data(소비)'],
+   ['gas','천연가스','gp','gc','Our World in Data(Energy Institute) · 1차에너지 환산']]
+    .forEach(([key,nm,pk,ck,src])=>{
       AB_METRICS.push({id:key+'Prod',cat:'에너지 자원',name:nm+' 생산량',unit:'TWh',
-        src:'Our World in Data(Energy Institute) · 1차에너지 환산',f:i=>{const v=wd(i)[pk];return v!=null?v:null;}});
+        src:src,f:i=>{const v=wd(i)[pk];return v!=null?v:null;}});
       AB_METRICS.push({id:key+'Cons',cat:'에너지 자원',name:nm+' 소비량',unit:'TWh',
-        src:'Our World in Data(Energy Institute) · 1차에너지 환산',f:i=>{const v=wd(i)[ck];return v!=null?v:null;}});
+        src:src,f:i=>{const v=wd(i)[ck];return v!=null?v:null;}});
       AB_METRICS.push({id:key+'Self',cat:'에너지 자원',name:nm+' 자급률',unit:'%',
-        src:'Our World in Data(Energy Institute) · 생산량÷소비량',
+        src:src+' · 생산량÷소비량',
         note:'100%를 넘으면 쓰는 양보다 많이 캐내는 나라(순수출), 밑돌면 모자라 들여오는 나라(순수입)입니다.',
         f:i=>{const d=wd(i),c=d[ck];if(!c)return null;return (d[pk]||0)/c*100;}});
     });
+  /* 에너지 무역·매장량 — EIA International. 석탄·가스만 수출입 갈래가
+     있고(석유는 원자료 자체에 없음), 매장량은 석탄만 있다(가스·석유
+     매장량은 EIA 국제 통계에 없다) */
+  [['coal','석탄','cx','cm'],['gas','천연가스','gx','gm']]
+    .forEach(([key,nm,xk,mk])=>{
+      AB_METRICS.push({id:key+'Exp',cat:'에너지 자원',name:nm+' 수출량',unit:'TWh',
+        src:'EIA International · 2024년',f:i=>{const v=wd(i)[xk];return v!=null?v:null;}});
+      AB_METRICS.push({id:key+'Imp',cat:'에너지 자원',name:nm+' 수입량',unit:'TWh',
+        src:'EIA International · 2024년',f:i=>{const v=wd(i)[mk];return v!=null?v:null;}});
+    });
+  AB_METRICS.push({id:'coalRes',cat:'에너지 자원',name:'석탄 매장량',unit:'만 톤',
+    src:'EIA International · 2023년',f:i=>{const v=wd(i).cres;return v!=null?v:null;}});
   /* 주요 농축산물 */
   [['wheat','밀 생산량','wh','만 톤'],['rice','쌀 생산량','ri','만 톤'],
    ['corn','옥수수 생산량','co','만 톤'],['cattle','소 사육두수','ct','만 두'],

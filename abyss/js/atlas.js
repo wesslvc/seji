@@ -271,11 +271,15 @@ function abAtlasShow(iso){
     }
   }
   /* 에너지 자원 — 생산량·소비량과 자급률. 자급률이 100%를 넘으면 캐낸
-     만큼 다 못 쓰고 수출로 넘기는 나라, 밑돌면 모자라 사 오는 나라다 */
+     만큼 다 못 쓰고 수출로 넘기는 나라, 밑돌면 모자라 사 오는 나라다.
+     출처가 항목마다 갈린다(석유 생산량·석탄가스 수출입·석탄 매장량은
+     EIA, 나머지는 OWID) — 섹션 제목엔 대표로 하나만 적고 정확한 출처는
+     항목별로 도감(항목 도감→에너지 자원)에서 확인할 수 있게 뒀다 */
   if(wdt&&(wdt.cp!=null||wdt.op!=null||wdt.gp!=null||wdt.cc!=null||wdt.oc!=null||wdt.gc!=null)){
     G.econ+='<h4 class="sec" id="at-eres">에너지 자원'
-      +abSecEm('1차에너지 환산 · TWh',abSrcOf(['coalProd']))+'</h4><div class="grid g-3">'
-      +['coalProd','coalCons','coalSelf','oilProd','oilCons','oilSelf','gasProd','gasCons','gasSelf']
+      +abSecEm('1차에너지 환산 · TWh · OWID·EIA','도감에서 항목별 출처 확인')+'</h4><div class="grid g-3">'
+      +['coalProd','coalCons','coalSelf','oilProd','oilCons','oilSelf','gasProd','gasCons','gasSelf',
+        'coalExp','coalImp','gasExp','gasImp','coalRes']
         .map(id=>abStatCell(id,iso)).join('')
       +'</div>';
   }
