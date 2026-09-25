@@ -287,7 +287,7 @@ function abAtlasShow(iso){
      항목만 추려서 보여 준다(빈 칸이 줄줄이 뜨는 걸 막는다). 다이아몬드만
      출처가 달라(Kimberley Process) 항목 옆에 따로 밝힌다 */
   if(wdt){
-    const minIds=['iron_ore','gold','silver','copper','cobalt','chromium','manganese','bauxite','diamond']
+    const minIds=['iron_ore','gold','silver','copper','cobalt','chromium','manganese','bauxite','diamond','tin']
       .filter(id=>{const m=abMetric(id);return m&&m.f(iso)!=null;});
     if(minIds.length)
       G.econ+='<h4 class="sec" id="at-min">주요 광물'+abSecEm('2025년 추정치',abSrcOf(['iron_ore']))+'</h4><div class="grid g-3">'

@@ -208,7 +208,8 @@ const AB_METRICS=[
    ['chromium','크롬 생산량','chr','만 톤','USGS Mineral Commodity Summaries 2026'],
    ['manganese','망간 생산량','mng','만 톤','USGS Mineral Commodity Summaries 2026'],
    ['bauxite','보크사이트 생산량','bux','만 톤','USGS Mineral Commodity Summaries 2026'],
-   ['diamond','다이아몬드 원석 생산량','dmd','캐럿','Kimberley Process Statistics · 2025년']]
+   ['diamond','다이아몬드 원석 생산량','dmd','캐럿','Kimberley Process Statistics · 2025년'],
+   ['tin','주석 생산량','tin','톤','USGS Mineral Commodity Summaries 2026']]
     .forEach(([id,nm,k,unit,src])=>{
       AB_METRICS.push({id:id,cat:'광물',name:nm,unit:unit,src:src,
         f:i=>{const v=wd(i)[k];return v!=null?v:null;}});
