@@ -257,6 +257,19 @@ function abAtlasShow(iso){
         +'</div>';
     }
   }
+  /* 발전 설비용량 — 위 발전원 구성과 갈래는 같지만 '실제로 만든 전기'가
+     아니라 '만들 수 있는 최대치'다. 태양광·풍력은 해·바람이 있을 때만
+     도니까 용량 비중이 발전량 비중보다 커 보이는 게 정상이다 */
+  if(wdt&&wdt.cap){
+    const capSum=wdt.cap.reduce((a,b)=>a+b,0);
+    if(capSum>0){
+      G.econ+='<h4 class="sec" id="at-cap">발전 설비용량 구성'
+        +abSecEm('실제 가동률과 무관한 최대 설비 규모',abSrcOf(['cap0']))+'</h4><div class="card pad">'
+        +abIconPie(EL_NAME.map((nm,k)=>(
+          {label:nm,v:(wdt.cap[k]||0)/capSum*100,icon:elIcon(k),color:EL_ICON_COLOR[k]||'var(--c8)'})).filter(r=>r.v>0))
+        +'</div>';
+    }
+  }
   /* 에너지 자원 — 생산량·소비량과 자급률. 자급률이 100%를 넘으면 캐낸
      만큼 다 못 쓰고 수출로 넘기는 나라, 밑돌면 모자라 사 오는 나라다 */
   if(wdt&&(wdt.cp!=null||wdt.op!=null||wdt.gp!=null||wdt.cc!=null||wdt.oc!=null||wdt.gc!=null)){

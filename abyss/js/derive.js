@@ -177,6 +177,17 @@ const AB_METRICS=[
             const sum=el.reduce((a,b)=>a+b,0);if(!sum)return null;
             return (el[k]||0)/sum*100;}});
   });
+  /* 발전 설비용량 — 위 발전량과 갈래는 같지만 뜻이 다르다. 발전량은
+     '실제로 만든 전기'고 설비용량은 '만들 수 있는 최대치'라, 태양광·풍력처럼
+     해 뜰 때·바람 불 때만 도는 설비는 용량 비중이 발전량 비중보다 부풀어
+     보이는 게 정상이다(가동률이 낮아서다). */
+  if(typeof EL_NAME!=='undefined')EL_NAME.forEach((nm,k)=>{
+    AB_METRICS.push({id:'cap'+k,cat:'발전 설비용량',name:nm+' 설비용량 비중',unit:'%',
+      src:'IRENASTAT · 2025년 설비용량 기준',
+      f:i=>{const cap=wd(i).cap;if(!cap)return null;
+            const sum=cap.reduce((a,b)=>a+b,0);if(!sum)return null;
+            return (cap[k]||0)/sum*100;}});
+  });
   /* 에너지 자원 — 생산량·소비량과 자급률(생산÷소비). 100을 넘으면 쓰는
      것보다 더 캐내 수출로 남기는 나라, 밑돌면 수입에 기대는 나라다. */
   [['coal','석탄','cp','cc'],['oil','석유','op','oc'],['gas','천연가스','gp','gc']]
