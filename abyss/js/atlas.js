@@ -173,11 +173,156 @@ function abCapHtml(cap){
   if(rest.length)h+='<small class="cap-alt">'+rest.map(p=>abEsc(p.n)+(p.r?' ('+abEsc(p.r)+')':'')).join(' · ')+'</small>';
   return h;
 }
+/* 항목 id 몇 개가 쓰는 출처를 모아 한 줄로 — 같은 값이면 한 번만 적는다.
+   서로 다른 출처가 섞인 칸(예: '규모와 위치'는 WDI·GeoNames·지오글 자료가
+   한 그리드에 같이 있다)은 그만큼 여러 출처가 나열된다. */
+function abSrcOf(ids){
+  const seen=[];
+  ids.forEach(id=>{const m=abMetric(id);if(m&&m.src&&seen.indexOf(m.src)<0)seen.push(m.src);});
+  return seen.join(' · ');
+}
+/* 부제(있으면)와 출처를 이어 붙인 <em> — 섹션 제목 오른쪽에 옅게 앉는다 */
+function abSecEm(note,src){
+  const parts=[note,src].filter(Boolean);
+  return parts.length?'<em>'+parts.map(abEsc).join(' · ')+'</em>':'';
+}
+
+/* 화면을 다섯 갈래로 묶는다 — 예전엔 열 몇 개 소제목이 위아래로 줄줄이
+   이어져 어디까지 왔는지 감이 안 왔다. 갈래마다 그 나라에 실을 내용이
+   있을 때만 큰 제목을 세우고, 위쪽 빠른 이동 칩도 그만큼만 보여 준다. */
+const AB_ATLAS_GRP=[
+  ['loc','위치와 규모'],['soc','인구와 사회'],['econ','산업과 자원'],
+  ['nat','자연환경'],['bd','경계']
+];
 function abAtlasShow(iso){
   const d=DICT_DATA[iso]||{}, more=(typeof DICT_MORE!=='undefined'&&DICT_MORE[iso])||[];
   /* 위키에서 온 산문(나라 특징·도시 설명)은 싣지 않는다 — 여기는 원자료 자료실이다 */
   const c=COUNTRIES[iso]||TERR_COUNTRIES[iso]||{};
   const cl=AB_CLIMATE_BY_ISO[iso], rv=AB_RIVERS_BY_ISO[iso]||[], nb=BORDERS[iso]||[];
+  const wdt=(typeof WORLD_DATA!=='undefined'&&WORLD_DATA[iso])||null;
+  const G={loc:'',soc:'',econ:'',nat:'',bd:''};   /* 갈래별로 따로 쌓는다 */
+
+  G.loc+='<h4 class="sec" id="at-loc">규모와 위치'
+    +abSecEm(null,abSrcOf(['pop','area','nb']))+'</h4><div class="grid g-4">'
+    +['pop','gdp','pc','area','dens','nb','alt','lat'].map(id=>abStatCell(id,iso)).join('')
+    +'</div>';
+  if(d.ll)G.loc+='<p class="ct-note">수도 좌표 '+d.ll[0].toFixed(3)+'°, '+d.ll[1].toFixed(3)+'°</p>';
+
+  /* 인구 구조 — 도시화율·출산율은 값 하나짜리라 규모 카드와 같은 칸으로,
+     연령 구성은 유소년·청장년·노년이 100%를 나눠 갖는 구성비라 막대로 */
+  if(wdt&&(wdt.ur!=null||wdt.tfr!=null||wdt.y0!=null)){
+    G.soc+='<h4 class="sec" id="at-pop">인구 구조'+abSecEm(null,abSrcOf(['urban','tfr']))+'</h4>';
+    if(wdt.ur!=null||wdt.tfr!=null)
+      G.soc+='<div class="grid g-2">'+['urban','tfr'].map(id=>abStatCell(id,iso)).join('')+'</div>';
+    if(wdt.y0!=null&&wdt.y1!=null&&wdt.y2!=null)
+      G.soc+=abBars([['유소년층(0~14세)',wdt.y0],['청장년층(15~64세)',wdt.y1],['노년층(65세 이상)',wdt.y2]],
+                ['var(--c3)','var(--c1)','var(--c8)']);
+  }
+  /* 종교 */
+  const rel=(typeof RELIG2_DATA!=='undefined'&&RELIG2_DATA[iso])||null;
+  if(rel){
+    G.soc+='<h4 class="sec" id="at-rel">종교 구성'
+      +abSecEm('종교를 가진 사람 기준','지오글 종교 구성')+'</h4>'
+      +abBars(rel.map(r=>[RELIG2_NAME[r[0]],r[1]]),rel.map(r=>RELIG2_COLOR[r[0]]));
+  }
+
+  /* 산업 구조 — 1·2·3차산업이 GDP에서 차지하는 몫. 합쳐서 100%에 가까운
+     구성비라 종교·에너지처럼 막대로 그린다 */
+  if(wdt&&wdt.i1!=null&&wdt.i2!=null&&wdt.i3!=null){
+    G.econ+='<h4 class="sec" id="at-ind">산업 구조'
+      +abSecEm('GDP 대비',abSrcOf(['ind1']))+'</h4>'
+      +abBars([['1차산업(농림수산업)',wdt.i1],['2차산업(광공업)',wdt.i2],['3차산업(서비스업)',wdt.i3]],
+              ['var(--c2)','var(--c8)','var(--c1)']);
+  }
+  /* 에너지 — 막대 목록 대신 원그래프 + 아이콘. 글자를 하나씩 읽지 않아도
+     석탄·가스·원자력이 얼마씩인지 조각 모양과 아이콘만으로 짐작이 간다 */
+  const en=(typeof ENERGY_DATA!=='undefined'&&ENERGY_DATA[iso])||null;
+  if(en){
+    G.econ+='<h4 class="sec" id="at-en1">에너지 구성'
+      +abSecEm('1차에너지 소비 — 수송·난방 포함','지오글 에너지 구성')+'</h4><div class="card pad">'
+      +abIconPie(en.map(r=>({label:ENERGY_NAME[r[0]],v:r[1],icon:enIcon(r[0]),color:EN_ICON_COLOR[r[0]]||'var(--c8)'})))
+      +'</div>';
+  }
+  /* 발전원 — 위 에너지 구성과 헷갈리기 쉬워 부제로 갈라 둔다. 저건 나라가
+     쓰는 에너지 전체(수송·난방까지)고, 이건 전력만 무엇으로 만드는지다.
+     같은 나라라도 두 그래프의 석유 비중이 크게 다를 수 있다 — 발전에는
+     석유를 거의 안 써도 자동차·공장은 여전히 석유를 쓰기 때문이다. */
+  if(wdt&&wdt.el){
+    const elSum=wdt.el.reduce((a,b)=>a+b,0);
+    if(elSum>0){
+      G.econ+='<h4 class="sec" id="at-elec">발전원 구성'
+        +abSecEm('전력 생산만',abSrcOf(['elec0']))+'</h4><div class="card pad">'
+        +abIconPie(ENERGY_NAME.slice(0,8).map((nm,k)=>(
+          {label:nm,v:wdt.el[k]/elSum*100,icon:enIcon(k),color:EN_ICON_COLOR[k]||'var(--c8)'})).filter(r=>r.v>0))
+        +'</div>';
+    }
+  }
+  /* 에너지 자원 — 생산량·소비량과 자급률. 자급률이 100%를 넘으면 캐낸
+     만큼 다 못 쓰고 수출로 넘기는 나라, 밑돌면 모자라 사 오는 나라다 */
+  if(wdt&&(wdt.cp!=null||wdt.op!=null||wdt.gp!=null||wdt.cc!=null||wdt.oc!=null||wdt.gc!=null)){
+    G.econ+='<h4 class="sec" id="at-eres">에너지 자원'
+      +abSecEm('1차에너지 환산 · TWh',abSrcOf(['coalProd']))+'</h4><div class="grid g-3">'
+      +['coalProd','coalCons','coalSelf','oilProd','oilCons','oilSelf','gasProd','gasCons','gasSelf']
+        .map(id=>abStatCell(id,iso)).join('')
+      +'</div>';
+  }
+  /* 무역 — 수입은 뺀다. 이 나라가 세계에 무엇을 파는지가 그 나라 산업의
+     얼굴이고, 수입은 상대적으로 덜 특징적이라 한 화면에 둘 다 넣으면
+     정작 중요한 수출이 반쪽 자리로 묻혔다. */
+  const tr=(typeof TRADE_DATA!=='undefined'&&TRADE_DATA[iso])||null;
+  if(tr&&tr.x&&tr.x.length){
+    const a=tr.x.slice(0,6);
+    G.econ+='<h4 class="sec" id="at-trd">주요 수출 품목'+abSecEm(null,'지오글 무역 구조')+'</h4><div class="card pad">'
+      +abIconPie(a.map(r=>({label:HS2_KO[r[0]]||r[0],v:r[1],icon:trIconOf(r[0]),color:TR_ICON_COLOR[trIconOf(r[0])]})))
+      +'</div>';
+  }
+  /* 주요 농축산물 — 곡물 생산량과 가축 사육두수. 구성비가 아니라 저마다
+     단위가 다른 절대량이라 원그래프 대신 '규모와 위치'와 같은 값+순위 칸을 쓴다 */
+  if(wdt&&(wdt.wh!=null||wdt.ri!=null||wdt.co!=null||wdt.ct!=null||wdt.sh!=null)){
+    G.econ+='<h4 class="sec" id="at-crop">주요 농축산물'+abSecEm(null,abSrcOf(['wheat']))+'</h4><div class="grid g-3">'
+      +['wheat','rice','corn','cattle','sheep'].map(id=>abStatCell(id,iso)).join('')
+      +'</div>';
+  }
+  /* 주요 광물 — 아홉 가지 다 나는 나라는 없으니, 이 나라가 값을 가진
+     항목만 추려서 보여 준다(빈 칸이 줄줄이 뜨는 걸 막는다). 다이아몬드만
+     출처가 달라(Kimberley Process) 항목 옆에 따로 밝힌다 */
+  if(wdt){
+    const minIds=['iron_ore','gold','silver','copper','cobalt','chromium','manganese','bauxite','diamond']
+      .filter(id=>{const m=abMetric(id);return m&&m.f(iso)!=null;});
+    if(minIds.length)
+      G.econ+='<h4 class="sec" id="at-min">주요 광물'+abSecEm('2025년 추정치',abSrcOf(['iron_ore']))+'</h4><div class="grid g-3">'
+        +minIds.map(id=>abStatCell(id,iso)
+          +(id==='diamond'?'<p class="ct-note src-note">'+abEsc(abMetric('diamond').src)+'</p>':'')).join('')
+        +'</div>';
+  }
+
+  /* 기후 — 나라 전체를 하나의 순위로 묶지 않는다. 관측소를 평균 내면 넓은
+     나라일수록 극값이 뭉개져 순위 자체가 왜곡된다(러시아가 냉대와 온난
+     기후를 다 갖고 있어도 평균은 그저 그런 숫자가 되는 식이다). 대신
+     관측소별 실측을 그대로 보여 준다. */
+  if(cl&&cl.st.length){
+    G.nat+='<h4 class="sec" id="at-clim">기후'
+      +abSecEm('관측소 '+cl.n+'곳','Köppen-Geiger Map v2(Beck 외) · 실측 관측소')+'</h4>';
+    G.nat+='<div class="chips cl-pick" id="cl-pick">'+cl.st.map((s,i)=>
+      '<button class="chip'+(i===0?' on':'')+'" data-i="'+i+'">'+abEsc(s.ko||s.en)
+      +(s.kop?'<em>'+abEsc(s.kop)+'</em>':'')+'</button>').join('')+'</div>';
+    G.nat+='<div id="cl-box" class="card pad"></div>';
+  }
+  /* 하천 */
+  if(rv.length){
+    G.nat+='<h4 class="sec" id="at-riv">지나는 하천'+abSecEm(null,abSrcOf(['rvlen']))+'</h4><div class="taglist">'
+      +rv.map(r=>'<span class="tag">'+abEsc(r.ko)+'<em>'+abEsc(r.en)+'</em></span>').join('')+'</div>';
+  }
+  /* 접경국 */
+  if(nb.length){
+    G.bd+='<h4 class="sec" id="at-bd">접경국'+abSecEm(nb.length+'개국',abSrcOf(['nb']))+'</h4><div class="taglist flags">'
+      +nb.map(n=>'<a class="tag'+(DICT_DATA[n]?' link':'')+'"'
+        +(DICT_DATA[n]?' href="#/atlas?'+n+'"':'')+'>'
+        +abFlag(n,20)+abEsc(abName(n))+'</a>').join('')+'</div>';
+  } else if(BORDERS[iso]){
+    G.bd+='<h4 class="sec" id="at-bd">접경국</h4><p class="none">맞닿은 나라가 없습니다 — 섬나라입니다.</p>';
+  }
+
   let h='';
   h+='<a class="back" href="#/atlas">← 나라 고르기</a>';
   h+='<div class="ct-head"><div class="ct-id">'
@@ -192,119 +337,18 @@ function abAtlasShow(iso){
     +(more[2]?'<b>'+abEsc(more[2])+'</b><span>통화</span>':'')
     +'</div></div>';
 
-  h+='<h4 class="sec">규모와 위치</h4><div class="grid g-4">'
-    +['pop','gdp','pc','area','dens','nb','alt','lat'].map(id=>abStatCell(id,iso)).join('')
-    +'</div>';
-  if(d.ll)h+='<p class="ct-note">수도 좌표 '+d.ll[0].toFixed(3)+'°, '+d.ll[1].toFixed(3)+'°</p>';
+  const live=AB_ATLAS_GRP.filter(([k])=>G[k]);
+  if(live.length>1)
+    h+='<div class="at-jump">'+live.map(([k,nm])=>'<a href="#at-g-'+k+'">'+abEsc(nm)+'</a>').join('')+'</div>';
+  live.forEach(([k,nm])=>{
+    h+='<section class="at-grp" id="at-g-'+k+'"><h3 class="at-gh">'+abEsc(nm)+'</h3>'+G[k]+'</section>';
+  });
 
-  /* 인구 구조 — 도시화율·출산율은 값 하나짜리라 규모 카드와 같은 칸으로,
-     연령 구성은 유소년·청장년·노년이 100%를 나눠 갖는 구성비라 막대로 */
-  const wdt=(typeof WORLD_DATA!=='undefined'&&WORLD_DATA[iso])||null;
-  if(wdt&&(wdt.ur!=null||wdt.tfr!=null||wdt.y0!=null)){
-    h+='<h4 class="sec">인구 구조</h4>';
-    if(wdt.ur!=null||wdt.tfr!=null)
-      h+='<div class="grid g-2">'+['urban','tfr'].map(id=>abStatCell(id,iso)).join('')+'</div>';
-    if(wdt.y0!=null&&wdt.y1!=null&&wdt.y2!=null)
-      h+=abBars([['유소년층(0~14세)',wdt.y0],['청장년층(15~64세)',wdt.y1],['노년층(65세 이상)',wdt.y2]],
-                ['var(--c3)','var(--c1)','var(--c8)']);
-  }
-  /* 산업 구조 — 1·2·3차산업이 GDP에서 차지하는 몫. 합쳐서 100%에 가까운
-     구성비라 종교·에너지처럼 막대로 그린다 */
-  if(wdt&&wdt.i1!=null&&wdt.i2!=null&&wdt.i3!=null){
-    h+='<h4 class="sec">산업 구조 <em>GDP 대비</em></h4>'
-      +abBars([['1차산업(농림수산업)',wdt.i1],['2차산업(광공업)',wdt.i2],['3차산업(서비스업)',wdt.i3]],
-              ['var(--c2)','var(--c8)','var(--c1)']);
-  }
-
-  /* 종교 */
-  const rel=(typeof RELIG2_DATA!=='undefined'&&RELIG2_DATA[iso])||null;
-  if(rel){
-    h+='<h4 class="sec">종교 구성 <em>종교를 가진 사람 기준</em></h4>'
-      +abBars(rel.map(r=>[RELIG2_NAME[r[0]],r[1]]),rel.map(r=>RELIG2_COLOR[r[0]]));
-  }
-  /* 에너지 — 막대 목록 대신 원그래프 + 아이콘. 글자를 하나씩 읽지 않아도
-     석탄·가스·원자력이 얼마씩인지 조각 모양과 아이콘만으로 짐작이 간다 */
-  const en=(typeof ENERGY_DATA!=='undefined'&&ENERGY_DATA[iso])||null;
-  if(en){
-    h+='<h4 class="sec">에너지 구성 <em>1차에너지 소비 — 수송·난방 포함</em></h4><div class="card pad">'
-      +abIconPie(en.map(r=>({label:ENERGY_NAME[r[0]],v:r[1],icon:enIcon(r[0]),color:EN_ICON_COLOR[r[0]]||'var(--c8)'})))
-      +'</div>';
-  }
-  /* 발전원 — 위 에너지 구성과 헷갈리기 쉬워 부제로 갈라 둔다. 저건 나라가
-     쓰는 에너지 전체(수송·난방까지)고, 이건 전력만 무엇으로 만드는지다.
-     같은 나라라도 두 그래프의 석유 비중이 크게 다를 수 있다 — 발전에는
-     석유를 거의 안 써도 자동차·공장은 여전히 석유를 쓰기 때문이다. */
-  if(wdt&&wdt.el){
-    const elSum=wdt.el.reduce((a,b)=>a+b,0);
-    if(elSum>0){
-      h+='<h4 class="sec">발전원 구성 <em>전력 생산만</em></h4><div class="card pad">'
-        +abIconPie(ENERGY_NAME.slice(0,8).map((nm,k)=>(
-          {label:nm,v:wdt.el[k]/elSum*100,icon:enIcon(k),color:EN_ICON_COLOR[k]||'var(--c8)'})).filter(r=>r.v>0))
-        +'</div>';
-    }
-  }
-  /* 에너지 자원 — 생산량·소비량과 자급률. 자급률이 100%를 넘으면 캐낸
-     만큼 다 못 쓰고 수출로 넘기는 나라, 밑돌면 모자라 사 오는 나라다 */
-  if(wdt&&(wdt.cp!=null||wdt.op!=null||wdt.gp!=null||wdt.cc!=null||wdt.oc!=null||wdt.gc!=null)){
-    h+='<h4 class="sec">에너지 자원 <em>1차에너지 환산 · TWh</em></h4><div class="grid g-3">'
-      +['coalProd','coalCons','coalSelf','oilProd','oilCons','oilSelf','gasProd','gasCons','gasSelf']
-        .map(id=>abStatCell(id,iso)).join('')
-      +'</div>';
-  }
-  /* 무역 — 수입은 뺀다. 이 나라가 세계에 무엇을 파는지가 그 나라 산업의
-     얼굴이고, 수입은 상대적으로 덜 특징적이라 한 화면에 둘 다 넣으면
-     정작 중요한 수출이 반쪽 자리로 묻혔다. */
-  const tr=(typeof TRADE_DATA!=='undefined'&&TRADE_DATA[iso])||null;
-  if(tr&&tr.x&&tr.x.length){
-    const a=tr.x.slice(0,6);
-    h+='<h4 class="sec">주요 수출 품목</h4><div class="card pad">'
-      +abIconPie(a.map(r=>({label:HS2_KO[r[0]]||r[0],v:r[1],icon:trIconOf(r[0]),color:TR_ICON_COLOR[trIconOf(r[0])]})))
-      +'</div>';
-  }
-  /* 주요 농축산물 — 곡물 생산량과 가축 사육두수. 구성비가 아니라 저마다
-     단위가 다른 절대량이라 원그래프 대신 '규모와 위치'와 같은 값+순위 칸을 쓴다 */
-  if(wdt&&(wdt.wh!=null||wdt.ri!=null||wdt.co!=null||wdt.ct!=null||wdt.sh!=null)){
-    h+='<h4 class="sec">주요 농축산물</h4><div class="grid g-3">'
-      +['wheat','rice','corn','cattle','sheep'].map(id=>abStatCell(id,iso)).join('')
-      +'</div>';
-  }
-  /* 주요 광물 — 여덟 가지 다 캐는 나라는 없으니, 이 나라가 값을 가진
-     항목만 추려서 보여 준다(다섯 칸짜리 빈 칸이 줄줄이 뜨는 걸 막는다) */
-  if(wdt){
-    const minIds=['iron_ore','gold','silver','copper','cobalt','chromium','manganese','bauxite']
-      .filter(id=>{const m=abMetric(id);return m&&m.f(iso)!=null;});
-    if(minIds.length)
-      h+='<h4 class="sec">주요 광물 <em>USGS 2025년 추정치</em></h4><div class="grid g-3">'
-        +minIds.map(id=>abStatCell(id,iso)).join('')
-        +'</div>';
-  }
-  /* 기후 — 나라 전체를 하나의 순위로 묶지 않는다. 관측소를 평균 내면 넓은
-     나라일수록 극값이 뭉개져 순위 자체가 왜곡된다(러시아가 냉대와 온난
-     기후를 다 갖고 있어도 평균은 그저 그런 숫자가 되는 식이다). 대신
-     관측소별 실측을 그대로 보여 준다. */
-  if(cl&&cl.st.length){
-    h+='<h4 class="sec">기후 <em>관측소 '+cl.n+'곳</em></h4>';
-    h+='<div class="chips cl-pick" id="cl-pick">'+cl.st.map((s,i)=>
-      '<button class="chip'+(i===0?' on':'')+'" data-i="'+i+'">'+abEsc(s.ko||s.en)
-      +(s.kop?'<em>'+abEsc(s.kop)+'</em>':'')+'</button>').join('')+'</div>';
-    h+='<div id="cl-box" class="card pad"></div>';
-  }
-  /* 하천 */
-  if(rv.length){
-    h+='<h4 class="sec">지나는 하천</h4><div class="taglist">'
-      +rv.map(r=>'<span class="tag">'+abEsc(r.ko)+'<em>'+abEsc(r.en)+'</em></span>').join('')+'</div>';
-  }
-  /* 접경국 */
-  if(nb.length){
-    h+='<h4 class="sec">접경국 <em>'+nb.length+'개국</em></h4><div class="taglist flags">'
-      +nb.map(n=>'<a class="tag'+(DICT_DATA[n]?' link':'')+'"'
-        +(DICT_DATA[n]?' href="#/atlas?'+n+'"':'')+'>'
-        +abFlag(n,20)+abEsc(abName(n))+'</a>').join('')+'</div>';
-  } else if(BORDERS[iso]){
-    h+='<h4 class="sec">접경국</h4><p class="none">맞닿은 나라가 없습니다 — 섬나라입니다.</p>';
-  }
   const view=document.getElementById('atlas-view');
   view.innerHTML=h;
+  view.querySelectorAll('.at-jump a').forEach(a=>{
+    a.addEventListener('click',e=>{e.preventDefault();abScrollTo(a.getAttribute('href').slice(1));});
+  });
   if(cl&&cl.st.length){
     const draw=i=>{
       const s=cl.st[i];

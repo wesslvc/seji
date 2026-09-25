@@ -248,11 +248,20 @@ h4.sec em{font-style:normal;font-weight:400;color:var(--tx3);font-size:var(--fs-
 @media (max-width:560px){.seg{display:flex;width:100%;overflow:auto}
   .seg button{padding:.44rem .7rem;font-size:var(--fs-sm)}}
 
-/* 대단원 건너뛰기 */
-.cx-jump{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1.6rem}
-.cx-jump a{padding:.34rem .8rem;border:1px solid var(--bd);border-radius:var(--r-full);
+/* 대단원 건너뛰기 — 지엽개념·아틀라스가 같은 모양을 쓴다 */
+.cx-jump,.at-jump{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1.6rem}
+.cx-jump a,.at-jump a{padding:.34rem .8rem;border:1px solid var(--bd);border-radius:var(--r-full);
   font-size:var(--fs-sm);color:var(--tx2);background:var(--sf);transition:.16s var(--ease)}
-.cx-jump a:hover{border-color:var(--btn);color:var(--ac)}
+.cx-jump a:hover,.at-jump a:hover{border-color:var(--btn);color:var(--ac)}
+
+/* 아틀라스 — 규모·인구·산업·자연·경계 다섯 갈래로 묶는다 */
+.at-grp{margin-top:2.2rem;scroll-margin-top:4.6rem}
+.at-grp:first-of-type{margin-top:0}
+.at-gh{font-size:var(--fs-xs);letter-spacing:.06em;color:var(--tx3);font-weight:600;
+  text-transform:uppercase;margin:0 0 .3rem}
+.at-gh::before{content:'';display:inline-block;width:.5rem;height:.5rem;border-radius:50%;
+  background:var(--ac);margin-right:.5rem;vertical-align:1px}
+.src-note{color:var(--tx3);font-size:.66rem;grid-column:1/-1;margin:-.3rem 0 0}
 
 .codex-layout{display:grid;grid-template-columns:minmax(0,1fr) 224px;gap:2.4rem;align-items:start}
 .cx-main{min-width:0}

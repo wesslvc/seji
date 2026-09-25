@@ -198,13 +198,19 @@ const AB_METRICS=[
       AB_METRICS.push({id:id,cat:'농축산물',name:nm,unit:unit,src:'FAOSTAT',
         f:i=>{const v=wd(i)[k];return v!=null?v:null;}});
     });
-  /* 주요 광물 — USGS Mineral Commodity Summaries 2026, 2025년 추정치(2025e) */
-  [['iron_ore','철광석 생산량','ior','만 톤'],['gold','금 생산량','gld','톤'],
-   ['silver','은 생산량','slv','톤'],['copper','구리 생산량','cop','만 톤'],
-   ['cobalt','코발트 생산량','cbt','톤'],['chromium','크롬 생산량','chr','만 톤'],
-   ['manganese','망간 생산량','mng','만 톤'],['bauxite','보크사이트 생산량','bux','만 톤']]
-    .forEach(([id,nm,k,unit])=>{
-      AB_METRICS.push({id:id,cat:'광물',name:nm,unit:unit,src:'USGS Mineral Commodity Summaries 2026',
+  /* 주요 광물 — USGS Mineral Commodity Summaries 2026, 2025년 추정치(2025e).
+     다이아몬드만 출처가 다르다(왜 다른지는 world-data.js 머리말 참고) */
+  [['iron_ore','철광석 생산량','ior','만 톤','USGS Mineral Commodity Summaries 2026'],
+   ['gold','금 생산량','gld','톤','USGS Mineral Commodity Summaries 2026'],
+   ['silver','은 생산량','slv','톤','USGS Mineral Commodity Summaries 2026'],
+   ['copper','구리 생산량','cop','만 톤','USGS Mineral Commodity Summaries 2026'],
+   ['cobalt','코발트 생산량','cbt','톤','USGS Mineral Commodity Summaries 2026'],
+   ['chromium','크롬 생산량','chr','만 톤','USGS Mineral Commodity Summaries 2026'],
+   ['manganese','망간 생산량','mng','만 톤','USGS Mineral Commodity Summaries 2026'],
+   ['bauxite','보크사이트 생산량','bux','만 톤','USGS Mineral Commodity Summaries 2026'],
+   ['diamond','다이아몬드 원석 생산량','dmd','캐럿','Kimberley Process Statistics · 2025년']]
+    .forEach(([id,nm,k,unit,src])=>{
+      AB_METRICS.push({id:id,cat:'광물',name:nm,unit:unit,src:src,
         f:i=>{const v=wd(i)[k];return v!=null?v:null;}});
     });
 })();

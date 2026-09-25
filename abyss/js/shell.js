@@ -12,6 +12,18 @@ const AB_SCREENS={
   '/review':{el:'s-review', depth:0.66,  label:'되짚기'}
 };
 
+/* 화면 안 어느 자리로든 — 해시를 바꾸지 않고 스크롤만 한다(href="#foo" 를
+   그대로 두면 주소의 해시가 바뀌어 라우터가 그걸 화면 이름으로 오해해 엉뚱한
+   화면으로 보내 버린다). 본문에 그림이 늦게 불러와져(lazy) 지나가는 동안
+   위쪽 높이가 늘어나는 화면(지엽개념 등)도 있어, 부드럽게 한 번 굴리는 대신
+   바로 뛰고 그림이 자리 잡을 때까지 잠깐 다시 맞춘다. */
+function abScrollTo(id){
+  const t=document.getElementById(id);if(!t)return;
+  t.scrollIntoView({block:'start'});
+  let n=0;
+  const again=()=>{t.scrollIntoView({block:'start'});if(++n<6)setTimeout(again,250);};
+  setTimeout(again,120);
+}
 function abGo(hash){
   const key=(hash||location.hash).replace(/^#/,'')||'/';
   const path=key.split('?')[0];

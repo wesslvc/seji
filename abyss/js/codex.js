@@ -175,19 +175,9 @@ function abCodexAnchors(){
     if(a.dataset.go)return;               /* 그림 칸의 링크는 따로 처리한다 */
     a.addEventListener('click',e=>{
       e.preventDefault();
-      abCodexGoTo(a.getAttribute('href').slice(1));
+      abScrollTo(a.getAttribute('href').slice(1));
     });
   });
-}
-/* 그 자리로 간다. 본문의 그림은 늦게 불러와져(lazy) 지나가는 동안 위쪽 높이가
-   늘어나므로, 부드럽게 굴리면 도착 전에 목표가 아래로 밀려 엉뚱한 데서 멈춘다.
-   바로 뛰고, 그림이 다 자리를 잡을 때까지 잠깐 다시 맞춘다. */
-function abCodexGoTo(id){
-  const t=document.getElementById(id);if(!t)return;
-  t.scrollIntoView({block:'start'});
-  let n=0;
-  const again=()=>{t.scrollIntoView({block:'start'});if(++n<6)setTimeout(again,250);};
-  setTimeout(again,120);
 }
 /* ══════ 그림으로 보기 ══════ */
 function abCodexGallery(){
@@ -207,7 +197,7 @@ function abCodexGallery(){
     a.addEventListener('click',e=>{
       e.preventDefault();
       document.querySelector('#cx-tabs button[data-t="read"]').click();
-      abCodexGoTo('cx-'+a.dataset.go);
+      abScrollTo('cx-'+a.dataset.go);
     });
   });
 }
