@@ -190,17 +190,20 @@ const AB_METRICS=[
   });
   /* 에너지 자원 — 생산량·소비량과 자급률(생산÷소비). 100을 넘으면 쓰는
      것보다 더 캐내 수출로 남기는 나라, 밑돌면 수입에 기대는 나라다.
-     석유 생산량(op)만 출처가 다르다(EIA — 위 world-data.js 머리말 참고) */
-  [['coal','석탄','cp','cc','Our World in Data(Energy Institute) · 1차에너지 환산'],
-   ['oil','석유','op','oc','EIA International(생산) · Our World in Data(소비)'],
-   ['gas','천연가스','gp','gc','Our World in Data(Energy Institute) · 1차에너지 환산']]
-    .forEach(([key,nm,pk,ck,src])=>{
+     석유는 생산·소비 다 EIA. 석탄·가스는 생산은 OWID 그대로, 소비는
+     EIA로 받은 나라(130·125개국)만 EIA고 나머진 OWID를 안 지웠다 —
+     그래서 소비 쪽 출처를 '혼합'이라고 적었다(world-data.js 머리말에
+     정확한 나라 수·환산법 적어 뒀다) */
+  [['coal','석탄','cp','cc','Our World in Data(Energy Institute) · 1차에너지 환산','EIA International · 2024년(일부는 OWID)'],
+   ['oil','석유','op','oc','EIA International · TBPD→TWh 환산','EIA International · TBPD→TWh 환산'],
+   ['gas','천연가스','gp','gc','Our World in Data(Energy Institute) · 1차에너지 환산','EIA International · 2024년(일부는 OWID)']]
+    .forEach(([key,nm,pk,ck,psrc,csrc])=>{
       AB_METRICS.push({id:key+'Prod',cat:'에너지 자원',name:nm+' 생산량',unit:'TWh',
-        src:src,f:i=>{const v=wd(i)[pk];return v!=null?v:null;}});
+        src:psrc,f:i=>{const v=wd(i)[pk];return v!=null?v:null;}});
       AB_METRICS.push({id:key+'Cons',cat:'에너지 자원',name:nm+' 소비량',unit:'TWh',
-        src:src,f:i=>{const v=wd(i)[ck];return v!=null?v:null;}});
+        src:csrc,f:i=>{const v=wd(i)[ck];return v!=null?v:null;}});
       AB_METRICS.push({id:key+'Self',cat:'에너지 자원',name:nm+' 자급률',unit:'%',
-        src:src+' · 생산량÷소비량',
+        src:psrc+' ÷ '+csrc,
         note:'100%를 넘으면 쓰는 양보다 많이 캐내는 나라(순수출), 밑돌면 모자라 들여오는 나라(순수입)입니다.',
         f:i=>{const d=wd(i),c=d[ck];if(!c)return null;return (d[pk]||0)/c*100;}});
     });
