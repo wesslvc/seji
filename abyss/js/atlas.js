@@ -297,7 +297,7 @@ function abAtlasShow(iso){
      단위가 다른 절대량이라 원그래프 대신 '규모와 위치'와 같은 값+순위 칸을 쓴다 */
   if(wdt&&(wdt.wh!=null||wdt.ri!=null||wdt.co!=null||wdt.ct!=null||wdt.sh!=null)){
     G.econ+='<h4 class="sec" id="at-crop">주요 농축산물'+abSecEm(null,abSrcOf(['wheat']))+'</h4><div class="grid g-3">'
-      +['wheat','rice','corn','cattle','sheep'].map(id=>abStatCell(id,iso)).join('')
+      +['wheat','rice','corn','cattle','sheep','pig'].map(id=>abStatCell(id,iso)).join('')
       +'</div>';
   }
   /* 주요 광물 — 아홉 가지 다 나는 나라는 없으니, 이 나라가 값을 가진

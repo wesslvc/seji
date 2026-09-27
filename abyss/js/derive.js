@@ -219,7 +219,7 @@ const AB_METRICS=[
   /* 주요 농축산물 */
   [['wheat','밀 생산량','wh','만 톤'],['rice','쌀 생산량','ri','만 톤'],
    ['corn','옥수수 생산량','co','만 톤'],['cattle','소 사육두수','ct','만 두'],
-   ['sheep','양 사육두수','sh','만 두']]
+   ['sheep','양 사육두수','sh','만 두'],['pig','돼지 사육두수','pg','만 두']]
     .forEach(([id,nm,k,unit])=>{
       AB_METRICS.push({id:id,cat:'농축산물',name:nm,unit:unit,src:'FAOSTAT',
         f:i=>{const v=wd(i)[k];return v!=null?v:null;}});
