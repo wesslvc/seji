@@ -294,10 +294,14 @@ function abAtlasShow(iso){
       +'</div>';
   }
   /* 주요 농축산물 — 곡물 생산량과 가축 사육두수. 구성비가 아니라 저마다
-     단위가 다른 절대량이라 원그래프 대신 '규모와 위치'와 같은 값+순위 칸을 쓴다 */
+     단위가 다른 절대량이라 원그래프 대신 '규모와 위치'와 같은 값+순위 칸을 쓴다.
+     커피·목화·곡물 수출입은 나는(파는) 나라가 적어 광물처럼 값 있는 나라만 */
   if(wdt&&(wdt.wh!=null||wdt.ri!=null||wdt.co!=null||wdt.ct!=null||wdt.sh!=null)){
+    const cropExtra=['coffee','cotton','wheatGExp','wheatGImp','riceGExp','riceGImp','cornGExp','cornGImp']
+      .filter(id=>{const m=abMetric(id);return m&&m.f(iso)!=null;});
     G.econ+='<h4 class="sec" id="at-crop">주요 농축산물'+abSecEm(null,abSrcOf(['wheat']))+'</h4><div class="grid g-3">'
       +['wheat','rice','corn','cattle','sheep','pig'].map(id=>abStatCell(id,iso)).join('')
+      +cropExtra.map(id=>abStatCell(id,iso)).join('')
       +'</div>';
   }
   /* 주요 광물 — 아홉 가지 다 나는 나라는 없으니, 이 나라가 값을 가진

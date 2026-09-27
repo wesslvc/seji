@@ -227,6 +227,21 @@ const AB_METRICS=[
       AB_METRICS.push({id:id,cat:'농축산물',name:nm,unit:unit,src:'FAOSTAT',
         f:i=>{const v=wd(i)[k];return v!=null?v:null;}});
     });
+  [['coffee','커피 생두 생산량','cof','만 톤'],['cotton','목화 생산량','ctn','만 톤']]
+    .forEach(([id,nm,k,unit])=>{
+      AB_METRICS.push({id:id,cat:'농축산물',name:nm,unit:unit,src:'USDA FAS PSD Online',
+        f:i=>{const v=wd(i)[k];return v!=null?v:null;}});
+    });
+  /* 곡물 수출입 — 생산량(wh/ri/co)은 FAOSTAT을 그대로 두고 수출입만
+     USDA FAS PSD Online에서 얹었다. 나라마다 '마켓이어'가 시작하는 달이
+     달라 보고 시점이 조금씩 다르다 */
+  [['wheat','밀','whx','whm'],['rice','쌀','rix','rim'],['corn','옥수수','cox','com']]
+    .forEach(([key,nm,xk,mk])=>{
+      AB_METRICS.push({id:key+'GExp',cat:'농축산물',name:nm+' 수출량',unit:'만 톤',
+        src:'USDA FAS PSD Online',f:i=>{const v=wd(i)[xk];return v!=null?v:null;}});
+      AB_METRICS.push({id:key+'GImp',cat:'농축산물',name:nm+' 수입량',unit:'만 톤',
+        src:'USDA FAS PSD Online',f:i=>{const v=wd(i)[mk];return v!=null?v:null;}});
+    });
   /* 주요 광물 — USGS Mineral Commodity Summaries 2026, 2025년 추정치(2025e).
      다이아몬드만 출처가 다르다(왜 다른지는 world-data.js 머리말 참고) */
   [['iron_ore','철광석 생산량','ior','만 톤','USGS Mineral Commodity Summaries 2026'],
