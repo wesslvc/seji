@@ -16,8 +16,8 @@
 <link rel="icon" href="img/magpie-64.png?v=20260917d">
 <link rel="apple-touch-icon" href="img/magpie-192.png?v=20260917d">
 <script>(function(){try{var m=localStorage.getItem('seji_theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');document.documentElement.dataset.theme=m;}catch(e){}})();</script>
-<link rel="stylesheet" href="css/main.css?v=20260929e">
-<link rel="stylesheet" href="css/tokens.css?v=12">
+<link rel="stylesheet" href="css/main.css?v=20260929f">
+<link rel="stylesheet" href="css/tokens.css?v=19">
 </head>
 <body>
 <script src="js/surface-in.js?v=20260923a"></script>
@@ -145,20 +145,7 @@
   </div>
 </div>
 <!-- 하천 통과국(중) 질문 박스 — 세계지도 위 -->
-<div id="rvc-box">
-  <div class="bq-q">이 하천이 <b>지나는 나라</b>를 지도에서 모두 클릭하세요</div>
-  <div class="bq-neighbors" style="margin-bottom:.3rem"><span class="bq-nb rbq-target-tag" id="rvc-target">—</span></div>
-  <div class="rbq-meta">
-    <div class="bq-dots"><div class="bq-dot" id="rvc-d0"></div><div class="bq-dot" id="rvc-d1"></div><div class="bq-dot" id="rvc-d2"></div></div>
-    <span class="rbq-progress" id="rvc-progress">0 / 0개</span>
-  </div>
-  <div class="bq-neighbors" id="rvc-found"></div>
-  <div class="bq-foot">
-    <div class="bq-fb" id="rvc-fb"></div>
-    <button class="bq-skip" id="rvc-skip" onclick="rvSkip()">건너뛰기</button>
-    <button class="btn bp" id="rvc-next" type="button" style="display:none" onclick="rvNext()">다음 →</button>
-  </div>
-</div>
+
 <!-- 하천 그리기(상) 질문 박스 — 세계지도 위 -->
 <div id="rvd-box">
   <div class="bq-q">이 하천의 <b>경로를 세계지도에 직접 그려보세요</b></div>
@@ -325,6 +312,20 @@
 </header>
 <div class="pb"><div class="pf" id="ui-pf"></div></div>
 <main>
+<div id="rvc-box">
+  <div class="bq-q">이 하천이 <b>지나는 나라</b>를 지도에서 모두 클릭하세요</div>
+  <div class="bq-neighbors" style="margin-bottom:.3rem"><span class="bq-nb rbq-target-tag" id="rvc-target">—</span></div>
+  <div class="rbq-meta">
+    <div class="bq-dots"><div class="bq-dot" id="rvc-d0"></div><div class="bq-dot" id="rvc-d1"></div><div class="bq-dot" id="rvc-d2"></div></div>
+    <span class="rbq-progress" id="rvc-progress">0 / 0개</span>
+  </div>
+  <div class="bq-neighbors" id="rvc-found"></div>
+  <div class="bq-foot">
+    <div class="bq-fb" id="rvc-fb"></div>
+    <button class="bq-skip" id="rvc-skip" onclick="rvSkip()">건너뛰기</button>
+    <button class="btn bp" id="rvc-next" type="button" style="display:none" onclick="rvNext()">다음 →</button>
+  </div>
+</div>
     <div id="bq-box">
       <div class="bq-q" id="bq-q-text">아래 나라들과 <b>모두 접한</b> 나라를 지도에서 클릭하세요</div>
       <div class="bq-dots"><div class="bq-dot" id="bq-d0"></div><div class="bq-dot" id="bq-d1"></div><div class="bq-dot" id="bq-d2"></div></div>
@@ -3501,7 +3502,7 @@
 </main>
 <div id="ui-next" style="display:none"></div>
 <!-- Mobile bottom bar -->
-<div id="ui-mob-bar" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:190;padding:.6rem .85rem calc(.6rem + env(safe-area-inset-bottom));background:rgba(32,33,36,.95);border-top:1px solid var(--bd);backdrop-filter:blur(12px)">
+<div id="ui-mob-bar" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:190;padding:.6rem .85rem calc(.6rem + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--sf) 94%,transparent);border-top:1px solid var(--bd);backdrop-filter:blur(12px)">
   <button onclick="goRandom()" style="width:100%;padding:.7rem 1rem;background:var(--btn);border:none;border-radius:999px;color:#fff;font-size:.95rem;font-weight:700;font-family:'Pretendard','Noto Sans KR',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.6rem;letter-spacing:.04em">
     <span>다음 국가</span><span id="mob-rem-cnt" style="opacity:.65;font-size:.85rem;font-weight:400"></span><span style="font-size:1.1rem">→</span>
   </button>
@@ -4929,7 +4930,7 @@
 <script src="js/climate-map-data.js?v=20260917d"></script>
 <script src="js/app.js?v=20260917d"></script>
 <script src="js/climate.js?v=20260917d"></script>
-<script src="js/pen.js?v=1"></script>
+<script src="js/pen.js?v=2"></script>
 <script src="js/dict-data.js?v=20260923c"></script>
 <script src="js/flag-colors-data.js?v=20260917d"></script>
 <script src="js/flag-bg-data.js?v=20260917d"></script>

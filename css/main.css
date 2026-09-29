@@ -591,7 +591,7 @@ h1,h2,h3{text-wrap:balance;letter-spacing:-.02em}
 .ld-rq-range select{background:var(--sf2);border:1px solid var(--bd);border-radius:4px;color:var(--tx2);font-size:.76rem;padding:.28rem .5rem;font-family:'Pretendard',sans-serif;cursor:pointer}
 /* ── 국가목록 오답 뱃지 ── */
 sup.wc{font-size:.62rem;font-weight:600;padding:.08rem .26rem;border-radius:3px;margin-left:3px;vertical-align:.15em}
-sup.wc1{background:rgba(138,180,248,.14);color:#8ab4f8}
+sup.wc1{background:rgba(138,180,248,.14);color:var(--ac)}
 sup.wc2{background:rgba(168,112,32,.2);color:var(--gd)}
 sup.wcr{background:rgba(242,139,130,.15);color:var(--wr)}
 /* ── 종교 퀴즈 점수 표시 ── */
@@ -632,7 +632,7 @@ sup.wcr{background:rgba(242,139,130,.15);color:var(--wr)}
 .tq-cl-p{font-size:.62rem;color:rgba(255,255,255,.85);text-shadow:0 1px 1px rgba(0,0,0,.3)}
 .tq-ans{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.72);color:#fff;font-size:.76rem;font-weight:700;text-align:center;padding:.18rem;z-index:3}
 .tq-map-card.good .tq-ans{color:var(--okt)}
-.tq-map-card.bad .tq-ans{color:#f28b82}
+.tq-map-card.bad .tq-ans{color:var(--wr)}
 /* 종교·에너지 원그래프 카드 */
 .tq-map.pie{display:flex;align-items:center;gap:5px;padding:4px 18px 4px 7px;background:var(--sf)}
 .tq-pie{width:28%;max-width:100px;max-height:90%;height:auto;aspect-ratio:1/1;flex-shrink:0;filter:drop-shadow(0 1px 2px rgba(0,0,0,.3))}
@@ -682,7 +682,7 @@ sup.wcr{background:rgba(242,139,130,.15);color:var(--wr)}
 .tq-map-card.linked .tq-dot-l{background:var(--btn);border-color:#8ab4f8}
 .tq-name{position:relative;border:1.5px solid var(--bd);border-radius:12px;background:var(--sf);color:var(--tx);padding:.55rem .5rem;font-size:.82rem;font-weight:600;cursor:pointer;text-align:center;transition:.15s var(--ease);user-select:none}
 .tq-name.sel{border-color:var(--tx);box-shadow:0 0 0 2px rgba(238,238,238,.25)}
-.tq-name.linked{border-color:#8ab4f8;color:#8ab4f8}
+.tq-name.linked{border-color:#8ab4f8;color:var(--ac)}
 .tq-name.linked .tq-dot-r{background:var(--btn);border-color:#8ab4f8}
 .tq-name-t{pointer-events:none}
 .tq-foot{flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:.8rem;padding:.55rem .8rem calc(.55rem + env(safe-area-inset-bottom))}

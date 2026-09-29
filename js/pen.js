@@ -37,6 +37,8 @@
     if(!cv)return;
     const at=document.getElementById('act-tabs');const top=at&&at.offsetParent!==null?Math.max(0,at.getBoundingClientRect().bottom):0;
     cv.style.top=top+'px';
+    const hd=document.querySelector('#ui-screen header, header');const hb=hd&&hd.offsetParent!==null?hd.getBoundingClientRect().bottom:top;
+    if(bar)bar.style.top=Math.round(Math.max(top,hb)+10)+'px';
     const d=window.devicePixelRatio||1,w=innerWidth,h=innerHeight-top;
     cv.width=Math.round(w*d);cv.height=Math.round(h*d);cv.style.width=w+'px';cv.style.height=h+'px';
     ctx.setTransform(d,0,0,d,0,0);redraw();

@@ -190,3 +190,107 @@ html,body{overflow-x:clip}
 .ld-brand{color:var(--tx2)}
 /* 무역 칸 글자: 바탕색이 제각각이라 어두운 알약을 깔아 어디서나 읽히게 */
 .tq-cl-n,.tq-cl-p,:root[data-theme="light"] .tq-cl-n,:root[data-theme="light"] .tq-cl-p{color:#fff;background:rgba(10,18,30,.6);padding:0 .35em;border-radius:5px;text-shadow:none;opacity:1;width:fit-content;max-width:100%}
+
+/* 8) 전수조사 보정 — 크기·정렬·모양이 혼자 튀던 곳 ───────────────────── */
+/* 지오글 퀴즈 머리줄: 통계 칸이 카드처럼 커지던 것 → 아이콘 단추와 같은 높이의 알약 */
+header .stat{padding:0 .85rem;height:34px;border-radius:var(--r-full);background:var(--sf2);border:1px solid var(--bd);box-shadow:none;gap:.35rem}
+header .stat .sv{font-size:.95rem;line-height:1}
+header .stat .sl{line-height:1}
+header .hicon{width:34px;height:34px}
+header .stats{gap:.45rem;justify-content:normal}
+header .stats>:first-child{margin-left:auto}
+header{min-height:52px}
+.logo{white-space:nowrap}
+@media (pointer:coarse){header .stat,header .hicon{height:40px}header .hicon{width:40px}}
+@media (max-width:600px){header .stat{padding:0 .6rem}header .stat .sl{font-size:.66rem}}
+/* 종교·에너지·무역 머리줄 단추도 같은 원형 아이콘으로 */
+.tq-hbtn{width:34px;height:34px;border-radius:50%;background:transparent;border-color:var(--bd)}
+.tq-hbtn:hover{background:var(--sf2)}
+/* 접경국·하천 문제 카드: 나라 이름표는 알약, 건너뛰기는 보조 단추 */
+.bq-nb{border-radius:var(--r-full);padding:.2rem .7rem;background:var(--sf2);border-color:var(--bd)}
+.bq-skip{border-radius:var(--r-full);padding:.35rem .9rem;border-color:var(--bd2);color:var(--tx)}
+.bq-skip:hover{background:var(--sf2)}
+#bq-box,#rbq-box,#rvc-box{border-radius:var(--r-lg);box-shadow:var(--sh-md)}
+/* 입력칸 초점: 테두리 + 옅은 번짐 하나만 (고리가 겹쳐 두꺼워지던 것) */
+input[type=text]:focus-visible,input[type=search]:focus-visible,input:not([type]):focus-visible,textarea:focus-visible{
+  outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--ac2)}
+/* 원그래프 범례: 글자를 키우고 이름·비율을 가까이 */
+.tq-legend{max-width:190px;gap:.1rem}
+.tq-lg-row,.tq-lg-pct{font-size:.72rem;line-height:1.3}
+.tq-lg-row{gap:5px}
+.tq-lg-nm{font-weight:500}
+.tq-lg-pct{font-weight:600;font-variant-numeric:tabular-nums;color:var(--tx)}
+.tq-lg-sw{width:9px;height:9px;border-radius:3px}
+@media (max-width:400px){.tq-lg-row,.tq-lg-pct{font-size:.66rem}}
+.tq-esub-btn{border-radius:var(--r-full);border-width:1px}
+.tq-esub-btn.active{background:var(--ac2);border-color:transparent;color:var(--ac)}
+.tq-hint-pop{background:var(--sf);border-radius:var(--r-md)}
+
+/* 어비스 */
+@media (pointer:coarse){.tb-in{padding-left:3.5rem}}
+/* 나라 머리 오른쪽 정보: 이름표가 너무 작던 것 */
+.ct-cap{gap:.3rem 1rem}
+.ct-cap b{font-size:.95rem}
+.ct-cap span{font-size:.76rem;color:var(--tx2)}
+@media (max-width:620px){
+  .ct-cap{direction:rtl;grid-template-columns:1fr auto;justify-content:stretch;width:100%}
+  .ct-cap b,.ct-cap span{text-align:left}
+  .ct-cap span{min-width:4.5rem}
+}
+/* 절 제목과 출처가 한 줄에 끼어 제목이 두 줄로 꺾이던 것 */
+h4.sec{flex-wrap:wrap;row-gap:.25rem;align-items:baseline}
+@media (max-width:620px){h4.sec em{flex-basis:100%;margin-left:0}}
+/* 지엽개념 번호가 제목에 붙어 있던 것 */
+.cx-sec>h3{gap:.55rem;align-items:baseline}
+.cx-sec>h3 .star{align-self:center}
+/* 홈의 넓은 칸: 폰에서는 부가 정보를 아래 줄로 */
+@media (max-width:620px){
+  .ld-cell.wide{flex-wrap:wrap;row-gap:.35rem}
+  .ld-cell.wide .ld-cell-txt{flex:1 1 0;min-width:0}
+  .ld-cell.wide .ld-cell-pt{flex-basis:100%;margin-left:0;padding-left:calc(40px + .75rem);white-space:normal}
+}
+.ld-cell-pt{font-size:.7rem}
+/* 폰 퀴즈 머리줄: 모드 이름은 위 탭에 이미 있으니 숨겨 통계·단추가 한 줄에 들어가게 */
+@media (max-width:600px){header .logo{display:none}header .stats{flex:1}header{padding:.4rem .6rem}}
+/* 퀴즈 카드 안쪽 판이 둥근 테두리 밖으로 모서리가 삐져나오던 것 */
+.tq-map-card .tq-map{border-radius:calc(var(--r-md) - 2px)}
+.tq-map-card .tq-map:not(.pie){border-radius:calc(var(--r-md) - 4px)}
+/* 아틀라스 나라 고르기 칸: 모서리를 다른 카드와 맞추고, 국기를 첫 줄에 맞춘다 */
+.pick{border-radius:var(--r-sm);align-items:flex-start;padding:.75rem .85rem;line-height:1.45;background:var(--sf)}
+.pick>img,.pick>.flag,.pick>svg{margin-top:.2rem;flex:none}
+.pick-s{line-height:1.45}
+.pick-grid{gap:.6rem}
+/* 모든 퀴즈의 점수 표시를 같은 알약 모양으로 (숫자 위·글자 아래로 쌓이던 것 통일) */
+.kr-stats,.tq-stats,.rq-stats{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center}
+.kr-stats>div,.tq-stats>div,.rq-stats>.rq-stat{display:inline-flex;align-items:center;gap:.35rem;height:32px;padding:0 .75rem;
+  border-radius:var(--r-full);background:var(--sf2);border:1px solid var(--bd)}
+.kr-stats .sv,.tq-stats .sv,.rq-stats .sv{font-size:.95rem;font-weight:700;line-height:1;letter-spacing:0;font-family:var(--font-display)}
+.kr-stats .sl,.tq-stats .sl,.rq-stats .sl{font-size:.7rem;line-height:1;margin:0;text-transform:none;letter-spacing:0;color:var(--tx2)}
+.kr-stats{margin-left:auto}
+.kr-header{gap:.5rem .6rem;min-height:52px}
+.tq-stats{margin-top:.5rem}
+/* 세지 위키 머리: 넓은 화면에선 '기여 랭킹'을 로그인 단추 옆 한 줄에 */
+@media (min-width:700px){.wd-top-acts{flex:0 0 auto;margin-left:auto;margin-right:7.2rem}}
+.wd-sort-btn{font-size:.78rem;font-weight:500;height:32px;padding:0 .85rem;display:inline-flex;align-items:center;background:transparent;border-color:var(--bd2);color:var(--tx)}
+.wd-sort-btn.on{background:var(--accent);border-color:transparent;color:var(--accent-fg)}
+.wd-rank-btn{border-radius:var(--r-full)}
+@media (pointer:coarse){.wd-sort-btn{height:38px}}
+/* 폰 시·군 머리: 제목은 위 탭에 있으니 숨기고 점수·단추를 한 줄로 */
+@media (max-width:600px){
+  .kr-header{flex-wrap:nowrap}
+  .kr-title{display:none}
+  .kr-stats{margin-left:0;flex-wrap:nowrap}
+  .kr-hbtns{display:flex;gap:.35rem;margin-left:auto;flex-wrap:nowrap}
+  #sq-sub{display:none}
+  #sq-title{white-space:nowrap}
+}
+.tq-th #sq-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.tq-th #sq-sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1 1 0}
+/* 어비스 폰 메뉴: 옆으로 밀리는 줄임을 흐림으로 보여 준다 */
+@media (max-width:720px){.topbar nav{-webkit-mask-image:linear-gradient(90deg,#000 82%,transparent);mask-image:linear-gradient(90deg,#000 82%,transparent);padding-right:1.2rem}}
+/* 밝은 모드에서도 어둡게 고정돼 있던 면들을 테마 색으로 */
+.ab,.rq-reveal{background:var(--sf2);border-radius:var(--r-sm)}
+.mnu-sec{background:var(--sf2)}
+.mnu-sep{background:var(--bd)}
+.wd-map{background:var(--sf2)}
+.acct-toast{background:var(--sf)!important;color:var(--tx)!important;border-color:var(--bd)!important;border-radius:var(--r-full)!important;box-shadow:var(--sh-md)}
