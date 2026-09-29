@@ -1,158 +1,147 @@
 /* ※ 이 파일은 두 벌이다 — css/tokens.css(지오글)와 abyss/css/tokens.css(어비스). 어비스는 abyss/ 폴더만
    따로 배포되어 위 폴더 밖을 못 읽으므로 복사본을 둔다. 고칠 때는 두 파일을 같이 고친다. */
 /* ══════════════════════════════════════════════════════════════════════════
-   디자인 토큰 — 지오글·어비스가 함께 쓰는 한 장짜리 조절판
+   디자인 토큰 + 컴포넌트 층 — 지오글·어비스 공용, HeroUI 3 스타일
    ──────────────────────────────────────────────────────────────────────────
-   색·반경·그림자·글자·움직임을 여기서만 바꾼다. 화면 CSS(main.css·abyss.css·
-   screens.css)는 이 이름표만 읽는다. 라이브러리 없이 커스텀을 넓게 하려고
-   Radix Colors(slate·blue 12단 스케일)를 원자료로 두고, 그 위에 뜻(semantic)
-   이름을 얹는 2단 구조로 만들었다.
+   색·반경·그림자·움직임은 HeroUI(@heroui/styles 기본 테마)의 값을 그대로 옮겼다:
+   zinc 중립 면 + 파랑 accent, 넉넉한 반경, 얇은 그림자, 눌리면 scale(.97).
+   화면 CSS(main.css·abyss.css·screens.css)는 이 이름표만 읽고, 여기서 못 덮는 하드코딩
+   반경·버튼은 아래 '4) 컴포넌트 층'에서 묶어서 덮는다.
 
    바꾸는 법
-     · 톤 전체를 바꾸려면 아래 '1) 원자료'의 --slate-*·--blue-* 를 다른 Radix
-       스케일(sand·mauve·sage·indigo·cyan…)로 갈아 끼운다. 12단 순서가 같아서
-       이름만 바꿔 붙이면 된다.
-     · 활성·링크 색만 바꾸려면 '2) 뜻 이름'의 --ac·--ac2·--btn 만 손댄다.
-     · 모서리는 --r-* , 그림자는 --sh-* , 글자체는 --font-* .
-   이 파일은 main.css·abyss.css 뒤에 불러오므로 같은 이름을 덮어쓴다.
+     · 색 전체: '1) 원자료'   · 강조색만: --accent   · 모서리: --r-*   · 그림자: --sh-*
+     · 움직임: '5) 움직임'   · 이 층을 통째로 끄려면 4)·5) 블록만 지우면 된다.
+   main.css·abyss.css·screens.css 뒤에 불러오므로 같은 이름을 덮어쓴다.
    ══════════════════════════════════════════════════════════════════════════ */
 
-/* 1) 원자료 — Radix Colors. 1~2 바탕 · 3~5 면 · 6~8 테두리 · 9~10 채움 · 11~12 글자 */
+/* 1) 원자료 — HeroUI 기본 테마 값(oklch). 밝은/어두운 두 벌 */
 :root{
-  /* 어두운 모드(기본) */
-  --slate-1:#111113;--slate-2:#18191b;--slate-3:#212225;--slate-4:#272a2d;--slate-5:#2e3135;--slate-6:#363a3f;
-  --slate-7:#43484e;--slate-8:#5a6169;--slate-9:#696e77;--slate-10:#777b84;--slate-11:#b0b4ba;--slate-12:#edeef0;
-  --blue-1:#0d1520;--blue-2:#111927;--blue-3:#0d2847;--blue-4:#003362;--blue-5:#004074;--blue-6:#104d87;
-  --blue-7:#205d9e;--blue-8:#2870bd;--blue-9:#0090ff;--blue-10:#3b9eff;--blue-11:#70b8ff;--blue-12:#c2e6ff;
+  --accent:oklch(0.6204 0.195 253.83);           /* HeroUI accent (#0485f7 근처) */
+  --accent-fg:oklch(0.9911 0 0);
+  --z-bg:oklch(12% 0.005 285.823);--z-surface:oklch(0.2103 0.0059 285.89);--z-surface2:oklch(0.257 0.0037 286.14);
+  --z-border:oklch(28% 0.006 286.033);--z-border2:oklch(35% 0.006 286.033);--z-default:oklch(27.4% 0.006 286.033);
+  --z-fg:oklch(0.9911 0 0);--z-muted:oklch(72% 0.015 286.067);--z-faint:oklch(63% 0.012 286);
+  --accent-text:oklch(0.76 0.13 253.83);         /* 어두운 바탕 위 링크·활성 글자 */
 }
 :root[data-theme="light"]{
-  --slate-1:#fcfcfd;--slate-2:#f9f9fb;--slate-3:#f0f0f3;--slate-4:#e8e8ec;--slate-5:#e0e1e6;--slate-6:#d9d9e0;
-  --slate-7:#cdced6;--slate-8:#b9bbc6;--slate-9:#8b8d98;--slate-10:#80838d;--slate-11:#60646c;--slate-12:#1c2024;
-  --blue-1:#fbfdff;--blue-2:#f4faff;--blue-3:#e6f4fe;--blue-4:#d5efff;--blue-5:#c2e5ff;--blue-6:#acd8fc;
-  --blue-7:#8ec8f6;--blue-8:#5eb1ef;--blue-9:#0090ff;--blue-10:#0588f0;--blue-11:#0d74ce;--blue-12:#113264;
+  --z-bg:oklch(0.9702 0 0);--z-surface:#fff;--z-surface2:oklch(0.9524 0.0013 286.37);
+  --z-border:oklch(90% 0.004 286.32);--z-border2:oklch(83% 0.004 286.32);--z-default:oklch(94% 0.001 286.375);
+  --z-fg:oklch(0.2103 0.0059 285.89);--z-muted:oklch(0.5517 0.0138 285.94);--z-faint:oklch(0.6 0.012 286);
+  --accent-text:oklch(0.52 0.19 254);
 }
 
 /* 2) 뜻 이름 — 화면이 실제로 읽는 이름표 */
 :root{
   color-scheme:dark;
-  --bg:var(--slate-1);            /* 페이지 바탕 */
-  --sf:var(--slate-2);            /* 카드·머리띠·입력 바탕 */
-  --sf2:var(--slate-3);           /* 눌림·강조 면 */
-  --bd:var(--slate-5);            /* 기본 테두리 */
-  --bd2:var(--slate-7);           /* 진한 테두리·호버 */
-  --tx:var(--slate-12);           /* 본문 */
-  --tx2:var(--slate-11);          /* 보조 글자 */
-  --tx3:var(--slate-10);          /* 출처·곁수치 */
-  --ac:var(--blue-11);            /* 링크·활성 글자 */
-  --ac2:color-mix(in srgb,var(--blue-9) 16%,transparent);  /* 활성 배경 */
-  --btn:#2f74b8;                  /* 주 버튼(시작하기 등) — 브랜드 파랑 */
-  --wr:#e08b83;--gd:#d9b268;      /* 경고·강조(금) */
-  --ring:var(--blue-8);           /* 초점 고리 */
-
-  /* 모서리 */
-  --r-xs:6px;--r-sm:10px;--r-md:12px;--r-lg:16px;--r-full:999px;
-  /* 그림자 */
-  --sh-sm:0 1px 2px rgba(0,0,0,.28),0 4px 14px rgba(0,0,0,.22);
-  --sh-md:0 6px 20px rgba(0,0,0,.3),0 18px 50px rgba(0,0,0,.26);
+  --bg:var(--z-bg);--sf:var(--z-surface);--sf2:var(--z-surface2);
+  --bd:var(--z-border);--bd2:var(--z-border2);
+  --tx:var(--z-fg);--tx2:var(--z-muted);--tx3:var(--z-faint);
+  --ac:var(--accent-text);
+  --ac2:color-mix(in oklab,var(--accent) 15%,transparent);   /* accent-soft */
+  --btn:var(--accent);
+  --ring:var(--accent);
+  --wr:#e08b83;--gd:#d9b268;
+  /* 3) 모양 — 반경·그림자·글자체 */
+  --r-xs:8px;--r-sm:12px;--r-md:16px;--r-lg:24px;--r-full:999px;
+  --sh-sm:0 0 0 1px rgba(255,255,255,.04),0 6px 20px -8px rgba(0,0,0,.5);
+  --sh-md:0 0 0 1px rgba(255,255,255,.05),0 18px 44px -14px rgba(0,0,0,.65);
   --shadow:var(--sh-sm);--shadow2:var(--sh-md);
-  /* 움직임 */
-  --ease:cubic-bezier(.22,.61,.36,1);--ease-spring:cubic-bezier(.34,1.3,.64,1);
-  /* 글자체 */
   --font-sans:'Pretendard','Noto Sans KR',system-ui,sans-serif;
   --font-display:'Space Grotesk','Pretendard',sans-serif;
+  /* 글자 크기 사다리(어비스가 쓴다) — 가장 작은 단계도 읽히게 */
+  --fs-2xs:.74rem;--fs-xs:.8rem;--fs-sm:.86rem;--fs-md:.94rem;--fs-lg:1.02rem;--fs-xl:1.16rem;
+  --lh-body:1.8;
+  /* 움직임 — HeroUI 값 */
+  --ease:ease;--ease-out:cubic-bezier(0,0,.2,1);--ease-spring:cubic-bezier(.34,1.3,.64,1);
 }
 :root[data-theme="light"]{
   color-scheme:light;
-  --bg:var(--slate-2);
-  --sf:#ffffff;
-  --sf2:var(--slate-3);
-  --bd:var(--slate-5);
-  --bd2:var(--slate-7);
-  --tx:var(--slate-12);
-  --tx2:var(--slate-11);
-  --tx3:var(--slate-10);
-  --ac:var(--blue-11);
-  --ac2:color-mix(in srgb,var(--blue-9) 9%,transparent);
-  --btn:#2f74b8;
   --wr:#b3453c;--gd:#9a7b3c;
-  --ring:var(--blue-8);
-  --sh-sm:0 1px 2px rgba(28,32,36,.05),0 4px 14px rgba(28,32,36,.05);
-  --sh-md:0 6px 20px rgba(28,32,36,.07),0 18px 50px rgba(28,32,36,.06);
+  --sh-sm:0 0 1px rgba(0,0,0,.1),0 2px 10px -3px rgba(0,0,0,.09);
+  --sh-md:0 0 1px rgba(0,0,0,.12),0 12px 32px -10px rgba(0,0,0,.18);
 }
 
-/* 3) 첫 화면 바탕 — 위쪽에 옅은 푸른 빛 */
-#landing-overlay,body.home{background:radial-gradient(1100px 620px at 50% -12%,var(--blue-2) 0%,var(--bg) 62%) no-repeat top center}
+/* 첫 화면 바탕 — 위쪽에 옅은 accent 빛 */
+#landing-overlay,body.home{background:radial-gradient(1100px 620px at 50% -12%,color-mix(in oklab,var(--accent) 9%,var(--bg)) 0%,var(--bg) 62%) no-repeat top center}
 :root[data-theme="light"] #landing-overlay,:root[data-theme="light"] body.home{background:var(--bg)}
 
-/* 4) 부드러움 · 가독성 ────────────────────────────────────────────────────
-   각진 선 대신 넓은 모서리와 번지는 그림자, 흐린 보조색·깨알 글자를 올려 읽기 쉽게 한다.
-   되돌리려면 이 블록만 지우면 된다. */
-:root{
-  /* 모서리 — 카드는 크게, 작은 부품은 알약에 가깝게 */
-  --r-xs:10px;--r-sm:14px;--r-md:18px;--r-lg:24px;--r-full:999px;
-  /* 그림자 — 선명한 테두리 그림자 대신 넓게 번지는 것 */
-  --sh-sm:0 1px 3px rgba(0,0,0,.16),0 10px 28px -12px rgba(0,0,0,.34);
-  --sh-md:0 4px 12px rgba(0,0,0,.18),0 24px 56px -20px rgba(0,0,0,.5);
-  --shadow:var(--sh-sm);--shadow2:var(--sh-md);
-  /* 테두리 — 면과 살짝만 갈리게 */
-  --bd:color-mix(in srgb,var(--slate-6) 62%,transparent);
-  --bd2:color-mix(in srgb,var(--slate-7) 78%,transparent);
-  /* 글자 — 보조색·곁글자를 밝혀 대비를 4.5:1 위로 */
-  --tx2:#c4c8ce;--tx3:#9ca0a9;
-  /* 글자 크기 사다리 — 가장 작은 단계도 읽히게 (어비스가 이 이름표를 쓴다) */
-  --fs-2xs:.74rem;--fs-xs:.8rem;--fs-sm:.86rem;--fs-md:.94rem;--fs-lg:1.02rem;--fs-xl:1.16rem;
-  --lh-body:1.8;
-}
-:root[data-theme="light"]{
-  --sh-sm:0 1px 2px rgba(28,32,36,.04),0 10px 28px -12px rgba(28,32,36,.14);
-  --sh-md:0 4px 12px rgba(28,32,36,.06),0 24px 56px -20px rgba(28,32,36,.22);
-  --bd:color-mix(in srgb,var(--slate-6) 78%,transparent);
-  --bd2:var(--slate-7);
-  --tx2:#525660;--tx3:#6b6f79;
-}
+/* 4) 컴포넌트 층 ─────────────────────────────────────────────────────────── */
 body{line-height:var(--lh-body);letter-spacing:-.003em;text-rendering:optimizeLegibility;word-break:keep-all}
 h1,h2,h3{text-wrap:balance;letter-spacing:-.022em}
 *{scrollbar-width:thin;scrollbar-color:var(--bd2) transparent}
-:where(a,button,input,select,.chip,.ld-chip,.ld-cell,.cs-card):focus-visible{
-  outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--ring) 45%,transparent)}
+:where(a,button,input,select,textarea,[tabindex]):focus-visible{outline:none;box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--ring)}
 
-/* 카드·면 — 큰 모서리와 번지는 그림자 */
-.card,.stat,.cs-card,.rank-scroll,.ld-cell,.modal,#rank-list{
-  border-radius:var(--r-md);border:1px solid var(--bd);box-shadow:var(--sh-sm)}
-.modal{border-radius:var(--r-lg)}
-.ld-cell{border-radius:var(--r-md)}
-.stat{padding:1rem 1.15rem}
-.stat .v{letter-spacing:-.03em}
-.stat .r{font-weight:600}
-.cs-card{border-radius:var(--r-md);padding:.95rem 1.1rem .95rem 1.25rem}
+/* 카드·면 — 큰 반경, 얇은 그림자 */
+.card,.stat,.cs-card,.rank-scroll,.ld-cell,.sq-pcard,.cq-card,.tq-map-card,.tq-explain-card,.sq-end-card,.rq-end-card,.cx-card,.st-side,#rank-list{
+  border:1px solid var(--bd);border-radius:var(--r-md);background:var(--sf);box-shadow:var(--sh-sm)}
+.modal,#ld-opt-sheet,#ui-menu{border:1px solid var(--bd);border-radius:var(--r-lg);box-shadow:var(--sh-md)}
+.ld-cell{border-radius:var(--r-lg)}
+.stat{padding:.95rem 1.1rem}
+.cs-card{border-radius:var(--r-md)}
 .cs-card::before{width:4px;border-radius:0 4px 4px 0;top:14px;bottom:14px}
-.cs-card.on{background:color-mix(in srgb,var(--cc) 11%,var(--sf))}
-.rank-scroll{padding:.35rem .6rem}
+.cs-card.on{background:color-mix(in oklab,var(--cc) 12%,var(--sf))}
+.ld-cell.sel,.sq-pcard.sel,.cq-card.sel{border-color:var(--accent);box-shadow:var(--sh-sm),0 0 0 1px var(--accent)}
+.ld-cell:hover{border-color:color-mix(in oklab,var(--accent) 45%,var(--bd))}
 
-/* 눌리는 것 — 알약 */
-.chip,.ld-chip,.cx-jump a,.at-jump a{border-radius:var(--r-full);padding:.42rem 1rem;font-size:var(--fs-sm,.86rem);font-weight:600}
-.chip.on,.ld-chip.on{background:var(--ac2);border-color:color-mix(in srgb,var(--ac) 55%,transparent);color:var(--ac)}
-.tag{border-radius:var(--r-full);padding:.36rem .85rem}
-.topbar nav a{border-radius:var(--r-full)}
-.field{border-radius:var(--r-full);padding:.65rem 1.15rem}
+/* 버튼 — 주 버튼은 accent 채움, 보조는 외곽선, 반경 12px(칩·탭은 알약) */
+.btn,.bp,.bs,.reb,.land-btn,.tq-btn,.sv-btn,.rq-rel-btn,.hbtn,.cl-tab,.ld-seg-btn,.ab-btn{border-radius:var(--r-sm)}
+.bp,.reb,.ld-start,.ab-btn.pri{background:var(--btn);color:var(--accent-fg)}
+.bp:hover,.reb:hover,.ld-start:hover{background:color-mix(in oklab,var(--btn) 88%,white 12%)}
+.bs,.land-btn,.hbtn,.cl-tab{background:transparent;color:var(--tx);border:1px solid var(--bd2)}
+.bs:hover,.land-btn:hover,.hbtn:hover,.cl-tab:hover{background:var(--sf2);color:var(--tx)}
+.ld-start{border-radius:var(--r-full)}
+.land-btn{padding:1rem 1.6rem;font-weight:600}
+.cb{border-radius:var(--r-sm)}
+.chip,.ld-chip,.act-tab,.tag,.at-jump a,.cx-jump a,.sq-chip,.wd-cl-chip{border-radius:var(--r-full)}
+.chip,.ld-chip,.cx-jump a,.at-jump a{border:1px solid var(--bd2);background:transparent;color:var(--tx);height:2rem;padding:0 .9rem;
+  display:inline-flex;align-items:center;font-size:.85rem;font-weight:500}
+.chip:hover,.ld-chip:hover,.cx-jump a:hover,.at-jump a:hover{background:var(--sf2);color:var(--tx)}
+.chip.on,.ld-chip.on{background:var(--accent);border-color:transparent;color:var(--accent-fg)}
+.chip.terr-sw{border-style:dashed}.chip.terr-sw.on{border-style:solid}
+.act-tab.on{background:var(--ac2);color:var(--ac)}
+.tag{padding:.28rem .75rem;font-weight:500}
+.wip{border-radius:var(--r-full);background:var(--ac2);color:var(--ac);border-color:transparent}
+
+/* 입력 */
+.field,.rq-input,.st-field,input[type=text],input[type=search],input[type=password],input[type=email],textarea{
+  border-radius:var(--r-sm);border-color:var(--bd2)}
+.field{border-radius:var(--r-full)}
+.field:focus-within,.rq-input:focus,.st-field:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--ac2)}
+
+/* 퀴즈 보기 — 큰 반경, 선택/정답/오답 색은 기존 규칙을 따른다 */
+.sq-opt,.cx-opt button{border-radius:var(--r-sm);border-width:1px;border-color:var(--bd2)}
+.sq-opt:hover,.cx-opt button:hover{border-color:var(--accent);background:var(--ac2)}
+
+/* 머리띠·목록 */
+.topbar{background:color-mix(in oklab,var(--sf) 88%,transparent);border-bottom:1px solid var(--bd);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.topbar nav a{border-radius:var(--r-full);font-weight:500}
+.topbar nav a.on{background:var(--ac2);color:var(--ac)}
+.head{border-bottom-color:var(--bd)}
 #rank-list{padding:.4rem}
 #rank-list button{border-radius:var(--r-sm);padding:.62rem .85rem;border-bottom:0}
-#rank-list button.on{background:var(--ac2);color:var(--ac);box-shadow:none}
+#rank-list button:hover{background:var(--sf2)}
+#rank-list button.on{background:var(--sf2);color:var(--tx);box-shadow:inset 3px 0 0 var(--accent)}
 #rank-list .lg{border-bottom:0}
 
-/* 표 — 머리글은 평이한 글자, 줄 간격은 넉넉하게, 막대는 둥글고 굵게 */
-.tbl th{font-size:var(--fs-sm);font-weight:600;letter-spacing:0;text-transform:none;color:var(--tx2);
-  padding:.8rem .9rem;border-bottom:1px solid var(--bd)}
-.tbl td{padding:.78rem .9rem;border-bottom:1px solid color-mix(in srgb,var(--bd) 70%,transparent)}
+/* 표 — 머리글은 평이한 글자, 줄은 넉넉하게, 막대는 둥글고 굵게 */
+.tbl th{font-size:var(--fs-sm);font-weight:500;letter-spacing:0;text-transform:none;color:var(--tx2);padding:.8rem .9rem;border-bottom:1px solid var(--bd)}
+.tbl td{padding:.75rem .9rem;border-bottom:1px solid var(--bd)}
 .tbl tbody tr:last-child td{border-bottom:0}
-.tbl tr:hover td{background:color-mix(in srgb,var(--sf2) 70%,transparent)}
-.tbl tr.top td{background:color-mix(in srgb,var(--ac) 7%,transparent)}
-.tbl .rk{color:var(--tx3)}
+.tbl tr:hover td{background:color-mix(in oklab,var(--sf2) 70%,transparent)}
+.tbl tr.top td{background:var(--ac2)}
 .tbl tr.top .rk{color:var(--ac);font-weight:700}
+.tbl .rk{color:var(--tx3)}
 .tbl .bar i{height:7px;border-radius:99px}
+.rank-scroll{padding:.35rem .6rem}
 
-/* 큰 버튼 — 지오글 시작하기 등은 이미 알약, 나머지도 둥글게 */
-.btn{border-radius:var(--r-full)}
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-/* 홈 카드·첫 화면은 한 화면에 들어가야 하므로 본문 줄 간격(1.8)을 쓰지 않는다 */
-#landing-overlay,.ld-stage,.ld-grid,.ld-cell{line-height:1.45}
+/* 5) 움직임 — HeroUI: transform 250ms ease · 배경/그림자 100ms ease-out, 눌리면 scale(.97) ─── */
+.btn,.bp,.bs,.reb,.land-btn,.land-back,.tq-btn,.sv-btn,.rq-rel-btn,.hbtn,.cb,.mnu-btn,.cl-tab,.ld-seg-btn,.ld-start,.ab-btn,
+.chip,.ld-chip,.act-tab,.tag.link,.cx-jump a,.at-jump a,.sq-opt,.cx-opt button,.cs-card,.ld-cell,.sq-pcard,.cq-card,#rank-list button{
+  transition:transform 250ms var(--ease),background-color 100ms var(--ease-out),border-color 100ms var(--ease-out),box-shadow 100ms var(--ease-out),color 100ms var(--ease-out)}
+.btn:active,.bp:active,.bs:active,.reb:active,.land-btn:active,.tq-btn:active,.sv-btn:active,.rq-rel-btn:active,.hbtn:active,
+.cl-tab:active,.ld-seg-btn:active,.ld-start:active,.ab-btn:active,.chip:active,.ld-chip:active,.act-tab:active,.cx-jump a:active,
+.at-jump a:active,.sq-opt:active,.cx-opt button:active,.cs-card:active,.ld-cell:active,.sq-pcard:active,.cq-card:active{transform:scale(.97)}
+.tbl td{transition:background-color 100ms var(--ease-out)}
+@keyframes z-rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.screen.on{animation:z-rise 260ms var(--ease-out) both}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
