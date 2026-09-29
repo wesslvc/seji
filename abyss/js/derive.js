@@ -294,3 +294,9 @@ function abCont(iso){
   if(typeof TERR_CONT!=='undefined'&&TERR_CONT[iso])return TERR_CONT[iso];
   return '';
 }
+/* 대륙별 통계용 권역 — 대륙과 같되 북·남아메리카를 앵글로(an)/라틴(la)으로 다시 가른다 */
+function abRegion(iso){
+  const c=abCont(iso);
+  if(c==='na'||c==='sa')return REGION_ANGLO.indexOf(iso)>=0?'an':'la';
+  return c;
+}

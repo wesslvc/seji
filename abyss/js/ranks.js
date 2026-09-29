@@ -74,7 +74,7 @@ function abRankView(){
   /* 대륙 칩을 누르면 그 대륙 나라만 남긴다. 순위 숫자는 세계 순위 그대로 둔다 —
      '아시아만 보면 3위'가 아니라 '세계 3위'여야 다른 화면과 어긋나지 않는다. */
   const cont=AB_RANK.cont||'';
-  const rows=cont?all.filter(r=>abCont(r.iso)===cont):all;
+  const rows=cont?all.filter(r=>abRegion(r.iso)===cont):all;
   /* 선 길이는 값 그대로다 — 1위 대비 몇 할인지가 눈에 보여야 한다.
      한때 최솟값을 0으로 잡고 최소~최대 폭으로 늘였더니, 꼴찌는 늘 길이가
      0이고 2위와 꼴찌의 차이가 실제보다 훨씬 크게 보였다.
@@ -93,7 +93,7 @@ function abRankView(){
      막대 색으로 먼저 보인다. 숫자를 하나씩 읽지 않아도 된다. */
   rows.forEach(r=>{
     const w=Math.abs(r.v)/mx*100;
-    const c=abCont(r.iso);
+    const c=abRegion(r.iso);
     h+='<tr'+(r.rank<=3?' class="top"':'')+'><td class="rk">'+r.rank+'</td>'
       +'<td class="nm"><a href="#/atlas?'+r.iso+'">'+abFlag(r.iso,18)+abEsc(abName(r.iso))+'</a></td>'
       +'<td class="val">'+abEsc(abFmt(r.v,m.unit))+'</td>'
@@ -109,10 +109,10 @@ const AB_AVG_UNITS=['%','자녀수','°C','mm','°','명/km²','m'];
 const AB_AVG_IDS=['pc','lat','alt'];
 function abContSummary(m,all,cont){
   const avg=AB_AVG_UNITS.indexOf(m.unit)>=0||AB_AVG_IDS.indexOf(m.id)>=0;
-  const keys=Object.keys(CONT_NAME);
+  const keys=Object.keys(REGION_NAME);
   const by={};keys.forEach(k=>{by[k]={n:0,s:0,top:null};});
   all.forEach(r=>{
-    const c=abCont(r.iso);if(!by[c])return;
+    const c=abRegion(r.iso);if(!by[c])return;
     const o=by[c];o.n++;o.s+=r.v;
     if(!o.top||r.v>o.top.v)o.top=r;
   });
@@ -122,22 +122,22 @@ function abContSummary(m,all,cont){
   keys.forEach(k=>{
     const o=by[k];
     if(!o.n){
-      h+='<button type="button" class="cs-card off" data-cont="'+k+'" disabled><b>'+abEsc(CONT_NAME[k])+'</b>'
+      h+='<button type="button" class="cs-card off" data-cont="'+k+'" disabled><b>'+abEsc(REGION_NAME[k])+'</b>'
         +'<span class="cs-v">—</span><span class="cs-s">자료 없음</span></button>';
       return;
     }
     const v=avg?o.s/o.n:o.s;
     h+='<button type="button" class="cs-card cont-'+k+(cont===k?' on':'')+'" data-cont="'+k+'"><b>'
-      +abEsc(CONT_NAME[k])+'</b><span class="cs-v">'+abEsc(abFmt(v,m.unit))+'</span>'
+      +abEsc(REGION_NAME[k])+'</b><span class="cs-v">'+abEsc(abFmt(v,m.unit))+'</span>'
       +'<span class="cs-s">'+(avg?'평균':'합계')+' · '+o.n+'개국 · 1위 '+abEsc(abName(o.top.iso))+'</span></button>';
   });
   return h+'</div>';
 }
 function abContLegend(rows){
-  const seen=[...new Set(rows.map(r=>abCont(r.iso)).filter(Boolean))];
+  const seen=[...new Set(rows.map(r=>abRegion(r.iso)).filter(Boolean))];
   if(seen.length<2)return '';
   return '<div class="legend">'+seen.map(c=>
-    '<span><i class="cont-'+c+'"></i>'+abEsc(CONT_NAME[c]||c)+'</span>').join('')+'</div>';
+    '<span><i class="cont-'+c+'"></i>'+abEsc(REGION_NAME[c]||c)+'</span>').join('')+'</div>';
 }
 /* 통계 퀴즈 자료 — 1~5위만 있는 표 */
 function abRankViewSet(m){
@@ -151,7 +151,7 @@ function abRankViewSet(m){
     +'<th class="rk">순위</th><th>나라</th><th class="val">'+abEsc(s.unit||'')+'</th>'
     +'<th class="bar"></th></tr></thead><tbody>';
   s.top.forEach((t,i)=>{
-    const iso=t[0],c=abCont(iso);
+    const iso=t[0],c=abRegion(iso);
     h+='<tr class="top"><td class="rk">'+(i+1)+'</td>'
       +'<td class="nm">'+(DICT_DATA[iso]?'<a href="#/atlas?'+iso+'">':'<span>')
       +abFlag(iso,18)+abEsc(abName(iso))+(DICT_DATA[iso]?'</a>':'</span>')+'</td>'

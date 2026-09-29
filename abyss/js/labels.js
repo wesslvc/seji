@@ -8,6 +8,10 @@ const ENERGY_NAME=["석탄","가스","석유","원자력","수력","태양광","
    갈라져 있어 지열·해양을 '기타재생'으로 뭉치지 않고 따로 뺐다. */
 const EL_NAME=["석탄","가스","석유","원자력","수력","태양광","풍력","바이오","지열","해양"];
 const CONT_NAME={af:'아프리카',as:'아시아',eu:'유럽',na:'북아메리카',sa:'남아메리카',oc:'오세아니아'};
+/* 순위 도감의 '대륙별 통계'는 아메리카를 문화권으로 가른다 — 미국·캐나다는 앵글로아메리카,
+   그 밖(멕시코·중미·카리브·남미)은 라틴아메리카. 퀴즈·아틀라스의 대륙 분류(CONT_NAME)는 그대로다. */
+const REGION_NAME={af:'아프리카',as:'아시아',eu:'유럽',an:'앵글로아메리카',la:'라틴아메리카',oc:'오세아니아'};
+const REGION_ANGLO=['us','ca','bm','gl','pm'];
 const CONT={
   af:['dz','ao','bj','bw','bf','bi','cm','cv','cf','td','km','cd','cg','ci','dj','eg','gq','er','et','ga','gm','gh','gn','gw','ke','ls','lr','ly','mg','mw','ml','ma','mr','mu','mz','na','ne','ng','rw','st','sn','sc','sl','so','za','ss','sd','sz','tz','tg','tn','ug','zm','zw','eh'],
   as:['af','am','az','bh','bd','bt','bn','kh','cn','cy','ge','in','id','ir','iq','il','jp','jo','kz','kp','kr','kw','kg','la','lb','my','mv','mn','mm','np','om','pk','ps','ph','qa','sa','sg','lk','sy','tr','tw','tj','th','tl','tm','ae','uz','vn','ye'],

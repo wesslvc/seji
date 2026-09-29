@@ -202,16 +202,16 @@ h4.sec em{font-style:normal;font-weight:400;color:var(--tx3);font-size:var(--fs-
 .tbl .bar i.cont-as{background:var(--c1)}
 .tbl .bar i.cont-eu{background:var(--c2)}
 .tbl .bar i.cont-af{background:var(--c3)}
-.tbl .bar i.cont-na{background:var(--c4)}
-.tbl .bar i.cont-sa{background:var(--c5)}
+.tbl .bar i.cont-na,.tbl .bar i.cont-an{background:var(--c4)}
+.tbl .bar i.cont-sa,.tbl .bar i.cont-la{background:var(--c5)}
 .tbl .bar i.cont-oc{background:var(--c6)}
 .tbl .bar i.cont-xx{background:var(--c8)}
 .legend{display:flex;gap:1rem;flex-wrap:wrap;margin-top:.9rem;font-size:var(--fs-xs);color:var(--tx2)}
 .legend i{display:inline-block;width:14px;height:4px;border-radius:2px;margin-right:.4rem;
   vertical-align:middle}
 .legend i.cont-as{background:var(--c1)}.legend i.cont-eu{background:var(--c2)}
-.legend i.cont-af{background:var(--c3)}.legend i.cont-na{background:var(--c4)}
-.legend i.cont-sa{background:var(--c5)}.legend i.cont-oc{background:var(--c6)}
+.legend i.cont-af{background:var(--c3)}.legend i.cont-na,.legend i.cont-an{background:var(--c4)}
+.legend i.cont-sa,.legend i.cont-la{background:var(--c5)}.legend i.cont-oc{background:var(--c6)}
 .rank-note.set-note{border-left:2px solid var(--bd2);padding-left:.9rem;color:var(--tx2)}
 
 /* 나라 머리 */
@@ -609,7 +609,7 @@ body{text-rendering:optimizeLegibility;word-break:keep-all}
 .cs-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--cc);opacity:.9}
 .cs-card[data-cont=""]{--cc:var(--ac)}
 .cs-card.cont-as{--cc:var(--c1)}.cs-card.cont-eu{--cc:var(--c2)}.cs-card.cont-af{--cc:var(--c3)}
-.cs-card.cont-na{--cc:var(--c4)}.cs-card.cont-sa{--cc:var(--c5)}.cs-card.cont-oc{--cc:var(--c6)}
+.cs-card.cont-an{--cc:var(--c4)}.cs-card.cont-la{--cc:var(--c5)}.cs-card.cont-oc{--cc:var(--c6)}
 .cs-card b{font-size:var(--fs-xs);font-weight:600;color:var(--tx2);letter-spacing:.02em}
 .cs-card .cs-v{font-family:var(--font-display);font-size:var(--fs-xl);font-weight:700;letter-spacing:-.022em;
   font-variant-numeric:tabular-nums;color:var(--tx);line-height:1.25}
