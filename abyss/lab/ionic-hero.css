@@ -70,3 +70,25 @@ ion-chip.on{--background:var(--h-accent);--color:var(--h-accent-fg);background:v
 .lab-tbl tbody tr:hover td{background:color-mix(in oklab,var(--h-surface) 94%,var(--h-fg) 6%)}
 .lab-tbl ion-badge{--background:var(--h-accent-soft);--color:color-mix(in oklab,var(--h-accent) 70%,var(--h-fg) 30%);border-radius:999px;font-weight:500;min-width:1.5rem}
 ion-progress-bar{--buffer-background:var(--h-default);--progress-background:var(--c,var(--h-accent));height:6px;border-radius:999px;overflow:hidden}
+
+/* ══════════ 움직임 — HeroUI(@heroui/styles)의 실제 값 ══════════
+   버튼류: transform 250ms ease · 배경 100ms ease-out · 그림자 100ms ease-out, 눌리면 scale(.97),
+   진행 막대: 300ms ease-out. 움직임 줄이기 설정이면 전부 끈다. */
+:root{--h-ease:ease;--h-ease-out:cubic-bezier(0,0,.2,1)}
+ion-chip,ion-button,.lab-reg,.lab-side ion-item{
+  transition:transform 250ms var(--h-ease),background-color 100ms var(--h-ease-out),box-shadow 100ms var(--h-ease-out),border-color 100ms var(--h-ease-out);
+  transform:translateZ(0)}
+ion-chip:active,ion-button:active{transform:scale(.97);will-change:transform}
+.lab-reg:active{transform:scale(.98);will-change:transform}
+.lab-side ion-item:active{transform:scale(.985)}
+.lab-tbl tbody td{transition:background-color 100ms var(--h-ease-out)}
+ion-progress-bar::part(progress){transition:transform 300ms var(--h-ease-out)}
+/* 줄이 새로 그려질 때 막대가 왼쪽에서 차오른다 (다시 그릴 때마다 처음부터 재생) */
+@keyframes h-sweep{from{clip-path:inset(0 100% 0 0 round 999px)}to{clip-path:inset(0 0 0 0 round 999px)}}
+ion-progress-bar{animation:h-sweep 450ms var(--h-ease-out) both}
+@keyframes h-rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.lab-regions .lab-reg{animation:h-rise 260ms var(--h-ease-out) both}
+.lab-regions .lab-reg:nth-child(2){animation-delay:30ms}.lab-regions .lab-reg:nth-child(3){animation-delay:60ms}
+.lab-regions .lab-reg:nth-child(4){animation-delay:90ms}.lab-regions .lab-reg:nth-child(5){animation-delay:120ms}
+.lab-regions .lab-reg:nth-child(6){animation-delay:150ms}.lab-regions .lab-reg:nth-child(7){animation-delay:180ms}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
