@@ -343,3 +343,29 @@ body:not(.in-session) #acct-chip img,body:not(.in-session) #acct-chip .acct-ph{w
 @media (max-width:720px){#ab-acct{width:var(--hb);min-width:0!important;padding:0;justify-content:center}.topbar nav a{padding:0 .55rem}}
 #theme-toggle,#fb-toggle,body:not(.in-session) #acct-chip{top:calc(var(--hb-top) + env(safe-area-inset-top,0px))!important}
 .topbar .logo{min-height:0!important;height:auto;align-self:center}
+
+/* 11) 답 입력줄 — 입력칸 글자가 단추 밑으로 새던 것(입력칸 최소 너비) */
+.field input{min-width:0;width:100%;text-overflow:ellipsis}
+.answer-in{align-items:stretch}
+.answer-in .btn{white-space:nowrap}
+@media (max-width:620px){
+  .answer-in .field{flex:1 1 100%;min-width:0}
+  .answer-in .btn{flex:1 1 100%;min-height:44px}
+}
+/* 문제 줄: 국기와 나라 이름 사이 간격, 한 줄 가운데 정렬 */
+.play-bar .q{display:inline-flex;align-items:center;flex-wrap:wrap;gap:.2rem .55rem}
+.play-bar .q em{margin-left:0}
+.play-bar .q img,.play-bar .q .flag{flex:none}
+/* 어비스 폰 메뉴: 앞으로 밀린 쪽도 잘림 대신 흐림 */
+@media (max-width:720px){.topbar nav{-webkit-mask-image:linear-gradient(90deg,transparent,#000 18px,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(90deg,transparent,#000 18px,#000 calc(100% - 28px),transparent);padding-left:.6rem}}
+/* 테두리 있는 입력 틀(.field) 안의 입력칸은 테두리·고리 없이 (이중 테두리 해소) */
+.field input,.field input:focus,.field input:focus-visible{border:0!important;box-shadow:none!important;background:transparent!important;padding:0;min-height:0;outline:none}
+.field{min-height:44px}
+/* 문제 줄: 점수가 혼자 다음 줄로 떨어지지 않게 */
+.play-bar{flex-wrap:nowrap;align-items:flex-start}
+.play-bar .q{flex:1;min-width:0}
+.play-bar .sc{flex:none;white-space:nowrap}
+/* 통계 테스트 1~5위 칸: 3+2로 갈라지지 않게 다섯 칸 한 줄 */
+.slots{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.4rem}
+.slot{min-width:0;padding:.5rem .6rem;overflow-wrap:anywhere;word-break:keep-all}
+@media (max-width:420px){.slot{padding:.45rem .45rem;font-size:.8rem}}
