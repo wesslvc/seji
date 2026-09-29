@@ -1,0 +1,72 @@
+/* ══════════ Ionic → HeroUI 3 스타일 개조 ══════════
+   Ionic 웹 컴포넌트는 그대로 두고 색·반경·그림자만 HeroUI(zinc 중립 + 파랑 accent)의 값으로 덮어쓴다.
+   HeroUI 값은 @heroui/styles 기본 테마(variables.css)에서 가져왔다. */
+:root{
+  --h-bg:oklch(0.9702 0 0);--h-fg:oklch(0.2103 0.0059 285.89);--h-surface:#fff;--h-surface2:oklch(0.9524 0.0013 286.37);
+  --h-muted:oklch(0.5517 0.0138 285.94);--h-border:oklch(90% 0.004 286.32);--h-default:oklch(94% 0.001 286.375);
+  --h-accent:oklch(0.6204 0.195 253.83);--h-accent-fg:oklch(0.9911 0 0);
+  --h-accent-soft:color-mix(in oklab,var(--h-accent) 15%,transparent);
+  --h-shadow:0 0 1px rgba(0,0,0,.1),0 2px 8px -2px rgba(0,0,0,.08);
+  --ion-font-family:'Pretendard',system-ui,sans-serif;
+  --ion-background-color:var(--h-bg);--ion-text-color:var(--h-fg);
+  --ion-color-primary:var(--h-accent);--ion-color-primary-rgb:4,133,247;--ion-color-primary-contrast:#fff;
+  --ion-card-background:var(--h-surface);--ion-item-background:transparent;--ion-border-color:var(--h-border);
+}
+html.ion-palette-dark{
+  --h-bg:oklch(12% 0.005 285.823);--h-fg:oklch(0.9911 0 0);--h-surface:oklch(0.2103 0.0059 285.89);--h-surface2:oklch(0.257 0.0037 286.14);
+  --h-muted:oklch(70.5% 0.015 286.067);--h-border:oklch(28% 0.006 286.033);--h-default:oklch(27.4% 0.006 286.033);
+  --h-shadow:0 0 0 1px rgba(255,255,255,.04),0 8px 24px -8px rgba(0,0,0,.5);
+}
+body,html.ion-palette-dark body{background:var(--h-bg);color:var(--h-fg);font-family:var(--ion-font-family)}
+.lab-lead,.lab-note{color:var(--h-muted);opacity:1}
+
+/* 머리띠 */
+.top{display:flex;align-items:center;gap:.6rem;padding:.55rem 2rem;background:var(--h-surface);border-bottom:1px solid var(--h-border)}
+.top b{font-size:1.1rem;font-weight:600;letter-spacing:-.01em}.top .sp{flex:1}
+.top ion-badge{--background:var(--h-accent-soft);--color:color-mix(in oklab,var(--h-accent) 70%,var(--h-fg) 30%);border-radius:999px;font-weight:500;font-size:.72rem;padding:.25rem .6rem}
+.top ion-button{--color:var(--h-fg);text-transform:none;font-weight:500}
+#theme{--track-background:var(--h-default);--track-background-checked:var(--h-accent)}
+
+/* 칩 — HeroUI 'outline / primary' 버튼처럼 */
+#cats{flex-wrap:wrap;gap:.5rem}
+ion-chip{margin:0;height:32px;padding:0 .85rem;border-radius:999px;font-size:.85rem;font-weight:500;cursor:pointer;
+  --background:transparent;--color:var(--h-fg);border:1px solid var(--h-border);background:transparent}
+ion-chip:hover{background:var(--h-default)}
+ion-chip.on{--background:var(--h-accent);--color:var(--h-accent-fg);background:var(--h-accent);color:var(--h-accent-fg);border-color:transparent}
+
+/* 항목 목록 — 카드 안의 조용한 리스트 */
+.lab-side ion-list{background:var(--h-surface);border-radius:20px;box-shadow:var(--h-shadow);margin:0;padding:.5rem}
+.lab-side ion-list-header{min-height:24px;padding:.5rem .75rem .1rem;font-size:.72rem;font-weight:600;color:var(--h-muted)}
+.lab-side ion-list-header:first-of-type{padding-top:.1rem}
+.lab-side ion-item{--min-height:38px;--inner-padding-end:.5rem;--padding-start:.75rem;font-size:.88rem;cursor:pointer;border-radius:12px;overflow:hidden;--background:transparent}
+.lab-side ion-item:hover{--background:var(--h-default)}
+.lab-side ion-item.on{--background:var(--h-default);--color:var(--h-fg);font-weight:500}
+.lab-side ion-note{font-size:.75rem;color:var(--h-muted)}
+.lab-side .ck{color:var(--h-fg);font-size:.8rem;margin-left:.3rem}
+
+/* 대륙 카드 — 큰 반경, 얇은 그림자, 선택 시 accent 링 */
+.lab-reg ion-card{margin:0;height:100%;border-radius:22px;background:var(--h-surface);box-shadow:var(--h-shadow);transition:box-shadow .2s}
+.lab-reg:hover ion-card{box-shadow:var(--h-shadow),0 6px 20px -8px rgba(0,0,0,.18)}
+.lab-reg.on ion-card{outline:2px solid var(--h-accent);outline-offset:-2px}
+.lab-reg ion-card-content{padding:16px 18px}
+.lab-reg .k{display:flex;align-items:center;gap:.45rem;font-size:.82rem;color:var(--h-muted)}
+.lab-reg .dot{width:.55rem;height:.55rem;border-radius:50%}
+.lab-reg .v{font-size:1.5rem;font-weight:500;letter-spacing:-.025em;color:var(--h-fg);margin:.2rem 0}
+.lab-reg .s{font-size:.75rem;color:var(--h-muted);opacity:1}
+
+/* 헤더의 출처 뱃지 */
+.src{padding:.2rem .7rem;border-radius:999px;background:var(--h-default);font-size:.78rem;color:var(--h-fg)}
+
+/* 표 — 바깥은 옅은 회색 판, 안쪽 줄은 흰 카드 (HeroUI Table 모양) */
+.tblbox{background:var(--h-surface2);border-radius:24px;padding:0 6px 6px;overflow:hidden;box-shadow:none}
+.lab-tbl{border-collapse:separate;border-spacing:0}
+.lab-tbl th{font-size:.78rem;font-weight:500;color:var(--h-muted);text-align:left;padding:.85rem 1rem;border:0;background:transparent}
+.lab-tbl td{padding:.72rem 1rem;border:0;border-bottom:1px solid var(--h-border);background:var(--h-surface)}
+.lab-tbl tbody tr:first-child td:first-child{border-top-left-radius:18px}
+.lab-tbl tbody tr:first-child td:last-child{border-top-right-radius:18px}
+.lab-tbl tbody tr:last-child td{border-bottom:0}
+.lab-tbl tbody tr:last-child td:first-child{border-bottom-left-radius:18px}
+.lab-tbl tbody tr:last-child td:last-child{border-bottom-right-radius:18px}
+.lab-tbl tbody tr:hover td{background:color-mix(in oklab,var(--h-surface) 94%,var(--h-fg) 6%)}
+.lab-tbl ion-badge{--background:var(--h-accent-soft);--color:color-mix(in oklab,var(--h-accent) 70%,var(--h-fg) 30%);border-radius:999px;font-weight:500;min-width:1.5rem}
+ion-progress-bar{--buffer-background:var(--h-default);--progress-background:var(--c,var(--h-accent));height:6px;border-radius:999px;overflow:hidden}
