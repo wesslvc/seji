@@ -527,6 +527,26 @@ body.border-mode .leg,body.border-mode .info{display:none}
 .btn,.bp,.bs,.reb,.hbtn,.cb,.mnu-btn,.land-btn,.land-back,.cl-tab,.cl-close,.eip-map-btn,.act-tab,#ui-hamburger,#kr-hamburger{transition:background .25s var(--ease),color .25s var(--ease),border-color .25s var(--ease),transform .25s var(--ease-spring),opacity .25s var(--ease)!important}
 .btn:active,.reb:active,.land-btn:active,.mnu-btn:active,.act-tab:active{transform:scale(.96)}
 .modal{transition:transform .38s var(--ease-spring),opacity .3s var(--ease)!important}
+
+/* ══════════ 다듬기 — 어비스와 같은 결(표면·글자·초점) ══════════
+   색 토큰은 그대로 두고, 테두리를 옅게·그림자를 얇게·초점 고리를 더한다. */
+:root{
+  --hair:color-mix(in srgb,var(--bd) 72%,transparent);
+  --ring:0 0 0 3px color-mix(in srgb,var(--ac) 30%,transparent);
+  --lift:0 1px 0 rgba(255,255,255,.035) inset,0 1px 2px rgba(0,0,0,.2),0 10px 26px -14px rgba(0,0,0,.45);
+}
+:root[data-theme="light"]{--lift:0 1px 2px rgba(20,24,32,.05),0 12px 28px -16px rgba(20,24,32,.18)}
+*{scrollbar-width:thin;scrollbar-color:var(--bd) transparent}
+body{text-rendering:optimizeLegibility;word-break:keep-all}
+h1,h2,h3{text-wrap:balance;letter-spacing:-.02em}
+.ld-cell{border-color:var(--hair);box-shadow:var(--lift)}
+.ld-cell:hover{transform:translateY(-1px)}
+.ld-cell.sel{box-shadow:0 0 0 1px var(--ac) inset,var(--lift)}
+.ld-chip{padding:.4rem .95rem}
+.modal{border-color:var(--hair);box-shadow:var(--shadow2)}
+.stat{border:1px solid var(--hair)}
+:where(a,button,.ld-chip,.ld-cell,input,select):focus-visible{outline:none;box-shadow:var(--ring)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 .ui-ov,#kr-ov{transition:opacity .3s var(--ease)!important}
 #ui-menu{transition:transform .34s var(--ease)!important}
 #ui-menu-bd{transition:opacity .3s var(--ease)!important}

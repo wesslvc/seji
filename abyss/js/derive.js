@@ -113,11 +113,16 @@ const AB_METRICS=[
 ];
 /* 종교 · 에너지 · 무역은 구성비라 항목마다 순위표가 하나씩 생긴다 */
 (function(){
+  /* 비중(%) 순위는 에너지만 남기고 절대치로 바꿨다 — 비율은 작은 나라가 위로
+     올라와 '얼마나 큰가'를 읽을 수 없다. 종교는 (종교를 가진 사람 중 비율)×총인구로
+     신자 수를 어림한다. */
   if(typeof RELIG2_NAME!=='undefined')RELIG2_NAME.forEach((nm,k)=>{
-    AB_METRICS.push({id:'rel'+k,cat:'종교',name:nm+' 비율',unit:'%',
-      src:'지오글 종교 구성 (종교를 가진 사람 기준)',dec:1,
+    AB_METRICS.push({id:'rel'+k,cat:'종교',name:nm+' 신자 수(추정)',unit:'명',
+      src:'지오글 종교 구성 × World Bank 인구',
+      note:'종교를 가진 사람 중 비율에 총인구를 곱한 어림값입니다.',
       f:i=>{const a=(typeof RELIG2_DATA!=='undefined'&&RELIG2_DATA[i])||null;
-            if(!a)return null;const c=a.find(x=>x[0]===k);return c?c[1]:null;}});
+            const p=abNum((DICT_DATA[i]||{}).pop);
+            if(!a||!p)return null;const c=a.find(x=>x[0]===k);return c?p*c[1]/100:null;}});
   });
   if(typeof ENERGY_NAME!=='undefined')ENERGY_NAME.forEach((nm,k)=>{
     AB_METRICS.push({id:'eng'+k,cat:'에너지',name:nm+' 비중',unit:'%',
@@ -125,21 +130,8 @@ const AB_METRICS=[
       f:i=>{const a=(typeof ENERGY_DATA!=='undefined'&&ENERGY_DATA[i])||null;
             if(!a)return null;const c=a.find(x=>x[0]===k);return c?c[1]:null;}});
   });
-  /* 무역은 품목이 96가지라 다 만들면 표가 넘친다 — 자료에 많이 나오는 것만 */
-  if(typeof TRADE_DATA!=='undefined'&&typeof HS2_KO!=='undefined'){
-    const cnt={};
-    Object.keys(TRADE_DATA).forEach(i=>{
-      ['x','m'].forEach(w=>((TRADE_DATA[i]||{})[w]||[]).forEach(c=>{
-        const key=w+':'+c[0];cnt[key]=(cnt[key]||0)+1;}));
-    });
-    Object.keys(cnt).filter(k=>cnt[k]>=40).forEach(key=>{
-      const w=key[0],code=key.slice(2),nm=HS2_KO[code]||code;
-      AB_METRICS.push({id:'trd'+w+code,cat:w==='x'?'수출':'수입',
-        name:nm+(w==='x'?' 수출 비중':' 수입 비중'),unit:'%',src:'지오글 무역 구조',dec:1,
-        f:i=>{const a=((TRADE_DATA[i]||{})[w])||null;if(!a)return null;
-              const c=a.find(x=>String(x[0])===code);return c?c[1]:null;}});
-    });
-  }
+  /* 무역 품목 비중 순위는 뺐다 — 원자료가 품목별 '비중'뿐이고 절대 금액이 없어
+     절대치 순위로 옮길 수 없다. 나라 상세의 수출 품목 원그래프는 그대로 있다. */
 })();
 
 /* 국가 지표(world-data.js — WDI·OWID·FAOSTAT) — 인구 구조 · 산업 구조 · 발전원 ·
@@ -149,24 +141,28 @@ const AB_METRICS=[
 (function(){
   if(typeof WORLD_DATA==='undefined')return;
   const wd=i=>WORLD_DATA[i]||{};
+  /* 인구 구조·산업 구조는 비율에 총인구·GDP를 곱해 절대치로 바꿨다(에너지만 비중 유지) */
+  const popOf=i=>abNum((DICT_DATA[i]||{}).pop), gdpOf=i=>abNum((DICT_DATA[i]||{}).gdp);
+  const byPop=k=>i=>{const p=popOf(i),v=wd(i)[k];return (p&&v!=null)?p*v/100:null;};
+  const byGdp=k=>i=>{const g=gdpOf(i),v=wd(i)[k];return (g&&v!=null)?g*v/100:null;};
   AB_METRICS.push(
-    {id:'urban',cat:'인구 구조',name:'도시인구비율',unit:'%',src:'World Bank WDI',
-     f:i=>wd(i).ur!=null?wd(i).ur:null},
+    {id:'urban',cat:'인구 구조',name:'도시 인구',unit:'명',src:'World Bank WDI',
+     f:byPop('ur'),note:'도시인구비율에 총인구를 곱한 어림값입니다.'},
     {id:'tfr',cat:'인구 구조',name:'합계출산율',unit:'자녀수',src:'World Bank WDI',
      f:i=>wd(i).tfr!=null?wd(i).tfr:null,
      note:'여성 한 명이 평생 낳을 것으로 기대되는 자녀 수입니다.'},
-    {id:'y0',cat:'인구 구조',name:'유소년층비중',unit:'%',src:'World Bank WDI',
-     f:i=>wd(i).y0!=null?wd(i).y0:null,note:'0~14세 인구가 전체에서 차지하는 비율입니다.'},
-    {id:'y1',cat:'인구 구조',name:'청장년층비중',unit:'%',src:'World Bank WDI',
-     f:i=>wd(i).y1!=null?wd(i).y1:null,note:'15~64세, 이른바 생산연령인구 비율입니다.'},
-    {id:'y2',cat:'인구 구조',name:'노년층비중',unit:'%',src:'World Bank WDI',
-     f:i=>wd(i).y2!=null?wd(i).y2:null,note:'65세 이상 인구가 전체에서 차지하는 비율입니다.'},
-    {id:'ind1',cat:'산업 구조',name:'1차산업비중',unit:'%',src:'World Bank WDI',
-     f:i=>wd(i).i1!=null?wd(i).i1:null},
-    {id:'ind2',cat:'산업 구조',name:'2차산업비중',unit:'%',src:'World Bank WDI',
-     f:i=>wd(i).i2!=null?wd(i).i2:null},
-    {id:'ind3',cat:'산업 구조',name:'3차산업비중',unit:'%',src:'World Bank WDI',
-     f:i=>wd(i).i3!=null?wd(i).i3:null}
+    {id:'y0',cat:'인구 구조',name:'유소년 인구(0~14세)',unit:'명',src:'World Bank WDI',
+     f:byPop('y0'),note:'0~14세 비율에 총인구를 곱한 어림값입니다.'},
+    {id:'y1',cat:'인구 구조',name:'생산연령 인구(15~64세)',unit:'명',src:'World Bank WDI',
+     f:byPop('y1'),note:'15~64세 비율에 총인구를 곱한 어림값입니다.'},
+    {id:'y2',cat:'인구 구조',name:'노년 인구(65세 이상)',unit:'명',src:'World Bank WDI',
+     f:byPop('y2'),note:'65세 이상 비율에 총인구를 곱한 어림값입니다.'},
+    {id:'ind1',cat:'산업 구조',name:'1차산업 부가가치',unit:'$',src:'World Bank WDI',
+     f:byGdp('i1'),note:'GDP에 산업 비중을 곱한 어림값입니다.'},
+    {id:'ind2',cat:'산업 구조',name:'2차산업 부가가치',unit:'$',src:'World Bank WDI',
+     f:byGdp('i2'),note:'GDP에 산업 비중을 곱한 어림값입니다.'},
+    {id:'ind3',cat:'산업 구조',name:'3차산업 부가가치',unit:'$',src:'World Bank WDI',
+     f:byGdp('i3'),note:'GDP에 산업 비중을 곱한 어림값입니다.'}
   );
   /* 발전원 — '무엇으로 전력을 만드는지'다. data.js의 에너지 구성(1차에너지
      소비 전체)과는 다른 항목이라 분류 이름도 갈라 둔다. */

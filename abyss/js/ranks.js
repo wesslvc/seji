@@ -1,7 +1,7 @@
 /* ══════════ 순위 도감 ══════════
    항목 하나를 고르면 자료가 있는 나라를 전부 줄 세운다. 상위 몇 개만 자르지
    않는 게 요점이라, 표는 끝까지 그린다. 같은 값이면 같은 등수를 준다. */
-const AB_RANK={cat:'', id:'pop'};
+const AB_RANK={cat:'', id:'pop', cont:''};
 
 /* 통계 퀴즈에 쓰는 1~5위 자료도 여기서 볼 수 있어야 한다. 퀴즈에서 스쳐 지나간
    순위를 나중에 찬찬히 확인할 데가 없으면 외울 방법이 없기 때문이다.
@@ -43,6 +43,10 @@ function abRanksInit(){
     box.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c===b));
     abRankList();
   });
+  document.getElementById('rank-view').addEventListener('click',e=>{
+    const b=e.target.closest('.cs-card');if(!b||b.disabled)return;
+    AB_RANK.cont=b.dataset.cont||'';abRankView();
+  });
   document.getElementById('rank-list').addEventListener('click',e=>{
     const b=e.target.closest('[data-id]');if(!b)return;
     AB_RANK.id=b.dataset.id;abRankList();abRankView();
@@ -64,18 +68,24 @@ function abRankList(){
 function abRankView(){
   const m=abFindMetric(AB_RANK.id);
   if(m&&m.set)return abRankViewSet(m);
-  const rows=abRank(AB_RANK.id);
+  const all=abRank(AB_RANK.id);
   const box=document.getElementById('rank-view');
-  if(!m||!rows.length){box.innerHTML='<p class="none">자료가 없습니다.</p>';return;}
+  if(!m||!all.length){box.innerHTML='<p class="none">자료가 없습니다.</p>';return;}
+  /* 대륙 칩을 누르면 그 대륙 나라만 남긴다. 순위 숫자는 세계 순위 그대로 둔다 —
+     '아시아만 보면 3위'가 아니라 '세계 3위'여야 다른 화면과 어긋나지 않는다. */
+  const cont=AB_RANK.cont||'';
+  const rows=cont?all.filter(r=>abCont(r.iso)===cont):all;
   /* 선 길이는 값 그대로다 — 1위 대비 몇 할인지가 눈에 보여야 한다.
      한때 최솟값을 0으로 잡고 최소~최대 폭으로 늘였더니, 꼴찌는 늘 길이가
      0이고 2위와 꼴찌의 차이가 실제보다 훨씬 크게 보였다.
      음수가 섞이는 항목(수도의 위도)은 크기만 보므로 절댓값을 쓴다. */
-  const mx=Math.max.apply(null,rows.map(r=>Math.abs(r.v)))||1;
+  const mx=Math.max.apply(null,rows.map(r=>Math.abs(r.v)).concat([0]))||1;
   let h='<div class="rank-head"><h3>'+abEsc(m.name)+abStarHTML('metric:'+m.id,m.name)+'</h3>'
-    +'<span class="src">'+abEsc(m.src)+' · '+rows.length
+    +'<span class="src">'+abEsc(m.src)+' · '+all.length
     +(abTerrOn()?'개 나라·속령':'개국')+'</span></div>';
   if(m.note)h+='<p class="rank-note">'+abEsc(m.note)+'</p>';
+  h+=abContSummary(m,all,cont);
+  if(!rows.length)h+='<p class="none">이 대륙엔 자료가 있는 나라가 없습니다.</p>';
   h+='<div class="rank-scroll"><table class="tbl"><thead><tr>'
     +'<th class="rk">순위</th><th>나라</th><th class="val">'+abEsc(m.unit||'')+'</th>'
     +'<th class="bar"></th></tr></thead><tbody>';
@@ -92,6 +102,36 @@ function abRankView(){
   });
   h+='</tbody></table></div>'+abContLegend(rows);
   box.innerHTML=h;
+}
+/* 대륙별 요약 — 더해서 뜻이 있는 항목(인구·면적·생산량)은 합계, 비율·평균·밀도처럼
+   더하면 안 되는 항목은 평균을 낸다. 카드를 누르면 그 대륙만 표에 남는다. */
+const AB_AVG_UNITS=['%','자녀수','°C','mm','°','명/km²','m'];
+const AB_AVG_IDS=['pc','lat','alt'];
+function abContSummary(m,all,cont){
+  const avg=AB_AVG_UNITS.indexOf(m.unit)>=0||AB_AVG_IDS.indexOf(m.id)>=0;
+  const keys=Object.keys(CONT_NAME);
+  const by={};keys.forEach(k=>{by[k]={n:0,s:0,top:null};});
+  all.forEach(r=>{
+    const c=abCont(r.iso);if(!by[c])return;
+    const o=by[c];o.n++;o.s+=r.v;
+    if(!o.top||r.v>o.top.v)o.top=r;
+  });
+  let h='<div class="cont-sum" role="group" aria-label="대륙별 통계">'
+    +'<button type="button" class="cs-card'+(cont===''?' on':'')+'" data-cont=""><b>전체</b>'
+    +'<span class="cs-v">'+all.length+'개국</span><span class="cs-s">세계 순위</span></button>';
+  keys.forEach(k=>{
+    const o=by[k];
+    if(!o.n){
+      h+='<button type="button" class="cs-card off" data-cont="'+k+'" disabled><b>'+abEsc(CONT_NAME[k])+'</b>'
+        +'<span class="cs-v">—</span><span class="cs-s">자료 없음</span></button>';
+      return;
+    }
+    const v=avg?o.s/o.n:o.s;
+    h+='<button type="button" class="cs-card cont-'+k+(cont===k?' on':'')+'" data-cont="'+k+'"><b>'
+      +abEsc(CONT_NAME[k])+'</b><span class="cs-v">'+abEsc(abFmt(v,m.unit))+'</span>'
+      +'<span class="cs-s">'+(avg?'평균':'합계')+' · '+o.n+'개국 · 1위 '+abEsc(abName(o.top.iso))+'</span></button>';
+  });
+  return h+'</div>';
 }
 function abContLegend(rows){
   const seen=[...new Set(rows.map(r=>abCont(r.iso)).filter(Boolean))];

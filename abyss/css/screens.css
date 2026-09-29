@@ -566,3 +566,54 @@ table.cmp td .dash{color:var(--tx3)}
 .tag.del i{font-style:normal;font-size:.7em;color:var(--tx3)}
 .tag.del:hover{border-color:var(--wr)}
 .tag.del:hover i{color:var(--wr)}
+
+/* ══════════ 다듬기 — 표면·글자·표·칩을 한 결로 ══════════
+   색 토큰은 건드리지 않는다(본편과 같은 값이라). 테두리는 살짝 옅게, 면에는
+   얇은 그림자를 깔고, 숫자는 폭을 맞추고, 눌리는 것엔 초점 고리를 준다. */
+:root{
+  --hair:color-mix(in srgb,var(--bd) 72%,transparent);
+  --ring:0 0 0 3px color-mix(in srgb,var(--ac) 30%,transparent);
+  --lift:0 1px 0 rgba(255,255,255,.035) inset,0 1px 2px rgba(0,0,0,.2),0 10px 26px -14px rgba(0,0,0,.45);
+}
+:root[data-theme="light"]{--lift:0 1px 2px rgba(20,24,32,.05),0 12px 28px -16px rgba(20,24,32,.18)}
+*{scrollbar-width:thin;scrollbar-color:var(--bd2) transparent}
+body{text-rendering:optimizeLegibility;word-break:keep-all}
+.head h2,.rank-head h3{text-wrap:balance;letter-spacing:-.028em}
+.head{border-bottom-color:var(--hair)}
+.topbar{background:color-mix(in srgb,var(--sf) 84%,transparent);border-bottom-color:var(--hair);
+  -webkit-backdrop-filter:saturate(1.4) blur(14px);backdrop-filter:saturate(1.4) blur(14px)}
+.card,.stat,.ld-cell{border-color:var(--hair);box-shadow:var(--lift)}
+.stat{transition:border-color .2s var(--ease),transform .2s var(--ease)}
+.stat:hover{border-color:color-mix(in srgb,var(--ac) 32%,var(--bd));transform:translateY(-1px)}
+.stat .k{letter-spacing:.015em}
+.stat .v{letter-spacing:-.028em}
+.stat .r{font-weight:600}
+.chip{padding:.4rem .95rem}
+:where(a,button,.chip,.field input):focus-visible{outline:none;box-shadow:var(--ring)}
+.tbl th{font-size:var(--fs-2xs);letter-spacing:.07em;text-transform:uppercase;color:var(--tx3);
+  padding:.7rem .8rem;border-bottom-color:var(--bd)}
+.tbl td{padding:.64rem .8rem;border-bottom-color:var(--hair)}
+.tbl tbody tr:last-child td{border-bottom:0}
+.tbl tr.top td{background:color-mix(in srgb,var(--ac) 6%,transparent)}
+.tbl .bar i{height:4px;border-radius:99px}
+.rank-scroll{border:1px solid var(--hair);border-radius:var(--r-md);background:var(--sf);
+  box-shadow:var(--lift);padding:.2rem .4rem}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* 대륙별 통계 카드 */
+.cont-sum{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:.6rem;margin:.3rem 0 1.3rem}
+.cs-card{--cc:var(--tx3);position:relative;overflow:hidden;text-align:left;display:flex;flex-direction:column;
+  gap:.18rem;padding:.8rem .95rem .85rem 1.1rem;background:var(--sf);border:1px solid var(--hair);
+  border-radius:var(--r-md);box-shadow:var(--lift);
+  transition:border-color .2s var(--ease),background .2s var(--ease),transform .2s var(--ease)}
+.cs-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--cc);opacity:.9}
+.cs-card[data-cont=""]{--cc:var(--ac)}
+.cs-card.cont-as{--cc:var(--c1)}.cs-card.cont-eu{--cc:var(--c2)}.cs-card.cont-af{--cc:var(--c3)}
+.cs-card.cont-na{--cc:var(--c4)}.cs-card.cont-sa{--cc:var(--c5)}.cs-card.cont-oc{--cc:var(--c6)}
+.cs-card b{font-size:var(--fs-xs);font-weight:600;color:var(--tx2);letter-spacing:.02em}
+.cs-card .cs-v{font-family:var(--font-display);font-size:var(--fs-xl);font-weight:700;letter-spacing:-.022em;
+  font-variant-numeric:tabular-nums;color:var(--tx);line-height:1.25}
+.cs-card .cs-s{font-size:var(--fs-2xs);color:var(--tx3);line-height:1.45}
+.cs-card:hover:not(:disabled){border-color:color-mix(in srgb,var(--cc) 55%,var(--bd));transform:translateY(-1px)}
+.cs-card.on{border-color:var(--cc);background:color-mix(in srgb,var(--cc) 9%,var(--sf))}
+.cs-card.off{opacity:.45;cursor:default}
