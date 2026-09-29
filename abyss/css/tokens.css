@@ -18,15 +18,16 @@
 :root{
   --accent:oklch(0.6204 0.195 253.83);           /* HeroUI accent (#0485f7 근처) */
   --accent-fg:oklch(0.9911 0 0);
-  --z-bg:oklch(12% 0.005 285.823);--z-surface:oklch(0.2103 0.0059 285.89);--z-surface2:oklch(0.257 0.0037 286.14);
-  --z-border:oklch(28% 0.006 286.033);--z-border2:oklch(35% 0.006 286.033);--z-default:oklch(27.4% 0.006 286.033);
-  --z-fg:oklch(0.9911 0 0);--z-muted:oklch(72% 0.015 286.067);--z-faint:oklch(63% 0.012 286);
+  /* 어두운 바탕 — 순검정이 아니라 옅은 청색을 섞은 남색 회색(색상각 255) */
+  --z-bg:oklch(22% 0.022 255);--z-surface:oklch(26.5% 0.022 255);--z-surface2:oklch(31% 0.024 255);
+  --z-border:oklch(37% 0.022 255);--z-border2:oklch(45% 0.022 255);--z-default:oklch(33% 0.022 255);
+  --z-fg:oklch(0.98 0.004 255);--z-muted:oklch(77% 0.02 255);--z-faint:oklch(67% 0.02 255);
   --accent-text:oklch(0.76 0.13 253.83);         /* 어두운 바탕 위 링크·활성 글자 */
 }
 :root[data-theme="light"]{
-  --z-bg:oklch(0.9702 0 0);--z-surface:#fff;--z-surface2:oklch(0.9524 0.0013 286.37);
-  --z-border:oklch(90% 0.004 286.32);--z-border2:oklch(83% 0.004 286.32);--z-default:oklch(94% 0.001 286.375);
-  --z-fg:oklch(0.2103 0.0059 285.89);--z-muted:oklch(0.5517 0.0138 285.94);--z-faint:oklch(0.6 0.012 286);
+  --z-bg:oklch(0.962 0.009 250);--z-surface:#fff;--z-surface2:oklch(0.94 0.011 250);
+  --z-border:oklch(0.89 0.013 250);--z-border2:oklch(0.82 0.014 250);--z-default:oklch(0.925 0.011 250);
+  --z-fg:oklch(0.2 0.02 255);--z-muted:oklch(0.5 0.02 255);--z-faint:oklch(0.58 0.018 255);
   --accent-text:oklch(0.52 0.19 254);
 }
 
@@ -145,3 +146,31 @@ h1,h2,h3{text-wrap:balance;letter-spacing:-.022em}
 @keyframes z-rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .screen.on{animation:z-rise 260ms var(--ease-out) both}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
+
+/* 6) 기기별 편의 — 터치(폰·패드)는 누르는 칸을 넉넉히, 넓은 화면은 읽기 폭을 잡는다 ─── */
+.chip,.ld-chip,.act-tab,.act-home,.hicon,.tq-hbtn,.bq-skip,.cx-jump a,.at-jump a,.ab-btn{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box}
+@media (pointer:coarse){
+  .chip,.ld-chip,.act-tab,.act-home,.hicon,.tq-hbtn,.bq-skip,.cx-jump a,.at-jump a,.ab-btn,.ld-cont-all,#ld-open-opt,#ld-opt-close,.back,#ab-acct{min-height:40px}
+  .hicon,.tq-hbtn,#ld-opt-close,#ab-acct,.star{min-width:40px;min-height:40px}
+  .logo,.back,.cx-jump a,.at-jump a{min-height:40px;display:inline-flex;align-items:center}
+  #atlas-q,.inp,input[type=text],input[type=search],input[type=number],select{min-height:44px;font-size:16px}
+  .ld-cont-cb{width:22px;height:22px}
+  .ld-cont-cb,#ld-big{accent-color:var(--ac)}
+  label:has(.ld-cont-cb){min-height:40px;display:flex;align-items:center}
+  .star{display:inline-flex;align-items:center;justify-content:center}
+}
+@supports(padding:max(0px)){
+  body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+  .topbar,.act-bar{padding-top:max(.4rem,env(safe-area-inset-top))}
+}
+html,body{overflow-x:clip}
+@media (min-width:1500px){.rank-scroll,.tbl{font-size:1.02em}}
+/* 퀴즈 머리줄 정렬 — 제목·부제·버튼을 한 줄 기준선에 */
+.tq-th{align-items:center;flex-wrap:nowrap;min-width:0}
+#tq-title{white-space:nowrap;flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;letter-spacing:0}
+#tq-sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1 1 0}
+.tq-hbtn{flex:none}
+.tq-hbtn:first-of-type{margin-left:auto}
+@media (max-width:480px){#tq-sub{display:none}}
+@media (min-width:900px){#theme-toggle{top:18px}}
+@media (pointer:coarse){#theme-toggle{width:40px;height:40px}}
