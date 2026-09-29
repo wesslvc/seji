@@ -103,7 +103,7 @@ async function abClimateCardPNG(iso,st){
   /* 높이는 그래프 길이에 따라 달라지므로 먼저 한 번 재 본다 */
   const probe=document.createElement('canvas').getContext('2d');
   const chartH=abccChart(probe,st,0,0,IW-48);
-  const H=PAD+150+36+ (chartH+120) +36+ 150 +36+ 420 +36+ 60+PAD;
+  const H=PAD+150+36+ (chartH+120+(st.el!=null?44:0)) +36+ 150 +36+ 420 +36+ 60+PAD;
   const S=2; cv.width=W*S; cv.height=H*S; c.scale(S,S);
 
   c.fillStyle=ABCC.bg;c.fillRect(0,0,W,H);
@@ -127,20 +127,25 @@ async function abClimateCardPNG(iso,st){
   y+=150+36;
 
   /* 관측소 줄 + 쾨펜 뱃지 */
-  c.fillStyle=ABCC.card;abccRR(PAD,c,y,IW,chartH+120,28);c.fill();
+  const boxH=chartH+120+(st.el!=null?44:0);
+  c.fillStyle=ABCC.card;abccRR(PAD,c,y,IW,boxH,28);c.fill();
   c.strokeStyle=ABCC.line;c.lineWidth=2;c.stroke();
   abccFont(c,700,36);c.fillStyle=ABCC.tx;c.fillText(st.ko||st.en,PAD+32,y+58);
   let sx=PAD+32+c.measureText(st.ko||st.en).width+16;
   abccFont(c,500,24);c.fillStyle=ABCC.tx2;
   const sub=(st.ko&&st.en&&st.en!==st.ko?st.en+' · ':'')+abccLL(st.lat,st.lon);
+  const elTxt=st.el!=null?'해발 약 '+st.el.toLocaleString()+'m':'';
   c.fillText(sub,sx,y+57);
   if(st.kop){
     abccFont(c,800,30);const kw=c.measureText(st.kop).width+36;
     c.fillStyle=ABCC.ac;abccRR(PAD+IW-32-kw,c,y+24,kw,48,24);c.fill();
     c.fillStyle='#0b1220';c.textAlign='center';c.fillText(st.kop,PAD+IW-32-kw/2,y+59);c.textAlign='left';
   }
-  abccChart(c,st,PAD+24,y+84,IW-48);
-  y+=chartH+120+36;
+  if(elTxt){abccFont(c,600,22);const ew=c.measureText(elTxt).width+28;
+    c.fillStyle='rgba(110,168,255,.14)';abccRR(PAD+32,c,y+76,ew,38,19);c.fill();
+    c.fillStyle=ABCC.ac;c.fillText(elTxt,PAD+46,y+102);}
+  abccChart(c,st,PAD+24,y+(elTxt?128:84),IW-48);
+  y+=boxH+36;
 
   /* 요약 수치 네 칸 */
   const mean=st.lo.map((v,i)=>(v+st.hi[i])/2);
@@ -158,7 +163,7 @@ async function abClimateCardPNG(iso,st){
   /* 지도 */
   abccMap(c,st,PAD,y,IW,420);
   abccFont(c,600,22);c.fillStyle='rgba(15,20,28,.78)';
-  const tag=' '+(st.ko||st.en)+' · '+abccLL(st.lat,st.lon)+' ';const tw=c.measureText(tag).width+20;
+  const tag=' '+(st.ko||st.en)+' · '+abccLL(st.lat,st.lon)+(st.el!=null?' · '+st.el.toLocaleString()+'m':'')+' ';const tw=c.measureText(tag).width+20;
   abccRR(PAD+20,c,y+20,tw,42,21);c.fill();c.fillStyle=ABCC.tx;c.fillText(tag,PAD+30,y+49);
   y+=420+36;
 
@@ -168,7 +173,7 @@ async function abClimateCardPNG(iso,st){
   c.fillStyle=ABCC.prec;abccRR(PAD+200,c,y+12,24,18,4);c.fill();
   c.fillStyle=ABCC.tx2;c.fillText('월강수량',PAD+236,y+28);
   c.textAlign='right';abccFont(c,700,24);c.fillStyle=ABCC.tx;c.fillText('Geogl3 Abyss',PAD+IW,y+28);
-  abccFont(c,500,18);c.fillStyle=ABCC.tx3;c.fillText('Köppen-Geiger v2 · 관측소 실측 · geogl3.xyz/abyss',PAD+IW,y+56);
+  abccFont(c,500,18);c.fillStyle=ABCC.tx3;c.fillText('Köppen-Geiger v2 · 관측소 실측 · 고도 SRTM 등 5′ 격자 추정 · geogl3.xyz/abyss',PAD+IW,y+56);
   c.textAlign='left';
 
   return new Promise(ok=>cv.toBlob(ok,'image/png'));

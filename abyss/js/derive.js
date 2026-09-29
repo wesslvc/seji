@@ -68,7 +68,8 @@ const AB_CLIMATE_BY_ISO=(function(){
     o.rain+=pr.reduce((a,b)=>a+b,0);
     o.range+=Math.max.apply(null,mean)-Math.min.apply(null,mean);
     if(r[12])o.kop[r[12]]=(o.kop[r[12]]||0)+1;
-    o.st.push({ko:r[2],en:r[1],lat:r[5],lon:r[6],kop:r[12],lo:lo,hi:hi,pr:pr});
+    o.st.push({ko:r[2],en:r[1],lat:r[5],lon:r[6],kop:r[12],lo:lo,hi:hi,pr:pr,
+      el:typeof CLIMATE_ELEV!=='undefined'?CLIMATE_ELEV[r[0]]:undefined});
   });
   Object.keys(by).forEach(i=>{
     const o=by[i],n=o.n;
