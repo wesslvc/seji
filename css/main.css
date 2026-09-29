@@ -1287,3 +1287,13 @@ body.diving #landing-overlay .ld-stage{
   .dive-wave .w1,.dive-wave .w2{animation:none}
   body.diving #landing-overlay .ld-stage{animation:none}
 }
+/* ── 필기(기후 모드) ── */
+#pen-cv{position:fixed;left:0;width:100vw;z-index:640;display:none;pointer-events:none;touch-action:none}
+body.pen-on #pen-cv{pointer-events:auto;cursor:crosshair}
+#pen-bar{position:fixed;right:.6rem;top:6.5rem;z-index:650;display:none;flex-direction:column;align-items:center;gap:.4rem;padding:.35rem;border-radius:16px;background:var(--sf);border:1px solid var(--bd);box-shadow:0 6px 22px -8px rgba(0,0,0,.45)}
+#pen-tools{display:none;flex-direction:column;align-items:center;gap:.4rem}
+#pen-bar.on #pen-tools{display:flex}
+.pen-b{width:38px;height:38px;border-radius:12px;border:1px solid var(--bd);background:var(--sf2);color:var(--tx2);font-size:1.05rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0}
+#pen-bar.on #pen-toggle{background:var(--btn);border-color:transparent;color:#fff}
+.pen-c{width:26px;height:26px;border-radius:50%;border:2px solid var(--sf);box-shadow:0 0 0 1px var(--bd);cursor:pointer;padding:0}
+.pen-c.on{box-shadow:0 0 0 2px var(--tx)}
