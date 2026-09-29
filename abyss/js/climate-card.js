@@ -144,9 +144,9 @@ async function abClimateCardPNG(iso,st){
 
   /* 요약 수치 네 칸 */
   const mean=st.lo.map((v,i)=>(v+st.hi[i])/2);
-  const avg=mean.reduce((a,b)=>a+b,0)/12, tot=st.pr.reduce((a,b)=>a+b,0);
+  const tot=st.pr.reduce((a,b)=>a+b,0);
   const hiI=mean.indexOf(Math.max(...mean)), loI=mean.indexOf(Math.min(...mean));
-  const cells=[['연평균 기온',avg.toFixed(1)+'°C'],['연 강수량',Math.round(tot).toLocaleString()+' mm'],
+  const cells=[['기온 연교차',(mean[hiI]-mean[loI]).toFixed(1)+'°C'],['연 강수량',Math.round(tot).toLocaleString()+' mm'],
     ['최난월',(hiI+1)+'월 '+mean[hiI].toFixed(1)+'°'],['최한월',(loI+1)+'월 '+mean[loI].toFixed(1)+'°']];
   const cw=(IW-3*16)/4;
   cells.forEach(([k,v],i)=>{const cx=PAD+i*(cw+16);
