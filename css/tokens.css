@@ -369,3 +369,8 @@ body:not(.in-session) #acct-chip img,body:not(.in-session) #acct-chip .acct-ph{w
 .slots{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.4rem}
 .slot{min-width:0;padding:.5rem .6rem;overflow-wrap:anywhere;word-break:keep-all}
 @media (max-width:420px){.slot{padding:.45rem .45rem;font-size:.8rem}}
+
+/* 12) 아이콘 가운데 — 아이콘 감싸개가 글줄 높이를 따라 위로 틀어지던 것 */
+[data-ic]{display:inline-flex;align-items:center;justify-content:center;line-height:0;vertical-align:middle}
+[data-ic]>svg{display:block}
+#theme-toggle,#fb-toggle,.hicon,.tq-hbtn,.pen-b{line-height:0;padding:0}
