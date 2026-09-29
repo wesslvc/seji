@@ -8,6 +8,8 @@
    ══════════════════════════════════════════════════════════════════════════ */
 const AB_CLIM_GRP=[['','전체'],['A','A 열대'],['B','B 건조'],['C','C 온대'],['D','D 냉대'],['E','E 한대']];
 const ABCL={q:'',grp:'',id:null};
+/* 옛 이름·다른 표기로도 찾히게 — 관측소 번호: 별칭 */
+const AB_CLIM_ALIAS={1064:['Barrow','배로']};
 let _abClimAll=null;
 function abClimAll(){
   if(_abClimAll)return _abClimAll;
@@ -30,7 +32,7 @@ function abClimMatch(){
   }
   const scored=[];
   rows.forEach(o=>{
-    const names=[o.st.ko,o.st.en].map(abClimNorm), cs=[o.cn,o.cen].map(abClimNorm);
+    const names=[o.st.ko,o.st.en].concat(AB_CLIM_ALIAS[o.id]||[]).map(abClimNorm), cs=[o.cn,o.cen].map(abClimNorm);
     let sc=-1;
     if(names.some(n=>n===q))sc=0;
     else if(names.some(n=>n&&n.startsWith(q)))sc=1;
