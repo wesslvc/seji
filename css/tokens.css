@@ -374,3 +374,9 @@ body:not(.in-session) #acct-chip img,body:not(.in-session) #acct-chip .acct-ph{w
 [data-ic]{display:inline-flex;align-items:center;justify-content:center;line-height:0;vertical-align:middle}
 [data-ic]>svg{display:block}
 #theme-toggle,#fb-toggle,.hicon,.tq-hbtn,.pen-b{line-height:0;padding:0}
+
+/* 13) 기후 그래프 카드 줄: 고른 카드의 위 테두리·빛이 옆 스크롤 칸에 잘리던 것 */
+#cq-cards{padding:6px 4px 8px;margin:-6px -4px 0;scroll-padding-inline:8px}
+.cq-card.sel{transform:none}
+#sq-m-cards{padding:6px 4px 8px;margin:-6px -4px 0}
+.sq-pcard:hover,.cq-card:hover{transform:none}
