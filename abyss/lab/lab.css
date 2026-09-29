@@ -14,7 +14,6 @@ body{margin:0;font-family:'Pretendard','Noto Sans KR',system-ui,sans-serif;line-
 .lab-note{margin:.2rem 0 1rem;opacity:.75;font-size:.92rem}
 .lab-regions{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:.7rem;margin:.4rem 0 1.4rem}
 .lab-reg{display:block;height:100%;cursor:pointer;text-align:left;border-radius:inherit}
-.lab-reg>*{height:100%}
 .lab-reg[aria-disabled=true]{opacity:.45;cursor:default}
 .lab-reg:focus-visible{outline:2px solid currentColor;outline-offset:2px}
 .lab-reg .v{font-size:1.15rem;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}

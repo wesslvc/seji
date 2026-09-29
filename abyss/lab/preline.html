@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>순위 도감 · Preline 시안</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/pretendard.css">
+<link rel="stylesheet" href="preline.css">
+<link rel="stylesheet" href="lab.css">
+<style>body{font-family:'Pretendard',system-ui,sans-serif}</style>
+</head>
+<body class="bg-gray-100 text-gray-800 dark:bg-neutral-900 dark:text-neutral-200">
+<header class="w-full bg-white border-b border-gray-200 text-sm py-3 dark:bg-neutral-800 dark:border-neutral-700">
+  <nav class="max-w-[85rem] w-full mx-auto px-4 sm:px-6 flex items-center justify-between gap-3">
+    <span class="flex items-center gap-x-3 text-xl font-semibold dark:text-white">Geogl3 Abyss
+      <span class="inline-flex items-center gap-x-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-500/10 dark:text-blue-500">Preline 시안</span></span>
+    <div class="flex items-center gap-x-2">
+      <a class="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg text-blue-600 hover:text-blue-800 dark:text-blue-500" href="index.html">다른 시안 보기</a>
+      <button id="theme" type="button" class="size-9 inline-flex justify-center items-center rounded-full border border-gray-200 bg-white text-gray-800 hover:bg-gray-100 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white dark:hover:bg-neutral-700" aria-label="테마">◐</button>
+    </div>
+  </nav>
+</header>
+<main class="lab-wrap">
+  <h1 class="text-3xl font-bold md:text-4xl md:leading-tight dark:text-white">순위 도감</h1>
+  <p class="lab-lead text-gray-600 dark:text-neutral-400">항목마다 자료를 가진 나라를 끝까지 줄 세웁니다. 대륙 카드를 누르면 그 대륙만 남습니다.</p>
+  <div id="cats" class="lab-chips"></div>
+  <div class="lab-grid">
+    <aside class="lab-side" id="metrics"></aside>
+    <section id="view"></section>
+  </div>
+</main>
+<script src="../js/data.js"></script>
+<script src="../js/dict-data.js"></script>
+<script src="../js/climate-data.js"></script>
+<script src="../js/rivers-data.js"></script>
+<script src="../js/borders-data.js"></script>
+<script src="../js/terr-data.js"></script>
+<script src="../js/world-data.js"></script>
+<script src="../js/labels.js"></script>
+<script src="../js/stat-data.js"></script>
+<script src="lab.js"></script>
+<script src="../js/derive.js"></script>
+<script>
+function render(){
+  const cats=[['','전체']].concat(labCats().map(c=>[c,c]));
+  document.getElementById('cats').innerHTML=cats.map(([k,n])=>{
+    const on=LAB.cat===k;
+    return '<button type="button" data-c="'+abEsc(k)+'" class="py-2 px-3.5 inline-flex items-center gap-x-2 text-sm font-medium rounded-full border shadow-2xs focus:outline-hidden '
+      +(on?'border-transparent bg-blue-600 text-white hover:bg-blue-700 focus:bg-blue-700':'border-gray-200 bg-white text-gray-800 hover:bg-gray-50 focus:bg-gray-50 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white dark:hover:bg-neutral-700')
+      +'">'+abEsc(n)+'</button>';}).join('');
+  let h='<div class="bg-white border border-gray-200 rounded-xl p-3 shadow-2xs dark:bg-neutral-800 dark:border-neutral-700"><ul class="space-y-1">',cur='';
+  labMetrics().forEach(m=>{
+    if(m.cat!==cur){cur=m.cat;h+='<li class="pt-3 pb-1 px-2.5 text-xs uppercase font-medium text-gray-500 dark:text-neutral-500 first:pt-0">'+abEsc(cur)+'</li>';}
+    const on=m.id===LAB.id;
+    h+='<li><button type="button" data-id="'+abEsc(m.id)+'" class="w-full flex items-center justify-between gap-x-3.5 py-2 px-2.5 text-sm rounded-lg text-left '
+      +(on?'bg-blue-50 text-blue-700 font-medium dark:bg-blue-500/10 dark:text-blue-400':'text-gray-800 hover:bg-gray-100 dark:text-neutral-200 dark:hover:bg-neutral-700')+'">'
+      +'<span>'+abEsc(m.name)+'</span><span class="py-0.5 px-2 rounded-full text-xs bg-gray-100 text-gray-600 dark:bg-neutral-700 dark:text-neutral-300">'+abRank(m.id).length+'</span></button></li>';
+  });
+  document.getElementById('metrics').innerHTML=h+'</ul></div>';
+  const d=labData();
+  let v='<div class="lab-head"><h2 class="text-2xl font-semibold dark:text-white">'+abEsc(d.m.name)+'</h2>'
+    +'<span class="inline-flex items-center gap-x-1.5 py-1.5 px-3 rounded-full text-xs font-medium bg-gray-200 text-gray-800 dark:bg-neutral-700 dark:text-neutral-200">'+abEsc(d.m.src)+' · '+d.total+'개국</span></div>';
+  if(d.m.note)v+='<p class="lab-note text-gray-600 dark:text-neutral-400">'+abEsc(d.m.note)+'</p>';
+  v+='<div class="lab-regions">'+d.cards.map(c=>
+    '<div role="button" tabindex="0" data-cont="'+c.k+'"'+(c.off?' aria-disabled="true"':'')+' class="lab-reg flex flex-col bg-white border shadow-2xs rounded-xl p-4 md:p-5 dark:bg-neutral-800 '
+    +(c.on?'border-blue-600 ring-1 ring-blue-600 dark:border-blue-500 dark:ring-blue-500':'border-gray-200 hover:shadow-sm dark:border-neutral-700')+'">'
+    +'<div class="flex items-center gap-x-2 text-xs uppercase tracking-wide text-gray-500 dark:text-neutral-500">'+(c.color?'<span class="size-2 rounded-full" style="background:'+c.color+'"></span>':'')+abEsc(c.name)+'</div>'
+    +'<div class="v mt-1 text-xl sm:text-2xl font-semibold text-gray-800 dark:text-neutral-200">'+abEsc(c.val)+'</div><div class="s text-gray-500 dark:text-neutral-500">'+abEsc(c.sub)+'</div></div>').join('')+'</div>';
+  v+='<div class="bg-white border border-gray-200 rounded-xl shadow-2xs overflow-hidden dark:bg-neutral-800 dark:border-neutral-700 lab-scroll"><table class="lab-tbl min-w-full divide-y divide-gray-200 dark:divide-neutral-700"><thead class="bg-gray-50 dark:bg-neutral-900"><tr>'
+    +'<th class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">순위</th><th class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">나라</th><th class="px-6 py-3 text-end text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">'+abEsc(d.m.unit||'')+'</th><th class="bar px-6 py-3"></th></tr></thead><tbody class="divide-y divide-gray-200 dark:divide-neutral-700">'
+    +d.rows.map(r=>'<tr class="hover:bg-gray-50 dark:hover:bg-neutral-700/50">'
+      +'<td class="px-6 py-3 text-sm text-gray-800 dark:text-neutral-200">'+(r.rank<=3?'<span class="inline-flex items-center py-1 px-2.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-500/10 dark:text-blue-500">'+r.rank+'</span>':r.rank)+'</td>'
+      +'<td class="nm px-6 py-3 text-sm text-gray-800 dark:text-neutral-200"><a href="../index.html#/atlas?'+r.iso+'">'+abFlag(r.iso,18)+abEsc(r.name)+'</a></td>'
+      +'<td class="val px-6 py-3 text-sm text-gray-600 dark:text-neutral-400">'+abEsc(r.val)+'</td>'
+      +'<td class="bar px-6 py-3"><div class="flex w-full h-2 bg-gray-200 rounded-full overflow-hidden dark:bg-neutral-700"><div class="rounded-full" style="width:'+r.pct.toFixed(1)+'%;background:'+r.color+'"></div></div></td></tr>').join('')
+    +'</tbody></table></div>';
+  document.getElementById('view').innerHTML=v;
+}
+document.addEventListener('click',e=>{
+  const c=e.target.closest('#cats [data-c]');if(c){LAB.cat=c.dataset.c;render();return;}
+  const m=e.target.closest('#metrics [data-id]');if(m){LAB.id=m.dataset.id;render();return;}
+  const r=e.target.closest('.lab-reg');if(r&&r.getAttribute('aria-disabled')!=='true'){LAB.cont=r.dataset.cont;render();}
+});
+document.getElementById('theme').addEventListener('click',()=>document.documentElement.classList.toggle('dark'));
+const q=location.hash.replace('#','');if(q&&AB_METRICS.some(m=>m.id===q))LAB.id=q;
+render();
+</script>
+</body>
+</html>
