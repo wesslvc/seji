@@ -16,8 +16,8 @@
 <link rel="icon" href="img/magpie-64.png?v=20260917d">
 <link rel="apple-touch-icon" href="img/magpie-192.png?v=20260917d">
 <script>(function(){try{var m=localStorage.getItem('seji_theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');document.documentElement.dataset.theme=m;}catch(e){}})();</script>
-<link rel="stylesheet" href="css/main.css?v=20260929c">
-<link rel="stylesheet" href="css/tokens.css?v=8">
+<link rel="stylesheet" href="css/main.css?v=20260929d">
+<link rel="stylesheet" href="css/tokens.css?v=12">
 </head>
 <body>
 <script src="js/surface-in.js?v=20260923a"></script>
@@ -110,7 +110,7 @@
   <div class="kr-header">
     <div class="kr-title" id="rv-title">하천 맞히기</div>
     <div class="stats">
-      <div class="stat"><div class="sv" style="color:#81c995" id="rv-cor">0</div><div class="sl">정답</div></div>
+      <div class="stat"><div class="sv" style="color:var(--okt)" id="rv-cor">0</div><div class="sl">정답</div></div>
       <div class="stat"><div class="sv" style="color:var(--wr)" id="rv-wr">0</div><div class="sl">오답</div></div>
       <div class="stat"><div class="sv" style="color:var(--gd)" id="rv-pts">0</div><div class="sl">점수</div></div>
       <div class="stat"><div class="sv" style="color:var(--tx2)" id="rv-rem">0</div><div class="sl">남은</div></div>
@@ -264,7 +264,7 @@
     <h1>9모대비 수특퀴즈 완료!</h1>
     <div class="esc" id="sq-escore">0점</div>
     <div class="eg" style="grid-template-columns:1fr 1fr 1fr">
-      <div class="est"><div class="esv" style="color:#81c995" id="sq-e1">0</div><div class="esl">정답</div></div>
+      <div class="est"><div class="esv" style="color:var(--okt)" id="sq-e1">0</div><div class="esl">정답</div></div>
       <div class="est"><div class="esv" style="color:var(--wr)" id="sq-e2">0</div><div class="esl">오답</div></div>
       <div class="est"><div class="esv" style="color:var(--gd)" id="sq-e3">0%</div><div class="esl">정답률</div></div>
     </div>
@@ -281,7 +281,7 @@
     <h1>기후 맞히기 완료!</h1>
     <div class="esc" id="cq-escore">0점</div>
     <div class="eg" style="grid-template-columns:1fr 1fr">
-      <div class="est"><div class="esv" style="color:#81c995" id="cq-e1">0</div><div class="esl">정답</div></div>
+      <div class="est"><div class="esv" style="color:var(--okt)" id="cq-e1">0</div><div class="esl">정답</div></div>
       <div class="est"><div class="esv" style="color:var(--wr)" id="cq-e2">0</div><div class="esl">오답</div></div>
     </div>
     <button class="reb" onclick="shareLastResult()">결과 자랑하기</button>
@@ -294,7 +294,7 @@
     <h1>하천 맞히기 완료!</h1>
     <div class="esc" id="rv-escore">0점</div>
     <div class="eg" style="grid-template-columns:1fr 1fr">
-      <div class="est"><div class="esv" style="color:#81c995" id="rv-e1">0</div><div class="esl">정답</div></div>
+      <div class="est"><div class="esv" style="color:var(--okt)" id="rv-e1">0</div><div class="esl">정답</div></div>
       <div class="est"><div class="esv" style="color:var(--wr)" id="rv-e2">0</div><div class="esl">오답</div></div>
     </div>
     <button class="reb" onclick="shareLastResult()">결과 자랑하기</button>
@@ -316,7 +316,7 @@
   <div class="logo" id="ui-logo">나라 이름 <span>/ Countries</span></div>
   <div class="stats">
     <div class="stat"><div class="sv" style="color:var(--tx2)" id="ui-rem">0</div><div class="sl">남은</div></div>
-    <div class="stat"><div class="sv" style="color:#81c995" id="ui-cor">0</div><div class="sl">정답</div></div>
+    <div class="stat"><div class="sv" style="color:var(--okt)" id="ui-cor">0</div><div class="sl">정답</div></div>
     <div class="stat"><div class="sv" style="color:var(--wr)" id="ui-rev">0</div><div class="sl">오답</div></div>
     <button class="hicon" id="ui-finish-btn" title="여기서 끝내기" onclick="mapFinishAction()"><span data-ic="flag"></span></button>
     <button class="hicon" id="ui-list-btn" title="목록" onclick="mapListAction()"><span data-ic="list"></span></button>
@@ -3580,7 +3580,7 @@
   <div class="kr-header">
     <div class="kr-title" id="kr-title">시·군 맞히기</div>
     <div class="kr-stats">
-      <div><div class="sv" style="color:#81c995" id="kr-cor">0</div><div class="sl">정답</div></div>
+      <div><div class="sv" style="color:var(--okt)" id="kr-cor">0</div><div class="sl">정답</div></div>
       <div><div class="sv" style="color:var(--wr)" id="kr-rev">0</div><div class="sl">오답</div></div>
       <div><div class="sv" style="color:var(--tx2)" id="kr-rem">0</div><div class="sl">남은</div></div>
     </div>
@@ -3636,7 +3636,7 @@
     <h1>한국지리 완료!</h1>
     <div class="esc" id="kr-escore">0%</div>
     <div class="eg">
-      <div class="est"><div class="esv" style="color:#81c995" id="kr-e1">0</div><div class="esl">정답</div></div>
+      <div class="est"><div class="esv" style="color:var(--okt)" id="kr-e1">0</div><div class="esl">정답</div></div>
       <div class="est"><div class="esv" style="color:var(--wr)" id="kr-e2">0</div><div class="esl">오답</div></div>
     </div>
     <div class="wrong-list" id="kr-wrong-wrap" style="display:none">
@@ -4679,7 +4679,7 @@
     </div>
     <div class="tq-stats">
       <div><div class="sv" id="sq-pos" style="color:var(--ac)">0 / 0</div><div class="sl">문항</div></div>
-      <div><div class="sv" style="color:#81c995" id="sq-cor">0</div><div class="sl">정답</div></div>
+      <div><div class="sv" style="color:var(--okt)" id="sq-cor">0</div><div class="sl">정답</div></div>
       <div><div class="sv" style="color:var(--wr)" id="sq-wr">0</div><div class="sl">오답</div></div>
       <div><div class="sv" style="color:var(--gd)" id="sq-pts">0</div><div class="sl">점수</div></div>
     </div>
@@ -4713,7 +4713,7 @@
       <button class="tq-hbtn danger" id="tq-reset" title="초기화 (처음부터 다시)" onclick="tqResetConfirm()"><span data-ic="reset"></span></button>
     </div>
     <div class="tq-stats">
-      <div><div class="sv" style="color:#81c995" id="tq-cor">0</div><div class="sl">맞춘 나라</div></div>
+      <div><div class="sv" style="color:var(--okt)" id="tq-cor">0</div><div class="sl">맞춘 나라</div></div>
       <div><div class="sv" style="color:var(--tx2)" id="tq-rem">0</div><div class="sl">남은</div></div>
     </div>
     <div class="tq-progress"><div id="tq-pf"></div></div>
@@ -4746,7 +4746,7 @@
   <div id="tq-end">
       <div class="esc" id="tq-escore">0%</div>
       <div class="est-row">
-        <div class="est"><div class="esv" style="color:#81c995" id="tq-e1">0</div><div class="esl">맞춤</div></div>
+        <div class="est"><div class="esv" style="color:var(--okt)" id="tq-e1">0</div><div class="esl">맞춤</div></div>
         <div class="est"><div class="esv" style="color:var(--wr)" id="tq-e2">0</div><div class="esl">틀림</div></div>
       </div>
       <div id="tq-wrong-wrap" style="display:none">
@@ -4766,7 +4766,7 @@
   <div class="rq-header">
     <div class="rq-title">종교 퀴즈</div>
     <div class="rq-stats">
-      <div class="rq-stat"><div class="sv" style="color:#81c995" id="rq-cor">0</div><div class="sl">정답</div></div>
+      <div class="rq-stat"><div class="sv" style="color:var(--okt)" id="rq-cor">0</div><div class="sl">정답</div></div>
       <div class="rq-stat"><div class="sv" style="color:var(--wr)" id="rq-err">0</div><div class="sl">오답</div></div>
       <div class="rq-stat"><div class="sv" style="color:var(--gd)" id="rq-pts">0</div><div class="sl">점수</div></div>
       <div class="rq-stat"><div class="sv" style="color:var(--tx2)" id="rq-rem">0</div><div class="sl">남은</div></div>
@@ -4848,7 +4848,7 @@
     <h1>종교 퀴즈 완료!</h1>
     <div class="esc" id="rq-escore">0%</div>
     <div class="eg">
-      <div class="est"><div class="esv" style="color:#81c995" id="rq-e1">0</div><div class="esl">정답</div></div>
+      <div class="est"><div class="esv" style="color:var(--okt)" id="rq-e1">0</div><div class="esl">정답</div></div>
       <div class="est"><div class="esv" style="color:var(--wr)" id="rq-e2">0</div><div class="esl">오답</div></div>
       <div class="est"><div class="esv" style="color:var(--tx2)" id="rq-e3">0</div><div class="esl">건너뛰기</div></div>
     </div>
@@ -4902,7 +4902,7 @@
     <h1>접경국 퀴즈 완료!</h1>
     <div class="esc" id="bq-escore">0%</div>
     <div class="eg" style="grid-template-columns:1fr 1fr">
-      <div class="est"><div class="esv" style="color:#81c995" id="bq-e1">0</div><div class="esl">정답</div></div>
+      <div class="est"><div class="esv" style="color:var(--okt)" id="bq-e1">0</div><div class="esl">정답</div></div>
       <div class="est"><div class="esv" style="color:var(--wr)" id="bq-e2">0</div><div class="esl">오답</div></div>
     </div>
     <button class="reb" onclick="shareLastResult()">결과 자랑하기</button>
@@ -4916,7 +4916,7 @@
     <h1>접경국 쓰기 완료!</h1>
     <div class="esc" id="rbq-escore">0점</div>
     <div class="eg" style="grid-template-columns:1fr 1fr">
-      <div class="est"><div class="esv" style="color:#81c995" id="rbq-e1">0</div><div class="esl">정답(접경국)</div></div>
+      <div class="est"><div class="esv" style="color:var(--okt)" id="rbq-e1">0</div><div class="esl">정답(접경국)</div></div>
       <div class="est"><div class="esv" style="color:var(--wr)" id="rbq-e2">0</div><div class="esl">놓친 접경국</div></div>
     </div>
     <button class="reb" onclick="shareLastResult()">결과 자랑하기</button>

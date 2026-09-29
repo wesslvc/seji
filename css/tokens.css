@@ -57,6 +57,9 @@
 }
 :root[data-theme="light"]{
   color-scheme:light;
+  --bg:var(--z-bg);--sf:var(--z-surface);--sf2:var(--z-surface2);--bd:var(--z-border);--bd2:var(--z-border2);
+  --tx:var(--z-fg);--tx2:var(--z-muted);--tx3:var(--z-faint);--ac:var(--accent-text);
+  --ac2:color-mix(in oklab,var(--accent) 12%,transparent);--btn:var(--accent);--ok:#188038;
   --wr:#b3453c;--gd:#9a7b3c;
   --sh-sm:0 0 1px rgba(0,0,0,.1),0 2px 10px -3px rgba(0,0,0,.09);
   --sh-md:0 0 1px rgba(0,0,0,.12),0 12px 32px -10px rgba(0,0,0,.18);
@@ -174,3 +177,16 @@ html,body{overflow-x:clip}
 @media (max-width:480px){#tq-sub{display:none}}
 @media (min-width:900px){#theme-toggle{top:18px}}
 @media (pointer:coarse){#theme-toggle{width:40px;height:40px}}
+
+/* 7) 글자 대비 보정 — 밝은 배경에서 흐려 안 보이던 글자 */
+:root{--okt:#81c995}
+:root[data-theme="light"]{--okt:#188038;--z-faint:oklch(0.5 0.02 255);--z-muted:oklch(0.42 0.02 255)}
+.ld-tag-ko,.ld-tag,.ld-note{opacity:1}
+.ld-tag-ko{color:var(--tx2)}
+.tq-cl-n,.tq-cl-p{color:#0d1a2b;text-shadow:none}
+.tq-cl-p{opacity:.8}
+:root[data-theme="light"] .tq-cl-n,:root[data-theme="light"] .tq-cl-p{color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.35)}
+.ld-brand,.ld-brand *{opacity:1}
+.ld-brand{color:var(--tx2)}
+/* 무역 칸 글자: 바탕색이 제각각이라 어두운 알약을 깔아 어디서나 읽히게 */
+.tq-cl-n,.tq-cl-p,:root[data-theme="light"] .tq-cl-n,:root[data-theme="light"] .tq-cl-p{color:#fff;background:rgba(10,18,30,.6);padding:0 .35em;border-radius:5px;text-shadow:none;opacity:1;width:fit-content;max-width:100%}

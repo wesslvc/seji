@@ -1525,7 +1525,7 @@ function rvResolve(ok,pts,band){
   const bandTxt=band!=null?('일치도 <b>'+band+'%</b> → '):'';
   document.getElementById('rv-next-txt').innerHTML=
     '<b>'+r.ko+'</b> ('+r.en+')<br><span style="font-size:.74rem;color:var(--tx2)">'+cn+'</span><br>'
-    +bandTxt+(ok?'<span style="color:#81c995">+'+pts+'점</span>':pts>0?'<span style="color:var(--gd)">+'+pts+'점</span>':'<span style="color:var(--wr)">0점</span>');
+    +bandTxt+(ok?'<span style="color:var(--okt)">+'+pts+'점</span>':pts>0?'<span style="color:var(--gd)">+'+pts+'점</span>':'<span style="color:var(--wr)">0점</span>');
   document.getElementById('rv-next-bar').classList.add('on');
 }
 function rvNext(){

@@ -174,7 +174,7 @@ function injectStyle() {
   .sv-badge{flex-shrink:0;font-size:.72rem;font-weight:700;padding:.22rem .5rem;border-radius:999px;
     font-family:var(--font-display);font-variant-numeric:tabular-nums}
   .sv-badge.prog{background:rgba(138,180,248,.15);color:#8ab4f8}
-  .sv-badge.done{background:rgba(129,201,149,.15);color:#81c995}
+  .sv-badge.done{background:rgba(129,201,149,.15);color:var(--okt)}
   .sv-acts{display:flex;gap:.35rem;margin-top:.5rem}
   .sv-btn{flex:1;padding:.4rem;border-radius:6px;border:1px solid var(--bd);background:transparent;color:var(--tx2);
     font-size:.74rem;cursor:pointer;font-family:var(--font-sans)}
