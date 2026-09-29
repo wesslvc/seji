@@ -9,7 +9,8 @@ const AB_SCREENS={
   '/stat':  {el:'s-stat',   depth:0.58,  label:'심해층'},
   '/border':{el:'s-border', depth:0.78,  label:'심연층'},
   '/codex': {el:'s-codex',  depth:0.95,  label:'해구'},
-  '/review':{el:'s-review', depth:0.66,  label:'되짚기'}
+  '/review':{el:'s-review', depth:0.66,  label:'되짚기'},
+  '/clim':  {el:'s-clim',   depth:0.3,   label:'기후층'}
 };
 
 /* 화면 안 어느 자리로든 — 해시를 바꾸지 않고 스크롤만 한다(href="#foo" 를

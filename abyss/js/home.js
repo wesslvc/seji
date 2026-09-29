@@ -16,7 +16,9 @@ const AB_MODES=[
   {go:'#/stat',  ic:'trade', mc:'#78b2ce', tt:'통계 순위 테스트',
    ds:'1위부터 5위까지 나라 이름을 순서대로 — 한 번 틀리면 답이 열린다', meta:'m-stat'},
   {go:'#/border',ic:'border',mc:'#5f9ad6', tt:'접경국 하드코어',
-   ds:'개수를 알려 주지 않고, 맞닿은 나라를 다 적어야 채점', meta:'m-border'}
+   ds:'개수를 알려 주지 않고, 맞닿은 나라를 다 적어야 채점', meta:'m-border'},
+  {go:'#/clim',  ic:'climate',mc:'#7fb7c9', wide:true, tt:'기후 카드',
+   ds:'도시 이름으로 관측소를 찾아 그래프를 보고, 국기·위치 지도가 담긴 이미지로 내려받기', meta:'m-clim'}
 ];
 function abHomeGrid(){
   const g=document.getElementById('ld-grid');

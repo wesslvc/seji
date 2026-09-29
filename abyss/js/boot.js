@@ -8,6 +8,7 @@
   set('m-atlas', abPool().length+'개국'+(abTerrOn()?'':' · 속령 포함 '+Object.keys(DICT_DATA).length));
   set('m-ranks', AB_METRICS.length+'개 항목');
   set('m-stat',  (typeof STAT_SETS!=='undefined'?STAT_SETS.length:0)+'개 통계');
+  set('m-clim',(typeof CLIMATE!=='undefined'?CLIMATE.length:0)+'개 관측소');
   set('m-border',Object.keys(BORDERS).filter(i=>BORDERS[i].length>=4&&DICT_DATA[i]).length+'개 나라');
 
   if(typeof abAtlasInit==='function')abAtlasInit();
@@ -16,6 +17,7 @@
   if(typeof abBorderInit==='function')abBorderInit();
   if(typeof abCodexInit==='function')abCodexInit();
   if(typeof abReviewInit==='function')abReviewInit();
+  if(typeof abClimInit==='function')abClimInit();
 
   window.addEventListener('hashchange',()=>abGo());
   abGo();

@@ -26,7 +26,7 @@
   document.documentElement.dataset.theme=m;}catch(e){
   document.documentElement.dataset.theme='dark';}})();</script>
 <link rel="stylesheet" href="css/abyss.css?v=56">
-<link rel="stylesheet" href="css/screens.css?v=57">
+<link rel="stylesheet" href="css/screens.css?v=59">
 <link rel="stylesheet" href="css/tokens.css?v=28">
 </head>
 <body>
@@ -41,6 +41,7 @@
       <a href="#/ranks">순위 도감</a>
       <a href="#/stat">통계 테스트</a>
       <a href="#/border">접경국 하드코어</a>
+      <a href="#/clim">기후 카드</a>
       <a href="#/codex">지엽개념</a>
       <a href="#/review">오답·즐겨찾기</a>
     </nav>
@@ -72,6 +73,19 @@
     <footer class="ld-foot">
       <a class="ld-brand" href="https://nepica.vercel.app" target="_blank" rel="noreferrer" aria-label="NEPICA 브랜드 사이트로 이동"><img src="img/nepica-64.png?v=56" alt="" width="22" height="22" decoding="async"><span>NEPICA</span></a>
     </footer>
+  </section>
+
+  <!-- ══════════ 기후 카드 ══════════ -->
+  <section class="screen" id="s-clim">
+    <div class="head">
+      <h2>기후 카드</h2>
+      <p>도시 이름으로 관측소를 찾아 기온·강수 그래프를 봅니다. 국기와 위치 지도가 담긴 어두운 카드 이미지로 내려받을 수 있습니다.</p>
+    </div>
+    <div class="field"><input id="cc-q" type="search" placeholder="도시 이름 · 나라 이름 · 영문명으로 찾기" autocomplete="off"></div>
+    <div class="chips" id="cc-grp"></div>
+    <div id="cc-view" hidden></div>
+    <p class="cc-count" id="cc-count"></p>
+    <div id="cc-list" class="pick-grid"></div>
   </section>
 
   <!-- ══════════ 국가 아틀라스 ══════════ -->
@@ -143,7 +157,7 @@
 
 <script src="js/dive-in.js?v=56"></script>
 <script src="js/surface.js?v=56"></script>
-<script src="js/icons.js?v=56"></script>
+<script src="js/icons.js?v=57"></script>
 <script src="js/store.js?v=56"></script>
 <script src="js/data.js?v=56"></script>
 <script src="js/dict-data.js?v=56"></script>
@@ -154,20 +168,21 @@
 <script src="js/world-data.js?v=56"></script>
 <script src="js/labels.js?v=56"></script>
 <script src="js/stat-data.js?v=56"></script>
-<script src="js/climate-elev.js?v=1"></script>
+<script src="js/climate-elev.js?v=2"></script>
 <script src="js/derive.js?v=57"></script>
-<script src="js/shell.js?v=56"></script>
+<script src="js/shell.js?v=57"></script>
 <script src="js/trade-icons.js?v=56"></script>
 <script src="js/atlas.js?v=59"></script>
 <script src="js/climate-card.js?v=5"></script>
+<script src="js/clim-screen.js?v=1"></script>
 <script src="js/ranks.js?v=56"></script>
 <script src="js/worldmap.js?v=56"></script>
 <script src="js/quiz-stat.js?v=56"></script>
 <script src="js/quiz-border.js?v=56"></script>
 <script src="js/codex.js?v=56"></script>
 <script src="js/review.js?v=56"></script>
-<script src="js/home.js?v=56"></script>
-<script src="js/boot.js?v=56"></script>
+<script src="js/home.js?v=57"></script>
+<script src="js/boot.js?v=57"></script>
 <script src="js/chipgrid.js?v=2"></script>
 <!-- 로그인 — 본편과 같은 계정. 오답·즐겨찾기만 계정에 둔다 -->
 <script type="module" src="js/account.js?v=56"></script>

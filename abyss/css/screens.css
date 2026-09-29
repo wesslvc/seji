@@ -625,3 +625,27 @@ body{text-rendering:optimizeLegibility;word-break:keep-all}
 .cl-dl:hover{background:var(--sf2)}
 .cl-dl:disabled{opacity:.6;cursor:progress}
 @media (pointer:coarse){.cl-dl{height:40px}}
+/* ── 기후 카드 화면 ── */
+#s-clim .field{margin-top:.2rem}
+.cc-count{font-size:var(--fs-sm);color:var(--tx2);margin:1rem 0 0}
+#cc-list{margin-top:.6rem}
+#cc-list .pick.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.pick-k em.kop{font-style:normal;margin-left:.4rem;font-size:.72rem;font-weight:600;color:var(--ac);border:1px solid currentColor;border-radius:999px;padding:0 .4rem;vertical-align:1px}
+#cc-view{margin-top:1.1rem;scroll-margin-top:5rem}
+.cc-card{display:flex;flex-direction:column;gap:.4rem}
+.cc-top{display:flex;align-items:flex-start;gap:.9rem}
+.cc-top .flag{flex:none;margin-top:.25rem;border-radius:6px}
+.cc-tt{flex:1;min-width:0}
+.cc-cn{font-size:var(--fs-sm);color:var(--ac);font-weight:600;display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
+.cc-atlas{font-weight:500;color:var(--tx2);font-size:var(--fs-xs)}
+.cc-atlas:hover{color:var(--ac)}
+.cc-tt h3{margin:.1rem 0 .15rem;font-size:1.5rem;letter-spacing:-.02em;display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+.cc-kop{font-size:.85rem;font-weight:700;background:var(--accent);color:var(--accent-fg,#fff);border-radius:999px;padding:.1rem .6rem}
+.cc-sub{font-size:var(--fs-sm);color:var(--tx2)}
+.cc-close{flex:none;width:36px;height:36px;border-radius:50%;border:1px solid var(--bd2);background:transparent;color:var(--tx2);cursor:pointer;font-size:.9rem}
+.cc-close:hover{background:var(--sf2);color:var(--tx)}
+.cc-dl{align-self:flex-start;display:inline-flex;align-items:center;gap:.45rem;margin-top:.6rem;height:44px;padding:0 1.2rem;border-radius:999px;border:0;font:inherit;font-weight:600;cursor:pointer}
+.cc-dl:disabled{opacity:.6;cursor:progress}
+@media (max-width:620px){.cc-dl{align-self:stretch;justify-content:center}}
+.cc-dl{width:auto}@media (max-width:620px){.cc-dl{width:100%}}
+.cc-card .cl-chart{max-width:780px}
