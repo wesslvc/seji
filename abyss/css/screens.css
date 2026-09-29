@@ -617,3 +617,11 @@ body{text-rendering:optimizeLegibility;word-break:keep-all}
 .cs-card:hover:not(:disabled){border-color:color-mix(in srgb,var(--cc) 55%,var(--bd));transform:translateY(-1px)}
 .cs-card.on{border-color:var(--cc);background:color-mix(in srgb,var(--cc) 9%,var(--sf))}
 .cs-card.off{opacity:.45;cursor:default}
+/* 기후 카드 머리 + 이미지 내려받기 단추 */
+.cl-head{display:flex;align-items:flex-start;gap:.8rem}
+.cl-head .card-t{flex:1;min-width:0}
+.cl-dl{flex:none;display:inline-flex;align-items:center;gap:.35rem;height:34px;padding:0 .8rem;border-radius:999px;
+  border:1px solid var(--bd2);background:transparent;color:var(--tx);font:inherit;font-size:.8rem;font-weight:500;cursor:pointer}
+.cl-dl:hover{background:var(--sf2)}
+.cl-dl:disabled{opacity:.6;cursor:progress}
+@media (pointer:coarse){.cl-dl{height:40px}}

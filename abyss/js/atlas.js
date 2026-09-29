@@ -374,10 +374,13 @@ function abAtlasShow(iso){
     const draw=i=>{
       const s=cl.st[i];
       document.getElementById('cl-box').innerHTML=
-        '<div class="card-t">'+abEsc(s.ko||s.en)+' <em>'+abEsc(s.en)+' · '
+        '<div class="cl-head"><div class="card-t">'+abEsc(s.ko||s.en)+' <em>'+abEsc(s.en)+' · '
         +s.lat.toFixed(2)+'°, '+s.lon.toFixed(2)+'°'+(s.kop?' · 쾨펜 '+abEsc(s.kop):'')+'</em></div>'
+        +'<button type="button" class="cl-dl" id="cl-dl" title="어두운 카드 이미지로 내려받기">'
+        +'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>이미지 저장</button></div>'
         +abClimateChart(s)
         +'<div class="cl-legend"><span class="cl-lg-t">월평균 기온</span><span class="cl-lg-p">월강수량</span></div>';
+      document.getElementById('cl-dl').onclick=e=>abClimateCardDownload(iso,s,e.currentTarget);
     };
     draw(0);
     document.getElementById('cl-pick').addEventListener('click',e=>{
