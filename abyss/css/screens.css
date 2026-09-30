@@ -649,3 +649,4 @@ body{text-rendering:optimizeLegibility;word-break:keep-all}
 @media (max-width:620px){.cc-dl{align-self:stretch;justify-content:center}}
 .cc-dl{width:auto}@media (max-width:620px){.cc-dl{width:100%}}
 .cc-card .cl-chart{max-width:780px}
+.stat .r.muted{color:var(--tx3);font-weight:500}

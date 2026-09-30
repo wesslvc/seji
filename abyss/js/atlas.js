@@ -194,6 +194,17 @@ const AB_ATLAS_GRP=[
   ['loc','위치와 규모'],['soc','인구와 사회'],['econ','산업과 자원'],
   ['nat','자연환경'],['bd','경계']
 ];
+/* 상위 5개국만 공개된 통계(석유 수출입 등 — 원자료가 나라 전체 목록을 내지 않는다)를
+   아틀라스 칸으로. 5위 안이면 값과 순위, 밖이면 그렇다고만 적는다. */
+function abTopCell(id,iso){
+  const s=(typeof STAT_SETS!=='undefined'?STAT_SETS:[]).find(x=>x.id===id);if(!s)return '';
+  const i=s.top.findIndex(t=>t[0]===iso);
+  if(i<0)return '<div class="stat"><div class="k">'+abEsc(s.name)+'</div><div class="v">—</div>'
+    +'<div class="r muted">상위 5위 밖</div></div>';
+  return '<div class="stat"><div class="k">'+abEsc(s.name)+'</div><div class="v">'
+    +abEsc(Number(s.top[i][1]).toLocaleString())+' '+abEsc(s.unit)+'</div>'
+    +'<div class="r">세계 '+(i+1)+'위 · 상위 5개국 통계</div></div>';
+}
 function abAtlasShow(iso){
   const d=DICT_DATA[iso]||{}, more=(typeof DICT_MORE!=='undefined'&&DICT_MORE[iso])||[];
   /* 위키에서 온 산문(나라 특징·도시 설명)은 싣지 않는다 — 여기는 원자료 자료실이다 */
@@ -281,6 +292,7 @@ function abAtlasShow(iso){
       +['coalProd','coalCons','coalSelf','oilProd','oilCons','oilSelf','gasProd','gasCons','gasSelf',
         'coalExp','coalImp','gasExp','gasImp','coalRes']
         .map(id=>abStatCell(id,iso)).join('')
+      +['enr_oil_x','enr_oil_m'].map(id=>abTopCell(id,iso)).join('')
       +'</div>';
   }
   /* 무역 — 수입은 뺀다. 이 나라가 세계에 무엇을 파는지가 그 나라 산업의
