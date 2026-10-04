@@ -57,7 +57,13 @@ function falseSentence(c){
   const {parts,forks}=parse(c);
   if(forks.length&&(!c.x||Math.random()<.75)){
     const i=pick(forks),ch={};ch[i]=1+rnd(parts[i].o.length-1);
-    return {html:sentence(c,ch,(j,v,k)=>j===i?'<span class="twist">'+esc(v)+'</span>':esc(v)),fork:i};
+    /* 짝을 이루는 갈림길(예: 여름 {북상|남하} · 겨울 {남하|북상})은 함께 뒤집는다 —
+       하나만 바꾸면 '여름에 북상, 겨울에도 북상'처럼 문장 안에서 앞뒤가 안 맞아
+       외우지 않아도 틀린 줄 알게 된다 */
+    const oi=parts[i].o;
+    if(oi.length===2)forks.forEach(j=>{const oj=parts[j].o;
+      if(j!==i&&oj.length===2&&oj[0]===oi[1]&&oj[1]===oi[0])ch[j]=1;});
+    return {html:sentence(c,ch,(j,v,k)=>ch[j]?'<span class="twist">'+esc(v)+'</span>':esc(v)),fork:i};
   }
   return {html:esc(pick(c.x)),fork:null};
 }
@@ -153,12 +159,12 @@ function renderHome(){
   const total=EARTH.length,k=EARTH.filter(c=>mastered(c.id)).length;
   $('#view').innerHTML=
     '<div class="head"><h2>지구과학 만점 체크리스트</h2>'
-    +'<p>한 줄 개념 '+total+'개를 빠짐없이 익힙니다. <b>학습</b>은 문제와 답을 바로 같이 보여 주고, <b>퀴즈</b>는 같은 개념도 매번 다른 꼴(O/X · 빈칸 · 조합 · 옳은 것 고르기)로 물어봅니다. 두 번 연속 맞히면 숙지로 칩니다.</p></div>'
+    +'<p>한 줄 개념 '+total+'개를 빠짐없이 익힙니다. <b>학습</b>은 문제와 답을 바로 같이 보여 주고, <b>퀴즈</b>는 문장 다섯 개 가운데 맞는 것을 <b>전부</b> 고르게 합니다 — 몇 개가 맞는지 알려 주지 않아서 완벽히 알아야만 맞힙니다. 틀린 문장은 핵심 단어 하나가 그럴듯한 오답으로 바뀌어 있고, 매번 다른 문장이 섞여 나옵니다. 문장마다 두 번 연속 바르게 판단하면 숙지로 칩니다.</p></div>'
     +'<div class="sum"><div class="sum-n"><b>'+k+'</b> / '+total+' 숙지</div><div class="bar big"><i style="width:'+(k/total*100).toFixed(1)+'%"></i></div></div>'
     +'<h3 class="lbl">범위</h3>'+unitChips()
     +progressHTML()
-    +'<h3 class="lbl">퀴즈 문항 수</h3><div class="chips" id="len-chips">'
-    +[10,20,40,0].map(n=>'<button class="chip'+(S.len===n?' on':'')+'" data-n="'+n+'">'+(n?n+'문항':'범위 전체')+'</button>').join('')+'</div>'
+    +'<h3 class="lbl">퀴즈 문항 수 <small>한 문항에 문장 '+PER+'개</small></h3><div class="chips" id="len-chips">'
+    +[5,10,20,0].map(n=>'<button class="chip'+(S.len===n?' on':'')+'" data-n="'+n+'">'+(n?n+'문항':'범위 전체')+'</button>').join('')+'</div>'
     +'<div class="start-row"><a class="btn-lg sub" href="#/study">학습 시작</a><a class="btn-lg pri" href="#/quiz">퀴즈 시작</a></div>'
     +'<p class="foot-note"><a href="#/list">개념 정리</a>에서 한 줄 개념 전체를 단원별로 보고 1~5회독을 체크할 수 있습니다.'
     +' 기록은 이 기기에만 남습니다 · <button class="link" id="reset-m">숙지 기록 지우기</button></p>';
@@ -218,46 +224,81 @@ function drawStudy(){
     const a=R[c.id]||[];R[c.id]=a.indexOf(n)>=0?a.filter(x=>x!==n):a.concat(n);store.set('read',R);b.classList.toggle('on');};
 }
 
-/* ── 퀴즈 ── */
+/* ── 퀴즈: 맞는 문장을 '전부' 고르기 ──
+   한 문항에 문장 다섯 개. 문장마다 따로 맞는 문장이거나, 핵심 단어 하나를
+   그럴듯한 오답으로 바꾼 틀린 문장이다. 몇 개가 맞는지는 알려 주지 않고(적어도
+   하나는 맞다), 하나라도 더하거나 빠뜨리면 틀린다 — 확실히 아는 것만 맞힌다.
+   숙지 기록은 문장(개념)마다 따로 남긴다. 다 맞히면 곧장 다음 문항으로 넘어간다. */
+const PER=5;
+function multiQ(cs){
+  let flags;
+  do{flags=cs.map(()=>Math.random()<.5);}while(!flags.some(Boolean));
+  return {id:cs[0].id,cs,items:shuffle(cs.map((c,k)=>({c,ok:flags[k],
+    h:flags[k]?truthText(c):falseSentence(c).html.replace(/<span class="twist">|<\/span>/g,'')})))};
+}
 function startQuiz(retry){
   S.mode='quiz';S.units=SEL.slice();
   const pool=poolOf(S.units);
-  const list=retry?retry:choose(S.units,S.len||pool.length);
-  S.queue=list.map(c=>({c}));S.i=0;S.score=0;S.wrong=[];S.requeued=new Set();
+  const nQ=S.len||Math.ceil(pool.length/PER);
+  let list=retry?shuffle(retry):choose(S.units,Math.min(pool.length,nQ*PER));
+  /* 문장이 모자라면(범위가 좁거나 틀린 것만 다시) 같은 범위에서 채운다 */
+  if(list.length<PER){const more=shuffle(poolOf(S.units).filter(c=>list.indexOf(c)<0));list=list.concat(more.slice(0,PER-list.length));}
+  const qs=[];for(let i=0;i<list.length;i+=PER){let g=list.slice(i,i+PER);
+    if(g.length<3&&qs.length){qs[qs.length-1].cs=qs[qs.length-1].cs.concat(g);continue;}
+    qs.push({cs:g});}
+  S.queue=qs.map(x=>multiQ(x.cs));S.i=0;S.score=0;S.wrong=[];S.done=false;
   drawQuiz();
 }
 function drawQuiz(){
   if(S.i>=S.queue.length)return drawEnd();
-  const it=S.queue[S.i];
-  S.q=makeQ(it.c,poolOf([it.c.u]));S.answered=false;
+  const q=S.queue[S.i];S.q=q;S.answered=false;
+  const units=[...new Set(q.cs.map(c=>c.u))].map(u=>EARTH_UNITS.find(x=>x.u===u).name);
   $('#view').innerHTML='<div class="bar-row"><a class="back" href="#/">← 그만두기</a>'
-    +'<span class="pos">맞힘 '+S.score+'</span></div>'
+    +'<span class="pos">'+(S.i+1)+' / '+S.queue.length+' · 맞힘 '+S.score+'</span></div>'
     +'<div class="bar"><i style="width:'+(S.i/S.queue.length*100).toFixed(1)+'%"></i></div>'
-    +qCard(S.q,false)
-    +'<div class="nav-row"><button class="btn-lg pri" id="next" hidden>다음</button></div>';
-  $('.opts').onclick=e=>{const b=e.target.closest('.opt');if(!b||S.answered)return;answer(+b.dataset.i);};
-  $('#next').onclick=()=>{S.i++;drawQuiz();};
+    +'<div class="qcard"><div class="q-meta">'+units.map(n=>'<span class="tag">'+esc(n)+'</span>').join('')+'</div>'
+    +'<div class="q-prompt">맞는 문장을 <u>전부</u> 고르세요</div>'
+    +'<div class="q-hint">몇 개가 맞는지는 알려 주지 않습니다 · 하나라도 더하거나 빠뜨리면 틀립니다</div>'
+    +'<div class="opts multi">'+q.items.map((it,i)=>'<button class="opt" data-i="'+i+'" aria-pressed="false">'
+      +'<span class="box" aria-hidden="true"></span><span class="ot">'+it.h+'</span><span class="kb">'+(i+1)+'</span></button>').join('')+'</div>'
+    +'<div class="explain" id="explain"></div></div>'
+    +'<div class="nav-row"><button class="btn-lg pri" id="check" disabled>채점</button><button class="btn-lg pri" id="next" hidden>다음</button></div>';
+  $('.opts').onclick=e=>toggle(e.target.closest('.opt'));
+  $('#check').onclick=grade;
+  $('#next').onclick=()=>{clearTimeout(S.auto);S.i++;drawQuiz();};
 }
-function answer(i){
+function toggle(b){
+  if(!b||S.answered)return;
+  const on=b.getAttribute('aria-pressed')!=='true';
+  b.setAttribute('aria-pressed',on);b.classList.toggle('sel',on);
+  $('#check').disabled=!document.querySelector('.opt.sel');
+}
+function grade(){
+  if(S.answered||$('#check').disabled)return;
   S.answered=true;
-  const q=S.q,ok=q.opts[i].ok,it=S.queue[S.i];
-  document.querySelectorAll('.opt').forEach((b,k)=>{b.disabled=true;
-    if(q.opts[k].ok)b.classList.add('right');else if(k===i)b.classList.add('wrong');});
-  record(q.id,ok,q.type);
-  if(ok&&!it.again)S.score++;
-  if(!ok){
-    if(S.wrong.indexOf(it.c)<0)S.wrong.push(it.c);
-    /* 틀린 개념은 같은 판 뒤쪽에 한 번 더 — 다른 꼴로 */
-    if(!S.requeued.has(it.c.id)){S.requeued.add(it.c.id);
-      const at=Math.min(S.queue.length,S.i+3+rnd(4));S.queue.splice(at,0,{c:it.c,again:true});}
-  }
-  $('#explain').innerHTML=(ok?'<div class="verdict good">맞았습니다</div>':'<div class="verdict bad">틀렸습니다</div>')+explainHTML(q,null);
-  const n=$('#next');n.hidden=false;n.textContent=S.i+1>=S.queue.length?'결과 보기':'다음';n.focus();
+  const q=S.q;let all=true;const fixes=[];
+  document.querySelectorAll('.opt').forEach(b=>{
+    const it=q.items[+b.dataset.i],picked=b.classList.contains('sel');
+    b.disabled=true;b.classList.remove('sel');
+    const good=picked===it.ok;if(!good)all=false;
+    record(it.c.id,good,'multi');
+    if(it.ok&&picked)b.classList.add('right');
+    else if(it.ok)b.classList.add('miss');
+    else if(picked)b.classList.add('wrong');
+    else b.classList.add('dim');
+    if(!it.ok)fixes.push(it.c);
+    if(!good&&S.wrong.indexOf(it.c)<0)S.wrong.push(it.c);
+  });
+  if(all)S.score++;
+  $('#explain').innerHTML=(all?'<div class="verdict good">맞았습니다</div>':'<div class="verdict bad">틀렸습니다 <small>빠뜨린 맞는 문장은 점선, 잘못 고른 문장은 붉게 표시했습니다</small></div>')
+    +(fixes.length?'<div class="ex-h">틀린 문장 바로잡기</div>'+fixes.map(c=>'<p class="truth">'+truthHTML(c)+'</p>').join(''):'<div class="ex-h">다섯 문장이 모두 맞는 문장이었습니다</div>');
+  $('#check').hidden=true;const n=$('#next');n.hidden=false;n.textContent=S.i+1>=S.queue.length?'결과 보기':'다음';
+  n.focus({preventScroll:true});
+  if(all)S.auto=setTimeout(()=>{if(S.mode==='quiz'&&S.answered&&S.q===q){S.i++;drawQuiz();}},900);
 }
 function drawEnd(){
-  const base=S.queue.filter(x=>!x.again).length;
-  $('#view').innerHTML='<div class="end"><div class="end-score"><b>'+S.score+'</b> / '+base+'</div>'
-    +'<p>'+(S.wrong.length?'틀린 개념 '+S.wrong.length+'개 — 다시 풀면 다른 꼴로 나옵니다.':'모두 맞혔습니다.')+'</p>'
+  $('#view').innerHTML='<div class="end"><div class="end-score"><b>'+S.score+'</b> / '+S.queue.length+'</div>'
+    +'<p>'+(S.wrong.length?'틀리게 판단한 문장 '+S.wrong.length+'개 — 다시 풀면 다른 문장으로 섞여 나옵니다.':'모든 문장을 정확히 판단했습니다.')+'</p>'
     +(S.wrong.length?'<div class="wrong-list">'+S.wrong.map(c=>'<p class="truth">'+truthHTML(c)+'</p>').join('')+'</div>':'')
     +'<div class="nav-row">'+(S.wrong.length?'<button class="btn-lg sub" id="retry">틀린 것만 다시</button>':'')
     +'<button class="btn-lg pri" id="again">새 퀴즈</button></div><p><a class="back" href="#/">← 처음으로</a></p></div>';
@@ -293,10 +334,12 @@ function route(){
   window.scrollTo(0,0);
 }
 document.addEventListener('keydown',e=>{
-  if(S.mode==='quiz'&&!S.answered&&S.q&&/^[1-4]$/.test(e.key)){const i=+e.key-1;if(S.q.opts[i])answer(i);}
-  else if(S.mode==='quiz'&&!S.answered&&S.q&&S.q.ox&&/^[oOxX]$/.test(e.key))answer(/[oO]/.test(e.key)?0:1);
-  else if(e.key==='Enter'&&S.mode==='quiz'&&S.answered){const n=$('#next');if(n&&!n.hidden)n.click();}
-  else if(S.mode==='study'&&(e.key==='ArrowRight'||e.key==='ArrowLeft')){const b=$(e.key==='ArrowRight'?'#next':'#prev');if(b)b.click();}
+  if(/^(INPUT|TEXTAREA|SELECT)$/.test((e.target||{}).tagName||''))return;
+  if(S.mode==='quiz'&&S.q){
+    if(!S.answered&&/^[1-9]$/.test(e.key)){toggle(document.querySelectorAll('.opt')[+e.key-1]);e.preventDefault();}
+    else if(e.key==='Enter'){e.preventDefault();if(S.answered)$('#next').click();else grade();}
+  }
+  else if(S.mode==='study'&&(e.key==='ArrowRight'||e.key==='ArrowLeft'||e.key==='Enter')){const b=$(e.key==='ArrowLeft'?'#prev':'#next');if(b)b.click();}
 });
 /* 밝기 */
 function applyTheme(m){document.documentElement.dataset.theme=m;store.set('theme',m);
@@ -305,6 +348,6 @@ function applyTheme(m){document.documentElement.dataset.theme=m;store.set('theme
     :'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.6M12 18.9v2.6M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M2.5 12h2.6M18.9 12h2.6M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/></svg>';}
 $('#theme-toggle').onclick=()=>applyTheme(document.documentElement.dataset.theme==='light'?'dark':'light');
 applyTheme(document.documentElement.dataset.theme||'dark');
-S.len=store.get('len',20);
+S.len=store.get('len',10);if([5,10,20,0].indexOf(S.len)<0)S.len=10;
 window.addEventListener('hashchange',route);
 route();

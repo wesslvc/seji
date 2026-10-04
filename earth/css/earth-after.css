@@ -110,3 +110,18 @@
 }
 .topbar nav a{white-space:nowrap}
 @media (max-width:420px){.topbar .logo span{display:none}.topbar nav a{padding:0 .6rem}}
+/* 모두 고르기 */
+.q-hint{font-size:.82rem;color:var(--tx2);margin:-.3rem 0 .9rem}
+.lbl small{font-weight:500;color:var(--tx3,var(--tx2));margin-left:.4rem}
+.opts.multi .opt{align-items:center;gap:.8rem;padding:.85rem 1rem;font-size:1rem;line-height:1.65}
+.opt .box{flex:none;width:22px;height:22px;border-radius:7px;border:2px solid var(--bd2);display:inline-flex;align-items:center;justify-content:center;transition:background .1s,border-color .1s}
+.opt.sel{border-color:var(--accent);background:var(--ac2)}
+.opt.sel .box{background:var(--accent);border-color:var(--accent)}
+.opt.sel .box::after,.opt.right .box::after{content:'';width:6px;height:11px;border:solid #fff;border-width:0 2.5px 2.5px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.opt .kb{flex:none;font-size:.72rem;color:var(--tx3,var(--tx2));border:1px solid var(--bd);border-radius:6px;padding:0 .35rem;line-height:1.5}
+@media (pointer:coarse){.opt .kb{display:none}}
+.opt.right .box{background:var(--okt,#81c995);border-color:var(--okt,#81c995)}
+.opt.miss{border:2px dashed var(--okt,#81c995);background:transparent}
+.opt.wrong .box{background:var(--wr);border-color:var(--wr)}
+.opt.dim{opacity:.55}
+.verdict small{font-weight:500;font-size:.78rem;color:var(--tx2);margin-left:.4rem}
