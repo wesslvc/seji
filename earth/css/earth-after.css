@@ -125,3 +125,24 @@
 .opt.wrong .box{background:var(--wr);border-color:var(--wr)}
 .opt.dim{opacity:.55}
 .verdict small{font-weight:500;font-size:.78rem;color:var(--tx2);margin-left:.4rem}
+/* 문장 완성 */
+.q-stem.cloze{line-height:2.5;margin-bottom:.6rem}
+.cz{display:inline-flex;flex-wrap:wrap;gap:.25rem;vertical-align:middle;margin:0 .15rem;padding:.15rem;border-radius:12px;border:1.5px dashed var(--bd2)}
+.czb{border:1px solid var(--bd2);background:var(--sf);color:var(--tx);border-radius:9px;padding:.15rem .6rem;font-size:.95rem;line-height:1.6;cursor:pointer;font-weight:500}
+.czb:hover:not(:disabled){border-color:var(--accent)}
+.czb.sel{background:var(--accent);border-color:var(--accent);color:var(--accent-fg,#fff)}
+.czb.right{background:var(--okt,#81c995);border-color:var(--okt,#81c995);color:#0b1a10;font-weight:700}
+.czb.miss{border:2px dashed var(--okt,#81c995);color:var(--okt,#81c995);font-weight:700}
+.czb.wrong{background:var(--wr);border-color:var(--wr);color:#fff;text-decoration:line-through}
+.czb.dim{opacity:.4}
+.czb:disabled{cursor:default}
+@media (pointer:coarse){.czb{padding:.3rem .7rem}}
+/* 같은 말 찾기 · 합답형 */
+.wq{display:inline-block;padding:0 .45em;border-radius:7px;background:var(--ac2);color:var(--ac);font-weight:800}
+.bogi{border:1px solid var(--bd2);border-radius:var(--r-sm);padding:1.1rem 1rem .6rem;margin:.9rem 0 1rem;position:relative}
+.bogi-h{position:absolute;top:-.75rem;left:50%;transform:translateX(-50%);background:var(--sf);padding:0 .7rem;font-size:.82rem;color:var(--tx2);font-weight:700}
+.bogi p{margin:0 0 .5rem;line-height:1.75}
+.bogi b{margin-right:.2rem}
+.opts.hap{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}
+.opts.hap .opt{justify-content:center;align-items:center;font-weight:700}
+.opts.hap .opt .on{background:none;width:auto;font-size:1.05rem;color:var(--tx2)}
