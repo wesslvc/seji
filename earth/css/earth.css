@@ -1,0 +1,9 @@
+/* Geogl3 Earth — 바탕 (공용 tokens.css 앞에 둔다: 색·모양 이름표는 tokens.css 가 정한다) */
+[hidden]{display:none!important}
+:root{color-scheme:dark;--font-sans:'Pretendard','Noto Sans KR',system-ui,sans-serif;--font-display:'Pretendard',system-ui,sans-serif}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:var(--font-sans);font-size:16px;line-height:1.7;word-break:keep-all;min-height:100dvh}
+@media (min-width:900px){html{font-size:17px}}
+a{color:var(--ac);text-decoration:none}
+button{font:inherit;color:inherit}
