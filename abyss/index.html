@@ -2,6 +2,11 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
+<script>/* /abyss 처럼 끝에 / 없이 들어오면(페이스북 링크의 ?fbclid=… 등) css/·js/ 상대 경로가 사이트 루트로 풀려 화면이 깨진다 —
+   /abyss/ 로 옮기고, 추적용 fbclid 는 떼어 낸다 */
+(function(){var l=location,q=l.search.replace(/([?&])fbclid=[^&]*&?/,'$1').replace(/[?&]$/,'');
+  if(!/\/$/.test(l.pathname))l.replace(l.pathname+'/'+q+l.hash);
+  else if(q!==l.search)history.replaceState(null,'',l.pathname+q+l.hash);})();</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Geogl3 Abyss — 세계지리 심층 자료실</title>
 <meta name="description" content="지오글이 가진 세계지리 원자료를 나라별로 펼쳐 보고, 항목마다 전체 순위를 확인하고, 통계 순위 테스트와 접경국 하드코어로 겨루는 심층 자료실.">
