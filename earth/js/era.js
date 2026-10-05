@@ -11,7 +11,7 @@ const ERA_DAE=[['선캄브리아',0,1],['고생대',2,7],['중생대',8,10],['�
 /* n 이름 · g 무리 · a 출현 · b 번성 [처음, 끝] · x 멸종(없으면 현재까지 삶) · xs 멸종 시점 꾸밈 · al 출현으로 함께 받는 답 */
 const ERA_ORG=[
   {n:'삼엽충',g:'무척추동물',a:2,b:[2,2],x:7,xs:'말'},
-  {n:'필석',g:'무척추동물',a:3,b:[3,3],x:4,xs:'말'},
+  {n:'필석',g:'무척추동물',a:3,b:[3,3],x:6,xs:'',note:'실루리아기 말에 대부분 멸종했고, 남은 일부 종이 석탄기에 멸종했다'},
   {n:'방추충',g:'무척추동물',a:6,b:[6,6],x:7,xs:'말'},
   {n:'암모나이트',g:'무척추동물',a:5,b:[8,10],x:10,xs:'말'},
   {n:'화폐석',g:'무척추동물',a:11,b:[11,11],x:11,xs:'말'},
@@ -70,7 +70,7 @@ function eraLine(o){
   const t=[];
   if(o.a!=null)t.push('출현 <b>'+ERA_P[o.a]+'</b>');
   if(o.b)t.push('번성 <b>'+eraRange(o.b[0],o.b[1])+'</b>');
-  t.push(o.x!=null?'멸종 <b>'+ERA_P[o.x]+' '+o.xs+'</b>':(o.a!=null&&o.g!=='선캄브리아'?'현재까지 생존':''));
+  t.push(o.x!=null?'멸종 <b>'+ERA_P[o.x]+(o.xs?' '+o.xs:'')+'</b>':(o.a!=null&&o.g!=='선캄브리아'?'현재까지 생존':''));
   return t.filter(Boolean).join(' · ');
 }
 /* 14칸 띠 — 연한 칸 살아 있던 기간, 진한 칸 번성, × 멸종 */
@@ -230,7 +230,7 @@ function eraGrade(){
   if(all)ER.score++;else ER.wrong.push(it);
   const o=it.o;
   $('#explain').innerHTML=(all?'<div class="verdict good">맞았습니다</div>':'<div class="verdict bad">틀렸습니다</div>')
-    +(o?eraHeadRow()+eraStrip(o)+'<p class="truth">'+esc(o.n)+' — '+eraLine(o)+'</p>'
+    +(o?eraHeadRow()+eraStrip(o)+'<p class="truth">'+esc(o.n)+' — '+eraLine(o)+'</p>'+(o.note?'<p class="note">'+esc(o.note)+'</p>':'')
        :'<p class="truth">'+it.v.n+' — '+it.v.seq.map(([s,e,suf])=>'<b>'+eraRange(s,e)+(suf?' '+suf:'')+'</b>').join(' → ')+'</p>');
   $('#ez-check').hidden=true;const n=$('#ez-next');n.hidden=false;n.textContent=ER.i+1>=ER.queue.length?'결과 보기':'다음';
   n.focus({preventScroll:true});

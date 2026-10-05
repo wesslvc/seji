@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════════════════════
-   Geogl3 Earth — 지구과학 만점 checklist 학습·퀴즈
+   Geogl3 Earth — 지구과학 개념퀴즈 학습·퀴즈
    ──────────────────────────────────────────────────────────────────────────
    개념 한 줄(data.js)에서 문제를 그때그때 만든다. 같은 개념도 매번 다른 꼴로:
      · O/X       — 맞는 문장, 또는 갈림길 하나에 오답을 끼운 틀린 문장
@@ -180,7 +180,7 @@ function record(id,ok,form){
    오답 다시 풀기는 수준과 상관없이 모은 것을 그대로 낸다 */
 let LVSEL=String(store.get('level','A'));if(['A','1','2','3'].indexOf(LVSEL)<0)LVSEL='A';
 let LVALL=false;
-const LV_DESC={A:'기초 · 보통 · 심화 개념 모두',1:'교과서 본문의 기본 사실 — 처음 훑을 때',2:'시험에 자주 나오는 표준 개념',3:'지엽 · 함정 · 정밀한 경계값 — 만점용'};
+const LV_DESC={A:'기초 · 보통 · 심화 개념 모두',1:'교과서 본문의 기본 사실',2:'시험에 자주 나오는 표준 개념',3:'지엽 · 함정 · 정밀한 경계값'};
 const lvOK=c=>LVALL||LVSEL==='A'||String(c.lv)===LVSEL;
 function poolOf(units){return EARTH.filter(c=>!c.tip&&!c.era&&units.indexOf(c.u)>=0&&lvOK(c));}
 const CONCEPTS=EARTH.filter(c=>!c.tip&&!c.era),TIPS=EARTH.filter(c=>c.tip);
@@ -218,8 +218,8 @@ function progressHTML(){
 function renderHome(){
   const LC=CONCEPTS.filter(lvOK),total=LC.length,k=LC.filter(c=>mastered(c.id)).length;
   $('#view').innerHTML=
-    '<div class="head"><h2>지구과학 만점 체크리스트</h2>'
-    +'<p>체크리스트 가운데 개념 '+CONCEPTS.length+'개를 빠짐없이 익힙니다. 문제 푸는 요령(행동강령) '+TIPS.length+'개는 퀴즈에 내지 않고 <a href="#/tips">행동강령</a> 화면에 따로 모았습니다. <b>학습</b>은 문제와 답을 바로 같이 보여 주고, <b>퀴즈</b>는 문장 완성 · 같은 말 찾기 · (가)(나)(다) 조합 · 수능식 합답형 · 모두 고르기를 돌려 가며 냅니다. 빈칸을 모두 맞혀야 하거나 맞는 것을 전부 골라야 해서, 완벽히 알아야만 맞힙니다. 개념마다 두 번 연속 맞히면 숙지로 칩니다.</p></div>'
+    '<div class="head"><h2>지구과학 개념퀴즈</h2>'
+    +'<p>개념 '+CONCEPTS.length+'개. <b>학습</b>은 문제와 답을 같이 보여 주고, <b>퀴즈</b>는 문장 완성 · 같은 말 찾기 · 조합 · 합답형 · 모두 고르기로 냅니다. 두 번 연속 맞히면 숙지입니다. 행동강령 '+TIPS.length+'개는 <a href="#/tips">행동강령</a>에 따로 있습니다.</p></div>'
     +'<div class="sum"><div class="sum-n"><b>'+k+'</b> / '+total+' 숙지'+(LVSEL!=='A'?' <small>'+EARTH_LV_NAME[LVSEL]+' 개념</small>':'')+'</div><div class="bar big"><i style="width:'+(k/total*100).toFixed(1)+'%"></i></div></div>'
     +'<h3 class="lbl">난이도</h3><div class="chips" id="df-chips">'
     +['A','1','2','3'].map(k=>'<button class="chip'+(LVSEL===k?' on':'')+'" data-d="'+k+'">'+(k==='A'?'전체':EARTH_LV_NAME[k])
