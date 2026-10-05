@@ -32,13 +32,20 @@ const ERA_ORG=[
   {n:'에디아카라 동물군',g:'선캄브리아',a:1},
   {n:'인류',g:'척추동물',a:13}
 ];
-/* 사건 — 칸마다 [처음, 끝, 꾸밈] */
+/* 사건 — 칸마다 [처음, 끝, 꾸밈, 함께 받는 답] · asp e 대멸종·빙하기, c 대륙 */
 const ERA_EVT=[
   {k:'mx',n:'대멸종',q:'다섯 차례의 <b>대멸종</b> 시기를 오래된 순서대로',seq:[[3,3,'말'],[5,5,'후기'],[7,7,'말'],[8,8,'말'],[10,10,'말']]},
   {k:'ice',n:'빙하기',q:'세 차례의 <b>빙하기</b> 시기를 오래된 순서대로',seq:[[3,3,'말'],[6,7,''],[13,13,'']]},
-  {k:'pg',n:'판게아 분열',q:'<b>판게아</b>가 분열하기 시작한 시기는?',seq:[[8,8,'']]}
+  {k:'cc',asp:'c',n:'대륙 지각 형성',q:'<b>대륙 지각</b>이 처음 형성되기 시작한 시기는?',seq:[[0,0,'']]},
+  {k:'rd1',asp:'c',n:'로디니아 형성',q:'초대륙 <b>로디니아</b>가 형성된 시기는?',seq:[[1,1,'']],note:'약 11억~10억 년 전'},
+  {k:'rd2',asp:'c',n:'로디니아 분리',q:'초대륙 <b>로디니아</b>가 갈라지기 시작한 시기는?',seq:[[1,1,'']],note:'약 8억~7억 5천만 년 전 — 갈라진 대륙들이 원생누대 말~캄브리아기에 곤드와나로 다시 모인다'},
+  {k:'pg0',asp:'c',n:'판게아 형성',q:'초대륙 <b>판게아</b>가 형성된 시기는?',seq:[[7,7,'',[6]]],note:'고생대 말 — 석탄기 후기부터 모여 페름기에 완성되었다'},
+  {k:'pg',asp:'c',n:'판게아 분열',q:'<b>판게아</b>가 분열하기 시작한 시기는?',seq:[[8,8,'']],note:'중생대 초 — 트라이아스기 말부터 갈라지기 시작했다'},
+  {k:'lg',asp:'c',n:'로라시아 · 곤드와나',q:'판게아가 북쪽의 <b>로라시아</b>와 남쪽의 <b>곤드와나</b>로 나뉜 시기는?',seq:[[9,9,'']]},
+  {k:'atl',asp:'c',n:'대서양 형성',q:'<b>대서양</b>이 열리기 시작한 시기는?',seq:[[9,9,'']],note:'북대서양 중부가 쥐라기에 먼저 열리고, 남대서양은 백악기에 열렸다'},
+  {k:'him',asp:'c',n:'히말라야산맥',q:'인도 대륙이 유라시아 대륙과 충돌해 <b>히말라야산맥</b>이 만들어지기 시작한 시기는?',seq:[[11,11,'',[12]]],note:'충돌은 팔레오기(약 5천만 년 전)에 시작되었고, 융기는 네오기 이후까지 이어졌다'}
 ];
-const ERA_ASP={a:'출현',b:'번성',x:'멸종',e:'대멸종 · 빙하기'};
+const ERA_ASP={a:'출현',b:'번성',x:'멸종',e:'대멸종 · 빙하기',c:'대륙'};
 
 /* ── 한글 자모 앞부분 일치 ── */
 const _CHO='ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ',_JUNG=['ㅏ','ㅐ','ㅑ','ㅒ','ㅓ','ㅔ','ㅕ','ㅖ','ㅗ','ㅗㅏ','ㅗㅐ','ㅗㅣ','ㅛ','ㅜ','ㅜㅓ','ㅜㅔ','ㅜㅣ','ㅠ','ㅡ','ㅡㅣ','ㅣ'],
@@ -94,17 +101,19 @@ function eraItems(){
     /* 교과서에서 묻지 않는 멸종 시점(시조새 · 최초의 육상식물)은 표에만 둔다 */
     if(o.x!=null&&o.qx!==false)out.push({id:'x:'+o.n,asp:'x',o,slots:[{s:o.x,e:o.x,suf:o.xs}]});
   });
-  ERA_EVT.forEach(v=>out.push({id:'e:'+v.k,asp:'e',v,slots:v.seq.map(([s,e,suf])=>({s,e,suf,rng:s!==e}))}));
+  ERA_EVT.forEach(v=>out.push({id:'e:'+v.k,asp:v.asp||'e',v,slots:v.seq.map(([s,e,suf,al])=>({s,e,suf,al:al||[],rng:s!==e}))}));
   return out;
 }
 /* app.js보다 먼저 읽히므로 저장소는 직접 연다 */
 const eraStore={get(k,d){try{const v=localStorage.getItem('earth_'+k);return v?JSON.parse(v):d;}catch(e){return d;}},
   set(k,v){try{localStorage.setItem('earth_'+k,JSON.stringify(v));}catch(e){}}};
 let EM=eraStore.get('era_m',{});
-let EASP=eraStore.get('era_asp',['a','b','x','e']);
+let EASP=eraStore.get('era_asp',['a','b','x','e','c']);
+/* '대륙'이 생기기 전에 고른 설정에도 새 항목을 켜 둔다 */
+if(!eraStore.get('era_asp_c',false)){if(EASP.indexOf('c')<0)EASP.push('c');eraStore.set('era_asp',EASP);eraStore.set('era_asp_c',true);}
 const ER={queue:[],i:0,score:0,wrong:[],answered:false,len:eraStore.get('era_len',20)};
 function eraPrompt(it){
-  if(it.asp==='e')return it.v.q;
+  if(it.v)return it.v.q;
   const n='<b>'+esc(it.o.n)+'</b>',nm=it.o.n;
   if(it.asp==='a')return esc(josa(nm,'이','가')).replace(esc(nm),n)+' 처음 <u>출현</u>한 시기는?';
   if(it.asp==='b')return esc(josa(nm,'이','가')).replace(esc(nm),n)+' <u>번성</u>한 시기는?';
@@ -117,7 +126,7 @@ function renderEra(){
   const items=eraItems(),cnt=a=>items.filter(it=>it.asp===a).length;
   const done=items.filter(it=>EASP.indexOf(it.asp)>=0&&(EM[it.id]||{}).s>=2).length,tot=items.filter(it=>EASP.indexOf(it.asp)>=0).length;
   const groups=['선캄브리아','무척추동물','척추동물','식물'];
-  $('#view').innerHTML='<div class="head"><h2>지질 시대</h2><p>생물이 <b>출현</b>·<b>번성</b>·<b>멸종</b>한 시기를 기 이름으로 직접 쳐서 답합니다. 보기는 없습니다 — '
+  $('#view').innerHTML='<div class="head"><h2>지질 시대</h2><p>생물이 <b>출현</b>·<b>번성</b>·<b>멸종</b>한 시기와 대멸종·빙하기·<b>대륙</b>의 형성과 분리 시기를 기 이름으로 직접 쳐서 답합니다. 보기는 없습니다 — '
       +'첫 글자만 쳐도 아래에 후보가 떠서 <b>Enter</b>로 바로 넣을 수 있습니다(<b>팔</b> → 팔레오기, <b>ㅍ</b> → 페름기·팔레오기). 번성은 시작과 끝을 모두 맞혀야 하고, 한 기에만 번성했다면 두 번째 칸은 비워 둡니다.</p></div>'
     +'<div class="sum"><div class="sum-n"><b>'+done+'</b> / '+tot+' 숙지</div><div class="bar big"><i style="width:'+(tot?done/tot*100:0).toFixed(1)+'%"></i></div></div>'
     +'<h3 class="lbl">물을 것</h3><div class="chips" id="ea-asp">'
@@ -131,9 +140,9 @@ function renderEra(){
       +'<div class="et-row"><span></span>'+eraHeadRow()+'</div>'
       +groups.map(g=>'<div class="et-g">'+g+'</div>'+ERA_ORG.filter(o=>o.g===g).map(o=>
         '<div class="et-row"><span>'+esc(o.n)+'</span>'+eraStrip(o)+'<p class="et-t">'+eraLine(o)+(o.note?' · '+esc(o.note):'')+'</p></div>').join('')).join('')
-      +'<div class="et-g">사건</div>'
-      +ERA_EVT.map(v=>'<div class="et-row"><span>'+v.n+'</span><div class="es">'+ERA_P.map((_,i)=>'<i class="'+(v.seq.some(([s,e])=>i>=s&&i<=e)?'ev':'')+'"></i>').join('')+'</div>'
-        +'<p class="et-t">'+v.seq.map(([s,e,suf])=>'<b>'+eraRange(s,e)+(suf?' '+suf:'')+'</b>').join(' · ')+'</p></div>').join('')
+      +[['e','대멸종 · 빙하기'],['c','대륙']].map(([a,t])=>'<div class="et-g">'+t+'</div>'
+      +ERA_EVT.filter(v=>(v.asp||'e')===a).map(v=>'<div class="et-row"><span>'+v.n+'</span><div class="es">'+ERA_P.map((_,i)=>'<i class="'+(v.seq.some(([s,e])=>i>=s&&i<=e)?'ev':'')+'"></i>').join('')+'</div>'
+        +'<p class="et-t">'+v.seq.map(([s,e,suf])=>'<b>'+eraRange(s,e)+(suf?' '+suf:'')+'</b>').join(' · ')+(v.note?' · '+esc(v.note):'')+'</p></div>').join('')).join('')
     +'</div>';
   $('#ea-asp').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;const a=b.dataset.a;
     EASP=EASP.indexOf(a)>=0?EASP.filter(x=>x!==a):EASP.concat(a);if(!EASP.length)EASP=[a];eraStore.set('era_asp',EASP);renderEra();};
@@ -232,7 +241,7 @@ function eraGrade(){
   const o=it.o;
   $('#explain').innerHTML=(all?'<div class="verdict good">맞았습니다</div>':'<div class="verdict bad">틀렸습니다</div>')
     +(o?eraHeadRow()+eraStrip(o)+'<p class="truth">'+esc(o.n)+' — '+eraLine(o)+'</p>'+(o.note?'<p class="note">'+esc(o.note)+'</p>':'')
-       :'<p class="truth">'+it.v.n+' — '+it.v.seq.map(([s,e,suf])=>'<b>'+eraRange(s,e)+(suf?' '+suf:'')+'</b>').join(' → ')+'</p>');
+       :'<p class="truth">'+it.v.n+' — '+it.v.seq.map(([s,e,suf])=>'<b>'+eraRange(s,e)+(suf?' '+suf:'')+'</b>').join(' → ')+'</p>'+(it.v.note?'<p class="note">'+esc(it.v.note)+'</p>':''));
   $('#ez-check').hidden=true;const n=$('#ez-next');n.hidden=false;n.textContent=ER.i+1>=ER.queue.length?'결과 보기':'다음';
   n.focus({preventScroll:true});
   ER.gradedAt=Date.now();
