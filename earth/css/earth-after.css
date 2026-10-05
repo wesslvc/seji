@@ -212,3 +212,46 @@
 /* 시대 순서 보기 — (가) → (나) … */
 .opt .arr{color:var(--tx3,var(--tx2));margin:0 .3rem;font-size:.8rem}
 .opts.order .opt .ck{margin-right:0}
+/* ── 지질 시대 ── */
+.era-tab{border:1px solid var(--bd);border-radius:var(--r-lg);background:var(--sf);padding:.8rem .9rem 1rem;overflow-x:auto}
+.et-row{display:grid;grid-template-columns:7.5rem minmax(15rem,1fr);column-gap:.7rem;align-items:center;padding:.28rem 0}
+.et-row>span{font-size:.86rem;font-weight:600;line-height:1.3}
+.et-t{grid-column:2;margin:.2rem 0 .1rem;font-size:.78rem;color:var(--tx2);line-height:1.5}
+.et-t b{color:var(--tx);font-weight:600}
+.et-g{font-size:.74rem;font-weight:700;color:var(--ac);margin:.9rem 0 .2rem;letter-spacing:.03em}
+.es{display:flex;gap:2px;align-items:center;position:relative;min-width:15rem}
+.es i{flex:1;height:14px;border-radius:3px;background:var(--sf2);font-style:normal;position:relative;display:flex;align-items:center;justify-content:center}
+.es i.l{background:color-mix(in oklab,var(--accent) 28%,var(--sf2))}
+.es i.b{background:var(--accent)}
+.es i.ev{background:color-mix(in oklab,var(--wr) 55%,var(--sf2))}
+.es i.hl{outline:2px solid var(--wr);outline-offset:1px}
+.es i em{font-style:normal;font-size:.72rem;font-weight:800;color:var(--wr);line-height:1}
+.es i.b em{color:#fff}
+.es-go{position:absolute;right:-.9rem;font-size:.75rem;color:var(--tx2)}
+.es-h i,.es-dae i{background:none;height:auto;font-size:.66rem;color:var(--tx2);font-weight:600}
+.es-dae i{border-bottom:1px solid var(--bd2);padding-bottom:.15rem;margin:0 1px;font-size:.7rem;color:var(--tx)}
+.et-dae,.et-row:has(.es-h){padding:0}
+.explain .es{margin:.2rem 0 .5rem}
+/* 기 입력 */
+.ez-list{display:flex;flex-direction:column;gap:.6rem;margin:1rem 0 .4rem}
+.ez-row{display:flex;flex-wrap:wrap;align-items:center;gap:.45rem}
+.ez-no{display:none}
+.ez-list.multi .ez-no{display:inline-flex;width:1.6rem;height:1.6rem;border-radius:50%;background:var(--sf2);color:var(--tx2);font-size:.78rem;font-weight:700;align-items:center;justify-content:center}
+.ez-w{position:relative;flex:1;min-width:8.5rem;max-width:15rem}
+.ez{width:100%;height:46px;padding:0 .85rem;border-radius:var(--r-sm);border:1px solid var(--bd2);background:var(--bg,var(--sf));color:var(--tx);font:inherit;font-size:1.02rem;font-weight:600}
+.ez::placeholder{color:var(--tx3,var(--tx2));font-weight:400;font-size:.86rem}
+.ez:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in oklab,var(--accent) 22%,transparent)}
+.ez.need{border-color:var(--wr)}
+.ez.right{border-color:var(--okt,#81c995);color:var(--okt,#81c995)}
+.ez.wrong{border-color:var(--wr);color:var(--wr);text-decoration:line-through}
+.ez-til,.ez-suf{color:var(--tx2);font-weight:600}
+.ez-ans{flex-basis:100%;font-size:.88rem;font-weight:700;color:var(--okt,#81c995);padding-left:.2rem}
+.ez-list.multi .ez-ans{padding-left:2.1rem}
+.ez-sg{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:5;display:flex;flex-direction:column;background:var(--sf);border:1px solid var(--bd2);border-radius:var(--r-sm);box-shadow:var(--sh-md,0 6px 20px rgba(0,0,0,.25));overflow:hidden}
+.ez-sg:empty{display:none}
+.ez-s{all:unset;cursor:pointer;padding:.55rem .85rem;font-size:.95rem;color:var(--tx)}
+.ez-s.on,.ez-s:hover{background:var(--ac2);color:var(--ac);font-weight:700}
+@media (max-width:520px){.et-row{grid-template-columns:5.6rem minmax(13rem,1fr)}.et-row>span{font-size:.8rem}}
+@media (max-width:440px){.topbar nav{gap:0}.topbar nav a{padding:0 .34rem;font-size:.84rem}}
+@media (max-width:370px){.topbar nav a{padding:0 .22rem;font-size:.8rem}}
+.es{padding-right:1rem}.es-go{right:0}

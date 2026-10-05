@@ -182,8 +182,8 @@ let LVSEL=String(store.get('level','A'));if(['A','1','2','3'].indexOf(LVSEL)<0)L
 let LVALL=false;
 const LV_DESC={A:'기초 · 보통 · 심화 개념 모두',1:'교과서 본문의 기본 사실 — 처음 훑을 때',2:'시험에 자주 나오는 표준 개념',3:'지엽 · 함정 · 정밀한 경계값 — 만점용'};
 const lvOK=c=>LVALL||LVSEL==='A'||String(c.lv)===LVSEL;
-function poolOf(units){return EARTH.filter(c=>!c.tip&&units.indexOf(c.u)>=0&&lvOK(c));}
-const CONCEPTS=EARTH.filter(c=>!c.tip),TIPS=EARTH.filter(c=>c.tip);
+function poolOf(units){return EARTH.filter(c=>!c.tip&&!c.era&&units.indexOf(c.u)>=0&&lvOK(c));}
+const CONCEPTS=EARTH.filter(c=>!c.tip&&!c.era),TIPS=EARTH.filter(c=>c.tip);
 /* 퀴즈 범위로 고를 단원 — 행동강령만 있는 단원(공통 주의)은 뺀다 */
 const QUNITS=EARTH_UNITS.filter(u=>CONCEPTS.some(c=>c.u===u.u));
 /* 낼 개념 고르기 — 못 본 것·틀린 것·덜 익힌 것 먼저, 같은 무게 안에서는 섞는다 */
@@ -617,13 +617,14 @@ document.addEventListener('earth-auth',()=>{if(S.mode==='wrong')renderWrong();if
 /* ── 길잡이 ── */
 function route(){
   const h=(location.hash||'#/').slice(1);
-  document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+h));
+  document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+h||(h.indexOf('/era')===0&&a.getAttribute('href')==='#/era')));
   $('#view').onclick=null;
   if(h==='/study')startStudy();
   else if(h==='/quiz')startQuiz();
   else if(h==='/list'){S.mode='list';renderList(false);}
   else if(h==='/tips'){S.mode='list';renderList(true);}
   else if(h==='/wrong')renderWrong();
+  else if(h.indexOf('/era')===0)eraRoute(h);
   else{S.mode='home';renderHome();}
   window.scrollTo(0,0);
 }
