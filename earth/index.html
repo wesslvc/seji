@@ -13,7 +13,7 @@
   document.documentElement.dataset.theme=m;}catch(e){document.documentElement.dataset.theme='dark';}})();</script>
 <link rel="stylesheet" href="/earth/css/earth.css?v=1">
 <link rel="stylesheet" href="/css/tokens.css?v=28">
-<link rel="stylesheet" href="/earth/css/earth-after.css?v=7">
+<link rel="stylesheet" href="/earth/css/earth-after.css?v=9">
 </head>
 <body>
 <button id="theme-toggle" type="button" title="화면 밝기 전환"></button>
@@ -23,13 +23,15 @@
     <nav id="nav">
       <a href="#/study">학습</a>
       <a href="#/quiz">퀴즈</a>
-      <a href="#/list">개념 정리</a>
+      <a href="#/list">개념<span class="lg"> 정리</span></a>
       <a href="#/tips">행동강령</a>
+      <a href="#/wrong">오답</a>
     </nav>
   </div>
 </header>
 <main class="wrap" id="view"></main>
 <script src="/earth/js/data.js?v=5"></script>
-<script src="/earth/js/app.js?v=10"></script>
+<script src="/earth/js/app.js?v=11"></script>
+<script type="module" src="/earth/js/account.js?v=1"></script>
 </body>
 </html>
