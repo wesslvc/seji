@@ -503,7 +503,8 @@ function drawQuiz(){
       const empty=[...document.querySelectorAll('.nz')].find(x=>!x.value.trim());
       if(empty)empty.focus();else if(!$('#check').disabled)grade();});});
   const first=document.querySelector('.nz');if(first&&matchMedia('(pointer:fine)').matches)first.focus({preventScroll:true});
-  $('#next').onclick=()=>{clearTimeout(S.auto);S.i++;drawQuiz();};
+  /* 채점한 키 입력이 그대로 '다음'까지 누르지 않게 잠깐 막는다 */
+  $('#next').onclick=()=>{if(Date.now()-(S.gradedAt||0)<400)return;S.i++;drawQuiz();};
 }
 function clozeReady(){
   $('#check').disabled=[...document.querySelectorAll('.cz')].some(g=>!g.querySelector('.sel'))
@@ -561,7 +562,8 @@ function grade(pickI){
   if(chk)chk.hidden=true;
   const n=$('#next');n.hidden=false;n.textContent=S.i+1>=S.queue.length?'결과 보기':'다음';
   n.focus({preventScroll:true});
-  if(all)S.auto=setTimeout(()=>{if(S.mode==='quiz'&&S.answered&&S.q===q){S.i++;drawQuiz();}},900);
+  /* 맞혀도 저절로 넘어가지 않는다 — 해설을 보고 '다음'으로 */
+  S.gradedAt=Date.now();
 }
 function drawEnd(){
   $('#view').innerHTML='<div class="end"><div class="end-score"><b>'+S.score+'</b> / '+S.queue.length+'</div>'

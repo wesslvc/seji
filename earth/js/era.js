@@ -203,7 +203,7 @@ function eraDraw(){
     const inp=s.closest('.ez-w').querySelector('.ez');inp.value=ERA_P[+s.dataset.i];inp.nextElementSibling.innerHTML='';
     const nx=ins[ins.indexOf(inp)+1];if(nx)nx.focus();};
   $('#ez-check').onclick=()=>eraGrade();
-  $('#ez-next').onclick=()=>{clearTimeout(ER.auto);ER.i++;eraDraw();};
+  $('#ez-next').onclick=()=>{if(Date.now()-(ER.gradedAt||0)<400)return;ER.i++;eraDraw();};
   if(ins[0])ins[0].focus({preventScroll:true});
 }
 function eraShowSg(inp){
@@ -234,7 +234,7 @@ function eraGrade(){
        :'<p class="truth">'+it.v.n+' — '+it.v.seq.map(([s,e,suf])=>'<b>'+eraRange(s,e)+(suf?' '+suf:'')+'</b>').join(' → ')+'</p>');
   $('#ez-check').hidden=true;const n=$('#ez-next');n.hidden=false;n.textContent=ER.i+1>=ER.queue.length?'결과 보기':'다음';
   n.focus({preventScroll:true});
-  if(all)ER.auto=setTimeout(()=>{if(S.mode==='eraq'&&ER.answered&&ER.queue[ER.i]===it){ER.i++;eraDraw();}},900);
+  ER.gradedAt=Date.now();
 }
 function eraEnd(){
   $('#view').innerHTML='<div class="end"><div class="end-score"><b>'+ER.score+'</b> / '+ER.queue.length+'</div>'
