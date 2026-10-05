@@ -33,18 +33,21 @@ function parse(c){
   const parts=[];let re=/\{([^}]*)\}/g,last=0,m;
   while((m=re.exec(c.t))){
     if(m.index>last)parts.push(c.t.slice(last,m.index));
-    parts.push({o:m[1].split('|')});
+    /* {#값} 은 직접 쳐서 답하는 숫자 칸 — 경계값처럼 숫자 자체가 중요한 자리 */
+    parts.push(m[1].charAt(0)==='#'?{num:m[1].slice(1)}:{o:m[1].split('|')});
     last=re.lastIndex;
   }
   if(last<c.t.length)parts.push(c.t.slice(last));
-  const forks=parts.map((p,i)=>typeof p==='object'&&p.o.length>1?i:-1).filter(i=>i>=0);
-  return (PARSED[c.id]={parts,forks});
+  const forks=parts.map((p,i)=>typeof p==='object'&&p.o&&p.o.length>1?i:-1).filter(i=>i>=0);
+  const nums=parts.map((p,i)=>typeof p==='object'&&p.num!=null?i:-1).filter(i=>i>=0);
+  return (PARSED[c.id]={parts,forks,nums});
 }
 /* 갈림길마다 고른 번호(0=정답)로 문장을 만든다. mark: 갈림길을 어떻게 보일지 */
-function sentence(c,choice,mark){
+function sentence(c,choice,mark,numMark){
   const {parts}=parse(c);
   return parts.map((p,i)=>{
     if(typeof p==='string')return esc(p);
+    if(p.num!=null)return numMark?numMark(i,p.num):mark?mark(i,p.num,0):esc(p.num);
     const k=choice&&choice[i]!=null?choice[i]:0;
     return mark?mark(i,p.o[k],k):esc(p.o[k]);
   }).join('');
@@ -52,6 +55,22 @@ function sentence(c,choice,mark){
 const truthHTML=c=>sentence(c,null,(i,v)=>'<b class="key">'+esc(v)+'</b>');
 const truthText=c=>sentence(c,null,(i,v)=>esc(v));
 const noteHTML=c=>c.n?'<span class="note">'+esc(c.n)+'</span>':'';
+const hasNum=c=>parse(c).nums.length>0;
+/* 숫자 답 맞추기 — 쉼표·띄어쓰기·단위 글자는 무시하고, 만·억은 곱해서 본다.
+   칸 바로 뒤에 '만'·'억'이 붙은 자리는 그 단위까지 쳐 넣어도(1500만) 맞다 */
+function numVal(str){
+  let t=String(str).replace(/[,\s]/g,'').replace(/[−–]/g,'-');let mul=1;
+  const m=t.match(/^(-?[0-9.]+)(만|억)?/);if(!m)return NaN;
+  if(m[2]==='만')mul=1e4;else if(m[2]==='억')mul=1e8;
+  return parseFloat(m[1])*mul;
+}
+function numOK(input,ans,after){
+  const v=numVal(input),a=parseFloat(ans);if(isNaN(v))return false;
+  const eq=(x,y)=>Math.abs(x-y)<=1e-9*Math.max(1,Math.abs(y));
+  if(eq(v,a))return true;
+  const u=(after||'').trim().charAt(0);
+  return u==='만'?eq(v,a*1e4):u==='억'?eq(v,a*1e8):false;
+}
 
 /* ── 문제 만들기 ── */
 function falseSentence(c){
@@ -111,7 +130,13 @@ function qPick(c,pool){
     prompt:'다음 중 '+(wantTrue?'옳은':'옳지 <u>않은</u>')+' 것은?',stem:'',opts,refs:items.map(i=>i.c.id),long:true};
 }
 /* 지난번과 다른 꼴이 나오게 고른다 */
+function qNumStudy(c){
+  return {type:'num',id:c.id,label:'숫자',prompt:'숫자까지 정확히 외우세요 — 퀴즈에서는 직접 입력합니다',
+    stem:sentence(c,null,(i,v)=>'<b class="key">'+esc(v)+'</b>',(i,v)=>'<span class="numrev">'+esc(v)+'</span>'),opts:[]};
+}
 function makeQ(c,pool){
+  if(hasNum(c))return qNumStudy(c);
+  pool=pool.filter(d=>!hasNum(d));
   const {forks}=parse(c);
   const types=['ox','pick'];
   if(forks.length)types.push('blank','blank');
@@ -247,7 +272,7 @@ const strip=h=>h.replace(/<span class="twist">|<\/span>/g,'');
 let WORDIX=null;   /* 보기 낱말 → 그 낱말이 갈림길에 있는 개념들 */
 function wordIndex(){
   if(WORDIX)return WORDIX;WORDIX={};
-  CONCEPTS.forEach(c=>{const {parts,forks}=parse(c);
+  CONCEPTS.forEach(c=>{if(hasNum(c))return;const {parts,forks}=parse(c);
     forks.forEach(f=>parts[f].o.forEach((w,k)=>{(WORDIX[w]=WORDIX[w]||[]).push({c,f,ok:k===0});}));});
   return WORDIX;
 }
@@ -283,7 +308,7 @@ function comboSpace(c){
     if(o.length===2&&p.length===2&&o[0]===p[1]&&o[1]===p[0])return o[cb[a]]!==p[cb[b]];return true;}));
   return {fs,combos:all.filter(plausible)};
 }
-const comboOK=c=>parse(c).forks.length>=2&&comboSpace(c).combos.length>=4;
+const comboOK=c=>!hasNum(c)&&parse(c).forks.length>=2&&comboSpace(c).combos.length>=4;
 function mkCombo(c){
   const {parts}=parse(c);const sp=comboSpace(c),fs=sp.fs;
   const tag={};fs.forEach((f,n)=>tag[f]=KO[n]);
@@ -310,24 +335,26 @@ function buildQuiz(list,units,maxQ){
   /* 남은 목록에서 이미 고른 것과 서로 답을 드러내지 않는 개념을 앞에서부터 꺼낸다 */
   const take=(g,n,need)=>{for(let k=0;k<rest.length&&g.length<n;){const d=rest[k];
       if(free(g,d)&&(!need||need(d))){g.push(d);rest.splice(k,1);}else k++;}return g;};
-  const fill=(g,n)=>{shuffle(pool).forEach(d=>{if(g.length<n&&free(g,d))g.push(d);});return g;};
+  const fill=(g,n)=>{shuffle(pool).forEach(d=>{if(g.length<n&&free(g,d)&&!hasNum(d))g.push(d);});return g;};
+  const plain=d=>!hasNum(d),blanks=d=>parse(d).forks.length+parse(d).nums.length;
   while(rest.length&&(!maxQ||qs.length<maxQ)){
-    const c=rest.shift(),nf=parse(c).forks.length;
-    const ok={cloze:nf>0,word:nf>0&&wordCands(c,units).length>0,combo:comboOK(c),hap:true,multi:true};
+    const c=rest.shift(),nf=parse(c).forks.length,num=hasNum(c);
+    /* 숫자 칸이 있는 개념은 늘 직접 입력하는 문장 완성으로만 — 보기에서 숫자를 알아보는 걸로는 안 된다 */
+    const ok=num?{cloze:true}:{cloze:nf>0,word:nf>0&&wordCands(c,units).length>0,combo:comboOK(c),hap:true,multi:true};
     /* 바로 앞과 같은 꼴은 무게를 크게 깎는다 */
     const ks=Object.keys(KIND_W).filter(k=>ok[k]),wt=k=>KIND_W[k]*(k===last?.5:1);
     let r=Math.random()*ks.reduce((a,k)=>a+wt(k),0),kind=ks[0];
     for(const k of ks){r-=wt(k);if(r<=0){kind=k;break;}}
     let q;
-    if(kind==='cloze'){const g=[c];let bl=nf;
-      while(g.length<3&&bl<3){const before=g.length;take(g,g.length+1,d=>parse(d).forks.length>0);
-        if(g.length===before)break;bl+=parse(g[g.length-1]).forks.length;}
+    if(kind==='cloze'){const g=[c];let bl=blanks(c);
+      while(g.length<3&&bl<3){const before=g.length;take(g,g.length+1,d=>blanks(d)>0);
+        if(g.length===before)break;bl+=blanks(g[g.length-1]);}
       q=mkCloze(g);}
     else if(kind==='word'&&(q=mkWord(c,pick(wordCands(c,units))))){}
     else if(kind==='word'){q=mkCloze([c]);}
     else if(kind==='combo'){q=mkCombo(c);}
-    else if(kind==='hap'){q=mkHap(fill(take([c],3),3));}
-    else{q=mkMulti(fill(take([c],4+rnd(2)),4));}
+    else if(kind==='hap'){q=mkHap(fill(take([c],3,plain),3));}
+    else{q=mkMulti(fill(take([c],4+rnd(2),plain),4));}
     q.id=c.id;qs.push(q);last=kind;
   }
   return qs;
@@ -341,11 +368,13 @@ function startQuiz(retry){
 }
 function qBody(q){
   if(q.kind==='cloze'){
-    return '<div class="q-prompt">빈칸에 알맞은 말을 모두 골라 문장을 완성하세요</div>'
-      +'<div class="q-hint">빈칸이 하나라도 틀리면 오답입니다</div>'
+    const anyNum=q.cs.some(hasNum);
+    return '<div class="q-prompt">'+(anyNum?'빈칸을 채워 문장을 완성하세요':'빈칸에 알맞은 말을 모두 골라 문장을 완성하세요')+'</div>'
+      +'<div class="q-hint">'+(anyNum?'숫자는 직접 입력합니다 · ':'')+'빈칸이 하나라도 틀리면 오답입니다</div>'
       +q.cs.map((c,ci)=>'<div class="q-stem cloze">'+sentence(c,null,(j,v)=>{const o=parse(c).parts[j].o;
         return '<span class="cz" data-g="'+ci+'-'+j+'">'+shuffle(o.map((t,k)=>[t,k])).map(([t,k])=>
-          '<button class="czb" data-k="'+k+'">'+esc(t)+'</button>').join('')+'</span>';})+'</div>').join('');
+          '<button class="czb" data-k="'+k+'">'+esc(t)+'</button>').join('')+'</span>';},
+        (j,v)=>'<input class="nz" data-n="'+ci+'-'+j+'" inputmode="decimal" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" aria-label="숫자 입력">')+'</div>').join('');
   }
   if(q.kind==='word'||q.kind==='multi'){
     return '<div class="q-prompt">'+(q.kind==='word'
@@ -382,13 +411,22 @@ function drawQuiz(){
   card.onclick=e=>{
     if(S.answered)return;
     const cz=e.target.closest('.czb');
-    if(cz){cz.parentNode.querySelectorAll('.czb').forEach(b=>b.classList.toggle('sel',b===cz));
-      $('#check').disabled=[...document.querySelectorAll('.cz')].some(g=>!g.querySelector('.sel'));return;}
+    if(cz){cz.parentNode.querySelectorAll('.czb').forEach(b=>b.classList.toggle('sel',b===cz));clozeReady();return;}
     const o=e.target.closest('.opt');if(!o)return;
     if(single)grade(+o.dataset.i);else toggle(o);
   };
   if($('#check'))$('#check').onclick=()=>grade();
+  document.querySelectorAll('.nz').forEach(inp=>{
+    inp.addEventListener('input',clozeReady);
+    inp.addEventListener('keydown',e=>{if(e.key!=='Enter'||e.isComposing)return;e.preventDefault();e.stopPropagation();
+      const empty=[...document.querySelectorAll('.nz')].find(x=>!x.value.trim());
+      if(empty)empty.focus();else if(!$('#check').disabled)grade();});});
+  const first=document.querySelector('.nz');if(first&&matchMedia('(pointer:fine)').matches)first.focus({preventScroll:true});
   $('#next').onclick=()=>{clearTimeout(S.auto);S.i++;drawQuiz();};
+}
+function clozeReady(){
+  $('#check').disabled=[...document.querySelectorAll('.cz')].some(g=>!g.querySelector('.sel'))
+    ||[...document.querySelectorAll('.nz')].some(x=>!x.value.trim());
 }
 function toggle(b){
   if(!b||S.answered)return;
@@ -407,6 +445,11 @@ function grade(pickI){
         g.querySelectorAll('.czb').forEach(b=>{b.disabled=true;const k=+b.dataset.k,sel=b.classList.contains('sel');
           b.classList.remove('sel');
           if(k===0&&sel)b.classList.add('right');else if(k===0)b.classList.add('miss');else if(sel){b.classList.add('wrong');good=false;}else b.classList.add('dim');});});
+      const {parts}=parse(c);
+      document.querySelectorAll('.nz[data-n^="'+ci+'-"]').forEach(inp=>{
+        const j=+inp.dataset.n.split('-')[1],ans=parts[j].num,after=typeof parts[j+1]==='string'?parts[j+1]:'';
+        const right=numOK(inp.value,ans,after);inp.disabled=true;inp.classList.add(right?'right':'wrong');
+        if(!right){good=false;inp.insertAdjacentHTML('afterend','<span class="nz-ans">'+esc(ans)+'</span>');}});
       record(c.id,good,'cloze');if(!good){all=false;miss(c);}});
   }else if(q.kind==='word'||q.kind==='multi'){
     document.querySelectorAll('.opt').forEach(b=>{

@@ -149,3 +149,11 @@
 @media (max-width:440px){.topbar .logo{display:none}.topbar nav{margin-left:0;flex:1;justify-content:space-between}.topbar nav a{padding:0 .5rem;font-size:.88rem}}
 .note{display:block;font-size:.84rem;color:var(--tx2);margin-top:.15rem}
 .note::before{content:'↳ ';color:var(--tx3,var(--tx2))}
+/* 숫자 입력 칸 */
+.nz{width:5.2em;height:2.1em;margin:0 .2rem;padding:0 .45rem;border-radius:9px;border:1.5px dashed var(--accent);background:var(--sf);
+  color:var(--tx);font:inherit;font-weight:700;text-align:center;vertical-align:middle;font-size:16px}
+.nz:focus{outline:none;border-style:solid;box-shadow:0 0 0 3px var(--ac2)}
+.nz.right{border:1.5px solid var(--okt,#81c995);background:color-mix(in oklab,var(--okt,#81c995) 16%,transparent)}
+.nz.wrong{border:1.5px solid var(--wr);background:color-mix(in oklab,var(--wr) 14%,transparent);text-decoration:line-through}
+.nz-ans{display:inline-block;margin-left:.15rem;padding:0 .4rem;border-radius:7px;border:2px dashed var(--okt,#81c995);color:var(--okt,#81c995);font-weight:800}
+.numrev{display:inline-block;min-width:2.4em;text-align:center;padding:0 .4em;margin:0 .1em;border-radius:8px;border:1.5px solid var(--accent);color:var(--ac);font-weight:800}
