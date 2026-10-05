@@ -51,6 +51,7 @@ function sentence(c,choice,mark){
 }
 const truthHTML=c=>sentence(c,null,(i,v)=>'<b class="key">'+esc(v)+'</b>');
 const truthText=c=>sentence(c,null,(i,v)=>esc(v));
+const noteHTML=c=>c.n?'<span class="note">'+esc(c.n)+'</span>':'';
 
 /* ── 문제 만들기 ── */
 function falseSentence(c){
@@ -201,7 +202,7 @@ function qCard(q,reveal){
 function explainHTML(q,ok){
   const ids=q.refs||[q.id];
   return '<div class="ex-h">'+(ok===true?'':ok===false?'<b class="bad">틀렸습니다</b>':'')+'정답 개념</div>'
-    +ids.map(id=>'<p class="truth">'+truthHTML(EARTH[id-1])+'</p>').join('');
+    +ids.map(id=>'<p class="truth">'+truthHTML(EARTH[id-1])+noteHTML(EARTH[id-1])+'</p>').join('');
 }
 
 /* ── 학습: 문제와 답을 바로 ── */
@@ -250,10 +251,14 @@ function wordIndex(){
     forks.forEach(f=>parts[f].o.forEach((w,k)=>{(WORDIX[w]=WORDIX[w]||[]).push({c,f,ok:k===0});}));});
   return WORDIX;
 }
+/* 짝 갈림길(보기가 서로 뒤집힌 칸)이 있는 자리는 쓰지 않는다 — 빈칸 하나만 비우면
+   남은 짝이 답을 알려 준다 */
+function hasMirror(c,f){const {parts,forks}=parse(c),o=parts[f].o;
+  return forks.some(g=>g!==f&&parts[g].o.length===o.length&&parts[g].o.every(x=>o.indexOf(x)>=0));}
 function wordCands(c,units){
   const {parts,forks}=parse(c),out=[];
-  forks.forEach(f=>{const w=parts[f].o[0];
-    const es=(wordIndex()[w]||[]).filter(e=>e.c!==c&&units.indexOf(e.c.u)>=0);
+  forks.forEach(f=>{if(hasMirror(c,f))return;const w=parts[f].o[0];
+    const es=(wordIndex()[w]||[]).filter(e=>e.c!==c&&units.indexOf(e.c.u)>=0&&!earthRelated(c.id,e.c.id)&&!hasMirror(e.c,e.f));
     /* 같은 개념이 두 번 들어가지 않게, 개념마다 한 자리만 */
     const seen=new Set(),uniq=es.filter(e=>!seen.has(e.c.id)&&seen.add(e.c.id));
     if(uniq.length>=2)out.push({w,f,es:uniq});});
@@ -261,7 +266,8 @@ function wordCands(c,units){
 }
 function mkCloze(cs){return {kind:'cloze',cs};}
 function mkWord(c,cand){
-  const others=shuffle(cand.es).slice(0,2+rnd(3));
+  const want=2+rnd(3),others=[];shuffle(cand.es).forEach(e=>{if(others.length<want&&others.every(o=>!earthRelated(o.c.id,e.c.id)))others.push(e);});
+  if(others.length<2)return null;
   const items=shuffle([{c,f:cand.f,ok:true}].concat(others));
   return {kind:'word',cs:items.map(it=>it.c),w:cand.w,items:items.map(it=>({c:it.c,ok:it.ok,
     h:sentence(it.c,null,(j,v)=>j===it.f?'<span class="blank">?</span>':esc(v))}))};
@@ -299,24 +305,29 @@ function mkMulti(cs){
 }
 /* 개념 목록을 앞에서부터 써 가며 문항을 만든다 — 꼴은 무게대로 고르되 바로 앞 꼴은 피한다 */
 function buildQuiz(list,units,maxQ){
-  const qs=[],pool=poolOf(units);let i=0,last='';
-  const fill=(g,n)=>{const more=shuffle(pool.filter(c=>g.indexOf(c)<0));while(g.length<n&&more.length)g.push(more.pop());return g;};
-  while(i<list.length&&(!maxQ||qs.length<maxQ)){
-    const c=list[i],nf=parse(c).forks.length,left=list.length-i;
+  const qs=[],pool=poolOf(units),rest=list.slice();let last='';
+  const free=(g,d)=>g.every(x=>x!==d&&!earthRelated(x.id,d.id));
+  /* 남은 목록에서 이미 고른 것과 서로 답을 드러내지 않는 개념을 앞에서부터 꺼낸다 */
+  const take=(g,n,need)=>{for(let k=0;k<rest.length&&g.length<n;){const d=rest[k];
+      if(free(g,d)&&(!need||need(d))){g.push(d);rest.splice(k,1);}else k++;}return g;};
+  const fill=(g,n)=>{shuffle(pool).forEach(d=>{if(g.length<n&&free(g,d))g.push(d);});return g;};
+  while(rest.length&&(!maxQ||qs.length<maxQ)){
+    const c=rest.shift(),nf=parse(c).forks.length;
     const ok={cloze:nf>0,word:nf>0&&wordCands(c,units).length>0,combo:comboOK(c),hap:true,multi:true};
-    /* 바로 앞과 같은 꼴은 무게를 크게 깎는다(아예 막으면 쓸 수 있는 꼴이 적은 개념에서
-       참·거짓 판단형만 줄줄이 나온다) */
+    /* 바로 앞과 같은 꼴은 무게를 크게 깎는다 */
     const ks=Object.keys(KIND_W).filter(k=>ok[k]),wt=k=>KIND_W[k]*(k===last?.5:1);
     let r=Math.random()*ks.reduce((a,k)=>a+wt(k),0),kind=ks[0];
     for(const k of ks){r-=wt(k);if(r<=0){kind=k;break;}}
     let q;
-    if(kind==='cloze'){const g=[c];let bl=nf;i++;
-      while(i<list.length&&g.length<3&&bl<3){const d=list[i];const n=parse(d).forks.length;if(!n)break;g.push(d);bl+=n;i++;}
+    if(kind==='cloze'){const g=[c];let bl=nf;
+      while(g.length<3&&bl<3){const before=g.length;take(g,g.length+1,d=>parse(d).forks.length>0);
+        if(g.length===before)break;bl+=parse(g[g.length-1]).forks.length;}
       q=mkCloze(g);}
-    else if(kind==='word'){q=mkWord(c,pick(wordCands(c,units)));i++;}
-    else if(kind==='combo'){q=mkCombo(c);i++;}
-    else if(kind==='hap'){const g=list.slice(i,i+3);i+=g.length;q=mkHap(fill(g,3));}
-    else{const n=4+rnd(2),g=list.slice(i,i+n);i+=g.length;q=mkMulti(fill(g,Math.max(4,g.length)));}
+    else if(kind==='word'&&(q=mkWord(c,pick(wordCands(c,units))))){}
+    else if(kind==='word'){q=mkCloze([c]);}
+    else if(kind==='combo'){q=mkCombo(c);}
+    else if(kind==='hap'){q=mkHap(fill(take([c],3),3));}
+    else{q=mkMulti(fill(take([c],4+rnd(2)),4));}
     q.id=c.id;qs.push(q);last=kind;
   }
   return qs;
@@ -418,7 +429,7 @@ function grade(pickI){
     ?'<div class="ex-h">각 문장의 빈칸 — 「'+esc(q.w)+'」가 정답인 문장만 골라야 했습니다</div>'
     :'<div class="ex-h">정답 문장</div>';
   $('#explain').innerHTML=(all?'<div class="verdict good">맞았습니다</div>':'<div class="verdict bad">틀렸습니다</div>')
-    +why+[...new Set(q.cs)].map(c=>'<p class="truth">'+truthHTML(c)+'</p>').join('');
+    +why+[...new Set(q.cs)].map(c=>'<p class="truth">'+truthHTML(c)+noteHTML(c)+'</p>').join('');
   if(chk)chk.hidden=true;
   const n=$('#next');n.hidden=false;n.textContent=S.i+1>=S.queue.length?'결과 보기':'다음';
   n.focus({preventScroll:true});
