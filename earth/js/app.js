@@ -127,7 +127,10 @@ function record(id,ok,form){
   const m=M[id]||(M[id]={n:0,c:0,s:0,t:0,f:''});
   m.n++;if(ok){m.c++;m.s++;}else m.s=0;m.t=Date.now();m.f=form;saveM();
 }
-function poolOf(units){return EARTH.filter(c=>units.indexOf(c.u)>=0);}
+function poolOf(units){return EARTH.filter(c=>!c.tip&&units.indexOf(c.u)>=0);}
+const CONCEPTS=EARTH.filter(c=>!c.tip),TIPS=EARTH.filter(c=>c.tip);
+/* 퀴즈 범위로 고를 단원 — 행동강령만 있는 단원(공통 주의)은 뺀다 */
+const QUNITS=EARTH_UNITS.filter(u=>CONCEPTS.some(c=>c.u===u.u));
 /* 낼 개념 고르기 — 못 본 것·틀린 것·덜 익힌 것 먼저, 같은 무게 안에서는 섞는다 */
 function choose(units,n){
   const pool=poolOf(units);
@@ -141,25 +144,26 @@ function choose(units,n){
 /* ══════════ 화면 ══════════ */
 const S={mode:'',queue:[],i:0,q:null,answered:false,score:0,wrong:[],requeued:new Set(),units:[],len:20};
 
+const allSel=()=>QUNITS.every(u=>SEL.indexOf(u.u)>=0);
 function unitChips(){
   return '<div class="chips" id="u-chips">'
-    +'<button class="chip'+(SEL.length===EARTH_UNITS.length?' on':'')+'" data-u="all">전체</button>'
-    +EARTH_UNITS.map(u=>'<button class="chip'+(SEL.indexOf(u.u)>=0&&SEL.length!==EARTH_UNITS.length?' on':'')+'" data-u="'+u.u+'">'+esc(u.name)+'</button>').join('')
+    +'<button class="chip'+(allSel()?' on':'')+'" data-u="all">전체</button>'
+    +QUNITS.map(u=>'<button class="chip'+(SEL.indexOf(u.u)>=0&&!allSel()?' on':'')+'" data-u="'+u.u+'">'+esc(u.name)+'</button>').join('')
     +'</div>';
 }
 function progressHTML(){
-  return '<div class="prog-grid">'+EARTH_UNITS.map(u=>{
-    const p=EARTH.filter(c=>c.u===u.u),k=p.filter(c=>mastered(c.id)).length,seen=p.filter(c=>M[c.id]).length;
-    return '<div class="prog'+(SEL.indexOf(u.u)>=0&&SEL.length!==EARTH_UNITS.length?' sel':'')+'" data-u="'+u.u+'"><div class="pg-h"><b>'+esc(u.name)+'</b><span>'+k+' / '+p.length+'</span></div>'
+  return '<div class="prog-grid">'+QUNITS.map(u=>{
+    const p=CONCEPTS.filter(c=>c.u===u.u),k=p.filter(c=>mastered(c.id)).length,seen=p.filter(c=>M[c.id]).length;
+    return '<div class="prog'+(SEL.indexOf(u.u)>=0&&!allSel()?' sel':'')+'" data-u="'+u.u+'"><div class="pg-h"><b>'+esc(u.name)+'</b><span>'+k+' / '+p.length+'</span></div>'
       +'<div class="pg-s">'+esc(u.sub)+'</div>'
       +'<div class="bar"><i style="width:'+(k/p.length*100).toFixed(1)+'%"></i><i class="seen" style="width:'+((seen-k)/p.length*100).toFixed(1)+'%"></i></div></div>';
   }).join('')+'</div>';
 }
 function renderHome(){
-  const total=EARTH.length,k=EARTH.filter(c=>mastered(c.id)).length;
+  const total=CONCEPTS.length,k=CONCEPTS.filter(c=>mastered(c.id)).length;
   $('#view').innerHTML=
     '<div class="head"><h2>지구과학 만점 체크리스트</h2>'
-    +'<p>한 줄 개념 '+total+'개를 빠짐없이 익힙니다. <b>학습</b>은 문제와 답을 바로 같이 보여 주고, <b>퀴즈</b>는 문장 완성 · 같은 말 찾기 · (가)(나)(다) 조합 · 수능식 합답형 · 모두 고르기를 돌려 가며 냅니다. 빈칸을 모두 맞혀야 하거나 맞는 것을 전부 골라야 해서, 완벽히 알아야만 맞힙니다. 개념마다 두 번 연속 맞히면 숙지로 칩니다.</p></div>'
+    +'<p>체크리스트 가운데 개념 '+total+'개를 빠짐없이 익힙니다. 문제 푸는 요령(행동강령) '+TIPS.length+'개는 퀴즈에 내지 않고 <a href="#/tips">행동강령</a> 화면에 따로 모았습니다. <b>학습</b>은 문제와 답을 바로 같이 보여 주고, <b>퀴즈</b>는 문장 완성 · 같은 말 찾기 · (가)(나)(다) 조합 · 수능식 합답형 · 모두 고르기를 돌려 가며 냅니다. 빈칸을 모두 맞혀야 하거나 맞는 것을 전부 골라야 해서, 완벽히 알아야만 맞힙니다. 개념마다 두 번 연속 맞히면 숙지로 칩니다.</p></div>'
     +'<div class="sum"><div class="sum-n"><b>'+k+'</b> / '+total+' 숙지</div><div class="bar big"><i style="width:'+(k/total*100).toFixed(1)+'%"></i></div></div>'
     +'<h3 class="lbl">범위</h3>'+unitChips()
     +progressHTML()
@@ -169,11 +173,11 @@ function renderHome(){
     +'<p class="foot-note"><a href="#/list">개념 정리</a>에서 한 줄 개념 전체를 단원별로 보고 1~5회독을 체크할 수 있습니다.'
     +' 기록은 이 기기에만 남습니다 · <button class="link" id="reset-m">숙지 기록 지우기</button></p>';
   $('#u-chips').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;
-    if(b.dataset.u==='all')SEL=EARTH_UNITS.map(u=>u.u);
+    if(b.dataset.u==='all')SEL=QUNITS.map(u=>u.u);
     else{const u=+b.dataset.u;
-      if(SEL.length===EARTH_UNITS.length)SEL=[u];
+      if(allSel())SEL=[u];
       else if(SEL.indexOf(u)>=0)SEL=SEL.filter(x=>x!==u);else SEL=SEL.concat(u);
-      if(!SEL.length)SEL=EARTH_UNITS.map(u=>u.u);}
+      if(!SEL.length)SEL=QUNITS.map(u=>u.u);}
     store.set('units',SEL);renderHome();};
   $('.prog-grid').onclick=e=>{const p=e.target.closest('.prog');if(!p)return;SEL=[+p.dataset.u];store.set('units',SEL);renderHome();};
   $('#len-chips').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;S.len=+b.dataset.n;store.set('len',S.len);renderHome();};
@@ -242,7 +246,7 @@ const strip=h=>h.replace(/<span class="twist">|<\/span>/g,'');
 let WORDIX=null;   /* 보기 낱말 → 그 낱말이 갈림길에 있는 개념들 */
 function wordIndex(){
   if(WORDIX)return WORDIX;WORDIX={};
-  EARTH.forEach(c=>{const {parts,forks}=parse(c);
+  CONCEPTS.forEach(c=>{const {parts,forks}=parse(c);
     forks.forEach(f=>parts[f].o.forEach((w,k)=>{(WORDIX[w]=WORDIX[w]||[]).push({c,f,ok:k===0});}));});
   return WORDIX;
 }
@@ -431,12 +435,17 @@ function drawEnd(){
 }
 
 /* ── 개념 정리: 전체 목록 + 회독 체크 ── */
-function renderList(){
-  $('#view').innerHTML='<div class="head"><h2>개념 정리</h2><p>체크리스트 원문 그대로, 갈림길의 정답만 굵게 표시했습니다. 오른쪽 칸으로 1~5회독을 체크하세요.</p></div>'
-    +'<div class="jump">'+EARTH_UNITS.map(u=>'<a href="#u'+u.u+'" data-j="u'+u.u+'">'+esc(u.name)+'</a>').join('')+'</div>'
-    +EARTH_UNITS.map(u=>'<section class="ulist" id="u'+u.u+'"><h3>'+esc(u.name)+' <small>'+esc(u.sub)+'</small></h3>'
-      +EARTH.filter(c=>c.u===u.u).map(c=>{const rd=R[c.id]||[];
-        return '<div class="li'+(mastered(c.id)?' ms':'')+'" data-id="'+c.id+'"><p>'+truthHTML(c)+'</p><div class="rds">'
+let LISTSRC=CONCEPTS;
+function renderList(tips){
+  LISTSRC=tips?TIPS:CONCEPTS;
+  const us=EARTH_UNITS.filter(u=>LISTSRC.some(c=>c.u===u.u));
+  $('#view').innerHTML='<div class="head"><h2>'+(tips?'행동강령':'개념 정리')+'</h2><p>'+(tips
+      ?'문제를 읽고 풀 때 지킬 요령입니다. 퀴즈에는 나오지 않습니다 — 시험 전에 훑어보고 1~5회독을 체크하세요.'
+      :'퀴즈에 나오는 개념 '+CONCEPTS.length+'개입니다. 갈림길의 정답만 굵게 표시했습니다. 오른쪽 칸으로 1~5회독을 체크하세요.')+'</p></div>'
+    +'<div class="jump">'+us.map(u=>'<a href="#u'+u.u+'" data-j="u'+u.u+'">'+esc(u.name)+'</a>').join('')+'</div>'
+    +us.map(u=>'<section class="ulist" id="u'+u.u+'"><h3>'+esc(u.name)+' <small>'+esc(u.sub)+'</small></h3>'
+      +LISTSRC.filter(c=>c.u===u.u).map(c=>{const rd=R[c.id]||[];
+        return '<div class="li'+(!c.tip&&mastered(c.id)?' ms':'')+'" data-id="'+c.id+'"><p>'+(c.tip?truthText(c):truthHTML(c))+'</p><div class="rds">'
           +[1,2,3,4,5].map(n=>'<button class="rd'+(rd.indexOf(n)>=0?' on':'')+'" data-n="'+n+'" title="'+n+'회독">'+n+'</button>').join('')+'</div></div>';}).join('')
       +'</section>').join('');
   $('#view').onclick=e=>{
@@ -453,7 +462,8 @@ function route(){
   $('#view').onclick=null;
   if(h==='/study')startStudy();
   else if(h==='/quiz')startQuiz();
-  else if(h==='/list'){S.mode='list';renderList();}
+  else if(h==='/list'){S.mode='list';renderList(false);}
+  else if(h==='/tips'){S.mode='list';renderList(true);}
   else{S.mode='home';renderHome();}
   window.scrollTo(0,0);
 }

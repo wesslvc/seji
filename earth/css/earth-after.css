@@ -146,3 +146,4 @@
 .opts.hap{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}
 .opts.hap .opt{justify-content:center;align-items:center;font-weight:700}
 .opts.hap .opt .on{background:none;width:auto;font-size:1.05rem;color:var(--tx2)}
+@media (max-width:440px){.topbar .logo{display:none}.topbar nav{margin-left:0;flex:1;justify-content:space-between}.topbar nav a{padding:0 .5rem;font-size:.88rem}}
