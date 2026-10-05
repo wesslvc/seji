@@ -202,3 +202,10 @@
 .opts.hap .opt .ot{flex:none;letter-spacing:-.02em}
 .opts.hap.wide .opt{font-size:.9rem}
 .opts.hap.wide .opt .on{font-size:.95rem}
+.tag.df-1{color:var(--okt,#81c995);border-color:color-mix(in oklab,var(--okt,#81c995) 40%,transparent)}
+.tag.df-2{color:var(--ac);border-color:color-mix(in oklab,var(--accent) 40%,transparent)}
+.tag.df-3{color:var(--wr);border-color:color-mix(in oklab,var(--wr) 45%,transparent)}
+.chip small{opacity:.65;font-weight:500;margin-left:.15rem}
+.sum-n small{font-size:.78rem}
+.lvb{display:inline-block;font-size:.68rem;font-weight:700;padding:0 .45rem;border-radius:99px;margin-right:.45rem;vertical-align:2px;border:1px solid}
+.lvb.lv1{color:var(--okt,#81c995)}.lvb.lv2{color:var(--ac)}.lvb.lv3{color:var(--wr)}

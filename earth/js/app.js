@@ -176,7 +176,13 @@ function record(id,ok,form){
   m.n++;if(ok){m.c++;m.s++;}else m.s=0;m.t=Date.now();m.f=form;saveM();
   if(!ok)wrongAdd(id);else if(m.s>=2)wrongDel(id);
 }
-function poolOf(units){return EARTH.filter(c=>!c.tip&&units.indexOf(c.u)>=0);}
+/* 난이도는 문제 꼴이 아니라 개념 내용으로 정한다(data.js의 c.lv) — 고른 수준의 개념만 낸다.
+   오답 다시 풀기는 수준과 상관없이 모은 것을 그대로 낸다 */
+let LVSEL=String(store.get('level','A'));if(['A','1','2','3'].indexOf(LVSEL)<0)LVSEL='A';
+let LVALL=false;
+const LV_DESC={A:'기초 · 보통 · 심화 개념 모두',1:'교과서 본문의 기본 사실 — 처음 훑을 때',2:'시험에 자주 나오는 표준 개념',3:'지엽 · 함정 · 정밀한 경계값 — 만점용'};
+const lvOK=c=>LVALL||LVSEL==='A'||String(c.lv)===LVSEL;
+function poolOf(units){return EARTH.filter(c=>!c.tip&&units.indexOf(c.u)>=0&&lvOK(c));}
 const CONCEPTS=EARTH.filter(c=>!c.tip),TIPS=EARTH.filter(c=>c.tip);
 /* 퀴즈 범위로 고를 단원 — 행동강령만 있는 단원(공통 주의)은 뺀다 */
 const QUNITS=EARTH_UNITS.filter(u=>CONCEPTS.some(c=>c.u===u.u));
@@ -202,23 +208,25 @@ function unitChips(){
 }
 function progressHTML(){
   return '<div class="prog-grid">'+QUNITS.map(u=>{
-    const p=CONCEPTS.filter(c=>c.u===u.u),k=p.filter(c=>mastered(c.id)).length,seen=p.filter(c=>M[c.id]).length;
+    const p=CONCEPTS.filter(c=>c.u===u.u&&lvOK(c));if(!p.length)return '';
+    const k=p.filter(c=>mastered(c.id)).length,seen=p.filter(c=>M[c.id]).length;
     return '<div class="prog'+(SEL.indexOf(u.u)>=0&&!allSel()?' sel':'')+'" data-u="'+u.u+'"><div class="pg-h"><b>'+esc(u.name)+'</b><span>'+k+' / '+p.length+'</span></div>'
       +'<div class="pg-s">'+esc(u.sub)+'</div>'
       +'<div class="bar"><i style="width:'+(k/p.length*100).toFixed(1)+'%"></i><i class="seen" style="width:'+((seen-k)/p.length*100).toFixed(1)+'%"></i></div></div>';
   }).join('')+'</div>';
 }
 function renderHome(){
-  const total=CONCEPTS.length,k=CONCEPTS.filter(c=>mastered(c.id)).length;
+  const LC=CONCEPTS.filter(lvOK),total=LC.length,k=LC.filter(c=>mastered(c.id)).length;
   $('#view').innerHTML=
     '<div class="head"><h2>지구과학 만점 체크리스트</h2>'
-    +'<p>체크리스트 가운데 개념 '+total+'개를 빠짐없이 익힙니다. 문제 푸는 요령(행동강령) '+TIPS.length+'개는 퀴즈에 내지 않고 <a href="#/tips">행동강령</a> 화면에 따로 모았습니다. <b>학습</b>은 문제와 답을 바로 같이 보여 주고, <b>퀴즈</b>는 문장 완성 · 같은 말 찾기 · (가)(나)(다) 조합 · 수능식 합답형 · 모두 고르기를 돌려 가며 냅니다. 빈칸을 모두 맞혀야 하거나 맞는 것을 전부 골라야 해서, 완벽히 알아야만 맞힙니다. 개념마다 두 번 연속 맞히면 숙지로 칩니다.</p></div>'
-    +'<div class="sum"><div class="sum-n"><b>'+k+'</b> / '+total+' 숙지</div><div class="bar big"><i style="width:'+(k/total*100).toFixed(1)+'%"></i></div></div>'
+    +'<p>체크리스트 가운데 개념 '+CONCEPTS.length+'개를 빠짐없이 익힙니다. 문제 푸는 요령(행동강령) '+TIPS.length+'개는 퀴즈에 내지 않고 <a href="#/tips">행동강령</a> 화면에 따로 모았습니다. <b>학습</b>은 문제와 답을 바로 같이 보여 주고, <b>퀴즈</b>는 문장 완성 · 같은 말 찾기 · (가)(나)(다) 조합 · 수능식 합답형 · 모두 고르기를 돌려 가며 냅니다. 빈칸을 모두 맞혀야 하거나 맞는 것을 전부 골라야 해서, 완벽히 알아야만 맞힙니다. 개념마다 두 번 연속 맞히면 숙지로 칩니다.</p></div>'
+    +'<div class="sum"><div class="sum-n"><b>'+k+'</b> / '+total+' 숙지'+(LVSEL!=='A'?' <small>'+EARTH_LV_NAME[LVSEL]+' 개념</small>':'')+'</div><div class="bar big"><i style="width:'+(k/total*100).toFixed(1)+'%"></i></div></div>'
+    +'<h3 class="lbl">난이도</h3><div class="chips" id="df-chips">'
+    +['A','1','2','3'].map(k=>'<button class="chip'+(LVSEL===k?' on':'')+'" data-d="'+k+'">'+(k==='A'?'전체':EARTH_LV_NAME[k])
+      +' <small>'+CONCEPTS.filter(c=>k==='A'||String(c.lv)===k).length+'</small></button>').join('')+'</div>'
+    +'<p class="df-desc">'+esc(LV_DESC[LVSEL])+'</p>'
     +'<h3 class="lbl">범위</h3>'+unitChips()
     +progressHTML()
-    +'<h3 class="lbl">난이도</h3><div class="chips" id="df-chips">'
-    +Object.keys(DIFF).map(k=>'<button class="chip'+(DF===k?' on':'')+'" data-d="'+k+'">'+DIFF[k].name+'</button>').join('')+'</div>'
-    +'<p class="df-desc">'+esc(DIFF[DF].desc)+'</p>'
     +'<h3 class="lbl">퀴즈 문항 수</h3><div class="chips" id="len-chips">'
     +[5,10,20,0].map(n=>'<button class="chip'+(S.len===n?' on':'')+'" data-n="'+n+'">'+(n?n+'문항':'범위 전체')+'</button>').join('')+'</div>'
     +'<div class="start-row"><a class="btn-lg sub" href="#/study">학습 시작</a><a class="btn-lg pri" href="#/quiz">퀴즈 시작</a></div>'
@@ -233,7 +241,7 @@ function renderHome(){
       if(!SEL.length)SEL=QUNITS.map(u=>u.u);}
     store.set('units',SEL);renderHome();};
   $('.prog-grid').onclick=e=>{const p=e.target.closest('.prog');if(!p)return;SEL=[+p.dataset.u];store.set('units',SEL);renderHome();};
-  $('#df-chips').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;DF=b.dataset.d;store.set('diff',DF);renderHome();};
+  $('#df-chips').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;LVSEL=b.dataset.d;store.set('level',LVSEL);renderHome();};
   $('#len-chips').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;S.len=+b.dataset.n;store.set('len',S.len);renderHome();};
   $('#reset-m').onclick=()=>{if(confirm('숙지 기록을 모두 지울까요? (회독 체크는 그대로 둡니다)')){M={};saveM();renderHome();}};
 }
@@ -258,10 +266,14 @@ function explainHTML(q,ok){
     +ids.map(id=>'<p class="truth">'+truthHTML(EARTH[id-1])+noteHTML(EARTH[id-1])+'</p>').join('');
 }
 
+function emptyPool(){
+  $('#view').innerHTML='<div class="head"><h2>낼 개념이 없습니다</h2><p>고른 범위에 '+EARTH_LV_NAME[LVSEL]+' 개념이 없습니다. 범위를 넓히거나 난이도를 바꿔 보세요.</p></div>'
+    +'<div class="start-row"><a class="btn-lg pri" href="#/">처음으로</a></div>';
+}
 /* ── 학습: 문제와 답을 바로 ── */
 function startStudy(){
-  S.mode='study';S.units=SEL.slice();
-  S.queue=poolOf(S.units);S.i=store.get('study_i_'+S.units.join(''),0)%S.queue.length;
+  S.mode='study';S.units=SEL.slice();LVALL=false;
+  S.queue=poolOf(S.units);if(!S.queue.length)return emptyPool();S.i=store.get('study_i_'+S.units.join('')+LVSEL,0)%S.queue.length;
   drawStudy();
 }
 function drawStudy(){
@@ -273,7 +285,7 @@ function drawStudy(){
     +qCard(S.q,true)
     +'<div class="read-row">회독 '+[1,2,3,4,5].map(n=>'<button class="rd'+(rd.indexOf(n)>=0?' on':'')+'" data-n="'+n+'">'+n+'</button>').join('')+'</div>'
     +'<div class="nav-row"><button class="btn-lg sub" id="prev">이전</button><button class="btn-lg sub" id="again">다른 꼴로</button><button class="btn-lg pri" id="next">다음</button></div>';
-  store.set('study_i_'+S.units.join(''),S.i);
+  store.set('study_i_'+S.units.join('')+LVSEL,S.i);
   M[c.id]=M[c.id]||{n:0,c:0,s:0,t:0,f:''};M[c.id].f=S.q.type;saveM();
   $('#prev').onclick=()=>{S.i=(S.i-1+S.queue.length)%S.queue.length;drawStudy();};
   $('#next').onclick=()=>{S.i=(S.i+1)%S.queue.length;drawStudy();};
@@ -294,13 +306,8 @@ function drawStudy(){
    숙지 기록은 개념(문장)마다 따로 남기고, 다 맞히면 곧장 다음 문항으로 넘어간다. */
 const PER=3;
 const KIND_W={cloze:38,word:32,combo:20,hap:5,multi:2};
-/* 난이도 — 한 문항에 묶는 문장·빈칸 수와 꼴의 비중을 바꾼다. 숫자 입력은 어느 난이도든 그대로 */
-const DIFF={
-  L:{name:'하',desc:'빈칸 문장 하나씩 · 고르기 3문장',clozeN:1,clozeBl:1,multiN:[3,3],wordN:[2,2],hapN:3,w:{cloze:40,word:25,combo:25,hap:10,multi:0}},
-  M:{name:'중',desc:'문장 2~3개 묶음 · 고르기 4~5문장',clozeN:3,clozeBl:3,multiN:[4,5],wordN:[2,4],hapN:3,w:null},
-  H:{name:'상',desc:'빈칸 5개 이상 · 고르기 5~6문장 · ㄱ~ㄹ 합답형',clozeN:3,clozeBl:5,multiN:[5,6],wordN:[3,4],hapN:4,w:{cloze:42,word:30,combo:14,hap:11,multi:3}}
-};
-let DF=store.get('diff','M');if(!DIFF[DF])DF='M';
+/* 문제 꼴의 크기 — 난이도와 무관하게 고정 */
+const FMT={clozeN:3,clozeBl:3,multiN:[4,5],wordN:[2,4],hapN:3};
 const KIND_NAME={cloze:'문장 완성',word:'같은 말 찾기',combo:'조합',hap:'합답형',multi:'모두 고르기'};
 const JA=['ㄱ','ㄴ','ㄷ','ㄹ'],CIRC='①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮';
 /* 합답형 보기 — 고를 수 있는 모든 조합(3문장이면 7개, 4문장이면 15개) */
@@ -321,7 +328,7 @@ function hasMirror(c,f){const {parts,forks}=parse(c),o=parts[f].o;
 function wordCands(c,units){
   const {parts,forks}=parse(c),out=[];
   forks.forEach(f=>{if(hasMirror(c,f))return;const w=parts[f].o[0];
-    const es=(wordIndex()[w]||[]).filter(e=>e.c!==c&&units.indexOf(e.c.u)>=0&&!earthRelated(c.id,e.c.id)&&!hasMirror(e.c,e.f));
+    const es=(wordIndex()[w]||[]).filter(e=>e.c!==c&&units.indexOf(e.c.u)>=0&&lvOK(e.c)&&!earthRelated(c.id,e.c.id)&&!hasMirror(e.c,e.f));
     /* 같은 개념이 두 번 들어가지 않게, 개념마다 한 자리만 */
     const seen=new Set(),uniq=es.filter(e=>!seen.has(e.c.id)&&seen.add(e.c.id));
     if(uniq.length>=2)out.push({w,f,es:uniq});});
@@ -329,7 +336,7 @@ function wordCands(c,units){
 }
 function mkCloze(cs){return {kind:'cloze',cs};}
 function mkWord(c,cand){
-  const D=DIFF[DF],want=D.wordN[0]+rnd(D.wordN[1]-D.wordN[0]+1),others=[];shuffle(cand.es).forEach(e=>{if(others.length<want&&others.every(o=>!earthRelated(o.c.id,e.c.id)))others.push(e);});
+  const D=FMT,want=D.wordN[0]+rnd(D.wordN[1]-D.wordN[0]+1),others=[];shuffle(cand.es).forEach(e=>{if(others.length<want&&others.every(o=>!earthRelated(o.c.id,e.c.id)))others.push(e);});
   if(others.length<2)return null;
   const items=shuffle([{c,f:cand.f,ok:true}].concat(others));
   return {kind:'word',cs:items.map(it=>it.c),w:cand.w,items:items.map(it=>({c:it.c,ok:it.ok,
@@ -368,7 +375,7 @@ function mkMulti(cs){
 }
 /* 개념 목록을 앞에서부터 써 가며 문항을 만든다 — 꼴은 무게대로 고르되 바로 앞 꼴은 피한다 */
 function buildQuiz(list,units,maxQ){
-  const qs=[],pool=poolOf(units),rest=list.slice(),D=DIFF[DF],W=D.w||KIND_W;let last='';
+  const qs=[],pool=poolOf(units),rest=list.slice(),D=FMT,W=KIND_W;let last='';
   const free=(g,d)=>g.every(x=>x!==d&&!earthRelated(x.id,d.id));
   /* 남은 목록에서 이미 고른 것과 서로 답을 드러내지 않는 개념을 앞에서부터 꺼낸다 */
   const take=(g,n,need)=>{for(let k=0;k<rest.length&&g.length<n;){const d=rest[k];
@@ -398,8 +405,8 @@ function buildQuiz(list,units,maxQ){
   return qs;
 }
 function startQuiz(retry,allUnits){
-  S.mode='quiz';S.units=allUnits?QUNITS.map(u=>u.u):SEL.slice();
-  const pool=poolOf(S.units);
+  S.mode='quiz';S.units=allUnits?QUNITS.map(u=>u.u):SEL.slice();LVALL=!!retry;
+  const pool=poolOf(S.units);if(!pool.length)return emptyPool();
   const list=retry?shuffle(retry):choose(S.units,pool.length);
   S.queue=buildQuiz(list,S.units,retry?0:S.len);S.i=0;S.score=0;S.wrong=[];
   drawQuiz();
@@ -436,11 +443,11 @@ function drawQuiz(){
   if(S.i>=S.queue.length)return drawEnd();
   const q=S.queue[S.i];S.q=q;S.answered=false;
   const units=[...new Set(q.cs.map(c=>c.u))].map(u=>EARTH_UNITS.find(x=>x.u===u).name);
-  const single=q.kind==='combo'||q.kind==='hap';
+  const single=q.kind==='combo'||q.kind==='hap',lvQ=Math.max.apply(null,q.cs.map(c=>c.lv));
   $('#view').innerHTML='<div class="bar-row"><a class="back" href="#/">← 그만두기</a>'
     +'<span class="pos">'+(S.i+1)+' / '+S.queue.length+' · 맞힘 '+S.score+'</span></div>'
     +'<div class="bar"><i style="width:'+(S.i/S.queue.length*100).toFixed(1)+'%"></i></div>'
-    +'<div class="qcard"><div class="q-meta"><span class="tag type">'+KIND_NAME[q.kind]+'</span><span class="tag df df-'+DF+'">난이도 '+DIFF[DF].name+'</span>'
+    +'<div class="qcard"><div class="q-meta"><span class="tag type">'+KIND_NAME[q.kind]+'</span><span class="tag df df-'+lvQ+'">'+EARTH_LV_NAME[lvQ]+'</span>'
       +units.map(n=>'<span class="tag">'+esc(n)+'</span>').join('')+'</div>'
     +qBody(q)+'<div class="explain" id="explain"></div></div>'
     +'<div class="nav-row">'+(single?'':'<button class="btn-lg pri" id="check" disabled>채점</button>')
@@ -537,7 +544,7 @@ function renderList(tips){
     +'<div class="jump">'+us.map(u=>'<a href="#u'+u.u+'" data-j="u'+u.u+'">'+esc(u.name)+'</a>').join('')+'</div>'
     +us.map(u=>'<section class="ulist" id="u'+u.u+'"><h3>'+esc(u.name)+' <small>'+esc(u.sub)+'</small></h3>'
       +LISTSRC.filter(c=>c.u===u.u).map(c=>{const rd=R[c.id]||[];
-        return '<div class="li'+(!c.tip&&mastered(c.id)?' ms':'')+'" data-id="'+c.id+'"><p>'+(c.tip?truthText(c):truthHTML(c))+'</p><div class="rds">'
+        return '<div class="li'+(!c.tip&&mastered(c.id)?' ms':'')+'" data-id="'+c.id+'"><p>'+(c.tip?truthText(c):'<span class="lvb lv'+c.lv+'">'+EARTH_LV_NAME[c.lv]+'</span>'+truthHTML(c))+'</p><div class="rds">'
           +[1,2,3,4,5].map(n=>'<button class="rd'+(rd.indexOf(n)>=0?' on':'')+'" data-n="'+n+'" title="'+n+'회독">'+n+'</button>').join('')+'</div></div>';}).join('')
       +'</section>').join('');
   $('#view').onclick=e=>{
