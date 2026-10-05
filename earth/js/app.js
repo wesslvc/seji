@@ -308,7 +308,36 @@ const PER=3;
 const KIND_W={cloze:38,word:32,combo:20,hap:5,multi:2};
 /* 문제 꼴의 크기 — 난이도와 무관하게 고정 */
 const FMT={clozeN:3,clozeBl:3,multiN:[4,5],wordN:[2,4],hapN:3};
-const KIND_NAME={cloze:'문장 완성',word:'같은 말 찾기',combo:'조합',hap:'합답형',multi:'모두 고르기'};
+const KIND_NAME={cloze:'문장 완성',word:'같은 말 찾기',combo:'조합',hap:'합답형',multi:'모두 고르기',order:'시대 순서'};
+/* 지질 시대 개념은 까다롭게 — 순서 배열·합답형·조합 비중을 키우고 한 빈칸 문장은 줄인다 */
+const KIND_W_ERA={cloze:14,word:8,combo:18,hap:18,multi:8,order:34};
+const isSingle=q=>q.kind==='combo'||q.kind==='hap'||q.kind==='order';
+/* 시대 순서 — 개념 c의 사건 하나에 시기가 겹치지 않는 사건을 더해 오래된 순으로 늘어놓게 한다.
+   틀린 보기는 이웃한 두 사건만 맞바꾼 것 위주라 대충 알면 고를 수 없다 */
+function mkOrder(c,pool){
+  const inPool=new Set(pool.map(d=>d.id)),apart=(a,b)=>a[3]<b[2]||b[3]<a[2];
+  const mine=EARTH_ERA_EV.filter(e=>e[0]===c.id);if(!mine.length)return null;
+  /* 후보 묶음을 여럿 만들어 시기가 가장 촘촘한 쪽을 고른다 — 매머드·로디니아처럼 동떨어진
+     사건이 끼면 순서가 거저 풀리므로 */
+  const sets=[];
+  for(let t=0;t<40;t++){
+    const ev=[pick(mine)];
+    shuffle(EARTH_ERA_EV.filter(e=>inPool.has(e[0]))).forEach(e=>{if(ev.length<4&&ev.indexOf(e)<0&&ev.every(x=>apart(x,e)))ev.push(e);});
+    if(ev.length>=3)sets.push([Math.max(...ev.map(e=>e[2]))-Math.min(...ev.map(e=>e[2]))-ev.length*2+Math.random(),ev]);
+  }
+  sets.sort((x,y)=>x[0]-y[0]);
+  for(const [,ev] of sets.slice(0,3)){
+    const shown=shuffle(ev),right=shown.slice().sort((a,b)=>a[2]-b[2]).map(e=>shown.indexOf(e));
+    const key=a=>a.join(),seen=new Set([key(right)]),opts=[right];
+    const add=a=>{if(opts.length<5&&!seen.has(key(a))){seen.add(key(a));opts.push(a);}};
+    shuffle([...Array(right.length-1).keys()]).forEach(i=>{const a=right.slice();[a[i],a[i+1]]=[a[i+1],a[i]];add(a);});
+    for(let g=0;g<40&&opts.length<5;g++)add(shuffle(right.slice()));
+    const cs=[...new Set(ev.map(e=>e[0]))].map(id=>EARTH[id-1]);
+    return {kind:'order',cs,ev:shown,right,
+      opts:shuffle(opts.map(a=>({ok:key(a)===key(right),pos:a,h:a.map(i=>'<span class="ck">'+KO[i]+'</span>').join('<span class="arr">→</span>')})))};
+  }
+  return null;
+}
 const JA=['ㄱ','ㄴ','ㄷ','ㄹ'],CIRC='①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮';
 /* 합답형 보기 — 고를 수 있는 모든 조합(3문장이면 7개, 4문장이면 15개) */
 function hapOpts(n){const out=[];for(let m=1;m<(1<<n);m++)out.push([...Array(n).keys()].filter(k=>m>>k&1));
@@ -375,7 +404,7 @@ function mkMulti(cs){
 }
 /* 개념 목록을 앞에서부터 써 가며 문항을 만든다 — 꼴은 무게대로 고르되 바로 앞 꼴은 피한다 */
 function buildQuiz(list,units,maxQ){
-  const qs=[],pool=poolOf(units),rest=list.slice(),D=FMT,W=KIND_W;let last='';
+  const qs=[],pool=poolOf(units),rest=list.slice(),D=FMT;let last='';
   const free=(g,d)=>g.every(x=>x!==d&&!earthRelated(x.id,d.id));
   /* 남은 목록에서 이미 고른 것과 서로 답을 드러내지 않는 개념을 앞에서부터 꺼낸다 */
   const take=(g,n,need)=>{for(let k=0;k<rest.length&&g.length<n;){const d=rest[k];
@@ -385,7 +414,8 @@ function buildQuiz(list,units,maxQ){
   while(rest.length&&(!maxQ||qs.length<maxQ)){
     const c=rest.shift(),nf=parse(c).forks.length,num=hasNum(c);
     /* 숫자 칸이 있는 개념은 늘 직접 입력하는 문장 완성으로만 — 보기에서 숫자를 알아보는 걸로는 안 된다 */
-    const ok=num?{cloze:true}:{cloze:nf>0,word:nf>0&&wordCands(c,units).length>0,combo:comboOK(c),hap:true,multi:true};
+    const era=EARTH_ERA_IDS.has(c.id),W=era?KIND_W_ERA:KIND_W,ordQ=era&&!num?mkOrder(c,pool):null;
+    const ok=num?{cloze:true}:{cloze:nf>0,word:nf>0&&wordCands(c,units).length>0,combo:comboOK(c),hap:true,multi:true,order:!!ordQ};
     /* 바로 앞과 같은 꼴은 무게를 크게 깎는다 */
     const ks=Object.keys(W).filter(k=>ok[k]&&W[k]>0),wt=k=>W[k]*(k===last?.5:1);
     let r=Math.random()*ks.reduce((a,k)=>a+wt(k),0),kind=ks[0];
@@ -397,6 +427,7 @@ function buildQuiz(list,units,maxQ){
       q=mkCloze(g);}
     else if(kind==='word'&&(q=mkWord(c,pick(wordCands(c,units))))){}
     else if(kind==='word'){q=mkCloze([c]);}
+    else if(kind==='order'){q=ordQ;}
     else if(kind==='combo'){q=mkCombo(c);}
     else if(kind==='hap'){q=mkHap(fill(take([c],D.hapN,plain),D.hapN));}
     else{const n=D.multiN[0]+rnd(D.multiN[1]-D.multiN[0]+1);q=mkMulti(fill(take([c],n,plain),D.multiN[0]));}
@@ -429,6 +460,11 @@ function qBody(q){
       +'<div class="opts multi">'+q.items.map((it,i)=>'<button class="opt" data-i="'+i+'" aria-pressed="false">'
         +'<span class="box" aria-hidden="true"></span><span class="ot">'+it.h+'</span><span class="kb">'+(i+1)+'</span></button>').join('')+'</div>';
   }
+  if(q.kind==='order'){
+    return '<div class="q-prompt">다음 사건을 <u>오래된 것부터</u> 순서대로 나열한 것은?</div>'
+      +'<div class="bogi">'+q.ev.map((e,k)=>'<p><b>('+KO[k]+')</b> '+esc(e[1])+'</p>').join('')+'</div>'
+      +'<div class="opts single combo order">'+q.opts.map((o,i)=>'<button class="opt" data-i="'+i+'"><span class="on">'+(i+1)+'</span><span class="ot">'+o.h+'</span></button>').join('')+'</div>';
+  }
   if(q.kind==='combo'){
     return '<div class="q-prompt">(가)'+(q.n>2?'~('+KO[q.n-1]+')':', (나)')+'에 들어갈 말을 바르게 짝지은 것은?</div>'
       +'<div class="q-stem">'+q.stem+'</div>'
@@ -443,7 +479,7 @@ function drawQuiz(){
   if(S.i>=S.queue.length)return drawEnd();
   const q=S.queue[S.i];S.q=q;S.answered=false;
   const units=[...new Set(q.cs.map(c=>c.u))].map(u=>EARTH_UNITS.find(x=>x.u===u).name);
-  const single=q.kind==='combo'||q.kind==='hap',lvQ=Math.max.apply(null,q.cs.map(c=>c.lv));
+  const single=isSingle(q),lvQ=Math.max.apply(null,q.cs.map(c=>c.lv));
   $('#view').innerHTML='<div class="bar-row"><a class="back" href="#/">← 그만두기</a>'
     +'<span class="pos">'+(S.i+1)+' / '+S.queue.length+' · 맞힘 '+S.score+'</span></div>'
     +'<div class="bar"><i style="width:'+(S.i/S.queue.length*100).toFixed(1)+'%"></i></div>'
@@ -509,12 +545,16 @@ function grade(pickI){
     document.querySelectorAll('.opt').forEach((b,i)=>{b.disabled=true;
       if(q.opts[i].ok)b.classList.add('right');else if(i===pickI)b.classList.add('wrong');else b.classList.add('dim');});
     if(q.kind==='combo'){record(q.cs[0].id,all,'combo');if(!all)miss(q.cs[0]);}
+    /* 순서 — 개념마다 그 사건들이 제자리에 놓였는지로 채점한다 */
+    else if(q.kind==='order')q.cs.forEach(c=>{const good=q.ev.every((e,k)=>e[0]!==c.id||ch.pos.indexOf(k)===q.right.indexOf(k));
+      record(c.id,good,'order');if(!good)miss(c);});
     else q.cs.forEach((c,k)=>{const said=ch.lab.indexOf(JA[k])>=0,good=said===q.flags[k];
       record(c.id,good,'hap');if(!good)miss(c);});
   }
   if(all)S.score++;
   const why=q.kind==='word'
     ?'<div class="ex-h">각 문장의 빈칸 — 「'+esc(q.w)+'」가 정답인 문장만 골라야 했습니다</div>'
+    :q.kind==='order'?'<div class="ex-h">오래된 순서 — '+q.right.map(i=>'('+KO[i]+') '+esc(q.ev[i][1])).join(' → ')+'</div>'
     :'<div class="ex-h">정답 문장</div>';
   $('#explain').innerHTML=(all?'<div class="verdict good">맞았습니다</div>':'<div class="verdict bad">틀렸습니다</div>')
     +why+[...new Set(q.cs)].map(c=>'<p class="truth">'+truthHTML(c)+noteHTML(c)+'</p>').join('');
@@ -590,7 +630,7 @@ function route(){
 document.addEventListener('keydown',e=>{
   if(/^(INPUT|TEXTAREA|SELECT)$/.test((e.target||{}).tagName||''))return;
   if(S.mode==='quiz'&&S.q){
-    const single=S.q.kind==='combo'||S.q.kind==='hap';
+    const single=isSingle(S.q);
     if(!S.answered&&/^[1-9]$/.test(e.key)){const b=document.querySelectorAll('.opt')[+e.key-1];
       if(b){e.preventDefault();single?grade(+e.key-1):toggle(b);}}
     else if(e.key==='Enter'){e.preventDefault();if(S.answered)$('#next').click();else if(!single)grade();}

@@ -209,3 +209,6 @@
 .sum-n small{font-size:.78rem}
 .lvb{display:inline-block;font-size:.68rem;font-weight:700;padding:0 .45rem;border-radius:99px;margin-right:.45rem;vertical-align:2px;border:1px solid}
 .lvb.lv1{color:var(--okt,#81c995)}.lvb.lv2{color:var(--ac)}.lvb.lv3{color:var(--wr)}
+/* 시대 순서 보기 — (가) → (나) … */
+.opt .arr{color:var(--tx3,var(--tx2));margin:0 .3rem;font-size:.8rem}
+.opts.order .opt .ck{margin-right:0}
