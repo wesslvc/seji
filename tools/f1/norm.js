@@ -1,5 +1,5 @@
 const {execSync}=require('child_process');const fs=require('fs');
-const S={Spielberg:'AU000016402',Silverstone:'UK000056225',Spa:'GME00126694',Imola:'ITM00016148',Mugello:'ITM00016158',Portimao:'POM00008554',Sochi:'RSM00037171',Nurburgring:'GME00102324',Hockenheim:'GME00129718',Yeongam:'KS000047165',Suzuka:'JA000047651'};
+const S={Spielberg:'AU000016402',Silverstone:'UK000056225',Spa:'GME00126694',Imola:'ITM00016148',Mugello:'ITM00016158',Portimao:'POM00008554',Sochi:'RSM00037171',Nurburgring:'GME00102324',Hockenheim:'GME00129718',Yeongam:'KS000047165',Suzuka:'JA000047651',Chang:'TH000048432',MagnyCours:'FR000007255',Jerez:'SPE00119945',Fuji:'JA000047640'};
 const out={};
 for(const [k,id] of Object.entries(S)){
  const f=id+'.csv';if(!fs.existsSync(f))execSync(`curl -sS -m 120 -o ${f} https://noaa-ghcn-pds.s3.amazonaws.com/csv/by_station/${id}.csv`);

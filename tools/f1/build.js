@@ -35,24 +35,34 @@ const L=[
 ['ricard','프랑스 그랑프리','폴 리카르 서킷','Circuit Paul Ricard','르 카스텔레','fr',43.2506,5.7919,0,2022,{c:650}],
 ['sepang','말레이시아 그랑프리','세팡 인터내셔널 서킷','Sepang International Circuit','세팡','my',2.7608,101.738,0,2017,{c:1065}],
 ['istanbul','튀르키예 그랑프리','이스탄불 파크','Istanbul Park','이스탄불','tr',40.9517,29.4058,0,2021,{c:6}],
-['sochi','러시아 그랑프리','소치 오토드롬','Sochi Autodrom','소치','ru',43.4057,39.9578,0,2021,{g:'Sochi',ko:'아들레르',en:'Adler'}],
 ['yeongam','코리아 그랑프리','코리아 인터내셔널 서킷','Korea International Circuit','영암','kr',34.7333,126.4167,0,2013,{g:'Yeongam',ko:'목포',en:'Mokpo'}],
-['kyalami','남아프리카 그랑프리','키알라미 서킷','Kyalami Grand Prix Circuit','요하네스버그','za',-25.9894,28.0767,0,1993,{c:25}],
 ['hockenheim','독일 그랑프리','호켄하임링','Hockenheimring','호켄하임','de',49.3278,8.5658,0,2019,{g:'Hockenheim',ko:'파우게젤-키를라흐',en:'Waghäusel-Kirrlach'}],
 ['nurburg','아이펠 그랑프리','뉘르부르크링','Nürburgring','뉘르부르크','de',50.3356,6.9475,0,2020,{g:'Nurburgring',ko:'뉘르부르크-바르바일러',en:'Nürburg-Barweiler'}],
 ['indy','미국 그랑프리(인디애나폴리스)','인디애나폴리스 모터 스피드웨이','Indianapolis Motor Speedway','인디애나폴리스','us',39.795,-86.2347,0,2007,{c:643}],
 ['buddh','인도 그랑프리','부다 인터내셔널 서킷','Buddh International Circuit','그레이터 노이다','in',28.3487,77.5331,0,2013,{c:359}],
+['estoril','포르투갈 그랑프리','에스토릴 서킷','Autódromo Fernanda Pires da Silva','에스토릴','pt',38.7506,-9.3944,0,1996,{c:810}],
+['chang','F1 미개최','창 인터내셔널 서킷','Chang International Circuit','부리람','th',14.9567,103.0847,0,0,{g:'Chang',ko:'수린',en:'Surin'}],
+['magny','프랑스 그랑프리','마니쿠르 서킷','Circuit de Nevers Magny-Cours','마니쿠르','fr',46.8642,3.1633,0,2008,{g:'MagnyCours',ko:'부르주',en:'Bourges'}],
+['jerez','유럽 그랑프리','헤레스 서킷','Circuito de Jerez – Ángel Nieto','헤레스 데 라 프론테라','es',36.7083,-6.0342,0,1997,{g:'Jerez',ko:'헤레스 데 라 프론테라',en:'Jerez de la Frontera'}],
+['dubai','F1 미개최','두바이 오토드롬','Dubai Autodrome','두바이','ae',25.0489,55.2386,0,0,{c:93}],
+['fuji','일본 그랑프리','후지 스피드웨이','Fuji Speedway','오야마','jp',35.3716,138.9272,0,2008,{g:'Fuji',ko:'가와구치코',en:'Kawaguchiko'}],
+['igora','F1 미개최','이고라 드라이브','Igora Drive','노보질로보','ru',60.3,29.9,0,0,{c:55}],
+['kuwait','F1 미개최','쿠웨이트 모터 타운','Kuwait Motor Town','아흐마디','kw',28.72,48.08,0,0,{c:933}],
+['moscow','F1 미개최','모스크바 레이스웨이','Moscow Raceway','볼로콜람스크','ru',56.03,36.17,0,0,{c:18}],
+['aragon','F1 미개최','모터랜드 아라곤','MotorLand Aragón','알카니스','es',41.0,-0.21,0,0,{c:756}],
 ];
+const LEN={albert:5.278,shanghai:5.451,suzuka:5.807,bahrain:5.412,jeddah:6.176,miami:5.412,montreal:4.361,monaco:3.340,barcelona:4.675,redbull:4.326,silverstone:5.891,spa:7.004,hungaroring:4.381,zandvoort:4.259,monza:5.793,madrid:5.474,baku:6.003,marina:5.077,cota:5.513,mexico:4.304,interlagos:4.309,vegas:6.120,lusail:5.418,yas:5.281,imola:4.909,portimao:4.684,mugello:5.245,ricard:5.822,sepang:5.543,istanbul:5.338,yeongam:5.615,hockenheim:4.574,nurburg:5.148,indy:4.192,buddh:5.125,estoril:4.182,chang:4.554,magny:4.411,jerez:4.428,dubai:5.390,fuji:4.563,igora:5.183,kuwait:5.608,moscow:3.955,aragon:5.346};
 const out=L.map(([id,gp,ko,en,city,iso,la,lo,cur,last,src])=>{
   let s,tmin,tmax,prec,kop='',stn;
   if(src.c){const r=byId[src.c];tmin=r[9];tmax=r[10];prec=r[11];kop=r[12]||'';stn={ko:r[2]||r[1],en:r[1],km:Math.round(dist(la,lo,r[5],r[6])),el:null,src:'geogl3'};}
   else{const n=N[src.g],g=st[n.id];tmin=n.tmin;tmax=n.tmax;prec=src.noPrec?null:n.prec;stn={ko:src.ko,en:src.en,km:Math.round(dist(la,lo,g.la,g.lo)),el:Math.round(g.el),src:'ghcn'};}
   if(tmin.some(v=>v==null)||tmax.some(v=>v==null))throw new Error('null temp '+id);
   if(prec&&prec.some(v=>v==null))throw new Error('null prec '+id+' '+prec);
-  return {id,gp,ko,en,city,iso,lat:la,lon:lo,cur:!!cur,last:last||null,st:stn,tmin,tmax,prec,kop};});
+  if(!LEN[id])throw new Error('len '+id);
+  return {id,gp,ko,en,city,iso,lat:la,lon:lo,cur:!!cur,f1:!!cur||!!last,last:last||null,len:LEN[id],st:stn,tmin,tmax,prec,kop};});
 const el={};C.forEach(r=>{});
 fs.writeFileSync('/home/user/seji/f1/js/data.js',
-`/* Geogl3 F1 — F1 그랑프리 개최 서킷의 기후 자료
+`/* Geogl3 F1 — FIA Grade 1 서킷의 기후 자료
    기후값은 서킷 가까이의 관측소 월별 평년값이다(\`st\` = 어느 관측소, 몇 km 떨어졌는지).
    · src geogl3 : Geogl3 기후 자료(Köppen-Geiger 1991–2020 보정, abyss 기후 카드와 같은 값)
    · src ghcn   : NOAA GHCN-Daily 일별 자료를 1991–2020 월평균으로 산출(결측이 많은 달은 제외)

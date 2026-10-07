@@ -17,7 +17,7 @@ function stats(c){
     wet:c.prec?c.prec.indexOf(Math.max.apply(null,c.prec)):null,dry:c.prec?c.prec.indexOf(Math.min.apply(null,c.prec)):null};
 }
 const byId={};F1_CIRCUITS.forEach(c=>{byId[c.id]=c;c.S=stats(c);});
-const NCUR=F1_CIRCUITS.filter(c=>c.cur).length;
+const NCUR=F1_CIRCUITS.filter(c=>c.cur).length,NPAST=F1_CIRCUITS.filter(c=>!c.cur&&c.f1).length,NOTH=F1_CIRCUITS.filter(c=>!c.f1).length;
 
 /* ── 상태 (주소에 담아 그대로 공유) ── */
 const DEF={m:-1,k:'avg',d:'ge',t:30,r:'all',s:'cal'};
@@ -28,7 +28,7 @@ function parseQ(str){
   if(KIND[p.get('k')])o.k=p.get('k');
   if(p.get('d')==='ge'||p.get('d')==='le')o.d=p.get('d');
   if(p.has('t')&&isFinite(+p.get('t')))o.t=Math.max(-20,Math.min(50,Math.round(+p.get('t'))));
-  if(['all','cur','past'].indexOf(p.get('r'))>=0)o.r=p.get('r');
+  if(['all','cur','past','oth'].indexOf(p.get('r'))>=0)o.r=p.get('r');
   if(['cal','hot','cold','wet'].indexOf(p.get('s'))>=0)o.s=p.get('s');
   return o;
 }
@@ -58,7 +58,7 @@ function spark(c,hl){
 /* ── 목록 ── */
 function filtered(){
   let L=F1_CIRCUITS.slice();
-  if(Q.r==='cur')L=L.filter(c=>c.cur);else if(Q.r==='past')L=L.filter(c=>!c.cur);
+  if(Q.r==='cur')L=L.filter(c=>c.cur);else if(Q.r==='past')L=L.filter(c=>!c.cur&&c.f1);else if(Q.r==='oth')L=L.filter(c=>!c.f1);
   const total=L.length;
   if(Q.m>=0)L=L.filter(c=>Q.d==='ge'?val(c,Q.m,Q.k)>=Q.t:val(c,Q.m,Q.k)<=Q.t);
   const key=c=>Q.m>=0?val(c,Q.m,Q.k):c.S.ann;
@@ -73,8 +73,8 @@ function cardHTML(c){
   const v=m>=0?val(c,m,k):c.S.ann;
   const cls=v>=28?'hot':v<=8?'cold':'';
   return '<a class="cc'+(c.cur?' cur':'')+'" href="#/c/'+c.id+(Q.m>=0?'?m='+Q.m:'')+'">'
-    +'<span class="tag'+(c.cur?' cur':'')+'">'+(c.cur?'2026':'~'+c.last)+'</span>'
-    +'<div class="cc-h"><img class="flag" src="'+flagURL(c)+'" alt="" loading="lazy" width="34" height="24"><div class="cc-t"><b>'+esc(c.ko)+'</b><span>'+esc(c.gp)+' · '+esc(c.city)+'</span></div></div>'
+    +'<span class="tag'+(c.cur?' cur':'')+'">'+(c.cur?'2026':c.f1?'~'+c.last:'G1')+'</span>'
+    +'<div class="cc-h"><img class="flag" src="'+flagURL(c)+'" alt="" loading="lazy" width="34" height="24"><div class="cc-t"><b>'+esc(c.ko)+'</b><span>'+esc(c.gp)+' · '+esc(c.city)+' · '+c.len.toFixed(2)+'km</span></div></div>'
     +'<div class="cc-v"><strong class="'+cls+'">'+f1(v)+'°</strong><em>'+(m>=0?MON[m]+' '+KIND[k]:'연평균 기온')+'</em></div>'
     +spark(c,m)+'</a>';
 }
@@ -107,8 +107,8 @@ function renderHome(){
   $('#view').innerHTML=
     '<section class="hero"><div class="kick">Formula 1 · Circuit Climate</div>'
     +'<h1>서킷마다 <em>날씨</em>는<br>이렇게 다릅니다</h1>'
-    +'<p>그랑프리가 열렸거나 열리는 서킷 '+nNa+'곳의 월별 기온·강수 그래프. 몇 월에 몇 도 이상(이하)인 곳만 모아 보고, 카드 이미지로 내려받으세요.</p>'
-    +'<div class="stats"><div><b>'+nNa+'</b><span>서킷</span></div><div><b>'+NCUR+'</b><span>2026 시즌</span></div><div><b>'+(nNa-NCUR)+'</b><span>과거 개최지</span></div></div>'
+    +'<p>FIA Grade 1 서킷 '+nNa+'곳의 월별 기온·강수 그래프. 몇 월에 몇 도 이상(이하)인 곳만 모아 보고, 카드 이미지로 내려받으세요.</p>'
+    +'<div class="stats"><div><b>'+nNa+'</b><span>서킷</span></div><div><b>'+NCUR+'</b><span>2026 시즌</span></div><div><b>'+NPAST+'</b><span>과거 F1 개최지</span></div><div><b>'+NOTH+'</b><span>F1 미개최</span></div></div>'
     +CAR+'<img class="car-img" src="/f1/img/car.png?v=2" alt="" hidden onload="this.hidden=false;this.parentNode.querySelector(\'.car\').remove()" onerror="this.remove()">'+'<div class="strip"></div></section>'
     +'<section class="panel"><h2>월별 기온으로 걸러 보기</h2><p class="sub">달 · 기온 기준 · 이상/이하 · 온도를 고르면 아래 목록이 바로 바뀝니다.</p>'
     +'<div class="row"><label>달</label><div class="mgrid" id="mg">'+MON.map((n,i)=>'<button class="chip" data-m="'+i+'">'+n+'</button>').join('')+'<button class="chip off" data-m="-1">끄기</button></div></div>'
@@ -119,7 +119,7 @@ function renderHome(){
     +'<div class="sentence" id="sentence"></div>'
     +'<div class="presets">'+PRESETS.map((p,i)=>'<button data-p="'+i+'">'+p.l+'</button>').join('')+'</div></section>'
     +'<div class="bar"><h3>서킷 <small id="res-n"></small></h3><div class="chips">'
-    +'<button class="chip" data-r="all">전체</button><button class="chip" data-r="cur">2026 시즌 <small>'+NCUR+'</small></button><button class="chip" data-r="past">과거 개최지 <small>'+(nNa-NCUR)+'</small></button></div></div>'
+    +'<button class="chip" data-r="all">전체</button><button class="chip" data-r="cur">2026 시즌 <small>'+NCUR+'</small></button><button class="chip" data-r="past">과거 F1 개최지 <small>'+NPAST+'</small></button><button class="chip" data-r="oth">F1 미개최 <small>'+NOTH+'</small></button></div></div>'
     +'<div class="bar" style="margin-top:0"><div class="chips"><button class="chip" data-s="cal">캘린더순</button><button class="chip" data-s="hot">더운 순</button><button class="chip" data-s="cold">추운 순</button><button class="chip" data-s="wet">비 많은 순</button></div></div>'
     +'<div class="grid" id="grid"></div>';
   $('#mg').onclick=e=>{const b=e.target.closest('.chip');if(b)setQ({m:+b.dataset.m});};
@@ -194,9 +194,9 @@ function renderDetail(id,qs){
   const nav=(t,k)=>'<a href="#/c/'+t.id+(hl>=0?'?m='+hl:'')+'"><span>'+k+'</span><b>'+esc(t.ko)+'</b></a>';
   const stn=c.st.src==='ghcn'?c.st.ko+' 관측소(NOAA) · '+c.st.km+'km 떨어짐'+(c.st.el!=null?' · 해발 '+c.st.el+'m':''):c.st.ko+' 관측 자료 · 서킷에서 약 '+c.st.km+'km';
   $('#view').innerHTML='<a class="back" href="#/'+(location.hash.indexOf('?')>0&&0?'':'')+'" id="bk">← 서킷 목록</a>'
-    +'<article class="dt"><div class="dt-h"><img class="flag" src="'+flagURL(c)+'" alt="" width="64" height="44"><div><div class="gp">'+esc(c.gp)+' · '+(c.cur?'2026 시즌':'과거 개최지 (마지막 '+c.last+')')+'</div><h2>'+esc(c.ko)+'</h2><p>'+esc(c.city)+' · '+esc(c.en)+' · '+Math.abs(c.lat).toFixed(2)+'°'+(c.lat<0?'S':'N')+' '+Math.abs(c.lon).toFixed(2)+'°'+(c.lon<0?'W':'E')+'</p></div></div>'
+    +'<article class="dt"><div class="dt-h"><img class="flag" src="'+flagURL(c)+'" alt="" width="64" height="44"><div><div class="gp">'+esc(c.gp)+' · '+(c.cur?'2026 시즌':c.f1?'과거 F1 개최지 (마지막 '+c.last+')':'FIA Grade 1 · F1 미개최')+'</div><h2>'+esc(c.ko)+'</h2><p>'+esc(c.city)+' · '+esc(c.en)+' · '+Math.abs(c.lat).toFixed(2)+'°'+(c.lat<0?'S':'N')+' '+Math.abs(c.lon).toFixed(2)+'°'+(c.lon<0?'W':'E')+'</p></div></div>'
     +'<div class="dt-b"><canvas id="cv" aria-label="'+esc(c.ko)+' 기후 그래프"></canvas>'
-    +'<div class="facts"><div class="fact"><span>연평균 기온</span><b>'+f1(S.ann)+'°C</b></div><div class="fact"><span>연교차</span><b>'+f1(S.range)+'°C</b><small>'+MON[S.lo]+' → '+MON[S.hi]+'</small></div>'
+    +'<div class="facts"><div class="fact"><span>코스 길이</span><b>'+c.len.toFixed(3)+'km</b><small>그랑프리 레이아웃</small></div><div class="fact"><span>연평균 기온</span><b>'+f1(S.ann)+'°C</b></div><div class="fact"><span>연교차</span><b>'+f1(S.range)+'°C</b><small>'+MON[S.lo]+' → '+MON[S.hi]+'</small></div>'
     +'<div class="fact"><span>연강수량</span><b>'+(S.prec!=null?Math.round(S.prec).toLocaleString()+'mm':'자료 부족')+'</b>'+(S.wet!=null?'<small>가장 비 오는 달 '+MON[S.wet]+'</small>':'')+'</div>'
     +'<div class="fact"><span>가장 더운 달</span><b>'+MON[S.hi]+'</b><small>평균 '+f1(S.mn[S.hi])+'°C · 최고 '+f1(c.tmax[S.hi])+'°C</small></div>'
     +'<div class="fact"><span>가장 추운 달</span><b>'+MON[S.lo]+'</b><small>평균 '+f1(S.mn[S.lo])+'°C · 최저 '+f1(c.tmin[S.lo])+'°C</small></div></div>'
@@ -233,7 +233,7 @@ async function downloadCard(c,hl,btn){
     x.save();rr(x,fx,fy,fw,fh,14);x.clip();
     if(flag){const r=flag.naturalWidth&&flag.naturalHeight?flag.naturalWidth/flag.naturalHeight:1.5,dw=Math.max(fw,fh*r),dh=dw/r;x.drawImage(flag,fx+(fw-dw)/2,fy+(fh-dh)/2,dw,dh);}else{x.fillStyle='#202027';x.fillRect(fx,fy,fw,fh);}
     x.restore();x.strokeStyle='rgba(255,255,255,.2)';x.lineWidth=2;rr(x,fx,fy,fw,fh,14);x.stroke();
-    x.fillStyle='#a9a9b5';x.font='600 26px '+FONT;x.fillText(c.gp+(c.cur?'  ·  2026':'  ·  마지막 개최 '+c.last),fx+fw+32,fy+34);
+    x.fillStyle='#a9a9b5';x.font='600 26px '+FONT;x.fillText(c.gp+(c.cur?'  ·  2026':c.f1?'  ·  마지막 개최 '+c.last:''),fx+fw+32,fy+34);
     let fs=58;x.font='800 '+fs+'px '+FONT;while(x.measureText(c.ko).width>W-fx-fw-32-60&&fs>34){fs-=2;x.font='800 '+fs+'px '+FONT;}
     x.fillStyle='#f4f4f6';x.fillText(c.ko,fx+fw+32,fy+34+fs+4);
     x.fillStyle='#a9a9b5';x.font='500 25px '+FONT;
