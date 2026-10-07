@@ -4269,13 +4269,13 @@ function tqSubmit(){
     /* 중·하: 종교/에너지는 2번째 오답에 맞은 것 초록 표시. 무역은 1번째→힌트, 2번째→초록 */
     if(tradeHinted||pieHinted){
       TQ.feedback=TQ.tries;
-      /* 중 난이도: 맞힌 연결을 첫 제출부터 초록으로 확정, 그 밖에는 두 번째 오답부터 */
-      if(diff==='M'||TQ.tries===2) TQ.lockedCorrect=new Set(TQ.round.filter(iso=>TQ.matches[iso]===iso));
+      /* 중·하 난이도: 맞힌 연결을 첫 제출부터 초록으로 확정, 그 밖에는 두 번째 오답부터 */
+      if(diff==='M'||diff==='L'||TQ.tries===2) TQ.lockedCorrect=new Set(TQ.round.filter(iso=>TQ.matches[iso]===iso));
     }
     tqRefresh();
     const tr=document.getElementById('tq-tries');
     const _n=TQ.lockedCorrect?TQ.lockedCorrect.size:0;
-    const _g=(diff==='M'&&_n)?'맞은 '+_n+'개는 초록색 · ':'';
+    const _g=((diff==='M'||diff==='L')&&_n)?'맞은 '+_n+'개는 초록색 · ':'';
     tr.textContent = tradeHinted
       ? (TQ.tries===1?_g+'💡 힌트를 참고해 다시 시도':'맞은 연결은 초록색 · 다시 시도')
       : pieHinted
