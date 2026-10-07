@@ -35,6 +35,30 @@ function parseQ(str){
 function qStr(o){const p=[];Object.keys(DEF).forEach(k=>{if(o[k]!==DEF[k])p.push(k+'='+o[k]);});return p.join('&');}
 function setQ(patch){Q=Object.assign(Q,patch);const s=qStr(Q);history.replaceState(null,'','#/'+(s?'?'+s:''));renderResults();}
 
+/* ── 최다 우승 · 트랙 ── */
+function winTxt(c,full){
+  if(!c.w)return null;const d=c.w.d,n=d.length;
+  const names=n>3&&!full?d.slice(0,2).join(' · ')+' 외 '+(n-2)+'명':d.join(' · ');
+  return names+' '+(n>1?'각 ':'')+c.w.n+'승';
+}
+function trackSVG(c,cls){
+  if(!c.t)return '';const t=c.t,m=60;
+  return '<svg class="'+(cls||'trk')+'" viewBox="'+(-m)+' '+(-m)+' '+(t.w+2*m)+' '+(t.h+2*m)+'" role="img" aria-label="'+esc(c.ko)+' 트랙 레이아웃">'
+    +'<polyline points="'+t.p+'" fill="none" stroke="#000" stroke-opacity=".55" stroke-width="30" stroke-linejoin="round" stroke-linecap="round"/>'
+    +'<polyline points="'+t.p+'" fill="none" stroke="#e10600" stroke-width="17" stroke-linejoin="round" stroke-linecap="round"/>'
+    +'<polyline points="'+t.p+'" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="3" stroke-dasharray="2 22" stroke-linecap="round"/></svg>';
+}
+function drawTrack(x,c,X,Y,W,H){
+  if(!c.t)return;const t=c.t,m=24,sc=Math.min((W-2*m)/t.w,(H-2*m)/t.h),ox=X+(W-t.w*sc)/2,oy=Y+(H-t.h*sc)/2;
+  const pts=t.p.split(' ').map(p=>p.split(',').map(Number));
+  const path=()=>{x.beginPath();pts.forEach((p,i)=>i?x.lineTo(ox+p[0]*sc,oy+p[1]*sc):x.moveTo(ox+p[0]*sc,oy+p[1]*sc));};
+  x.save();x.lineJoin='round';x.lineCap='round';
+  path();x.strokeStyle='rgba(0,0,0,.6)';x.lineWidth=18;x.stroke();
+  path();x.strokeStyle='#e10600';x.lineWidth=9;x.stroke();
+  path();x.strokeStyle='rgba(255,255,255,.55)';x.lineWidth=2;x.setLineDash([1,13]);x.stroke();
+  x.restore();
+}
+
 /* ── 그림: 자동차(직접 그린 일러스트) ── */
 const CAR='<svg class="car" viewBox="0 0 440 130" aria-hidden="true"><defs><linearGradient id="cb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff3b30"/><stop offset="1" stop-color="#a30a05"/></linearGradient></defs>'
   +'<g fill="none" stroke="rgba(255,255,255,.28)" stroke-width="2" stroke-linecap="round"><path d="M-10 46h60"/><path d="M-30 64h80"/><path d="M-4 82h54"/></g>'
@@ -76,7 +100,7 @@ function cardHTML(c){
     +'<span class="tag'+(c.cur?' cur':'')+'">'+(c.cur?'2026':c.f1?'~'+c.last:'G1')+'</span>'
     +'<div class="cc-h"><img class="flag" src="'+flagURL(c)+'" alt="" loading="lazy" width="34" height="24"><div class="cc-t"><b>'+esc(c.ko)+'</b><span>'+esc(c.gp)+' · '+esc(c.city)+' · '+c.len.toFixed(2)+'km</span></div></div>'
     +'<div class="cc-v"><strong class="'+cls+'">'+f1(v)+'°</strong><em>'+(m>=0?MON[m]+' '+KIND[k]:'연평균 기온')+'</em></div>'
-    +spark(c,m)+'</a>';
+    +spark(c,m)+(c.w?'<div class="cc-w"><span>최다 우승</span> '+esc(winTxt(c))+'</div>':'')+'</a>';
 }
 function renderResults(){
   const {L,total}=filtered();
@@ -196,7 +220,10 @@ function renderDetail(id,qs){
   $('#view').innerHTML='<a class="back" href="#/'+(location.hash.indexOf('?')>0&&0?'':'')+'" id="bk">← 서킷 목록</a>'
     +'<article class="dt"><div class="dt-h"><img class="flag" src="'+flagURL(c)+'" alt="" width="64" height="44"><div><div class="gp">'+esc(c.gp)+' · '+(c.cur?'2026 시즌':c.f1?'과거 F1 개최지 (마지막 '+c.last+')':'FIA Grade 1 · F1 미개최')+'</div><h2>'+esc(c.ko)+'</h2><p>'+esc(c.city)+' · '+esc(c.en)+' · '+Math.abs(c.lat).toFixed(2)+'°'+(c.lat<0?'S':'N')+' '+Math.abs(c.lon).toFixed(2)+'°'+(c.lon<0?'W':'E')+'</p></div></div>'
     +'<div class="dt-b"><canvas id="cv" aria-label="'+esc(c.ko)+' 기후 그래프"></canvas>'
-    +'<div class="facts"><div class="fact"><span>코스 길이</span><b>'+c.len.toFixed(3)+'km</b><small>그랑프리 레이아웃</small></div><div class="fact"><span>연평균 기온</span><b>'+f1(S.ann)+'°C</b></div><div class="fact"><span>연교차</span><b>'+f1(S.range)+'°C</b><small>'+MON[S.lo]+' → '+MON[S.hi]+'</small></div>'
+    +'<div class="lay"><div class="lay-t">'+(c.t?trackSVG(c):'<p class="lay-no">이 서킷은 트랙 레이아웃 자료가 없습니다.</p>')+'<small>'+(c.t?'트랙 윤곽은 OpenStreetMap 기반 근사입니다':'')+'</small></div>'
+    +'<div class="lay-i"><div class="fact"><span>최다 우승</span>'+(c.w?'<b>'+esc(winTxt(c,true))+'</b><small>F1 '+c.w.held+'회 개최 · 마지막 '+c.w.last+'년</small>':'<b>F1 개최 없음</b><small>FIA Grade 1 서킷</small>')+'</div>'
+    +'<div class="fact"><span>코스 길이</span><b>'+c.len.toFixed(3)+'km</b><small>그랑프리 레이아웃</small></div></div></div>'
+    +'<div class="facts"><div class="fact"><span>연평균 기온</span><b>'+f1(S.ann)+'°C</b></div><div class="fact"><span>연교차</span><b>'+f1(S.range)+'°C</b><small>'+MON[S.lo]+' → '+MON[S.hi]+'</small></div>'
     +'<div class="fact"><span>연강수량</span><b>'+(S.prec!=null?Math.round(S.prec).toLocaleString()+'mm':'자료 부족')+'</b>'+(S.wet!=null?'<small>가장 비 오는 달 '+MON[S.wet]+'</small>':'')+'</div>'
     +'<div class="fact"><span>가장 더운 달</span><b>'+MON[S.hi]+'</b><small>평균 '+f1(S.mn[S.hi])+'°C · 최고 '+f1(c.tmax[S.hi])+'°C</small></div>'
     +'<div class="fact"><span>가장 추운 달</span><b>'+MON[S.lo]+'</b><small>평균 '+f1(S.mn[S.lo])+'°C · 최저 '+f1(c.tmin[S.lo])+'°C</small></div></div>'
@@ -239,17 +266,28 @@ async function downloadCard(c,hl,btn){
     x.fillStyle='#a9a9b5';x.font='500 25px '+FONT;
     x.fillText(c.city+'  ·  '+Math.abs(c.lat).toFixed(2)+'°'+(c.lat<0?'S':'N')+' '+Math.abs(c.lon).toFixed(2)+'°'+(c.lon<0?'W':'E'),fx+fw+32,fy+34+fs+44);
     /* 그래프 판 */
-    const px=40,py=270,pw=W-80,ph=745;
+    const px=40,py=270,pw=W-80,ph=470;
     x.fillStyle='#121216';rr(x,px,py,pw,ph,26);x.fill();x.strokeStyle='#2a2a33';x.lineWidth=2;rr(x,px,py,pw,ph,26);x.stroke();
-    drawClimo(x,px+14,py+16,pw-28,ph-30,c,{s:1.32,hl:hl});
+    drawClimo(x,px+14,py+16,pw-28,ph-30,c,{s:1.12,hl:hl});
+    /* 트랙 레이아웃 + 최다 우승 */
+    const ry=py+ph+18,rh=290;
+    x.fillStyle='#121216';rr(x,px,ry,380,rh,22);x.fill();x.strokeStyle='#2a2a33';x.lineWidth=2;rr(x,px,ry,380,rh,22);x.stroke();
+    if(c.t)drawTrack(x,c,px,ry,380,rh);else{x.fillStyle='#74747f';x.font='600 22px '+FONT;x.textAlign='center';x.fillText('트랙 레이아웃 자료 없음',px+190,ry+rh/2);x.textAlign='left';}
+    const ix=px+380+16,iw=pw-380-16;
+    x.fillStyle='#18181d';rr(x,ix,ry,iw,rh,22);x.fill();x.strokeStyle='#2a2a33';x.lineWidth=2;rr(x,ix,ry,iw,rh,22);x.stroke();
+    const row=(yy,l,v,sub)=>{x.fillStyle='#74747f';x.font='700 19px '+FONT;x.textAlign='left';x.fillText(l,ix+28,yy);
+      let f=34;x.fillStyle='#f4f4f6';x.font='800 '+f+'px '+FONT;while(x.measureText(v).width>iw-56&&f>20){f-=2;x.font='800 '+f+'px '+FONT;}x.fillText(v,ix+28,yy+40);
+      if(sub){x.fillStyle='#a9a9b5';x.font='500 19px '+FONT;x.fillText(sub,ix+28,yy+68);}};
+    row(ry+42,'코스 길이',c.len.toFixed(3)+' km','그랑프리 레이아웃');
+    row(ry+148,'최다 우승',c.w?winTxt(c):'F1 개최 없음',c.w?'F1 '+c.w.held+'회 개최 · 마지막 '+c.w.last+'년':'FIA Grade 1 서킷');
     /* 수치 */
     const bx=[['연평균 기온',f1(S.ann)+'°C',''],['연교차',f1(S.range)+'°C',MON[S.lo]+' → '+MON[S.hi]],['연강수량',S.prec!=null?Math.round(S.prec).toLocaleString()+'mm':'자료 부족',S.wet!=null?'최다 '+MON[S.wet]:''],
       hl!=null?[MON[hl]+' 기온',f1(c.tmin[hl])+' ~ '+f1(c.tmax[hl])+'°C','평균 '+f1(S.mn[hl])+'°C']:['가장 더운 달',MON[S.hi],'평균 '+f1(S.mn[S.hi])+'°C']];
-    const bw=(pw-3*16)/4,by=py+ph+24;
-    bx.forEach(([l,v,s2],i)=>{const xx=px+i*(bw+16);x.fillStyle='#18181d';rr(x,xx,by,bw,150,18);x.fill();x.strokeStyle='#2a2a33';x.lineWidth=2;rr(x,xx,by,bw,150,18);x.stroke();
-      x.fillStyle='#74747f';x.font='700 19px '+FONT;x.fillText(l,xx+20,by+36);
-      let f=38;x.fillStyle='#f4f4f6';x.font='800 '+f+'px '+FONT;while(x.measureText(v).width>bw-40&&f>20){f-=2;x.font='800 '+f+'px '+FONT;}x.fillText(v,xx+20,by+88);
-      x.fillStyle='#a9a9b5';x.font='500 19px '+FONT;x.fillText(s2,xx+20,by+126);});
+    const bw=(pw-3*16)/4,by=ry+rh+18;
+    bx.forEach(([l,v,s2],i)=>{const xx=px+i*(bw+16);x.fillStyle='#18181d';rr(x,xx,by,bw,128,18);x.fill();x.strokeStyle='#2a2a33';x.lineWidth=2;rr(x,xx,by,bw,128,18);x.stroke();
+      x.fillStyle='#74747f';x.font='700 19px '+FONT;x.fillText(l,xx+20,by+32);
+      let f=38;x.fillStyle='#f4f4f6';x.font='800 '+f+'px '+FONT;while(x.measureText(v).width>bw-40&&f>20){f-=2;x.font='800 '+f+'px '+FONT;}x.fillText(v,xx+20,by+76);
+      x.fillStyle='#a9a9b5';x.font='500 19px '+FONT;x.fillText(s2,xx+20,by+108);});
     /* 아래 */
     const stn=c.st.src==='ghcn'?c.st.ko+' 관측소(NOAA) '+c.st.km+'km':c.st.ko+' 관측 자료 · 서킷에서 약 '+c.st.km+'km';
     x.fillStyle='#74747f';x.font='500 20px '+FONT;x.fillText('기후 관측: '+stn+' · 1991–2020 평년',60,H-84);

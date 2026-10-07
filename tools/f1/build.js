@@ -52,6 +52,7 @@ const L=[
 ['aragon','F1 미개최','모터랜드 아라곤','MotorLand Aragón','알카니스','es',41.0,-0.21,0,0,{c:756}],
 ];
 const LEN={albert:5.278,shanghai:5.451,suzuka:5.807,bahrain:5.412,jeddah:6.176,miami:5.412,montreal:4.361,monaco:3.340,barcelona:4.675,redbull:4.326,silverstone:5.891,spa:7.004,hungaroring:4.381,zandvoort:4.259,monza:5.793,madrid:5.474,baku:6.003,marina:5.077,cota:5.513,mexico:4.304,interlagos:4.309,vegas:6.120,lusail:5.418,yas:5.281,imola:4.909,portimao:4.684,mugello:5.245,ricard:5.822,sepang:5.543,istanbul:5.338,yeongam:5.615,hockenheim:4.574,nurburg:5.148,indy:4.192,buddh:5.125,estoril:4.182,chang:4.554,magny:4.411,jerez:4.428,dubai:5.390,fuji:4.563,igora:5.183,kuwait:5.608,moscow:3.955,aragon:5.346};
+const X=JSON.parse(fs.readFileSync(process.env.F1_WORK+'/extra.json','utf8'));
 const out=L.map(([id,gp,ko,en,city,iso,la,lo,cur,last,src])=>{
   let s,tmin,tmax,prec,kop='',stn;
   if(src.c){const r=byId[src.c];tmin=r[9];tmax=r[10];prec=r[11];kop=r[12]||'';stn={ko:r[2]||r[1],en:r[1],km:Math.round(dist(la,lo,r[5],r[6])),el:null,src:'geogl3'};}
@@ -59,13 +60,14 @@ const out=L.map(([id,gp,ko,en,city,iso,la,lo,cur,last,src])=>{
   if(tmin.some(v=>v==null)||tmax.some(v=>v==null))throw new Error('null temp '+id);
   if(prec&&prec.some(v=>v==null))throw new Error('null prec '+id+' '+prec);
   if(!LEN[id])throw new Error('len '+id);
-  return {id,gp,ko,en,city,iso,lat:la,lon:lo,cur:!!cur,f1:!!cur||!!last,last:last||null,len:LEN[id],st:stn,tmin,tmax,prec,kop};});
+  return {id,gp,ko,en,city,iso,lat:la,lon:lo,cur:!!cur,f1:!!cur||!!last,last:last||null,len:LEN[id],t:(X[id]||{}).t||null,w:(X[id]||{}).w||null,st:stn,tmin,tmax,prec,kop};});
 const el={};C.forEach(r=>{});
 fs.writeFileSync('/home/user/seji/f1/js/data.js',
 `/* Geogl3 F1 — FIA Grade 1 서킷의 기후 자료
    기후값은 서킷 가까이의 관측소 월별 평년값이다(\`st\` = 어느 관측소, 몇 km 떨어졌는지).
    · src geogl3 : Geogl3 기후 자료(Köppen-Geiger 1991–2020 보정, abyss 기후 카드와 같은 값)
    · src ghcn   : NOAA GHCN-Daily 일별 자료를 1991–2020 월평균으로 산출(결측이 많은 달은 제외)
+   t = 트랙 레이아웃(가로세로 1000 안에 맞춘 좌표열, bacinger/f1-circuits · MIT) · w = 최다 우승(f1db · CC BY 4.0)
    tmin/tmax 월별 평균 최저·최고기온(°C) · prec 월강수량(mm, null = 자료 부족) */
 const F1_CIRCUITS=${JSON.stringify(out)};
 `);

@@ -132,3 +132,16 @@ main{max-width:1080px;margin:0 auto;padding:0 16px 3rem}
 .lg-img{height:26px;width:auto;margin-left:.1rem}
 .hero .car-img{position:absolute;right:0;bottom:10px;width:min(58%,460px);height:auto;filter:drop-shadow(0 10px 18px rgba(0,0,0,.5))}
 @media (max-width:640px){.hero .car-img{position:relative;display:block;width:86%;right:auto;bottom:auto;margin:.9rem -8px -4px auto}}
+
+/* 트랙 레이아웃 · 최다 우승 */
+.lay{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:10px;margin-top:12px}
+.lay-t{border:1px solid var(--bd);border-radius:12px;background:#0e0e12;padding:.4rem .5rem .5rem;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:230px}
+.trk{width:100%;max-height:300px;height:auto}
+.lay-t small{color:var(--tx3);font-size:.72rem;margin-top:.2rem}
+.lay-no{color:var(--tx2);font-size:.9rem;text-align:center;padding:1rem}
+.lay-i{display:flex;flex-direction:column;gap:8px}
+.lay-i .fact{flex:1}
+.lay-i .fact b{font-size:1.1rem;line-height:1.35;display:block}
+.cc-w{font-size:.78rem;color:var(--tx2);line-height:1.4;border-top:1px solid var(--bd);padding-top:.45rem}
+.cc-w span{color:var(--tx3);font-weight:700;margin-right:.3rem}
+@media (max-width:560px){.lay{grid-template-columns:1fr}.lay-t{min-height:200px}}
