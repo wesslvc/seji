@@ -129,6 +129,6 @@ main{max-width:1080px;margin:0 auto;padding:0 16px 3rem}
 @media (max-width:480px){.grid{grid-template-columns:1fr}.dt-h{padding:1rem}.dt-h .flag{width:52px;height:36px}.mgrid{grid-template-columns:repeat(6,1fr)}.mgrid .chip.off{grid-column:span 6}}
 
 /* f1/img/logo.svg · car.png 를 두면 자동으로 들어간다 (없으면 기본 일러스트) */
-.lg-img{height:20px;width:auto;margin-left:.2rem}
+.lg-img{height:26px;width:auto;margin-left:.1rem}
 .hero .car-img{position:absolute;right:0;bottom:10px;width:min(58%,460px);height:auto;filter:drop-shadow(0 10px 18px rgba(0,0,0,.5))}
 @media (max-width:640px){.hero .car-img{position:relative;display:block;width:86%;right:auto;bottom:auto;margin:.9rem -8px -4px auto}}
