@@ -109,7 +109,7 @@ function renderHome(){
     +'<h1>서킷마다 <em>날씨</em>는<br>이렇게 다릅니다</h1>'
     +'<p>그랑프리가 열렸거나 열리는 서킷 '+nNa+'곳의 월별 기온·강수 그래프. 몇 월에 몇 도 이상(이하)인 곳만 모아 보고, 카드 이미지로 내려받으세요.</p>'
     +'<div class="stats"><div><b>'+nNa+'</b><span>서킷</span></div><div><b>'+NCUR+'</b><span>2026 시즌</span></div><div><b>'+(nNa-NCUR)+'</b><span>과거 개최지</span></div></div>'
-    +CAR+'<div class="strip"></div></section>'
+    +CAR+'<img class="car-img" src="/f1/img/car.png" alt="" hidden onload="this.hidden=false;this.parentNode.querySelector(\'.car\').remove()" onerror="this.remove()">'+'<div class="strip"></div></section>'
     +'<section class="panel"><h2>월별 기온으로 걸러 보기</h2><p class="sub">달 · 기온 기준 · 이상/이하 · 온도를 고르면 아래 목록이 바로 바뀝니다.</p>'
     +'<div class="row"><label>달</label><div class="mgrid" id="mg">'+MON.map((n,i)=>'<button class="chip" data-m="'+i+'">'+n+'</button>').join('')+'<button class="chip off" data-m="-1">끄기</button></div></div>'
     +'<div class="row"><label>기준</label><div class="seg">'+Object.keys(KIND).map(k=>'<button data-k="'+k+'">'+KIND[k]+'</button>').join('')+'</div>'
