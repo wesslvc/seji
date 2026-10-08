@@ -1,9 +1,11 @@
 """원유 수출·수입 2024 → abyss/js/world-data.js 의 ox·om (TWh)
 
-사용: python3 -I build.py <world-data.js>   (같은 폴더의 comtrade2024.json 사용)
-  · comtrade2024.json: UN Comtrade, HS 2709(원유), 파트너 World, 2024년, 순중량(Mt). 키 "X|ISO3" / "M|ISO3".
-    러시아·UAE·이란·나이지리아·리비아 등은 보고가 없어 빠져 있다.
-  · EI: Energy Institute Statistical Review 2026 'Oil trade in 2024' 표(원유 수출입, 백만 톤) — 아래 EI_X/EI_M 에 있는 나라는 이 값이 우선.
+사용: python3 -I build.py <world-data.js>   (같은 폴더의 baci2024.json 사용)
+  · baci2024.json: CEPII BACI HS22 V202601, 2024년, HS 270900(원유), 수출국·수입국 합계(백만 톤). 키 "X|ISO3" / "M|ISO3".
+    BACI는 UN Comtrade의 수출국·수입국 신고를 맞춰 보정한 자료라 신고를 안 하는 나라도 상대국 기록으로 잡힌다.
+    단 UAE→태국 한 건은 수량(q)이 151.7 Mt로 잘못 들어가 있어(금액 147억 달러 → 약 25 Mt) 금액÷중앙 단가로 고쳤다.
+    이란은 제재 때문에 BACI에 거의 안 잡힌다(중국 등으로 가는 물량이 다른 나라 이름으로 기록됨) — 값이 없다.
+  · EI: Energy Institute Statistical Review 2026 'Oil trade in 2024' 표(원유, 백만 톤) — 아래 EI_X/EI_M 에 있는 나라는 이 값이 우선.
   · 단위 TWh: 원유 1 t = 7.33 bbl × 1.69981 MWh/bbl → Mt × 12.46 (지오글 석유 생산·소비 환산과 같음).
   · 0·결측은 키를 만들지 않는다.
 """
@@ -12,12 +14,12 @@ import pycountry
 K=12.46
 EI_X={'SAU':323.8,'RUS':258.3,'CAN':218.1,'USA':201.6,'ARE':184.7,'IRQ':177.6,'KWT':66.9,'MEX':41.7}
 EI_M={'CHN':554.2,'USA':328.9,'IND':247.4,'JPN':115.0}
-ct=json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)),'comtrade2024.json')))
+bc=json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)),'baci2024.json')))
 def iso2(a):
     c=pycountry.countries.get(alpha_3=a)
     return c.alpha_2.lower() if c else None
 def build(flag,ei):
-    mt={k.split('|')[1]:v for k,v in ct.items() if k.startswith(flag+'|')}
+    mt={k.split('|')[1]:v for k,v in bc.items() if k.startswith(flag+'|')}
     mt.update(ei)
     out={}
     for a,v in mt.items():
