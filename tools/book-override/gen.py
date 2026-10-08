@@ -123,6 +123,13 @@ for bid in BASIC:
         if row.get('국내 총생산') is not None: DD[iso]['gdp']=fgdp(row['국내 총생산']*1e9)
         if row.get('1인당 국내 총생산') is not None: DD[iso]['pc']=fpc(row['1인당 국내 총생산'])
         if row.get('국토 면적') is not None: DD[iso]['area']=farea(row['국토 면적'])
+# 아틀라스 쪽 자료가 더 많은(나라 수·세부 항목) 항목은 덮어쓰지 않는다 — 상위 N개국 표라서 일부 나라만 새 값이 되면
+# 순위표가 출처별로 쪼개지고, 발전 구조는 지열·해양 구분이 사라진다.
+SKIP={'whx','whm','rix','rim','cox','com','cof','bux','cop','tin','cbt','gld','dmd','op','oc','gp','gc','cp','cc','el','el_year'}
+for iso in list(W):
+    for k in list(W[iso]):
+        if k in SKIP: del W[iso][k]
+    if not W[iso]: del W[iso]
 out={'w':{k:v for k,v in W.items()},'d':{k:v for k,v in DD.items()},'rel':REL,'reln':RELN}
 json.dump(out,open(os.environ['BO_OUT']+'/overrides.json','w',encoding='utf-8'),ensure_ascii=False)
 print('unmatched names:',sorted(E.miss))
