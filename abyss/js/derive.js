@@ -117,8 +117,15 @@ const AB_METRICS=[
   /* 비중(%) 순위는 에너지만 남기고 절대치로 바꿨다 — 비율은 작은 나라가 위로
      올라와 '얼마나 큰가'를 읽을 수 없다. 종교는 (종교를 가진 사람 중 비율)×총인구로
      신자 수를 어림한다. */
-  /* 종교 — 신자 수는 '종교를 가진 사람 중 비율'에 총인구를 곱해 어림해야 해서 순위표에서 뺐다
-     (추정치라 순위가 틀어진다). 비율 그대로 줄을 세운다. */
+  /* 종교 — 신자 수는 비율에 총인구를 곱해 어림하지 않고, Pew Research Center가 2020년 기준으로
+     나라마다 추정해 낸 값(religion-count.js)을 그대로 쓴다. 1만 명 미만은 원자료에 값이 없어
+     순위에서 빠진다. 비율은 '종교를 가진 사람 중' 구성비 그대로 줄을 세운다. */
+  if(typeof RELIG_COUNT_2020!=='undefined')RELIG_COUNT_NAME.forEach((nm,k)=>{
+    AB_METRICS.push({id:'rel'+k,cat:'종교',name:k===6?'무종교 인구':nm+' 신자 수',unit:'명',
+      src:'Pew Research Center · Religious Composition 2010–2020 (2020년, 반올림 값)',
+      note:'Pew가 센서스·조사 자료로 추정한 2020년 값입니다. 1만 명 미만인 나라는 원자료에 값이 없어 순위에서 빠집니다.',
+      f:i=>{const a=RELIG_COUNT_2020[i];return a&&a[k]!=null?a[k]:null;}});
+  });
   if(typeof RELIG2_NAME!=='undefined')RELIG2_NAME.forEach((nm,k)=>{
     if(k>4)return;
     AB_METRICS.push({id:'relp'+k,cat:'종교',name:nm+' 신자 비율',unit:'%',

@@ -231,10 +231,13 @@ function abAtlasShow(iso){
   }
   /* 종교 */
   const rel=(typeof RELIG2_DATA!=='undefined'&&RELIG2_DATA[iso])||null;
-  if(rel){
+  const relIds=['rel0','rel1','rel2','rel3','rel4','rel5','rel6'].filter(id=>{const m=abMetric(id);return m&&m.f(iso)!=null;});
+  if(rel||relIds.length){
     G.soc+='<h4 class="sec" id="at-rel">종교 구성'
-      +abSecEm('종교를 가진 사람 기준','지오글 종교 구성')+'</h4>'
-      +abBars(rel.map(r=>[RELIG2_NAME[r[0]],r[1]]),rel.map(r=>RELIG2_COLOR[r[0]]));
+      +abSecEm(rel?'종교를 가진 사람 기준':'2020년',rel?'지오글 종교 구성':'Pew Research Center')+'</h4>'
+      +(rel?abBars(rel.map(r=>[RELIG2_NAME[r[0]],r[1]]),rel.map(r=>RELIG2_COLOR[r[0]])):'')
+      +(relIds.length?'<div class="grid g-3"'+(rel?' style="margin-top:.7rem"':'')+'>'+relIds.map(id=>abStatCell(id,iso)).join('')+'</div>'
+        +'<p style="margin:.5rem 0 0;font-size:.78rem;color:var(--tx3,var(--tx2))">신자 수: Pew Research Center 2020년 추정(1만 명 미만은 값 없음)</p>':'');
   }
 
   /* 산업 구조 — 1·2·3차산업이 GDP에서 차지하는 몫. 합쳐서 100%에 가까운
