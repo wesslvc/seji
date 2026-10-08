@@ -80,16 +80,19 @@ for ko,row in g.items():
     part=lambda k:ren*(sp.get(k) or 0)/100
     el=[sh('석탄'),sh('천연가스'),sh('석유'),sh('원자력'),sh('수력'),part('태양광'),part('풍력'),part('바이오 에너지'),part('기타'),0.0]
     W[iso]['el']=[round(x,1) for x in el];W[iso]['el_year']=2024
-# --- 종교(종교를 가진 사람 중 비율)
+# --- 종교: 총인구 대비 비율 그대로(무종교 포함, 인구를 곱하는 추정은 하지 않는다) + 상위 10개국 실제 신자 수
 r3,_=E.region_view('3-2')
+RELM=[('크리스트교',0),('이슬람교',1),('불교',2),('힌두교',3),('유대교',4),('기타',5),('무종교',6)]
 for ko,row in r3.items():
     iso=E.iso(ko)
     if not iso:continue
-    rel=100-(row.get('무종교') or 0)
-    if rel<=0:continue
-    m=[('크리스트교',0),('이슬람교',1),('불교',2),('힌두교',3),('유대교',4),('기타',5)]
-    arr=[[k,round((row.get(n) or 0)/rel*100,1)] for n,k in m]
+    arr=[[k,round(row.get(n) or 0,2)] for n,k in RELM]
     arr=[a for a in arr if a[1]>=0.05];arr.sort(key=lambda a:-a[1]);REL[iso]=arr
+RELN={}
+for vw,k in [('크리스트교-0',0),('이슬람교-0',1),('불교-0',2),('힌두교-0',3),('유대교-0',4)]:
+    for ko,val in E.rank_view('3-4',vw).items():
+        i=E.iso(ko)
+        if i: RELN.setdefault(k,{})[i]=int(round(val*1e6))
 # --- DICT_DATA 형식
 def fpop(v):
     if v>=1e8:
@@ -117,7 +120,7 @@ for bid in BASIC:
         if row.get('국내 총생산') is not None: DD[iso]['gdp']=fgdp(row['국내 총생산']*1e9)
         if row.get('1인당 국내 총생산') is not None: DD[iso]['pc']=fpc(row['1인당 국내 총생산'])
         if row.get('국토 면적') is not None: DD[iso]['area']=farea(row['국토 면적'])
-out={'w':{k:v for k,v in W.items()},'d':{k:v for k,v in DD.items()},'rel':REL}
+out={'w':{k:v for k,v in W.items()},'d':{k:v for k,v in DD.items()},'rel':REL,'reln':RELN}
 json.dump(out,open(os.environ['BO_OUT']+'/overrides.json','w',encoding='utf-8'),ensure_ascii=False)
 print('unmatched names:',sorted(E.miss))
 cnt=collections.Counter(k for v in W.values() for k in v);print('WORLD keys:',dict(cnt))

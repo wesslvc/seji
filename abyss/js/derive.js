@@ -117,14 +117,20 @@ const AB_METRICS=[
   /* 비중(%) 순위는 에너지만 남기고 절대치로 바꿨다 — 비율은 작은 나라가 위로
      올라와 '얼마나 큰가'를 읽을 수 없다. 종교는 (종교를 가진 사람 중 비율)×총인구로
      신자 수를 어림한다. */
-  if(typeof RELIG2_NAME!=='undefined')RELIG2_NAME.forEach((nm,k)=>{
-    AB_METRICS.push({id:'rel'+k,cat:'종교',name:nm+' 신자 수(추정)',unit:'명',
-      src:'지오글 종교 구성 × World Bank 인구',
-      note:'종교를 가진 사람 중 비율에 총인구를 곱한 어림값입니다.',
-      f:i=>{const a=(typeof RELIG2_DATA!=='undefined'&&RELIG2_DATA[i])||null;
-            const p=abNum((DICT_DATA[i]||{}).pop);
-            if(!a||!p)return null;const c=a.find(x=>x[0]===k);return c?p*c[1]/100:null;}});
-  });
+  /* 종교 — Promenade Geography 통계표(Pew Research Center 2020)만 쓴다. 비율은 총인구
+     대비 %(무종교 포함)이고, 신자 수는 표에 실린 상위 10개국의 실제 값이다. 비율에
+     총인구를 곱해 신자 수를 어림하던 방식은 없앴다. */
+  if(typeof RELIG2_NAME!=='undefined'&&typeof BOOK_OV_REL!=='undefined'){
+    const RSRC='Pew Research Center 2020 · Promenade Geography 통계표(CC BY-NC-SA 4.0)';
+    RELIG2_NAME.forEach((nm,k)=>{
+      if(k<=4&&typeof BOOK_OV_RELN!=='undefined')AB_METRICS.push({id:'rel'+k,cat:'종교',name:nm+' 신자 수',unit:'명',
+        src:RSRC,note:'통계표에 실린 상위 10개국의 실제 신자 수입니다.',
+        f:i=>{const v=(BOOK_OV_RELN[k]||{})[i];return v!=null?v:null;}});
+      if(k!==5)AB_METRICS.push({id:'relp'+k,cat:'종교',name:k===6?'무종교 비율':nm+' 신자 비율',unit:'%',
+        src:RSRC,dec:1,note:'총인구 대비 비율입니다. 통계표에 실린 나라만 들어갑니다.',
+        f:i=>{const a=BOOK_OV_REL[i];if(!a)return null;const c=a.find(x=>x[0]===k);return c?c[1]:null;}});
+    });
+  }
   if(typeof ENERGY_NAME!=='undefined')ENERGY_NAME.forEach((nm,k)=>{
     AB_METRICS.push({id:'eng'+k,cat:'에너지',name:nm+' 비중',unit:'%',
       src:'지오글 에너지 구성',dec:1,
@@ -268,7 +274,6 @@ const AB_METRICS=[
     coffee:['cof'],copper:['cop'],cobalt:['cbt'],gold:['gld'],diamond:['dmd'],tin:['tin'],bauxite:['bux'],
     wheatGExp:['whx'],wheatGImp:['whm'],riceGExp:['rix'],riceGImp:['rim'],cornGExp:['cox'],cornGImp:['com']};
   for(let k=0;k<10;k++)K['elec'+k]=['el'];
-  for(let k=0;k<6;k++)K['rel'+k]=['rel','d.pop'];
   AB_METRICS.forEach(m=>{const ks=K[m.id];
     if(ks&&ks.some(x=>BOOK_OV_N[x]))m.src+=' · 일부 나라는 Promenade Geography 통계표(CC BY-NC-SA 4.0)';});
 })();
