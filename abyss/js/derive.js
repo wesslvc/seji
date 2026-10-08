@@ -257,6 +257,22 @@ const AB_METRICS=[
     });
 })();
 
+/* Promenade Geography 통계표로 덮어쓴 항목은 출처 문구에 밝힌다(book-override.js) —
+   라이선스(CC BY-NC-SA 4.0)가 출처 표시를 요구한다 */
+(function(){
+  if(typeof BOOK_OV_N==='undefined')return;
+  const K={pop:['d.pop'],gdp:['d.gdp'],pc:['d.pc'],area:['d.area'],dens:['d.pop','d.area'],urban:['ur','d.pop'],tfr:['tfr'],
+    y0:['y0','d.pop'],y1:['y1','d.pop'],y2:['y2','d.pop'],ind1:['i1','d.gdp'],ind2:['i2','d.gdp'],ind3:['i3','d.gdp'],
+    coalProd:['cp'],coalCons:['cc'],coalSelf:['cp','cc'],oilProd:['op'],oilCons:['oc'],oilSelf:['op','oc'],
+    gasProd:['gp'],gasCons:['gc'],gasSelf:['gp','gc'],wheat:['wh'],rice:['ri'],corn:['co'],cattle:['ct'],sheep:['sh'],pig:['pg'],
+    coffee:['cof'],copper:['cop'],cobalt:['cbt'],gold:['gld'],diamond:['dmd'],tin:['tin'],bauxite:['bux'],
+    wheatGExp:['whx'],wheatGImp:['whm'],riceGExp:['rix'],riceGImp:['rim'],cornGExp:['cox'],cornGImp:['com']};
+  for(let k=0;k<10;k++)K['elec'+k]=['el'];
+  for(let k=0;k<6;k++)K['rel'+k]=['rel','d.pop'];
+  AB_METRICS.forEach(m=>{const ks=K[m.id];
+    if(ks&&ks.some(x=>BOOK_OV_N[x]))m.src+=' · 일부 나라는 Promenade Geography 통계표(CC BY-NC-SA 4.0)';});
+})();
+
 /* 한 항목의 전체 순위 — [{iso, v, rank}] */
 const _abRankCache={};
 function abRank(id){
