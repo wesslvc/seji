@@ -21,7 +21,6 @@ const ABST={plan:[],idx:0,cor:0,wr:0,full:0,wrongLog:[],done:false,
 /* 통계마다 맞힐 나라 수 */
 function abStatN(id){
   if(/^rel_/.test(id))return 5;
-  if(id==='enr_oil_x')return 6; /* 이란 등 값이 없는 나라가 있어 상위 6개국까지만 확실 */
   if(/^(ric|whe|cor|liv|enr)_/.test(id))return /_(imp|m)$/.test(id)?5:10;
   return 3;
 }

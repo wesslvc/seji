@@ -227,7 +227,7 @@ const AB_METRICS=[
   [['oilExp','석유 수출량(원유)','ox'],['oilImp','석유 수입량(원유)','om']].forEach(([id,nm,k])=>{
     AB_METRICS.push({id:id,cat:'에너지 자원',name:nm,unit:'TWh',
       src:'CEPII BACI · Energy Institute Statistical Review 2026 · 원유 수출입 · 2024년 · 톤→TWh 환산',
-      note:'2024년 원유 무역량(CEPII BACI, 주요국은 Energy Institute 값). 제재를 받는 이란은 BACI에 잡히지 않아 값이 없습니다. 석유 제품(정제유)은 들어 있지 않습니다.',
+      note:'2024년 원유 무역량(CEPII BACI, 주요국은 Energy Institute 값). 제재를 받는 이란은 BACI에 잡히지 않아 OPEC 연례통계 값(1,566천 b/d)을 넣었습니다. 석유 제품(정제유)은 들어 있지 않습니다.',
       f:i=>{const v=wd(i)[k];return v!=null?v:null;}});
   });
   AB_METRICS.push({id:'coalRes',cat:'에너지 자원',name:'석탄 매장량',unit:'만 톤',
