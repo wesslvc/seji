@@ -1,8 +1,9 @@
 /* ══════════════════════════════════════════════════════════════════════════
    통계 순위 테스트
    ──────────────────────────────────────────────────────────────────────────
-   1위부터 10위까지 — 보기로 주어진 열 나라를 순서대로 배열한다. 보기는 정답 열 나라가
-   섞여 나온다(지도는 쓰지 않는다). 나라를 누르면 비어 있는 가장 높은 순위 칸에 들어가고,
+   1위부터 10위까지 — 보기로 주어진 스무 나라 가운데 정답 열 나라를 골라 순서대로 배열한다.
+   보기는 정답 열 나라에 11위 밖에서 헷갈릴 만한 열 나라(바로 아래 순위부터)를 더해 섞는다
+   (지도는 쓰지 않는다). 나라를 누르면 비어 있는 가장 높은 순위 칸에 들어가고,
    채워진 칸을 누르면 그 나라가 보기로 돌아온다. 열 칸을 다 채우고 '채점'을 누르면 칸마다
    맞고 틀림이 한꺼번에 나온다 — 한 번 채점하면 끝이고 다시 시도할 기회는 없다. 대신 판이
    끝난 뒤 '틀린 것만 다시'로 골라 낼 수 있고, 오답에도 모인다.
@@ -39,7 +40,18 @@ function abStatPool(){
     if(r[AB_ST_N-1].v===r[AB_ST_N].v)return;
     const top=r.slice(0,AB_ST_N).map(x=>[x.iso,x.v]);
     const same=s.top.every((t,i)=>top[i]&&top[i][0]===t[0]);
-    _abStPool.push({id:s.id,cat:s.cat,name:s.name,unit:m.unit,src:m.src,top:top,note:same?(s.note||''):''});
+    const rankOf={};r.forEach(x=>{rankOf[x.iso]=x.rank;});
+    /* 헷갈리게 하는 보기 — 11위부터 차례로 열 나라. 순위가 모자라는 통계(광물 등)는 같은 분야의
+       다른 통계 상위국으로 채운다(그 나라는 이 통계에선 값이 없거나 순위 밖이다) */
+    const decoys=r.slice(AB_ST_N,AB_ST_N+10).map(x=>x.iso);
+    const taken=new Set(top.map(t=>t[0]).concat(decoys));
+    if(decoys.length<10){
+      STAT_SETS.filter(o=>o.cat===s.cat&&o.id!==s.id&&AB_ST_MAP[o.id]).forEach(o=>{
+        abRank(AB_ST_MAP[o.id]).slice(0,10).forEach(x=>{
+          if(decoys.length<10&&!taken.has(x.iso)){taken.add(x.iso);decoys.push(x.iso);}});
+      });
+    }
+    _abStPool.push({id:s.id,cat:s.cat,name:s.name,unit:m.unit,src:m.src,top:top,decoys:decoys,rankOf:rankOf,note:same?(s.note||''):''});
   });
   return _abStPool;
 }
@@ -49,8 +61,8 @@ function abStatVal(s,v){return abFmt(v,s.unit);}
 function abStatInit(){
   const pool=abStatPool(),cats=[...new Set(pool.map(s=>s.cat))];
   document.getElementById('stat-setup').innerHTML=
-    '<p class="rank-note">분야를 고르면 그 분야의 통계만 나옵니다. 한 통계당 열 나라가 보기로 주어지고, '
-    +'1위부터 10위까지 순서대로 배열합니다. 점수는 매기지 않습니다 — 틀린 통계는 오답으로 모아 두었다가 다시 풀 수 있습니다.</p>'
+    '<p class="rank-note">분야를 고르면 그 분야의 통계만 나옵니다. 한 통계당 스무 나라가 보기로 주어지고, '
+    +'그중 정답 열 나라를 골라 1위부터 10위까지 순서대로 배열합니다. 점수는 매기지 않습니다 — 틀린 통계는 오답으로 모아 두었다가 다시 풀 수 있습니다.</p>'
     +'<div class="chips" id="st-cats">'
     +'<button class="chip on" data-c="">전체 '+pool.length+'</button>'
     +cats.map(c=>'<button class="chip" data-c="'+abEsc(c)+'">'+abEsc(c)+' '
@@ -125,7 +137,7 @@ function abStatStart(sets,retry,cat,resume){
   const play=document.getElementById('stat-play');play.hidden=false;
   play.innerHTML='<div class="play-bar"><span class="q" id="st-q">불러오는 중…</span>'
     +'<span class="sc" id="st-sc">맞힌 순위 0</span></div>'
-    +'<p class="st-help" id="st-help">나라를 눌러 1위부터 차례로 채우세요. 채워진 칸을 누르면 그 나라가 보기로 돌아옵니다.</p>'
+    +'<p class="st-help" id="st-help">보기 스무 나라 중 열 나라가 정답입니다. 눌러서 1위부터 차례로 채우세요. 채워진 칸을 누르면 그 나라가 보기로 돌아옵니다.</p>'
     +'<div class="st-slots" id="st-slots"></div>'
     +'<div class="st-bank-h">보기</div>'
     +'<div class="st-bank" id="st-bank"></div>'
@@ -159,7 +171,8 @@ function abStatShow(){
   if(!s)return abStatFinish();
   ABST.graded=false;ABST.pick=[];
   /* 보기 순서는 문항마다 섞는다 — 정답 순서와 같지 않게 */
-  let order;do{order=abShuffle(s.top.map(t=>t[0]));}while(order.every((o,i)=>o===s.top[i][0]));
+  const all=s.top.map(t=>t[0]).concat(s.decoys||[]);
+  let order=abShuffle(all);
   ABST.cur={id:s.id,bank:order};
   document.getElementById('st-q').innerHTML=abEsc(s.name)
     +'<em>'+abEsc(s.cat)+' · '+abEsc(s.src)+' · '+(ABST.idx+1)+'/'+ABST.plan.length+'</em>';
@@ -187,9 +200,12 @@ function abStatPaint(){
       +'<span class="nm">'+abFlag(iso,18)+abEsc(abName(iso))+'</span></button>';
     return '<div class="st-slot'+(i===ABST.pick.length?' now':'')+'"><b>'+(i+1)+'위</b><span class="nm">—</span></div>';
   }).join('');
-  document.getElementById('st-bank').innerHTML=ABST.cur.bank.map(iso=>
-    '<button type="button" class="st-opt'+(used.has(iso)?' used':'')+'" data-i="'+iso+'"'+(used.has(iso)||ABST.graded?' disabled':'')+'>'
-    +abFlag(iso,20)+'<span>'+abEsc(abName(iso))+'</span></button>').join('');
+  const rk=iso=>{const t=s.top.findIndex(x=>x[0]===iso);if(t>=0)return t+1;const r=s.rankOf&&s.rankOf[iso];return r||0;};
+  document.getElementById('st-bank').innerHTML=ABST.cur.bank.map(iso=>{
+    /* 채점한 뒤에는 보기마다 이 통계에서 실제 몇 위인지 붙인다 — 정답 열 나라는 초록, 함정은 회색 */
+    const inTop=s.top.some(x=>x[0]===iso),tag=ABST.graded?'<em>'+(rk(iso)?rk(iso)+'위':'순위 밖')+'</em>':'';
+    return '<button type="button" class="st-opt'+(ABST.graded?(inTop?' hit':' decoy'):(used.has(iso)?' used':''))+'" data-i="'+iso+'"'
+      +(used.has(iso)||ABST.graded?' disabled':'')+'>'+abFlag(iso,20)+'<span>'+abEsc(abName(iso))+'</span>'+tag+'</button>';}).join('');
   document.getElementById('st-grade').disabled=ABST.graded||ABST.pick.length<AB_ST_N;
   document.getElementById('st-sc').textContent='맞힌 순위 '+ABST.cor;
 }

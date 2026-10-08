@@ -676,3 +676,9 @@ body{text-rendering:optimizeLegibility;word-break:keep-all}
 .st-opt.used{opacity:.3;pointer-events:none}
 .st-opt:disabled{cursor:default}
 @media (max-width:560px){.st-slots{grid-template-columns:1fr}}
+
+.st-opt em{font-style:normal;font-size:var(--fs-2xs);color:var(--tx3);margin-left:.15rem;font-variant-numeric:tabular-nums}
+.st-opt.hit{border-color:var(--okt,#2e9e6b);background:color-mix(in srgb,var(--okt,#2e9e6b) 10%,var(--sf));opacity:1}
+.st-opt.hit em{color:var(--okt,#2e9e6b);font-weight:700}
+.st-opt.decoy{opacity:.55}
+.st-opt.hit:disabled,.st-opt.decoy:disabled{cursor:default}
