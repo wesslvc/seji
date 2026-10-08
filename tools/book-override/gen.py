@@ -80,13 +80,16 @@ for ko,row in g.items():
     part=lambda k:ren*(sp.get(k) or 0)/100
     el=[sh('석탄'),sh('천연가스'),sh('석유'),sh('원자력'),sh('수력'),part('태양광'),part('풍력'),part('바이오 에너지'),part('기타'),0.0]
     W[iso]['el']=[round(x,1) for x in el];W[iso]['el_year']=2024
-# --- 종교: 총인구 대비 비율 그대로(무종교 포함, 인구를 곱하는 추정은 하지 않는다) + 상위 10개국 실제 신자 수
+# --- 종교: 무종교를 뺀 '종교를 가진 사람 중 비율'(아틀라스 구조 그대로). 인구를 곱한 신자 수 추정은 하지 않고,
+#     신자 수는 표(3-4)에 실린 상위 10개국의 실제 값만 쓴다.
 r3,_=E.region_view('3-2')
-RELM=[('크리스트교',0),('이슬람교',1),('불교',2),('힌두교',3),('유대교',4),('기타',5),('무종교',6)]
+RELM=[('크리스트교',0),('이슬람교',1),('불교',2),('힌두교',3),('유대교',4),('기타',5)]
 for ko,row in r3.items():
     iso=E.iso(ko)
     if not iso:continue
-    arr=[[k,round(row.get(n) or 0,2)] for n,k in RELM]
+    rel=100-(row.get('무종교') or 0)
+    if rel<=0:continue
+    arr=[[k,round((row.get(n) or 0)/rel*100,1)] for n,k in RELM]
     arr=[a for a in arr if a[1]>=0.05];arr.sort(key=lambda a:-a[1]);REL[iso]=arr
 RELN={}
 for vw,k in [('크리스트교-0',0),('이슬람교-0',1),('불교-0',2),('힌두교-0',3),('유대교-0',4)]:

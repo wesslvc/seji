@@ -233,8 +233,7 @@ function abAtlasShow(iso){
   const rel=(typeof RELIG2_DATA!=='undefined'&&RELIG2_DATA[iso])||null;
   if(rel){
     G.soc+='<h4 class="sec" id="at-rel">종교 구성'
-      +(typeof BOOK_OV_REL!=='undefined'&&BOOK_OV_REL[iso]?abSecEm('총인구 대비 · 무종교 포함','Pew Research Center 2020 · Promenade Geography 통계표')
-        :abSecEm('종교를 가진 사람 기준','지오글 종교 구성'))+'</h4>'
+      +abSecEm('종교를 가진 사람 기준',(typeof BOOK_OV_REL!=='undefined'&&BOOK_OV_REL[iso])?'Pew Research Center 2020 · Promenade Geography 통계표':'지오글 종교 구성')+'</h4>'
       +abBars(rel.map(r=>[RELIG2_NAME[r[0]],r[1]]),rel.map(r=>RELIG2_COLOR[r[0]]));
   }
 
