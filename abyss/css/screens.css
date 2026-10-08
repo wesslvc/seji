@@ -682,3 +682,16 @@ body{text-rendering:optimizeLegibility;word-break:keep-all}
 .st-opt.hit em{color:var(--okt,#2e9e6b);font-weight:700}
 .st-opt.decoy{opacity:.55}
 .st-opt.hit:disabled,.st-opt.decoy:disabled{cursor:default}
+
+/* 순위 비교 O/X */
+.st-ox{margin:.4rem 0 1rem;padding:1rem 1.1rem;border:1px solid var(--bd);border-radius:var(--r-md);background:var(--sf)}
+.st-ox-h{font-size:var(--fs-xs);font-weight:700;letter-spacing:.06em;color:var(--tx3);margin-bottom:.5rem}
+.st-ox-q{margin:0 0 .9rem;font-size:var(--fs-lg);line-height:1.8}
+.st-ox-q b{color:var(--ac)}
+.st-ox-btns{display:flex;gap:.6rem}
+.st-ox-btns .btn{min-width:5.5rem;font-size:1.3rem;font-weight:800}
+.st-ox-btns .btn.ok{background:var(--okt,#2e9e6b);border-color:var(--okt,#2e9e6b);color:#fff;opacity:1}
+.st-ox-btns .btn.no{background:var(--wr);border-color:var(--wr);color:#fff;opacity:1}
+.st-ox-res p{margin:.9rem 0 .8rem;font-size:var(--fs-md);line-height:1.7}
+.st-ox-res p.ok{color:var(--okt,#2e9e6b)}.st-ox-res p.bad{color:var(--wr)}
+.st-ox-res i{font-style:normal;color:var(--tx2);font-size:var(--fs-sm)}
