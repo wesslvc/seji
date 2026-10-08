@@ -1,27 +1,60 @@
 /* ══════════════════════════════════════════════════════════════════════════
-   통계 순위 테스트 — 본편에서 그대로 옮겨 왔다
+   통계 순위 테스트
    ──────────────────────────────────────────────────────────────────────────
-   1위부터 5위까지 나라 이름을 순서대로 적는다(지도는 맞힌 자리를 칠해 보여 준다). 한 번이라도 틀리면 그 문항의 답
-   다섯을 모두 열고 끝낸다 — 다시 시도할 기회는 없다. 대신 판이 끝난 뒤
-   '틀린 것만 다시'로 골라 낼 수 있고, 오답에도 모인다.
+   1위부터 10위까지 — 보기로 주어진 열 나라를 순서대로 배열한다. 보기는 정답 열 나라가
+   섞여 나온다(지도는 쓰지 않는다). 나라를 누르면 비어 있는 가장 높은 순위 칸에 들어가고,
+   채워진 칸을 누르면 그 나라가 보기로 돌아온다. 열 칸을 다 채우고 '채점'을 누르면 칸마다
+   맞고 틀림이 한꺼번에 나온다 — 한 번 채점하면 끝이고 다시 시도할 기회는 없다. 대신 판이
+   끝난 뒤 '틀린 것만 다시'로 골라 낼 수 있고, 오답에도 모인다.
 
-   본편에 있던 것은 다 가져왔다 — 순위 칸에 실제 값을 함께 적는 것, 왜 틀렸는지
-   (몇 위인지 / 5위 안에 없는지) 짚어 주는 것, 통계마다 붙은 곁말, '정답 보기',
-   그리고 하던 자리에서 이어하기. 점수만 없다. 어비스에는 점수도 랭킹도 없다 —
-   겨루는 곳은 본편이고, 여기는 자료를 파고드는 곳이다.
+   문항 자료는 도감의 전체 순위(AB_METRICS)에서 위 열 나라를 뽑는다 — 아틀라스·도감과
+   값이 어긋나지 않는다. 열 나라가 안 되는 통계(크롬·망간)와 대응하는 전체 순위가 없는
+   통계(소비량·석유 수출입)는 이 테스트에서 빠진다. STAT_SETS의 곁말은 상위 5개국이
+   예전 자료와 같은 통계에만 붙인다.
    ══════════════════════════════════════════════════════════════════════════ */
-const ABST={plan:[],idx:0,rank:0,cor:0,wr:0,full:0,wrongLog:[],done:false,box:null,
-  retry:false,saveKey:'st_all',revealed:false,missed:null};
+const ABST={plan:[],idx:0,cor:0,wr:0,full:0,wrongLog:[],done:false,
+  retry:false,saveKey:'st_all',graded:false,pick:[],cur:null};
+const AB_ST_N=10;
+/* 통계 id(STAT_SETS) → 전체 순위(AB_METRICS) */
+const AB_ST_MAP={rel_chr:'rel0',rel_isl:'rel1',rel_hin:'rel3',rel_bud:'rel2',
+  ric_prod:'rice',ric_exp:'riceGExp',ric_imp:'riceGImp',
+  whe_prod:'wheat',whe_exp:'wheatGExp',whe_imp:'wheatGImp',
+  cor_prod:'corn',cor_exp:'cornGExp',cor_imp:'cornGImp',
+  liv_cat:'cattle',liv_shp:'sheep',liv_pig:'pig',
+  enr_oil_p:'oilProd',enr_coa_p:'coalProd',enr_coa_x:'coalExp',enr_coa_m:'coalImp',
+  enr_gas_p:'gasProd',enr_gas_x:'gasExp',enr_gas_m:'gasImp',
+  min_iron:'iron_ore',min_gold:'gold',min_silver:'silver',min_copper:'copper',min_cobalt:'cobalt',
+  min_manganese:'manganese',min_chromium:'chromium',min_bauxite:'bauxite',min_diamond:'diamond',min_tin:'tin'};
+let _abStPool=null;
+function abStatPool(){
+  if(_abStPool)return _abStPool;
+  _abStPool=[];
+  if(typeof STAT_SETS==='undefined'||typeof AB_METRICS==='undefined')return _abStPool;
+  STAT_SETS.forEach(s=>{
+    const mid=AB_ST_MAP[s.id],m=mid&&abMetric(mid);
+    if(!m)return;
+    const r=abRank(mid);
+    if(r.length<AB_ST_N+1)return;                 /* 열 나라 + 11위가 있어야 '열 나라가 정답'이 선다 */
+    /* 10위와 11위가 같은 값이면 열 번째 자리가 갈린다 — 그런 통계는 뺀다 */
+    if(r[AB_ST_N-1].v===r[AB_ST_N].v)return;
+    const top=r.slice(0,AB_ST_N).map(x=>[x.iso,x.v]);
+    const same=s.top.every((t,i)=>top[i]&&top[i][0]===t[0]);
+    _abStPool.push({id:s.id,cat:s.cat,name:s.name,unit:m.unit,src:m.src,top:top,note:same?(s.note||''):''});
+  });
+  return _abStPool;
+}
+function abStatById(id){return abStatPool().find(s=>s.id===id);}
+function abStatVal(s,v){return abFmt(v,s.unit);}
 
 function abStatInit(){
-  const cats=[...new Set(STAT_SETS.map(s=>s.cat))];
+  const pool=abStatPool(),cats=[...new Set(pool.map(s=>s.cat))];
   document.getElementById('stat-setup').innerHTML=
-    '<p class="rank-note">분야를 고르면 그 분야의 통계만 나옵니다. 한 통계당 1위부터 5위까지 '
-    +'나라 이름을 순서대로 적습니다. 점수는 매기지 않습니다 — 틀린 통계는 오답으로 모아 두었다가 다시 풀 수 있습니다.</p>'
+    '<p class="rank-note">분야를 고르면 그 분야의 통계만 나옵니다. 한 통계당 열 나라가 보기로 주어지고, '
+    +'1위부터 10위까지 순서대로 배열합니다. 점수는 매기지 않습니다 — 틀린 통계는 오답으로 모아 두었다가 다시 풀 수 있습니다.</p>'
     +'<div class="chips" id="st-cats">'
-    +'<button class="chip on" data-c="">전체 '+STAT_SETS.length+'</button>'
+    +'<button class="chip on" data-c="">전체 '+pool.length+'</button>'
     +cats.map(c=>'<button class="chip" data-c="'+abEsc(c)+'">'+abEsc(c)+' '
-      +STAT_SETS.filter(s=>s.cat===c).length+'</button>').join('')
+      +pool.filter(s=>s.cat===c).length+'</button>').join('')
     +'</div><div class="btnrow"><button class="btn" id="st-start">시작하기</button></div>'
     +'<div id="st-last"></div>';
   const chips=document.getElementById('st-cats');
@@ -30,7 +63,7 @@ function abStatInit(){
     abStatLastRun();});
   document.getElementById('st-start').addEventListener('click',()=>{
     const c=chips.querySelector('.chip.on').dataset.c;
-    abStatStart(STAT_SETS.filter(s=>!c||s.cat===c),false,c);
+    abStatStart(pool.filter(s=>!c||s.cat===c),false,c);
   });
   abStatLastRun();
 }
@@ -45,8 +78,7 @@ function abStatSave(){
 function abStatRestore(cat){
   const d=abLoad(abStatKey(cat),null);
   if(!d||!Array.isArray(d.ids)||!d.ids.length)return null;
-  const by={};STAT_SETS.forEach(s=>by[s.id]=s);
-  const plan=d.ids.map(id=>by[id]).filter(Boolean);
+  const plan=d.ids.map(abStatById).filter(Boolean);
   if(!plan.length||!(d.idx>0))return null;
   return {plan:plan,idx:Math.min(d.idx,plan.length),cor:d.cor||0,wr:d.wr||0,
     full:d.full||0,wrong:Array.isArray(d.wrong)?d.wrong:[]};
@@ -88,29 +120,34 @@ function abStatStart(sets,retry,cat,resume){
     ABST.plan=abShuffle(sets.slice());ABST.idx=0;
     ABST.cor=0;ABST.wr=0;ABST.full=0;ABST.wrongLog=[];
   }
-  ABST.rank=0;ABST.done=false;ABST.revealed=false;ABST.missed=null;
+  ABST.done=false;
   document.getElementById('stat-setup').hidden=true;
   const play=document.getElementById('stat-play');play.hidden=false;
   play.innerHTML='<div class="play-bar"><span class="q" id="st-q">불러오는 중…</span>'
     +'<span class="sc" id="st-sc">맞힌 순위 0</span></div>'
-    +'<div class="slots" id="st-slots"></div>'
-    /* 답은 나라 이름을 적어서 낸다. 지도를 눌러 고르게 했더니 작은 나라는
-       찾기 어렵고, 확대·이동하다 잘못 눌리는 일이 잦았다. 지도는 맞힌 자리를
-       칠해 보여 주는 데만 쓴다. */
-    +'<div class="answer-in"><div class="field st-field">'
-      +'<input id="st-in" type="text" placeholder="나라 이름을 적고 Enter — 1위부터 차례로" autocomplete="off" spellcheck="false">'
-      +'<div class="st-sug" id="st-sug" hidden></div></div></div>'
+    +'<p class="st-help" id="st-help">나라를 눌러 1위부터 차례로 채우세요. 채워진 칸을 누르면 그 나라가 보기로 돌아옵니다.</p>'
+    +'<div class="st-slots" id="st-slots"></div>'
+    +'<div class="st-bank-h">보기</div>'
+    +'<div class="st-bank" id="st-bank"></div>'
     +'<div class="st-fb" id="st-fb"></div>'
-    +'<div class="map-wrap" id="st-map">지도를 불러오는 중…</div>'
     +'<div class="st-side" id="st-side"></div>'
-    +'<div class="btnrow"><button class="btn ghost" id="st-reveal">정답 보기</button>'
+    +'<div class="btnrow" id="st-btns"><button class="btn" id="st-grade" disabled>채점</button>'
+      +'<button class="btn ghost" id="st-clear">모두 비우기</button>'
+      +'<button class="btn ghost" id="st-reveal">정답 보기</button>'
       +'<button class="btn ghost" id="st-quit">그만두기</button></div>'
     +'<div id="st-end"></div>';
   document.getElementById('st-quit').addEventListener('click',abStatFinish);
   document.getElementById('st-reveal').addEventListener('click',abStatReveal);
-  ABST.box=document.getElementById('st-map');
-  abStatInput();
-  abMapMount(ABST.box).then(()=>abStatShow());
+  document.getElementById('st-grade').addEventListener('click',abStatGrade);
+  document.getElementById('st-clear').addEventListener('click',()=>{if(ABST.graded)return;ABST.pick=[];abStatPaint();});
+  document.getElementById('st-bank').addEventListener('click',e=>{
+    const b=e.target.closest('[data-i]');if(!b||ABST.graded)return;
+    if(ABST.pick.length>=AB_ST_N)return;
+    ABST.pick.push(b.dataset.i);abStatPaint();});
+  document.getElementById('st-slots').addEventListener('click',e=>{
+    const b=e.target.closest('[data-p]');if(!b||ABST.graded)return;
+    ABST.pick.splice(+b.dataset.p,1);abStatPaint();});
+  abStatShow();
 }
 function abStatCur(){return ABST.plan[ABST.idx];}
 function abStatFb(msg,cls){
@@ -120,103 +157,76 @@ function abStatFb(msg,cls){
 function abStatShow(){
   const s=abStatCur();
   if(!s)return abStatFinish();
-  abMapClear(ABST.box);ABST.rank=0;ABST.revealed=false;ABST.missed=null;
+  ABST.graded=false;ABST.pick=[];
+  /* 보기 순서는 문항마다 섞는다 — 정답 순서와 같지 않게 */
+  let order;do{order=abShuffle(s.top.map(t=>t[0]));}while(order.every((o,i)=>o===s.top[i][0]));
+  ABST.cur={id:s.id,bank:order};
   document.getElementById('st-q').innerHTML=abEsc(s.name)
     +'<em>'+abEsc(s.cat)+' · '+abEsc(s.src)+' · '+(ABST.idx+1)+'/'+ABST.plan.length+'</em>';
   abStatFb('');
   document.getElementById('st-side').innerHTML='';
-  document.getElementById('st-reveal').hidden=false;
-  const inp=document.getElementById('st-in');
-  inp.disabled=false;ABST.ac.clear();inp.focus();
-  abStatSlots();
+  document.getElementById('st-help').hidden=false;
+  document.getElementById('st-btns').hidden=false;
+  abStatPaint();
 }
-/* ── 이름 입력 ──
-   적는 대로 아래에 후보 나라를 띄운다. Enter 는 정확히 맞는 이름이 있으면 그
-   나라, 없으면 첫 후보를 낸다. 위아래 화살표로 후보를 고를 수 있다.
-   후보는 198개국 전체에서 이름으로만 거르므로 답을 흘리지 않는다. */
-function abStatSubmit(iso){
-  const inp=document.getElementById('st-in');
-  if(!iso){abStatFb('그런 나라가 없습니다','bad');
-    inp.classList.add('shake');setTimeout(()=>inp.classList.remove('shake'),360);return;}
-  ABST.ac.clear();
-  abStatPick(iso);
-  if(!ABST.revealed&&ABST.rank<5)inp.focus();
-}
-function abStatInput(){
-  ABST.ac=abNameInput(document.getElementById('st-in'),document.getElementById('st-sug'),abStatSubmit);
-}
-/* 순위 칸 — 맞힌 자리에는 이름과 함께 실제 값을 적는다. 값이 있어야 왜 그
-   순서인지가 남고, 다음에 같은 통계를 만났을 때 근거로 쓴다. */
-function abStatSlots(){
-  const s=abStatCur();
+/* 칸과 보기를 다시 그린다 */
+function abStatPaint(){
+  const s=abStatCur();if(!s)return;
+  const used=new Set(ABST.pick);
   document.getElementById('st-slots').innerHTML=s.top.map((r,i)=>{
-    const shown=i<ABST.rank||ABST.revealed;
-    const cls=i<ABST.rank?'done':(i===ABST.rank&&!ABST.revealed?'now':'');
-    return '<div class="slot '+cls+(ABST.missed&&ABST.missed[i]?' miss':'')+'">'
-      +'<b>'+(i+1)+'위</b>'
-      +(shown?abEsc(abName(r[0]))+'<i>'+abEsc(statValText(s,r[1]))+'</i>':'—')
-      +'</div>';
+    const iso=ABST.pick[i];
+    if(ABST.graded){
+      const right=iso===r[0]||(iso&&abStatTie(s,i,iso));
+      return '<div class="st-slot '+(right?'ok':'no')+'"><b>'+(i+1)+'위</b>'
+        +'<span class="nm">'+(iso?abFlag(iso,18)+abEsc(abName(iso)):'—')+'</span>'
+        +(right?'<i>'+abEsc(abStatVal(s,r[1]))+'</i>'
+               :'<span class="ans">정답 '+abEsc(abName(r[0]))+' <i>'+abEsc(abStatVal(s,r[1]))+'</i></span>')
+        +'</div>';
+    }
+    if(iso)return '<button type="button" class="st-slot put" data-p="'+i+'"><b>'+(i+1)+'위</b>'
+      +'<span class="nm">'+abFlag(iso,18)+abEsc(abName(iso))+'</span></button>';
+    return '<div class="st-slot'+(i===ABST.pick.length?' now':'')+'"><b>'+(i+1)+'위</b><span class="nm">—</span></div>';
   }).join('');
+  document.getElementById('st-bank').innerHTML=ABST.cur.bank.map(iso=>
+    '<button type="button" class="st-opt'+(used.has(iso)?' used':'')+'" data-i="'+iso+'"'+(used.has(iso)||ABST.graded?' disabled':'')+'>'
+    +abFlag(iso,20)+'<span>'+abEsc(abName(iso))+'</span></button>').join('');
+  document.getElementById('st-grade').disabled=ABST.graded||ABST.pick.length<AB_ST_N;
   document.getElementById('st-sc').textContent='맞힌 순위 '+ABST.cor;
 }
-function abStatPick(iso){
-  if(ABST.revealed)return;
-  const s=abStatCur();if(!s)return;
-  /* 이미 맞힌 나라를 또 누르는 건 오답으로 치지 않는다 */
-  for(let i=0;i<ABST.rank;i++)if(statMatch(s.top[i][0],iso)){
-    abStatFb('이미 '+(i+1)+'위로 맞힌 나라입니다');
-    return;
-  }
-  const want=s.top[ABST.rank][0];
-  if(statMatch(want,iso)){
-    ABST.cor++;ABST.rank++;
-    abMapPaint(ABST.box,iso,'cr');
-    abStatFb(abName(iso)+' — '+ABST.rank+'위 정답');
-    abStatSlots();
-    if(ABST.rank>=5){
-      ABST.full++;
-      abSetDel('wrong','stat:'+s.id);   /* 다 맞혔으면 오답에서 빠진다 */
-      abStatDone(s);
-    }
-    return;
-  }
-  /* 틀렸다 — 왜 틀렸는지 짚어 주고 남은 순위를 전부 연다 */
-  let later=-1;
-  for(let i=ABST.rank+1;i<5;i++)if(statMatch(s.top[i][0],iso)){later=i;break;}
-  const nm=abName(iso);
-  /* 받침이 있으면 '은', 없으면 '는' — '몽골는'이 되지 않게 */
-  const ch=nm.charCodeAt(nm.length-1);
-  const eun=(ch>=0xAC00&&ch<=0xD7A3&&(ch-0xAC00)%28)?'은':'는';
-  abStatFb(later>=0
-    ? nm+eun+' '+(later+1)+'위입니다 — 지금은 '+(ABST.rank+1)+'위 차례'
-    : nm+eun+' 5위 안에 없습니다', 'bad');
-  abMapPaint(ABST.box,iso,'wr');
-  abStatRevealRest(s);
+/* 값이 같은 두 나라는 자리를 바꿔 놓아도 맞는 것으로 친다 */
+function abStatTie(s,i,iso){
+  const hit=s.top.find(t=>t[0]===iso);
+  return !!hit&&hit[1]===s.top[i][1];
 }
+function abStatGrade(){
+  const s=abStatCur();
+  if(!s||ABST.graded||ABST.pick.length<AB_ST_N)return;
+  ABST.graded=true;
+  let ok=0;const miss=[];
+  s.top.forEach((r,i)=>{const iso=ABST.pick[i];
+    if(iso===r[0]||abStatTie(s,i,iso))ok++;else miss.push(i+1);});
+  ABST.cor+=ok;
+  miss.forEach(rk=>ABST.wrongLog.push({set:s.id,rank:rk}));
+  if(miss.length){ABST.wr++;abSetAdd('wrong','stat:'+s.id,{k:'stat',n:s.name});}
+  else{ABST.full++;abSetDel('wrong','stat:'+s.id);}      /* 다 맞혔으면 오답에서 빠진다 */
+  abStatFb(miss.length?ok+'개 맞았습니다 — 틀린 자리: '+miss.map(r=>r+'위').join(', '):'열 자리를 모두 맞혔습니다',miss.length?'bad':'');
+  abStatPaint();abStatDone(s);
+}
+/* 채점 전에 답을 열어 본다 — 틀린 것으로 센다 */
 function abStatReveal(){
   const s=abStatCur();
-  if(!s||ABST.revealed)return;
+  if(!s||ABST.graded)return;
+  ABST.graded=true;
+  s.top.forEach((r,i)=>ABST.wrongLog.push({set:s.id,rank:i+1}));
+  ABST.wr++;abSetAdd('wrong','stat:'+s.id,{k:'stat',n:s.name});
+  ABST.pick=ABST.pick.slice(0,0);
   abStatFb('정답을 모두 열었습니다','bad');
-  abStatRevealRest(s);
-}
-function abStatRevealRest(s){
-  ABST.missed=[];
-  for(let i=ABST.rank;i<5;i++){
-    ABST.missed[i]=true;
-    ABST.wrongLog.push({set:s.id,rank:i+1});
-    abMapPaint(ABST.box,s.top[i][0],'hi');
-  }
-  ABST.wr++;
-  ABST.revealed=true;
-  abSetAdd('wrong','stat:'+s.id,{k:'stat',n:s.name});
-  abStatSlots();
-  abStatDone(s);
+  abStatPaint();abStatDone(s);
 }
 /* 한 문항이 끝났다 — 곁말을 펴고 다음으로 넘어갈 단추를 준다 */
 function abStatDone(s){
-  document.getElementById('st-reveal').hidden=true;
-  const inp=document.getElementById('st-in');
-  if(inp){inp.disabled=true;ABST.ac.clear();}
+  document.getElementById('st-help').hidden=true;
+  document.getElementById('st-btns').hidden=true;
   const side=document.getElementById('st-side');
   const last=(ABST.idx+1>=ABST.plan.length);
   side.innerHTML=(s.note?'<p class="st-note">'+abEsc(s.note)+'</p>':'')
@@ -225,17 +235,15 @@ function abStatDone(s){
   abStatSave();
 }
 function abStatNext(){
-  ABST.revealed=false;ABST.missed=null;
   ABST.idx++;
   abStatSave();
   if(ABST.idx>=ABST.plan.length)abStatFinish();else abStatShow();
 }
 /* 이번 판에서 한 순위라도 틀린 통계들 */
 function abStatWrongSets(){
-  const ids=[],by={};
-  STAT_SETS.forEach(s=>by[s.id]=s);
+  const ids=[];
   ABST.wrongLog.forEach(w=>{if(ids.indexOf(w.set)<0)ids.push(w.set);});
-  return ids.map(id=>by[id]).filter(Boolean);
+  return ids.map(abStatById).filter(Boolean);
 }
 function abStatFinish(){
   ABST.done=true;
@@ -244,9 +252,9 @@ function abStatFinish(){
   const wrong=abStatWrongSets();
   let h='<div class="result"><h3>통계 순위 테스트 끝</h3>'
     +'<div class="big">'+ABST.full+' <span class="of">/ '+ABST.plan.length+'개 통계</span></div>'
-    +'<p class="rank-note">1위부터 5위까지 다 맞힌 통계입니다 — 맞힌 순위는 모두 '
+    +'<p class="rank-note">1위부터 10위까지 다 맞힌 통계입니다 — 맞힌 순위는 모두 '
     +ABST.cor+'개, 틀린 통계는 '+ABST.wr+'개입니다.</p>';
-  /* 틀린 통계는 다섯 자리를 다 펴 놓는다. 어느 자리를 놓쳤는지 표시해 두면
+  /* 틀린 통계는 열 자리를 다 펴 놓는다. 어느 자리를 놓쳤는지 표시해 두면
      그대로 외울 거리가 된다. */
   if(wrong.length){
     const missAt={};
@@ -254,14 +262,14 @@ function abStatFinish(){
     h+='<div class="rev"><b>틀린 통계</b>'+wrong.map(s=>
       '<div class="st-wrong"><h4>'+abEsc(s.name)+' <small>'+abEsc(s.src)+'</small></h4>'
       +'<ol>'+s.top.map((r,i)=>'<li'+((missAt[s.id]||{})[i+1]?' class="miss"':'')+'>'
-        +abEsc(abName(r[0]))+' <i>'+abEsc(statValText(s,r[1]))+'</i></li>').join('')+'</ol>'
+        +abEsc(abName(r[0]))+' <i>'+abEsc(abStatVal(s,r[1]))+'</i></li>').join('')+'</ol>'
       +(s.note?'<p class="st-note">'+abEsc(s.note)+'</p>':'')+'</div>').join('')+'</div>';
   }
   h+='<div class="btnrow">'
     +(wrong.length?'<button class="btn" id="st-retry">틀린 것만 다시 ('+wrong.length+')</button>':'')
     +'<button class="btn ghost" id="st-again">처음부터</button></div></div>';
   document.getElementById('st-end').innerHTML=h;
-  document.getElementById('st-reveal').hidden=true;
+  ['st-btns','st-help'].forEach(id=>{const e=document.getElementById(id);if(e)e.hidden=true;});
   const rt=document.getElementById('st-retry');
   if(rt)rt.addEventListener('click',()=>abStatStart(wrong.slice(),true));
   document.getElementById('st-again').addEventListener('click',()=>{

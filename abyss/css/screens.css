@@ -650,3 +650,29 @@ body{text-rendering:optimizeLegibility;word-break:keep-all}
 .cc-dl{width:auto}@media (max-width:620px){.cc-dl{width:100%}}
 .cc-card .cl-chart{max-width:780px}
 .stat .r.muted{color:var(--tx3);font-weight:500}
+
+/* ══════════ 통계 순위 테스트 — 열 나라 배열 ══════════ */
+.st-help{margin:.2rem 0 .8rem;color:var(--tx2);font-size:var(--fs-md)}
+.st-slots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.4rem;margin:0 0 1.1rem}
+.st-slot{display:flex;align-items:center;gap:.5rem;min-height:46px;padding:.4rem .7rem;text-align:left;
+  border:1px solid var(--bd);border-radius:var(--r-sm);background:var(--sf);color:var(--tx3);font-size:var(--fs-md);
+  transition:.15s var(--ease)}
+.st-slot b{flex:none;width:2.4rem;font-size:var(--fs-2xs);color:var(--tx3);font-weight:700}
+.st-slot .nm{display:flex;align-items:center;gap:.4rem;min-width:0;color:var(--tx)}
+.st-slot i{font-style:normal;margin-left:auto;padding-left:.5rem;font-size:var(--fs-xs);color:var(--tx2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.st-slot.now{border-color:var(--ac);box-shadow:0 0 0 3px color-mix(in srgb,var(--ac) 10%,transparent)}
+.st-slot.put{cursor:pointer;border-color:var(--btn)}
+.st-slot.put:hover{background:var(--ac2)}
+.st-slot.ok{border-color:var(--okt,#2e9e6b);background:color-mix(in srgb,var(--okt,#2e9e6b) 10%,var(--sf))}
+.st-slot.no{border-color:var(--wr);background:color-mix(in srgb,var(--wr) 8%,var(--sf));flex-wrap:wrap}
+.st-slot .ans{flex-basis:100%;padding-left:2.9rem;font-size:var(--fs-sm);color:var(--okt,#2e9e6b);font-weight:600}
+.st-slot .ans i{color:var(--tx2);font-weight:400}
+.st-bank-h{font-size:var(--fs-xs);color:var(--tx3);font-weight:700;letter-spacing:.06em;margin:0 0 .4rem}
+.st-bank{display:flex;flex-wrap:wrap;gap:.45rem}
+.st-opt{display:inline-flex;align-items:center;gap:.45rem;min-height:44px;padding:.35rem .8rem;border:1px solid var(--bd2,var(--bd));
+  border-radius:var(--r-full);background:var(--sf);color:var(--tx);font:inherit;font-size:var(--fs-md);cursor:pointer;transition:.15s var(--ease)}
+.st-opt:hover:not(:disabled){border-color:var(--ac);background:var(--ac2)}
+.st-opt:active:not(:disabled){transform:scale(.97)}
+.st-opt.used{opacity:.3;pointer-events:none}
+.st-opt:disabled{cursor:default}
+@media (max-width:560px){.st-slots{grid-template-columns:1fr}}

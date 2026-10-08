@@ -42,7 +42,7 @@ function abReviewBadge(){
 }
 
 function abReviewAlive(w){
-  if(w.k==='stat')return STAT_SETS.some(s=>'stat:'+s.id===w.id);
+  if(w.k==='stat')return abStatPool().some(s=>'stat:'+s.id===w.id);
   /* 지엽개념은 정리본을 다 읽은 뒤에야 알 수 있다 — 그 전에는 살려 둔다 */
   if(w.k==='codex'&&typeof abCodexKeys==='function'){const ks=abCodexKeys();if(ks)return ks.has(w.id);}
   return true;
@@ -137,7 +137,7 @@ function abFavHref(f){
 function abReviewRun(kind,items){
   if(kind==='stat'){
     const ids=items.map(w=>w.id.slice(5));
-    const sets=STAT_SETS.filter(s=>ids.indexOf(s.id)>=0);
+    const sets=abStatPool().filter(s=>ids.indexOf(s.id)>=0);
     if(!sets.length)return;
     AB_PENDING={kind:'stat',sets:sets};
     location.hash='#/stat';
