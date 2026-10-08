@@ -6,8 +6,9 @@
      · 쌀·밀·옥수수·소·돼지·양·석유·석탄·천연가스의 생산·수출 → 10  (보기 20)
      · 위 품목의 수입, 종교별 신자 수 → 5                      (보기 10)
      · 그 밖의 통계(광물) → 3                                    (보기 6)
-   배열을 채점하면 이어서 '순위 비교 OX' 한 문항이 나온다 — 그 통계의 전체 순위에서 무작위로
-   고른 두 나라를 견줘 A가 B보다 순위가 높은지(값이 큰지) 맞힌다.
+   배열을 채점하면 이어서 '순위 비교 O/X' 두 문항이 나온다 — ① 상위 10개국끼리 ② 상위 10개국
+   한 나라와 10위 밖 무작위 나라를 견줘 A가 B보다 순위가 높은지(값이 큰지) 맞힌다. 나라는
+   겹치지 않는다.
    한 번 채점하면 끝이고 다시 시도할 기회는 없다. 대신 판이 끝난 뒤 '틀린 것만 다시'로 골라 낼
    수 있고, 오답에도 모인다. 지도는 쓰지 않는다.
 
@@ -72,7 +73,7 @@ function abStatInit(){
   document.getElementById('stat-setup').innerHTML=
     '<p class="rank-note">분야를 고르면 그 분야의 통계만 나옵니다. 한 통계마다 맞힐 나라 수의 딱 두 배가 보기로 주어지고, 그중 상위 나라를 골라 순서대로 배열합니다 — '
     +'쌀·밀·옥수수·소·돼지·양·석유·석탄·천연가스의 생산·수출은 10위까지, 수입과 종교는 5위까지, 나머지는 3위까지입니다. '
-    +'배열을 채점하면 무작위 두 나라의 순위를 견주는 O/X가 한 문제 이어집니다. 점수는 매기지 않습니다 — 틀린 통계는 오답으로 모아 두었다가 다시 풀 수 있습니다.</p>'
+    +'배열을 채점하면 순위를 견주는 O/X가 두 문제 이어집니다(상위 10개국끼리, 상위 10개국과 무작위 나라). 점수는 매기지 않습니다 — 틀린 통계는 오답으로 모아 두었다가 다시 풀 수 있습니다.</p>'
     +'<div class="chips" id="st-cats">'
     +'<button class="chip on" data-c="">전체 '+pool.length+'</button>'
     +cats.map(c=>'<button class="chip" data-c="'+abEsc(c)+'">'+abEsc(c)+' '
@@ -259,47 +260,66 @@ function abStatDone(s){
   abStatOx(s);
   abStatSave();
 }
-/* 순위 비교 OX — 그 통계의 전체 순위에서 무작위로 고른 두 나라. 값이 같은 쌍은 고르지 않는다.
-   정답이 O/X 반반이 되도록 앞뒤를 섞는다. */
-function abStatOxPair(s){
-  const pool=s.rank.slice(0,Math.min(s.rank.length,40));
-  for(let t=0;t<60;t++){
-    const i=Math.floor(Math.random()*pool.length);let j=Math.floor(Math.random()*pool.length);
-    if(i===j||pool[i][1]===pool[j][1])continue;
-    let hi=Math.min(i,j),lo=Math.max(i,j);
-    const flip=Math.random()<0.5;
-    return {a:pool[flip?lo:hi],b:pool[flip?hi:lo],truth:!flip,ra:(flip?lo:hi)+1,rb:(flip?hi:lo)+1};
+/* 순위 비교 O/X 두 문제 — 맞힐 나라 수와 상관없이 '상위 10개국'을 기준으로 삼는다.
+     ① 상위 10개국 가운데 두 나라끼리
+     ② 상위 10개국 중 한 나라와 10위 밖에서 무작위로 고른 나라
+   두 문제에 나라가 겹치지 않게 네 나라를 따로 뽑고, 값이 같은 쌍은 고르지 않는다.
+   정답이 O/X 반반이 되도록 앞뒤를 섞는다. 10위 밖 나라가 없는 통계(크롬·망간)는 ②가 빠진다. */
+function abStatOxPairs(s){
+  const r=s.rank,topN=Math.min(10,r.length);
+  const rest=[];for(let i=topN;i<r.length;i++)rest.push(i);
+  const used=new Set();
+  const mk=(i,j)=>{const flip=Math.random()<0.5,x=flip?j:i,y=flip?i:j;
+    return {a:r[x],b:r[y],ra:x+1,rb:y+1,truth:x<y};};
+  const out=[];
+  for(let t=0;t<80&&!out.length;t++){
+    const i=Math.floor(Math.random()*topN),j=Math.floor(Math.random()*topN);
+    if(i===j||r[i][1]===r[j][1])continue;
+    used.add(i);used.add(j);out.push(mk(i,j));
   }
-  return null;
+  if(out.length&&rest.length){
+    for(let t=0;t<80&&out.length<2;t++){
+      const i=Math.floor(Math.random()*topN),j=rest[Math.floor(Math.random()*rest.length)];
+      if(used.has(i)||r[i][1]===r[j][1])continue;
+      out.push(mk(i,j));
+    }
+  }
+  return out;
 }
 function abStatOx(s){
   const side=document.getElementById('st-side');
   const last=(ABST.idx+1>=ABST.plan.length);
   const nextBtn='<button class="btn" id="st-next">'+(last?'결과 보기':'다음 통계')+'</button>';
   const note=s.note?'<p class="st-note">'+abEsc(s.note)+'</p>':'';
-  const q=abStatOxPair(s);
-  if(!q){side.innerHTML=note+nextBtn;document.getElementById('st-next').addEventListener('click',abStatNext);return;}
+  const qs=abStatOxPairs(s);
+  if(!qs.length){side.innerHTML=note+nextBtn;document.getElementById('st-next').addEventListener('click',abStatNext);return;}
   const eun=iso=>{const nm=abName(iso),ch=nm.charCodeAt(nm.length-1);
     return abEsc(nm)+((ch>=0xAC00&&ch<=0xD7A3&&(ch-0xAC00)%28)?'은':'는');};
-  side.innerHTML='<div class="st-ox"><div class="st-ox-h">순위 비교 O/X</div>'
+  side.innerHTML=qs.map((q,k)=>'<div class="st-ox" data-k="'+k+'"><div class="st-ox-h">순위 비교 O/X '+(k+1)+'/'+qs.length+'</div>'
     +'<p class="st-ox-q">'+abFlag(q.a[0],20)+' '+eun(q.a[0])+' '+abFlag(q.b[0],20)+' '+abEsc(abName(q.b[0]))+'보다 '
       +abEsc(s.name)+' 순위가 <b>높다</b>.</p>'
     +'<div class="st-ox-btns"><button class="btn st-o" data-a="1">O</button><button class="btn ghost st-x" data-a="0">X</button></div>'
-    +'<div class="st-ox-res" id="st-ox-res"></div></div>'+note;
-  let answered=false;
-  side.querySelector('.st-ox-btns').addEventListener('click',e=>{
-    const b=e.target.closest('[data-a]');if(!b||answered)return;
-    answered=true;
-    const said=b.dataset.a==='1',ok=(said===q.truth);
-    ABST.oxTot++;if(ok)ABST.oxOk++;
-    if(!ok){ABST.wrongLog.push({set:s.id,rank:0,ox:true});abSetAdd('wrong','stat:'+s.id,{k:'stat',n:s.name});}
-    side.querySelectorAll('.st-ox-btns .btn').forEach(x=>{x.disabled=true;});
-    b.classList.add(ok?'ok':'no');
-    document.getElementById('st-ox-res').innerHTML='<p class="'+(ok?'ok':'bad')+'">'+(ok?'맞았습니다':'틀렸습니다')+' — '
-      +abEsc(abName(q.a[0]))+' '+q.ra+'위 <i>'+abEsc(abStatVal(s,q.a[1]))+'</i> · '
-      +abEsc(abName(q.b[0]))+' '+q.rb+'위 <i>'+abEsc(abStatVal(s,q.b[1]))+'</i></p>'+nextBtn;
-    document.getElementById('st-next').addEventListener('click',abStatNext);
-    abStatSave();
+    +'<div class="st-ox-res"></div></div>').join('')+'<div id="st-ox-next"></div>'+note;
+  let left=qs.length;
+  side.querySelectorAll('.st-ox').forEach(box=>{
+    const q=qs[+box.dataset.k];let answered=false;
+    box.querySelector('.st-ox-btns').addEventListener('click',e=>{
+      const b=e.target.closest('[data-a]');if(!b||answered)return;
+      answered=true;
+      const ok=((b.dataset.a==='1')===q.truth);
+      ABST.oxTot++;if(ok)ABST.oxOk++;
+      if(!ok){ABST.wrongLog.push({set:s.id,rank:0,ox:true});abSetAdd('wrong','stat:'+s.id,{k:'stat',n:s.name});}
+      box.querySelectorAll('.st-ox-btns .btn').forEach(x=>{x.disabled=true;});
+      b.classList.add(ok?'ok':'no');
+      box.querySelector('.st-ox-res').innerHTML='<p class="'+(ok?'ok':'bad')+'">'+(ok?'맞았습니다':'틀렸습니다')+' — '
+        +abEsc(abName(q.a[0]))+' '+q.ra+'위 <i>'+abEsc(abStatVal(s,q.a[1]))+'</i> · '
+        +abEsc(abName(q.b[0]))+' '+q.rb+'위 <i>'+abEsc(abStatVal(s,q.b[1]))+'</i></p>';
+      if(--left===0){
+        document.getElementById('st-ox-next').innerHTML=nextBtn;
+        document.getElementById('st-next').addEventListener('click',abStatNext);
+      }
+      abStatSave();
+    });
   });
 }
 function abStatNext(){
