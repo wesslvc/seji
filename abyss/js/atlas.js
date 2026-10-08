@@ -293,9 +293,8 @@ function abAtlasShow(iso){
     G.econ+='<h4 class="sec" id="at-eres">에너지 자원'
       +abSecEm('1차에너지 환산 · TWh · OWID·EIA','도감에서 항목별 출처 확인')+'</h4><div class="grid g-3">'
       +['coalProd','coalCons','coalSelf','oilProd','oilCons','oilSelf','gasProd','gasCons','gasSelf',
-        'coalExp','coalImp','gasExp','gasImp','coalRes']
+        'coalExp','coalImp','gasExp','gasImp','oilExp','oilImp','coalRes']
         .map(id=>abStatCell(id,iso)).join('')
-      +['enr_oil_x','enr_oil_m'].map(id=>abTopCell(id,iso)).join('')
       +'</div>';
   }
   /* 무역 — 수입은 뺀다. 이 나라가 세계에 무엇을 파는지가 그 나라 산업의

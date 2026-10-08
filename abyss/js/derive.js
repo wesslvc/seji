@@ -223,6 +223,13 @@ const AB_METRICS=[
       AB_METRICS.push({id:key+'Imp',cat:'에너지 자원',name:nm+' 수입량',unit:'TWh',
         src:'EIA International · 2024년',f:i=>{const v=wd(i)[mk];return v!=null?v:null;}});
     });
+  /* 석유 수출입 — 원유·리스 콘덴세이트만(정제유 제외). EIA 시리즈가 2018년에서 끝나서 그해로 맞췄다 */
+  [['oilExp','석유 수출량(원유)','ox'],['oilImp','석유 수입량(원유)','om']].forEach(([id,nm,k])=>{
+    AB_METRICS.push({id:id,cat:'에너지 자원',name:nm,unit:'TWh',
+      src:'EIA International · 원유 수출입 · 2018년 · TBPD→TWh 환산',
+      note:'EIA의 원유 수출입 시리즈가 거의 모든 나라에서 2018년에 끝나 2018년 값으로 맞췄습니다. 석유 제품(정제유)은 들어 있지 않습니다.',
+      f:i=>{const v=wd(i)[k];return v!=null?v:null;}});
+  });
   AB_METRICS.push({id:'coalRes',cat:'에너지 자원',name:'석탄 매장량',unit:'만 톤',
     src:'EIA International · 2023년',f:i=>{const v=wd(i).cres;return v!=null?v:null;}});
   /* 주요 농축산물 */

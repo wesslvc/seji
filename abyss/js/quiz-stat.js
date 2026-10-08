@@ -13,7 +13,7 @@
    수 있고, 오답에도 모인다. 지도는 쓰지 않는다.
 
    문항 자료는 도감의 전체 순위(AB_METRICS)에서 뽑는다 — 아틀라스·도감과 값이 어긋나지
-   않는다. 대응하는 전체 순위가 없는 통계(소비량·석유 수출입)는 이 테스트에서 빠진다.
+   않는다. 대응하는 전체 순위가 없는 통계(소비량)는 이 테스트에서 빠진다.
    STAT_SETS의 곁말은 상위 5개국이 예전 자료와 같은 통계에만 붙인다.
    ══════════════════════════════════════════════════════════════════════════ */
 const ABST={plan:[],idx:0,cor:0,wr:0,full:0,wrongLog:[],done:false,
@@ -30,7 +30,7 @@ const AB_ST_MAP={rel_chr:'rel0',rel_isl:'rel1',rel_hin:'rel3',rel_bud:'rel2',
   whe_prod:'wheat',whe_exp:'wheatGExp',whe_imp:'wheatGImp',
   cor_prod:'corn',cor_exp:'cornGExp',cor_imp:'cornGImp',
   liv_cat:'cattle',liv_shp:'sheep',liv_pig:'pig',
-  enr_oil_p:'oilProd',enr_coa_p:'coalProd',enr_coa_x:'coalExp',enr_coa_m:'coalImp',
+  enr_oil_p:'oilProd',enr_oil_x:'oilExp',enr_oil_m:'oilImp',enr_coa_p:'coalProd',enr_coa_x:'coalExp',enr_coa_m:'coalImp',
   enr_gas_p:'gasProd',enr_gas_x:'gasExp',enr_gas_m:'gasImp',
   min_iron:'iron_ore',min_gold:'gold',min_silver:'silver',min_copper:'copper',min_cobalt:'cobalt',
   min_manganese:'manganese',min_chromium:'chromium',min_bauxite:'bauxite',min_diamond:'diamond',min_tin:'tin'};
