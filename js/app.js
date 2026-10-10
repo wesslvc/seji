@@ -72,10 +72,10 @@ function applyTheme(mode){
 }
 let _egT=[];
 function toggleTheme(){
-  applyTheme(document.documentElement.dataset.theme==='light'?'dark':'light');
-  /* 이스터에그: 밝기 버튼을 2초 안에 6번 연타하면 지오글 Earth로 */
-  const n=Date.now();_egT=_egT.filter(t=>n-t<2000);_egT.push(n);
-  if(_egT.length>=6){_egT=[];location.href='earth/';}
+  /* 이스터에그: 밝기 버튼을 탭 간격 0.6초 이내로 6번 연타하면 지오글 Earth로. 연타 중엔 화면이 번쩍이지 않게 첫 번째만 테마를 바꾼다 */
+  const n=Date.now();if(_egT.length&&n-_egT[_egT.length-1]>600)_egT=[];_egT.push(n);
+  if(_egT.length>=6){_egT=[];location.href='earth/';return;}
+  if(_egT.length===1)applyTheme(document.documentElement.dataset.theme==='light'?'dark':'light');
 }
 applyTheme(document.documentElement.dataset.theme||'dark'); /* 버튼 아이콘을 head 인라인 스크립트가 정한 테마와 동기화 */
 

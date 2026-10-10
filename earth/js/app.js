@@ -645,7 +645,13 @@ function applyTheme(m){document.documentElement.dataset.theme=m;store.set('theme
   $('#theme-toggle').innerHTML=m==='light'
     ?'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>'
     :'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.6M12 18.9v2.6M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M2.5 12h2.6M18.9 12h2.6M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/></svg>';}
-$('#theme-toggle').onclick=()=>applyTheme(document.documentElement.dataset.theme==='light'?'dark':'light');
+let _egT=[];
+$('#theme-toggle').onclick=()=>{
+  /* 이스터에그: 탭 간격 0.6초 이내로 6번 연타하면 지오글 홈으로. 연타 중엔 첫 번째만 테마를 바꿔 번쩍이지 않게 한다 */
+  const n=Date.now();if(_egT.length&&n-_egT[_egT.length-1]>600)_egT=[];_egT.push(n);
+  if(_egT.length>=6){_egT=[];location.href='/';return;}
+  if(_egT.length===1)applyTheme(document.documentElement.dataset.theme==='light'?'dark':'light');
+};
 applyTheme(document.documentElement.dataset.theme||'dark');
 S.len=store.get('len',10);if([5,10,20,0].indexOf(S.len)<0)S.len=10;
 window.addEventListener('hashchange',route);
