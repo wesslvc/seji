@@ -70,7 +70,13 @@ function applyTheme(mode){
     injectIcons(btn);
   }
 }
-function toggleTheme(){applyTheme(document.documentElement.dataset.theme==='light'?'dark':'light');}
+let _egT=[];
+function toggleTheme(){
+  applyTheme(document.documentElement.dataset.theme==='light'?'dark':'light');
+  /* 이스터에그: 밝기 버튼을 2초 안에 5번 연타하면 지오글 Earth로 */
+  const n=Date.now();_egT=_egT.filter(t=>n-t<2000);_egT.push(n);
+  if(_egT.length>=5){_egT=[];location.href='earth/';}
+}
 applyTheme(document.documentElement.dataset.theme||'dark'); /* 버튼 아이콘을 head 인라인 스크립트가 정한 테마와 동기화 */
 
 /* ── 정답 효과음 (Web Audio로 합성 — 외부 음원 파일 불필요) ── */
