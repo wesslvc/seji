@@ -4191,6 +4191,11 @@ function tqUpdateDots(){
 function tqAssign(leftIso,rightIso){
   for(const l in TQ.matches){ if(TQ.matches[l]===rightIso) delete TQ.matches[l]; }
   TQ.matches[leftIso]=rightIso;
+  /* 무역구조 중·하: 선을 맞게 이어 붙이는 순간 바로 초록으로 확정(제출 전) */
+  if(leftIso===rightIso&&TQ.mode!=='r'&&TQ.mode!=='e'){
+    const d=tqDiff(TQ.mode,TQ.filterKey);
+    if(d==='M'||d==='L'){ if(!TQ.lockedCorrect)TQ.lockedCorrect=new Set(); TQ.lockedCorrect.add(leftIso); }
+  }
 }
 function tqRefresh(){
   const lk=TQ.lockedCorrect||new Set();
