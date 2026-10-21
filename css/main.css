@@ -1183,10 +1183,6 @@ body.sq-pin #sq-box{max-height:56vh;max-height:56dvh}
 @media (min-width:760px){ .sq-pcard{width:168px} }
 
 /* 새 버전 알림 */
-#new-build{position:fixed;left:50%;bottom:1rem;transform:translateX(-50%);z-index:9500;display:none;align-items:center;gap:.6rem;max-width:92vw;padding:.6rem .7rem .6rem 1rem;border-radius:999px;background:var(--sf);border:1px solid var(--bd);box-shadow:0 6px 24px rgba(0,0,0,.28);font-size:.82rem;color:var(--tx)}
-#new-build.on{display:flex;animation:fadeUp .3s var(--ease)}
-#new-build button{border:none;border-radius:999px;padding:.4rem .9rem;background:var(--btn);color:#fff;font-family:inherit;font-size:.76rem;font-weight:700;cursor:pointer}
-#new-build button.x{background:transparent;color:var(--tx2);padding:.3rem .4rem;font-size:.92rem;font-weight:400}
 
 .sv-btn.del{background:transparent;border:1px solid var(--bd);color:var(--tx2)}
 .sv-btn.del:hover{border-color:var(--wr);color:var(--wr)}

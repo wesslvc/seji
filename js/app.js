@@ -143,27 +143,7 @@ const BUILD=(function(){
     return m?m[1]:'';
   }catch(e){return '';}
 })();
-let _buildNotified=false,_buildLast=0;
-async function checkNewBuild(){
-  if(!BUILD||_buildNotified)return;
-  const now=Date.now();
-  if(now-_buildLast<60000)return;      /* 1분에 한 번까지만 */
-  _buildLast=now;
-  try{
-    const r=await fetch('build.txt?t='+now,{cache:'no-store'});
-    if(!r.ok)return;
-    const v=(await r.text()).trim();
-    if(v&&v!==BUILD){
-      _buildNotified=true;
-      const el=document.getElementById('new-build');
-      if(el)el.classList.add('on');
-    }
-  }catch(e){}
-}
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkNewBuild();});
-window.addEventListener('focus',checkNewBuild);
-setInterval(checkNewBuild,10*60*1000);
-setTimeout(checkNewBuild,20000);
+/* 새 버전 알림 팝업은 없앴다 — 새로고침하면 어차피 최신이 뜬다 */
 
 const TAB_META={
   name:{label:'나라 이름',ic:'globe'},
