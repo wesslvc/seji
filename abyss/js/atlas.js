@@ -225,6 +225,11 @@ function abAtlasShow(iso){
     G.soc+='<h4 class="sec" id="at-pop">인구 구조'+abSecEm(null,abSrcOf(['urban','tfr']))+'</h4>';
     if(wdt.ur!=null||wdt.tfr!=null)
       G.soc+='<div class="grid g-2">'+['urban','tfr'].map(id=>abStatCell(id,iso)).join('')+'</div>';
+    /* 출생·사망·이동·난민 — 값이 있는 항목만 */
+    const popExtra=['cbr','cdr','nmr','migrant','refugeeOrigin','refugeeHost']
+      .filter(id=>{const m=abMetric(id);return m&&m.f(iso)!=null;});
+    if(popExtra.length)
+      G.soc+='<div class="grid g-3" style="margin-top:.7rem">'+popExtra.map(id=>abStatCell(id,iso)).join('')+'</div>';
     if(wdt.y0!=null&&wdt.y1!=null&&wdt.y2!=null)
       G.soc+=abBars([['유소년층(0~14세)',wdt.y0],['청장년층(15~64세)',wdt.y1],['노년층(65세 이상)',wdt.y2]],
                 ['var(--c3)','var(--c1)','var(--c8)']);
@@ -246,7 +251,10 @@ function abAtlasShow(iso){
     G.econ+='<h4 class="sec" id="at-ind">산업 구조'
       +abSecEm('GDP 대비',abSrcOf(['ind1']))+'</h4>'
       +abBars([['1차산업(농림수산업)',wdt.i1],['2차산업(광공업)',wdt.i2],['3차산업(서비스업)',wdt.i3]],
-              ['var(--c2)','var(--c8)','var(--c1)']);
+              ['var(--c2)','var(--c8)','var(--c1)'])
+    const indExtra=['manfShare','fuelExpShare'].filter(id=>{const m=abMetric(id);return m&&m.f(iso)!=null;});
+    if(indExtra.length)
+      G.econ+='<div class="grid g-2" style="margin-top:.7rem">'+indExtra.map(id=>abStatCell(id,iso)).join('')+'</div>';
   }
   /* 에너지 — 막대 목록 대신 원그래프 + 아이콘. 글자를 하나씩 읽지 않아도
      석탄·가스·원자력이 얼마씩인지 조각 모양과 아이콘만으로 짐작이 간다 */
@@ -311,7 +319,7 @@ function abAtlasShow(iso){
      단위가 다른 절대량이라 원그래프 대신 '규모와 위치'와 같은 값+순위 칸을 쓴다.
      커피·목화·곡물 수출입은 나는(파는) 나라가 적어 광물처럼 값 있는 나라만 */
   if(wdt&&(wdt.wh!=null||wdt.ri!=null||wdt.co!=null||wdt.ct!=null||wdt.sh!=null)){
-    const cropExtra=['coffee','cotton','wheatGExp','wheatGImp','riceGExp','riceGImp','cornGExp','cornGImp']
+    const cropExtra=['coffee','cotton','cassava','cocoa','tea','rubber','palmOil','sugarcane','olive','grape','dates','beef','pork','mutton','wheatGExp','wheatGImp','riceGExp','riceGImp','cornGExp','cornGImp']
       .filter(id=>{const m=abMetric(id);return m&&m.f(iso)!=null;});
     G.econ+='<h4 class="sec" id="at-crop">주요 농축산물'+abSecEm(null,abSrcOf(['wheat']))+'</h4><div class="grid g-3">'
       +['wheat','rice','corn','cattle','sheep','pig'].map(id=>abStatCell(id,iso)).join('')
@@ -325,7 +333,7 @@ function abAtlasShow(iso){
     const minIds=['iron_ore','gold','silver','copper','cobalt','chromium','manganese','bauxite','diamond','tin']
       .filter(id=>{const m=abMetric(id);return m&&m.f(iso)!=null;});
     if(minIds.length)
-      G.econ+='<h4 class="sec" id="at-min">주요 광물'+abSecEm('2025년 추정치',abSrcOf(['iron_ore']))+'</h4><div class="grid g-3">'
+      G.econ+='<h4 class="sec" id="at-min">주요 광물'+abSecEm('2023년',abSrcOf(['iron_ore']))+'</h4><div class="grid g-3">'
         +minIds.map(id=>abStatCell(id,iso)
           +(id==='diamond'?'<p class="ct-note src-note">'+abEsc(abMetric('diamond').src)+'</p>':'')).join('')
         +'</div>';

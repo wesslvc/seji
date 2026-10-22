@@ -156,29 +156,45 @@ const AB_METRICS=[
   const byPop=k=>i=>{const p=popOf(i),v=wd(i)[k];return (p&&v!=null)?p*v/100:null;};
   const byGdp=k=>i=>{const g=gdpOf(i),v=wd(i)[k];return (g&&v!=null)?g*v/100:null;};
   AB_METRICS.push(
-    {id:'urban',cat:'인구 구조',name:'도시 인구',unit:'명',src:'World Bank WDI',
+    {id:'urban',cat:'인구 구조',name:'도시 인구',unit:'명',src:'UN WUP 2025 · 2025년',
      f:byPop('ur'),note:'도시인구비율에 총인구를 곱한 어림값입니다.'},
-    {id:'tfr',cat:'인구 구조',name:'합계출산율',unit:'자녀수',src:'World Bank WDI',
+    {id:'tfr',cat:'인구 구조',name:'합계출산율',unit:'자녀수',src:'UN WPP 2024 · 2025년',
      f:i=>wd(i).tfr!=null?wd(i).tfr:null,
      note:'여성 한 명이 평생 낳을 것으로 기대되는 자녀 수입니다.'},
-    {id:'y0',cat:'인구 구조',name:'유소년 인구(0~14세)',unit:'명',src:'World Bank WDI',
+    {id:'y0',cat:'인구 구조',name:'유소년 인구(0~14세)',unit:'명',src:'UN WPP 2024 · 2025년',
      f:byPop('y0'),note:'0~14세 비율에 총인구를 곱한 어림값입니다.'},
-    {id:'y1',cat:'인구 구조',name:'생산연령 인구(15~64세)',unit:'명',src:'World Bank WDI',
+    {id:'y1',cat:'인구 구조',name:'생산연령 인구(15~64세)',unit:'명',src:'UN WPP 2024 · 2025년',
      f:byPop('y1'),note:'15~64세 비율에 총인구를 곱한 어림값입니다.'},
-    {id:'y2',cat:'인구 구조',name:'노년 인구(65세 이상)',unit:'명',src:'World Bank WDI',
+    {id:'y2',cat:'인구 구조',name:'노년 인구(65세 이상)',unit:'명',src:'UN WPP 2024 · 2025년',
      f:byPop('y2'),note:'65세 이상 비율에 총인구를 곱한 어림값입니다.'},
-    {id:'ind1',cat:'산업 구조',name:'1차산업 부가가치',unit:'$',src:'World Bank WDI',
+    {id:'ind1',cat:'산업 구조',name:'1차산업 부가가치',unit:'$',src:'World Bank WDI · 2022~2025년 최근값',
      f:byGdp('i1'),note:'GDP에 산업 비중을 곱한 어림값입니다.'},
-    {id:'ind2',cat:'산업 구조',name:'2차산업 부가가치',unit:'$',src:'World Bank WDI',
+    {id:'ind2',cat:'산업 구조',name:'2차산업 부가가치',unit:'$',src:'World Bank WDI · 2022~2025년 최근값',
      f:byGdp('i2'),note:'GDP에 산업 비중을 곱한 어림값입니다.'},
-    {id:'ind3',cat:'산업 구조',name:'3차산업 부가가치',unit:'$',src:'World Bank WDI',
-     f:byGdp('i3'),note:'GDP에 산업 비중을 곱한 어림값입니다.'}
+    {id:'ind3',cat:'산업 구조',name:'3차산업 부가가치',unit:'$',src:'World Bank WDI · 2022~2025년 최근값',
+     f:byGdp('i3'),note:'GDP에 산업 비중을 곱한 어림값입니다.'},
+    {id:'cbr',cat:'인구 구조',name:'조출생률',unit:'‰',src:'UN WPP 2024 · 2023년',
+     f:i=>wd(i).cbr!=null?wd(i).cbr:null,note:'인구 1,000명당 1년 출생아 수입니다.'},
+    {id:'cdr',cat:'인구 구조',name:'조사망률',unit:'‰',src:'UN WPP 2024 · 2023년',
+     f:i=>wd(i).cdr!=null?wd(i).cdr:null,note:'인구 1,000명당 1년 사망자 수입니다.'},
+    {id:'nmr',cat:'인구 구조',name:'순이동률',unit:'‰',src:'UN WPP 2024 · 2025년',
+     f:i=>wd(i).nmr!=null?wd(i).nmr:null,note:'인구 1,000명당 순이동(들어온 사람−나간 사람)입니다. 음수면 나가는 사람이 더 많습니다.'},
+    {id:'migrant',cat:'인구 구조',name:'국제 이주자(거주국 기준)',unit:'명',src:'UN DESA International Migrant Stock 2024',
+     f:i=>wd(i).mig!=null?wd(i).mig:null,note:'그 나라에 살고 있는 외국 출생(또는 외국 국적) 이주자 수입니다.'},
+    {id:'refugeeOrigin',cat:'인구 구조',name:'난민 발생(출신국 기준)',unit:'명',src:'UNHCR · 2024년',
+     f:i=>wd(i).rfo!=null?wd(i).rfo:null,note:'그 나라 출신으로 다른 나라에서 난민 지위를 가진 사람 수입니다.'},
+    {id:'refugeeHost',cat:'인구 구조',name:'난민 수용(수용국 기준)',unit:'명',src:'UNHCR · 2024년',
+     f:i=>wd(i).rfh!=null?wd(i).rfh:null,note:'그 나라가 받아들여 지내고 있는 난민 수입니다.'},
+    {id:'fuelExpShare',cat:'산업 구조',name:'수출 중 연료 비중',unit:'%',src:'World Bank WDI · 2022~2025년 최근값',
+     f:i=>wd(i).fuel!=null?wd(i).fuel:null,note:'상품 수출액 중 연료(석유·가스·석탄) 비중입니다.'},
+    {id:'manfShare',cat:'산업 구조',name:'GDP 중 제조업 비중',unit:'%',src:'World Bank WDI · 2022~2025년 최근값',
+     f:i=>wd(i).manf!=null?wd(i).manf:null,note:'GDP 대비 제조업 부가가치 비중입니다.'}
   );
   /* 발전원 — '무엇으로 전력을 만드는지'다. data.js의 에너지 구성(1차에너지
      소비 전체)과는 다른 항목이라 분류 이름도 갈라 둔다. */
   if(typeof EL_NAME!=='undefined')EL_NAME.forEach((nm,k)=>{
     AB_METRICS.push({id:'elec'+k,cat:'발전원',name:nm+' 발전 비중',unit:'%',
-      src:'IRENASTAT · 2023년 발전량 기준',
+      src:'Ember · IRENASTAT · 2024년 발전량 기준(일부 2023년)',
       f:i=>{const el=wd(i).el;if(!el)return null;
             const sum=el.reduce((a,b)=>a+b,0);if(!sum)return null;
             return (el[k]||0)/sum*100;}});
@@ -200,9 +216,9 @@ const AB_METRICS=[
      EIA로 받은 나라(130·125개국)만 EIA고 나머진 OWID를 안 지웠다 —
      그래서 소비 쪽 출처를 '혼합'이라고 적었다(world-data.js 머리말에
      정확한 나라 수·환산법 적어 뒀다) */
-  [['coal','석탄','cp','cc','Our World in Data(Energy Institute) · 1차에너지 환산','EIA International · 2024년(일부는 OWID)'],
-   ['oil','석유','op','oc','EIA International · TBPD→TWh 환산','EIA International · TBPD→TWh 환산'],
-   ['gas','천연가스','gp','gc','Our World in Data(Energy Institute) · 1차에너지 환산','EIA International · 2024년(일부는 OWID)']]
+  [['coal','석탄','cp','cc','Our World in Data(Energy Institute) · 2024년(없는 나라는 EIA)','Our World in Data(Energy Institute) · 2024년(없는 나라는 EIA)'],
+   ['oil','석유','op','oc','Our World in Data(Energy Institute) · 2024년(없는 나라는 EIA)','Our World in Data(Energy Institute) · 2024년(없는 나라는 EIA)'],
+   ['gas','천연가스','gp','gc','Our World in Data(Energy Institute) · 2024년(없는 나라는 EIA)','Our World in Data(Energy Institute) · 2024년(없는 나라는 EIA)']]
     .forEach(([key,nm,pk,ck,psrc,csrc])=>{
       AB_METRICS.push({id:key+'Prod',cat:'에너지 자원',name:nm+' 생산량',unit:'TWh',
         src:psrc,f:i=>{const v=wd(i)[pk];return v!=null?v:null;}});
@@ -237,36 +253,39 @@ const AB_METRICS=[
    ['corn','옥수수 생산량','co','만 톤'],['cattle','소 사육두수','ct','만 두'],
    ['sheep','양 사육두수','sh','만 두'],['pig','돼지 사육두수','pg','만 두']]
     .forEach(([id,nm,k,unit])=>{
-      AB_METRICS.push({id:id,cat:'농축산물',name:nm,unit:unit,src:'FAOSTAT',
+      AB_METRICS.push({id:id,cat:'농축산물',name:nm,unit:unit,src:'FAOSTAT · 2024년',
         f:i=>{const v=wd(i)[k];return v!=null?v:null;}});
     });
-  [['coffee','커피 생두 생산량','cof','만 톤'],['cotton','목화 생산량','ctn','만 톤']]
+  [['coffee','커피 생두 생산량','cof','만 톤'],['cotton','목화 생산량(씨앗 목화)','ctn','만 톤'],
+   ['cassava','카사바 생산량','cas','만 톤'],['cocoa','카카오 생산량','cca','만 톤'],['tea','차 생산량','tea','만 톤'],
+   ['rubber','천연고무 생산량','rub','만 톤'],['palmOil','팜유 생산량','pal','만 톤'],['sugarcane','사탕수수 생산량','suc','만 톤'],
+   ['olive','올리브 생산량','oli','만 톤'],['grape','포도 생산량','grp','만 톤'],['dates','대추야자 생산량','dat','만 톤'],
+   ['beef','소고기 생산량','bef','만 톤'],['pork','돼지고기 생산량','prk','만 톤'],['mutton','양고기 생산량','mtn','만 톤']]
     .forEach(([id,nm,k,unit])=>{
-      AB_METRICS.push({id:id,cat:'농축산물',name:nm,unit:unit,src:'USDA FAS PSD Online',
+      AB_METRICS.push({id:id,cat:'농축산물',name:nm,unit:unit,src:k==='pal'?'FAOSTAT · 2023년':'FAOSTAT · 2024년',
         f:i=>{const v=wd(i)[k];return v!=null?v:null;}});
     });
-  /* 곡물 수출입 — 생산량(wh/ri/co)은 FAOSTAT을 그대로 두고 수출입만
-     USDA FAS PSD Online에서 얹었다. 나라마다 '마켓이어'가 시작하는 달이
-     달라 보고 시점이 조금씩 다르다 */
+  /* 곡물 수출입 — FAOSTAT 무역 2024년. 쌀은 도정 환산량이다. 예전엔 USDA 마켓이어
+     값이었는데 생산량(FAOSTAT)과 출처가 갈려 통일했다. EU 역내 거래가 들어 있다 */
   [['wheat','밀','whx','whm'],['rice','쌀','rix','rim'],['corn','옥수수','cox','com']]
     .forEach(([key,nm,xk,mk])=>{
       AB_METRICS.push({id:key+'GExp',cat:'농축산물',name:nm+' 수출량',unit:'만 톤',
-        src:'USDA FAS PSD Online',f:i=>{const v=wd(i)[xk];return v!=null?v:null;}});
+        src:'FAOSTAT 무역 · 2024년',f:i=>{const v=wd(i)[xk];return v!=null?v:null;}});
       AB_METRICS.push({id:key+'GImp',cat:'농축산물',name:nm+' 수입량',unit:'만 톤',
-        src:'USDA FAS PSD Online',f:i=>{const v=wd(i)[mk];return v!=null?v:null;}});
+        src:'FAOSTAT 무역 · 2024년',f:i=>{const v=wd(i)[mk];return v!=null?v:null;}});
     });
-  /* 주요 광물 — USGS Mineral Commodity Summaries 2026, 2025년 추정치(2025e).
-     다이아몬드만 출처가 다르다(왜 다른지는 world-data.js 머리말 참고) */
-  [['iron_ore','철광석 생산량','ior','만 톤','USGS Mineral Commodity Summaries 2026'],
-   ['gold','금 생산량','gld','톤','USGS Mineral Commodity Summaries 2026'],
-   ['silver','은 생산량','slv','톤','USGS Mineral Commodity Summaries 2026'],
-   ['copper','구리 생산량','cop','만 톤','USGS Mineral Commodity Summaries 2026'],
-   ['cobalt','코발트 생산량','cbt','톤','USGS Mineral Commodity Summaries 2026'],
-   ['chromium','크롬 생산량','chr','만 톤','USGS Mineral Commodity Summaries 2026'],
-   ['manganese','망간 생산량','mng','만 톤','USGS Mineral Commodity Summaries 2026'],
-   ['bauxite','보크사이트 생산량','bux','만 톤','USGS Mineral Commodity Summaries 2026'],
+  /* 주요 광물 — World Mining Data 2023년. 다이아몬드만 출처가 다르다(Kimberley Process,
+     왜 다른지는 world-data.js 머리말 참고) */
+  [['iron_ore','철광석 생산량(철 함유량)','ior','만 톤','World Mining Data · 2023년'],
+   ['gold','금 생산량','gld','톤','World Mining Data · 2023년'],
+   ['silver','은 생산량','slv','톤','World Mining Data · 2023년'],
+   ['copper','구리 생산량','cop','만 톤','World Mining Data · 2023년'],
+   ['cobalt','코발트 생산량','cbt','톤','World Mining Data · 2023년'],
+   ['chromium','크롬 생산량(Cr2O3)','chr','만 톤','World Mining Data · 2023년'],
+   ['manganese','망간 생산량','mng','만 톤','World Mining Data · 2023년'],
+   ['bauxite','보크사이트 생산량','bux','만 톤','World Mining Data · 2023년'],
    ['diamond','다이아몬드 원석 생산량','dmd','캐럿','Kimberley Process Statistics · 2025년'],
-   ['tin','주석 생산량','tin','톤','USGS Mineral Commodity Summaries 2026']]
+   ['tin','주석 생산량','tin','톤','World Mining Data · 2023년']]
     .forEach(([id,nm,k,unit,src])=>{
       AB_METRICS.push({id:id,cat:'광물',name:nm,unit:unit,src:src,
         f:i=>{const v=wd(i)[k];return v!=null?v:null;}});

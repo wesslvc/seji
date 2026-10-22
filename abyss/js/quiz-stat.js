@@ -33,7 +33,8 @@ const AB_ST_MAP={rel_chr:'rel0',rel_isl:'rel1',rel_hin:'rel3',rel_bud:'rel2',
   enr_oil_p:'oilProd',enr_oil_x:'oilExp',enr_oil_m:'oilImp',enr_coa_p:'coalProd',enr_coa_x:'coalExp',enr_coa_m:'coalImp',
   enr_gas_p:'gasProd',enr_gas_x:'gasExp',enr_gas_m:'gasImp',
   min_iron:'iron_ore',min_gold:'gold',min_silver:'silver',min_copper:'copper',min_cobalt:'cobalt',
-  min_manganese:'manganese',min_chromium:'chromium',min_bauxite:'bauxite',min_diamond:'diamond',min_tin:'tin'};
+  min_manganese:'manganese',min_chromium:'chromium',min_bauxite:'bauxite',min_diamond:'diamond',min_tin:'tin',
+  crp_cof:'coffee',crp_ctn:'cotton',crp_cas:'cassava',crp_cca:'cocoa',crp_tea:'tea',crp_rub:'rubber',crp_pal:'palmOil',crp_suc:'sugarcane',crp_oli:'olive',crp_grp:'grape',crp_dat:'dates',mea_bef:'beef',mea_prk:'pork',mea_mtn:'mutton'};
 let _abStPool=null;
 function abStatPool(){
   if(_abStPool)return _abStPool;
