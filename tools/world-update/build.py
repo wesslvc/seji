@@ -6,7 +6,7 @@
     un/WPP2024_*.csv.gz · un/wup/WUP2025-F15-*.xlsx · un/undesa_pd_2024_ims_stock_by_sex_and_destination.xlsx
     wb/*.json · unhcr/unhcr_2024.json · owid/owid-energy-data.csv
     other/ember_yearly_full_release_long_format.csv · irena/*.csv · wmd/6.4_by_minerals.xlsx
-    ei/ei.xlsx (Energy Institute Statistical Review 2025판 전체 데이터) · wto/WtoData.csv · unsd/Download-GDPcurrent-USD-countries.xlsx
+    iea/iea.xlsx (IEA World Energy Balances Highlights 2026판) · ei/ei.xlsx (Energy Institute Statistical Review 2025판 전체 데이터) · wto/WtoData.csv · unsd/Download-GDPcurrent-USD-countries.xlsx
 덮어쓰는 항목은 아래 각 단계에 연도와 출처를 적어 두었다. 0·결측은 키를 만들지 않는다(world-data.js 머리말 규칙).
 """
 import csv,gzip,io,json,os,re,sys,zipfile
@@ -140,7 +140,7 @@ for k,v in cn.items():done(k,v,f'Energy Institute 2025판 2024년 (+이전 값 �
 for k in('cx','cm','gx','gm'):
     pass
 rows=list(EI['Coal - Trade movements'].iter_rows(values_only=True))
-hi=next(i for i,r in enumerate(rows) if r and r[0]=='Exajoules');yc=[j for j,x in enumerate(rows[hi]) if x==2024][0];sec=None;ct={'cx':0,'cm':0}
+hi=next(i for i,r in enumerate(rows) if r and r[0]=='Exajoules');yc=[j for j,x in enumerate(rows[hi]) if x==2024][0];sec=None;ct={'cx':0,'cm':0};EI_COAL={'cx':set(),'cm':set()}
 for r in rows[hi+1:]:
     if not r[0]:continue
     t=str(r[0]).strip()
@@ -151,8 +151,27 @@ for r in rows[hi+1:]:
         if i and i in W:
             k='cm' if sec=='Imports' else 'cx'
             W[i].pop(k,None)
-            if put(k,i,r[yc]*EJ,1):ct[k]+=1
+            if put(k,i,r[yc]*EJ,1):ct[k]+=1;EI_COAL[k].add(i)
 done('cx',ct['cx'],'Energy Institute 석탄 무역 2024(EI가 나라별로 주는 나라만)');done('cm',ct['cm'],'Energy Institute 석탄 무역 2024')
+# IEA World Energy Balances Highlights 2026판 2024년 : 석탄 수출입 — EI가 나라별로 주지 않는 나라만 채운다(PJ → TWh = ÷3.6)
+IEA_NAME={"People's Republic of China":'cn','Korea':'kr','Republic of Turkiye':'tr','Viet Nam':'vn','Czech Republic':'cz','Slovak Republic':'sk'}
+IEA_SKIP={'OECD Total','Non-OECD Total','Africa','Non-OECD Americas','Non-OECD Asia (including China)','Non-OECD Europe and Eurasia','Middle East','IEA Total','IEA and Accession/Association countries','World'}
+ie=openpyxl.load_workbook(P('iea','iea.xlsx'),read_only=True,data_only=True)['TimeSeries_1971-2025']
+irows=list(ie.iter_rows(values_only=True));yi=[j for j,h in enumerate(irows[1]) if str(h)=='2024'][0]
+ci={'cx':0,'cm':0}
+for r in irows[2:]:
+    if not r[0] or r[0] in IEA_SKIP or r[1]!='Coal, peat and oil shale' or r[2] not in('Imports (PJ)','Exports (PJ)'):continue
+    i=IEA_NAME.get(r[0])
+    if i is None:
+        try:i=pycountry.countries.lookup(r[0]).alpha_2.lower()
+        except LookupError:print('IEA 이름 매칭 실패(건너뜀):',r[0]);continue
+    v=r[yi]
+    if not isinstance(v,(int,float)) or i not in W:continue
+    k='cm' if r[2].startswith('Imports') else 'cx'
+    if i in EI_COAL.get(k,set()):continue          # EI가 나라별로 준 나라는 EI 값을 쓴다
+    W[i].pop(k,None)
+    if put(k,i,abs(v)/3.6,1):ci[k]+=1
+done('cx',ci['cx'],'IEA World Energy Balances Highlights 2026판 2024년 (EI에 없는 나라)');done('cm',ci['cm'],'IEA 2026판 2024년 (EI에 없는 나라)')
 def gas_matrix(name):
     rows=list(EI[name].iter_rows(values_only=True))
     hi=next(i for i,r in enumerate(rows) if r and r[0] and str(r[0]).strip().startswith(('To','Billion cubic metres To')) and 'Total imports' in [str(x).strip() for x in r if x])

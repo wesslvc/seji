@@ -321,6 +321,17 @@ function abAtlasShow(iso){
   if(trdIds.length)
     G.econ+='<h4 class="sec" id="at-trdv">상품 무역'+abSecEm('2024년',abSrcOf(['tradeExp']))+'</h4><div class="grid g-3">'
       +trdIds.map(id=>abStatCell(id,iso)).join('')+'</div>';
+  /* 경제 블록 — 이 나라가 속한 블록과 그 블록의 규모·역내 무역 비중 */
+  const blocs=(typeof BLOC_BY_ISO!=='undefined'&&BLOC_BY_ISO[iso])||[];
+  if(blocs.length)
+    G.econ+='<h4 class="sec" id="at-bloc">경제 블록'+abSecEm(null,'회원국은 각 기구 공식 목록 · 역내 무역은 UNCTADstat 2024년')+'</h4><div class="grid g-2">'
+      +blocs.map(b=>{
+        const s=abBlocSum(b);
+        return '<div class="stat"><div class="k">'+abEsc(b.name)+'</div>'
+          +'<div class="v">'+(b.intra?b.intra.share.toFixed(1)+'%':'—')+'</div>'
+          +'<div class="r">역내 무역 비중'+(b.intra?'':' · 자료 없음')+'</div>'
+          +'<div class="r muted">회원국 '+s.n+'개국 · 인구 '+abEsc(abFmt(s.pop,'명'))+(b.note?' · '+abEsc(b.note):'')+'</div></div>';
+      }).join('')+'</div>';
   /* 주요 농축산물 — 곡물 생산량과 가축 사육두수. 구성비가 아니라 저마다
      단위가 다른 절대량이라 원그래프 대신 '규모와 위치'와 같은 값+순위 칸을 쓴다.
      커피·목화·곡물 수출입은 나는(파는) 나라가 적어 광물처럼 값 있는 나라만 */

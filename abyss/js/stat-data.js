@@ -100,7 +100,7 @@ const STAT_SETS=[
 {id:'enr_coa_x',cat:'에너지',name:'석탄 수출량',unit:'TWh',src:'Energy Institute Statistical Review 2025 · 2024년',
  top:[['id',2976.8],['au',2519.5],['ru',1336.8],['us',734.3],['mn',629.7]]},
 {id:'enr_coa_m',cat:'에너지',name:'석탄 수입량',unit:'TWh',src:'Energy Institute Statistical Review 2025 · 2024년',
- top:[['cn',3226.8],['in',1472],['jp',1208.6],['kr',853.9],['tw',395.5]]},
+ top:[['cn',3226.8],['in',1472],['jp',1208.6],['kr',853.9],['vn',404.7]]},
 
 {id:'enr_gas_p',cat:'에너지',name:'천연가스 생산량',unit:'TWh',src:'Energy Institute Statistical Review 2025 · 2024년(EI에 따로 없는 나라는 이전 값)',
  top:[['us',10330.1],['ru',6298.7],['ir',2629.2],['cn',2483.9],['ca',1941.6]]},
