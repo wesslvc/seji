@@ -11,7 +11,9 @@
   set('m-clim',(typeof CLIMATE!=='undefined'?CLIMATE.length:0)+'개 관측소');
   set('m-border',Object.keys(BORDERS).filter(i=>BORDERS[i].length>=4&&DICT_DATA[i]).length+'개 나라');
 
+  set('m-cont','6개 대륙');
   if(typeof abAtlasInit==='function')abAtlasInit();
+  if(typeof abContInit==='function')abContInit();
   if(typeof abRanksInit==='function')abRanksInit();
   if(typeof abStatInit==='function')abStatInit();
   if(typeof abBorderInit==='function')abBorderInit();

@@ -695,3 +695,12 @@ body{text-rendering:optimizeLegibility;word-break:keep-all}
 .st-ox-res p{margin:.9rem 0 .8rem;font-size:var(--fs-md);line-height:1.7}
 .st-ox-res p.ok{color:var(--okt,#2e9e6b)}.st-ox-res p.bad{color:var(--wr)}
 .st-ox-res i{font-style:normal;color:var(--tx2);font-size:var(--fs-sm)}
+
+/* 대륙 통계 */
+.ct-tb{width:100%;border-collapse:collapse;font-size:var(--fs-sm)}
+.ct-tb th,.ct-tb td{padding:.38rem .5rem;border-bottom:1px solid var(--hair);text-align:right}
+.ct-tb th:first-child,.ct-tb td:first-child{text-align:left;color:var(--tx2)}
+.ct-tb th{color:var(--tx3);font-weight:400;font-size:var(--fs-xs)}
+.ct-sub{margin:.7rem 0 .35rem;color:var(--tx2);font-size:var(--fs-sm)}
+.sec-em{margin-left:.5rem;color:var(--tx3);font-size:var(--fs-xs);font-weight:400}
+#s-cont .field select{width:100%;padding:.6rem .7rem}

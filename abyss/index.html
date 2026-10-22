@@ -31,7 +31,7 @@
   document.documentElement.dataset.theme=m;}catch(e){
   document.documentElement.dataset.theme='dark';}})();</script>
 <link rel="stylesheet" href="css/abyss.css?v=56">
-<link rel="stylesheet" href="css/screens.css?v=63">
+<link rel="stylesheet" href="css/screens.css?v=64">
 <link rel="stylesheet" href="css/tokens.css?v=28">
 </head>
 <body>
@@ -43,6 +43,7 @@
     <a class="logo" href="#/">Geogl3 <span>Abyss</span></a>
     <nav id="nav">
       <a href="#/atlas">국가 아틀라스</a>
+      <a href="#/cont">대륙 통계</a>
       <a href="#/ranks">순위 도감</a>
       <a href="#/stat">통계 테스트</a>
       <a href="#/border">접경국 하드코어</a>
@@ -105,6 +106,16 @@
       <div id="atlas-list" class="pick-grid"></div>
     </div>
     <div id="atlas-view" hidden></div>
+  </section>
+
+  <!-- ══════════ 대륙 통계 ══════════ -->
+  <section class="screen" id="s-cont">
+    <div class="head">
+      <h2>대륙 통계</h2>
+      <p>나라 값을 평균 낸 것이 아니라, 원천이 대륙 단위로 내놓은 합계를 그대로 보여 줍니다. 대륙은 UN 지리 지역(앵글로아메리카=북부 아메리카)입니다.</p>
+    </div>
+    <div class="chips" id="cont-tabs"></div>
+    <div id="cont-view"></div>
   </section>
 
   <!-- ══════════ 순위 도감 ══════════ -->
@@ -176,10 +187,12 @@
 <script src="js/stat-data.js?v=56f"></script>
 <script src="js/climate-elev.js?v=5"></script>
 <script src="js/derive.js?v=69"></script>
-<script src="js/shell.js?v=57"></script>
+<script src="js/shell.js?v=58"></script>
 <script src="js/trade-icons.js?v=56"></script>
 <script src="js/bloc-data.js?v=1"></script>
 <script src="js/atlas.js?v=66"></script>
+<script src="js/continent-data.js?v=1"></script>
+<script src="js/continent.js?v=1"></script>
 <script src="js/climate-card.js?v=5"></script>
 <script src="js/clim-screen.js?v=2"></script>
 <script src="js/ranks.js?v=56"></script>
@@ -188,8 +201,8 @@
 <script src="js/quiz-border.js?v=56"></script>
 <script src="js/codex.js?v=56"></script>
 <script src="js/review.js?v=56b"></script>
-<script src="js/home.js?v=57"></script>
-<script src="js/boot.js?v=57b"></script>
+<script src="js/home.js?v=58"></script>
+<script src="js/boot.js?v=57c"></script>
 <script src="js/chipgrid.js?v=2"></script>
 <!-- 로그인 — 본편과 같은 계정. 오답·즐겨찾기만 계정에 둔다 -->
 <script type="module" src="js/account.js?v=56"></script>

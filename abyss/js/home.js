@@ -11,6 +11,8 @@ const AB_MODES=[
    ds:'고지도부터 주빙하지형까지 — 대단원으로 묶고, 정의는 표로, 위치는 그림으로', meta:'m-codex'},
   {go:'#/atlas', ic:'dict',  mc:'#d3bb92', tt:'국가 아틀라스',
    ds:'나라 하나의 원자료 전부 — 규모·위치·기후·종교·무역·에너지·하천·접경', meta:'m-atlas'},
+  {go:'#/cont',  ic:'globe', mc:'#9fb88f', tt:'대륙 통계',
+   ds:'평균이 아니라 원천의 대륙 합계 — 인구·도시·이주·식량·전력·에너지', meta:'m-cont'},
   {go:'#/ranks', ic:'chart', mc:'#8aa6cf', tt:'순위 도감',
    ds:'원자료로 낼 수 있는 모든 항목의 전체 순위', meta:'m-ranks'},
   {go:'#/stat',  ic:'trade', mc:'#78b2ce', tt:'통계 순위 테스트',

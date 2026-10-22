@@ -5,6 +5,7 @@
 const AB_SCREENS={
   '/':      {el:'s-home',   depth:0,     label:'표층'},
   '/atlas': {el:'s-atlas',  depth:0.18,  label:'대륙붕'},
+  '/cont':  {el:'s-cont',   depth:0.24,  label:'대륙사면'},
   '/ranks': {el:'s-ranks',  depth:0.38,  label:'점심층'},
   '/stat':  {el:'s-stat',   depth:0.58,  label:'심해층'},
   '/border':{el:'s-border', depth:0.78,  label:'심연층'},
