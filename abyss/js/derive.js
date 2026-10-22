@@ -188,7 +188,21 @@ const AB_METRICS=[
     {id:'fuelExpShare',cat:'산업 구조',name:'수출 중 연료 비중',unit:'%',src:'World Bank WDI · 2022~2025년 최근값',
      f:i=>wd(i).fuel!=null?wd(i).fuel:null,note:'상품 수출액 중 연료(석유·가스·석탄) 비중입니다.'},
     {id:'manfShare',cat:'산업 구조',name:'GDP 중 제조업 비중',unit:'%',src:'World Bank WDI · 2022~2025년 최근값',
-     f:i=>wd(i).manf!=null?wd(i).manf:null,note:'GDP 대비 제조업 부가가치 비중입니다.'}
+     f:i=>wd(i).manf!=null?wd(i).manf:null,note:'GDP 대비 제조업 부가가치 비중입니다.'},
+    {id:'mva',cat:'산업 구조',name:'제조업 부가가치',unit:'억 달러',src:'UN 통계국 국민계정 · 2024년(현재 가격)',
+     f:i=>wd(i).mva!=null?wd(i).mva:null,note:'ISIC D(제조업) 부가가치, 현재 가격 달러 기준입니다.'},
+    {id:'tradeExp',cat:'무역',name:'상품 수출액',unit:'억 달러',src:'WTO · 2024년',
+     f:i=>wd(i).tx!=null?wd(i).tx:null},
+    {id:'tradeImp',cat:'무역',name:'상품 수입액',unit:'억 달러',src:'WTO · 2024년',
+     f:i=>wd(i).tm!=null?wd(i).tm:null},
+    {id:'tradeExpAgri',cat:'무역',name:'수출 중 농산물 비중',unit:'%',src:'WTO · 2024년',
+     f:i=>wd(i).txa!=null?wd(i).txa:null},
+    {id:'tradeExpFuel',cat:'무역',name:'수출 중 연료·광산물 비중',unit:'%',src:'WTO · 2024년',
+     f:i=>wd(i).txf!=null?wd(i).txf:null},
+    {id:'tradeImpAgri',cat:'무역',name:'수입 중 농산물 비중',unit:'%',src:'WTO · 2024년',
+     f:i=>wd(i).tma!=null?wd(i).tma:null},
+    {id:'tradeImpFuel',cat:'무역',name:'수입 중 연료·광산물 비중',unit:'%',src:'WTO · 2024년',
+     f:i=>wd(i).tmf!=null?wd(i).tmf:null}
   );
   /* 발전원 — '무엇으로 전력을 만드는지'다. data.js의 에너지 구성(1차에너지
      소비 전체)과는 다른 항목이라 분류 이름도 갈라 둔다. */
@@ -216,9 +230,9 @@ const AB_METRICS=[
      EIA로 받은 나라(130·125개국)만 EIA고 나머진 OWID를 안 지웠다 —
      그래서 소비 쪽 출처를 '혼합'이라고 적었다(world-data.js 머리말에
      정확한 나라 수·환산법 적어 뒀다) */
-  [['coal','석탄','cp','cc','Our World in Data(Energy Institute) · 2024년(없는 나라는 EIA)','Our World in Data(Energy Institute) · 2024년(없는 나라는 EIA)'],
-   ['oil','석유','op','oc','Our World in Data(Energy Institute) · 2024년(없는 나라는 EIA)','Our World in Data(Energy Institute) · 2024년(없는 나라는 EIA)'],
-   ['gas','천연가스','gp','gc','Our World in Data(Energy Institute) · 2024년(없는 나라는 EIA)','Our World in Data(Energy Institute) · 2024년(없는 나라는 EIA)']]
+  [['coal','석탄','cp','cc','Energy Institute Statistical Review 2025 · 2024년(EI에 따로 없는 나라는 이전 값)','Energy Institute Statistical Review 2025 · 2024년(EI에 따로 없는 나라는 이전 값)'],
+   ['oil','석유','op','oc','Energy Institute Statistical Review 2025 · 2024년(EI에 따로 없는 나라는 이전 값)','Energy Institute Statistical Review 2025 · 2024년(EI에 따로 없는 나라는 이전 값)'],
+   ['gas','천연가스','gp','gc','Energy Institute Statistical Review 2025 · 2024년(EI에 따로 없는 나라는 이전 값)','Energy Institute Statistical Review 2025 · 2024년(EI에 따로 없는 나라는 이전 값)']]
     .forEach(([key,nm,pk,ck,psrc,csrc])=>{
       AB_METRICS.push({id:key+'Prod',cat:'에너지 자원',name:nm+' 생산량',unit:'TWh',
         src:psrc,f:i=>{const v=wd(i)[pk];return v!=null?v:null;}});
@@ -235,15 +249,15 @@ const AB_METRICS=[
   [['coal','석탄','cx','cm'],['gas','천연가스','gx','gm']]
     .forEach(([key,nm,xk,mk])=>{
       AB_METRICS.push({id:key+'Exp',cat:'에너지 자원',name:nm+' 수출량',unit:'TWh',
-        src:'EIA International · 2024년',f:i=>{const v=wd(i)[xk];return v!=null?v:null;}});
+        src:'Energy Institute Statistical Review 2025 · 2024년'+(xk[0]==='g'?'(EI가 나라별로 주는 나라만)':''),f:i=>{const v=wd(i)[xk];return v!=null?v:null;}});
       AB_METRICS.push({id:key+'Imp',cat:'에너지 자원',name:nm+' 수입량',unit:'TWh',
-        src:'EIA International · 2024년',f:i=>{const v=wd(i)[mk];return v!=null?v:null;}});
+        src:'Energy Institute Statistical Review 2025 · 2024년'+(mk[0]==='g'?'(EI가 나라별로 주는 나라만)':''),f:i=>{const v=wd(i)[mk];return v!=null?v:null;}});
     });
   /* 석유 수출입 — 원유·리스 콘덴세이트만(정제유 제외). CEPII BACI + EI Statistical Review, 2024년 */
   [['oilExp','석유 수출량(원유)','ox'],['oilImp','석유 수입량(원유)','om']].forEach(([id,nm,k])=>{
     AB_METRICS.push({id:id,cat:'에너지 자원',name:nm,unit:'TWh',
-      src:'CEPII BACI · Energy Institute Statistical Review 2026 · 원유 수출입 · 2024년 · 톤→TWh 환산',
-      note:'2024년 원유 무역량(CEPII BACI, 주요국은 Energy Institute 값). 제재를 받는 이란은 BACI에 잡히지 않아 OPEC 연례통계 값(1,566천 b/d)을 넣었습니다. 석유 제품(정제유)은 들어 있지 않습니다.',
+      src:'CEPII BACI · Energy Institute Statistical Review 2025 · 원유 수출입 · 2024년 · 톤→TWh 환산',
+      note:'2024년 원유 무역량(CEPII BACI 바탕, Energy Institute 2025판이 나라별로 주는 나라는 그 값). 제재를 받는 이란은 BACI에 잡히지 않아 OPEC 연례통계 값(1,566천 b/d)을 넣었습니다. 석유 제품(정제유)은 들어 있지 않습니다.',
       f:i=>{const v=wd(i)[k];return v!=null?v:null;}});
   });
   AB_METRICS.push({id:'coalRes',cat:'에너지 자원',name:'석탄 매장량',unit:'만 톤',

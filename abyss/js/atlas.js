@@ -252,9 +252,9 @@ function abAtlasShow(iso){
       +abSecEm('GDP 대비',abSrcOf(['ind1']))+'</h4>'
       +abBars([['1차산업(농림수산업)',wdt.i1],['2차산업(광공업)',wdt.i2],['3차산업(서비스업)',wdt.i3]],
               ['var(--c2)','var(--c8)','var(--c1)'])
-    const indExtra=['manfShare','fuelExpShare'].filter(id=>{const m=abMetric(id);return m&&m.f(iso)!=null;});
+    const indExtra=['manfShare','mva','fuelExpShare'].filter(id=>{const m=abMetric(id);return m&&m.f(iso)!=null;});
     if(indExtra.length)
-      G.econ+='<div class="grid g-2" style="margin-top:.7rem">'+indExtra.map(id=>abStatCell(id,iso)).join('')+'</div>';
+      G.econ+='<div class="grid g-3" style="margin-top:.7rem">'+indExtra.map(id=>abStatCell(id,iso)).join('')+'</div>';
   }
   /* 에너지 — 막대 목록 대신 원그래프 + 아이콘. 글자를 하나씩 읽지 않아도
      석탄·가스·원자력이 얼마씩인지 조각 모양과 아이콘만으로 짐작이 간다 */
@@ -299,7 +299,7 @@ function abAtlasShow(iso){
      항목별로 도감(항목 도감→에너지 자원)에서 확인할 수 있게 뒀다 */
   if(wdt&&(wdt.cp!=null||wdt.op!=null||wdt.gp!=null||wdt.cc!=null||wdt.oc!=null||wdt.gc!=null)){
     G.econ+='<h4 class="sec" id="at-eres">에너지 자원'
-      +abSecEm('1차에너지 환산 · TWh · OWID·EIA','도감에서 항목별 출처 확인')+'</h4><div class="grid g-3">'
+      +abSecEm('1차에너지 환산 · TWh · Energy Institute·EIA','도감에서 항목별 출처 확인')+'</h4><div class="grid g-3">'
       +['coalProd','coalCons','coalSelf','oilProd','oilCons','oilSelf','gasProd','gasCons','gasSelf',
         'coalExp','coalImp','gasExp','gasImp','oilExp','oilImp','coalRes']
         .map(id=>abStatCell(id,iso)).join('')
@@ -315,6 +315,12 @@ function abAtlasShow(iso){
       +abIconPie(a.map(r=>({label:HS2_KO[r[0]]||r[0],v:r[1],icon:trIconOf(r[0]),color:TR_ICON_COLOR[trIconOf(r[0])]})))
       +'</div>';
   }
+  /* 상품 무역 — WTO 2024년 수출입액과 품목군 비중 */
+  const trdIds=['tradeExp','tradeImp','tradeExpAgri','tradeExpFuel','tradeImpAgri','tradeImpFuel']
+    .filter(id=>{const m=abMetric(id);return m&&m.f(iso)!=null;});
+  if(trdIds.length)
+    G.econ+='<h4 class="sec" id="at-trdv">상품 무역'+abSecEm('2024년',abSrcOf(['tradeExp']))+'</h4><div class="grid g-3">'
+      +trdIds.map(id=>abStatCell(id,iso)).join('')+'</div>';
   /* 주요 농축산물 — 곡물 생산량과 가축 사육두수. 구성비가 아니라 저마다
      단위가 다른 절대량이라 원그래프 대신 '규모와 위치'와 같은 값+순위 칸을 쓴다.
      커피·목화·곡물 수출입은 나는(파는) 나라가 적어 광물처럼 값 있는 나라만 */
