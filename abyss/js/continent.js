@@ -15,13 +15,45 @@ const fmtN=(v,d=1)=>v==null?'—':Number(v).toLocaleString('ko-KR',{maximumFract
 const fmtUSD=v=>v==null?'—':v>=10000?fmtN(v/10000,2)+'조 달러':fmtN(v,0)+'억 달러';
 /* 칸 안에서는 숫자와 단위를 나눠 쓴다(긴 값이 잘리지 않게) */
 const usdP=v=>v==null?['—','']:v>=10000?[fmtN(v/10000,2),'조 달러']:[fmtN(v,0),'억 달러'];
-const cnCell=(k,v,u,rank,sub)=>'<div class="stat"><div class="k">'+abEsc(k)+'</div><div class="v">'+v
+const cnCell=(k,v,u,rank,sub)=>'<div class="stat"><div class="k">'+cnKIc(k)+abEsc(k)+'</div><div class="v">'+v
   +(u?'<small class="cn-u">'+abEsc(u)+'</small>':'')+'</div>'
   +(rank?'<div class="r">'+abEsc(rank)+'</div>':'')+(sub?'<div class="r muted">'+abEsc(sub)+'</div>':'')+'</div>';
 const cnSec=(id,t,note,src,body)=>'<h4 class="sec" id="'+id+'">'+t+abSecEm(note,src)+'</h4>'+body;
+/* 아이콘 — 지오글 아이콘과 같은 24 격자·선 그림. 없는 것은 수출 품목 아이콘(TR_ICON)에서 빌린다 */
+const CN_IC={
+  people:'<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 14.2c3 .2 5.5 2.6 5.5 5.8"/>',
+  city:'<path d="M3 21h18"/><rect x="4" y="9" width="6" height="12"/><rect x="10" y="4" width="7" height="17"/><path d="M17 12h3v9"/><path d="M12.5 8h2M12.5 11.5h2M12.5 15h2M6.5 12.5h1M6.5 16h1"/>',
+  chart:'<path d="M4 20V11M10 20V5M16 20v-7M21 20H3"/>',
+  up:'<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+  map:'<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>',
+  move:'<path d="M3 8h13M13 4l3.5 4L13 12"/><path d="M21 16H8M11 20l-3.5-4L11 12"/>',
+  bolt:'<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>',
+  coin:'<circle cx="12" cy="12" r="8.5"/><path d="M14.8 9.2c-.6-.9-1.6-1.4-2.8-1.4-1.6 0-2.8.9-2.8 2.1 0 2.9 5.8 1.4 5.8 4.3 0 1.2-1.3 2.1-3 2.1-1.3 0-2.4-.6-3-1.5M12 6v1.8M12 16.3V18"/>',
+  flag:'<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
+  heart:'<path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.4 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z"/>',
+  baby:'<circle cx="12" cy="8" r="4"/><path d="M5 21c.5-4 3.4-7 7-7s6.5 3 7 7"/><path d="M10.6 7.6h.1M13.3 7.6h.1"/>',
+  grid:'<rect x="3.5" y="3.5" width="17" height="17" rx="1.5"/><path d="M3.5 9.2h17M3.5 14.8h17M9.2 3.5v17M14.8 3.5v17"/>',
+  globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 2.5 15 0 18M12 3c-2.5 2.5-2.5 15 0 18"/>',
+  tent:'<path d="M3 20L12 4l9 16z"/><path d="M12 4v16M9 20l3-5 3 5"/>'
+};
+function cnIc(k){
+  const d=CN_IC[k]||(typeof TR_ICON!=='undefined'&&TR_ICON[k]);if(!d)return '';
+  return '<span class="cn-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+d+'</svg></span>';
+}
+/* 칸 이름으로 고르는 아이콘 — 앞에 있는 규칙이 먼저 */
+const CN_KIC=[[/난민/,'tent'],[/이주|순이동/,'move'],[/도시|촌락/,'city'],[/출산|출생/,'baby'],[/기대수명|사망/,'heart'],[/밀도/,'grid'],
+  [/연령|인구|회원국/,'people'],[/발전/,'bolt'],[/GDP|부가가치|수출액|수입액/,'coin'],[/무역/,'ship'],[/발전원/,'bolt']];
+const cnKIc=k=>{const m=CN_KIC.find(r=>r[0].test(k));return m?cnIc(m[1]):'';};
+/* 품목 아이콘 — 농축산물·광물·에너지 */
+const CN_ITEM=[[/쌀|밀|옥수수|곡물/,'grain'],[/카사바/,'veg'],[/커피/,'coffee'],[/카카오/,'chocolate'],[/^차/,'leaf'],[/고무/,'tire'],[/팜유/,'fuel'],
+  [/사탕수수/,'sprout'],[/목화/,'shirt'],[/올리브|대추야자/,'fruit'],[/포도/,'wine'],[/고기|사육/,'meat'],[/석탄/,'coal'],[/석유|원유/,'fuel'],
+  [/가스/,'flame'],[/금$|^금|은$|^은/,'gem'],[/철광석|보크사이트|망간|크롬/,'ore'],[/구리|주석|코발트/,'metal']];
+const cnItemIc=k=>{const m=CN_ITEM.find(r=>r[0].test(k));return m?cnIc(m[1]):'';};
 /* 묶음 하나 — 첫 소제목이 묶음 이름과 같으면 묶음 머리글은 빼서 같은 말이 두 번 나오지 않게 */
-const cnGrp=(id,n,body)=>'<section class="at-grp" id="'+id+'">'
-  +(new RegExp('^<h4 class="sec" id="[^"]*">'+n.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'<').test(body)?'':'<h3 class="at-gh">'+n+'</h3>')+body+'</section>';
+function cnGrp(id,n,body,ic){
+  const m=body.match(/^<h4 class="sec"[^>]*>(.*?)(<em|<\/h4>)/),txt=m?m[1].replace(/<[^>]+>/g,'').trim():'';
+  return '<section class="at-grp" id="'+id+'">'+(txt===n.replace(/<[^>]+>/g,'').trim()?'':'<h3 class="at-gh">'+(ic?cnIc(ic):'')+n+'</h3>')+body+'</section>';
+}
 /* 세계 비중 글자 — 1% 아래는 0%로 보이지 않게 */
 const cnPct=p=>p==null?'':p<1&&p>0?'1% 미만':fmtN(p,0)+'%';
 const cnName=id=>(CONT_DATA.conts.find(c=>c.id===id)||{}).name||id;
@@ -54,14 +86,14 @@ function cnCols(pts,max,unit,d){
 function cnBars(rows,max){
   if(!rows.length)return '<p class="none">자료 없음</p>';
   return '<div class="bars">'+rows.map((r,i)=>
-    '<div class="bar-row" data-go="'+r[3]+'"><span class="bar-k">'+abEsc(r[0])+'</span><span class="bar-t"><i style="width:'
+    '<div class="bar-row"'+(r[3]?' data-go="'+r[3]+'"':'')+'><span class="bar-k">'+abEsc(r[0])+'</span><span class="bar-t"><i style="width:'
     +Math.max(1.5,Math.min(100,(r[1]||0)/max*100)).toFixed(1)+'%;background:'+AB_SERIES[i%AB_SERIES.length]
     +'"></i></span><span class="bar-v">'+abEsc(r[2])+'</span></div>').join('')+'</div>';
 }
 /* 순위 표 — [이름, 값 글자, 순위, 막대{p:0~100, t:글자}] 줄. 1위 줄은 강조 */
 function cnRankTable(head,rows){
   return '<div class="card pad cn-tbw"><table class="cn-tb cn-rk"><thead><tr>'+head.map(h=>'<th>'+abEsc(h)+'</th>').join('')+'</tr></thead><tbody>'
-    +rows.map(r=>'<tr'+(r[2]&&r[2].r===1?' class="first"':'')+'><td>'+abEsc(r[0])+'</td><td>'+r[1]+'</td>'
+    +rows.map(r=>'<tr'+(r[2]&&r[2].r===1?' class="first"':'')+'><td>'+cnItemIc(r[0])+abEsc(r[0])+'</td><td>'+r[1]+'</td>'
       +'<td class="cn-barc">'+(r[3]?'<span class="cn-sh"><i style="width:'+Math.max(1,Math.min(100,r[3].p)).toFixed(1)+'%"></i></span><small>'+abEsc(r[3].t)+'</small>':'')+'</td>'
       +'<td>'+cnPill(r[2])+'</td></tr>').join('')
     +'</tbody></table></div>';
@@ -113,10 +145,10 @@ function cnNetMig(pts){
 function abContInit(){
   const D=CONT_DATA;
   document.getElementById('cont-mode').innerHTML=
-    '<button class="cn-seg" data-m="c">대륙</button><button class="cn-seg" data-m="b">경제 블록</button>';
+    '<button class="cn-seg" data-m="c">'+cnIc('globe')+'대륙</button><button class="cn-seg" data-m="b">'+cnIc('coin')+'경제 블록</button><button class="cn-seg" data-m="y">'+cnIc('city')+'도시</button>';
   document.getElementById('cont-mode').addEventListener('click',e=>{
     const b=e.target.closest('.cn-seg');if(!b)return;
-    location.hash='#/cont?'+(b.dataset.m==='b'?'b-'+D.blocs[0].id:'as');
+    location.hash='#/cont?'+(b.dataset.m==='b'?'b-'+D.blocs[0].id:b.dataset.m==='y'?'city':'as');
   });
   document.getElementById('cont-tabs').addEventListener('click',e=>{
     const b=e.target.closest('.chip');if(!b)return;location.hash='#/cont?'+b.dataset.c;
@@ -125,10 +157,12 @@ function abContInit(){
 const cnIsBloc=k=>k==='bcmp'||k.indexOf('b-')===0||k.indexOf('o-')===0;
 AB_ON_ENTER['/cont']=function(key){
   const k=(key.split('?')[1]||'').trim(),D=CONT_DATA;
-  if(k==='cmp'||k==='bcmp'||D.conts.some(c=>c.id===k)||D.blocs.some(b=>'b-'+b.id===k)||ALLIANCE_DATA.some(a=>'o-'+a.id===k))AB_CONT.c=k;
-  const bloc=cnIsBloc(AB_CONT.c);
-  document.querySelectorAll('#cont-mode .cn-seg').forEach(x=>x.classList.toggle('on',(x.dataset.m==='b')===bloc));
+  const city=k==='city'||k.indexOf('city-')===0;
+  if(city||k==='cmp'||k==='bcmp'||D.conts.some(c=>c.id===k)||D.blocs.some(b=>'b-'+b.id===k)||ALLIANCE_DATA.some(a=>'o-'+a.id===k))AB_CONT.c=k;
+  const bloc=cnIsBloc(AB_CONT.c),isCity=AB_CONT.c.indexOf('city')===0;
+  document.querySelectorAll('#cont-mode .cn-seg').forEach(x=>x.classList.toggle('on',x.dataset.m===(isCity?'y':bloc?'b':'c')));
   const tabs=document.getElementById('cont-tabs');
+  if(isCity){tabs.innerHTML='';abContView();return;}
   tabs.innerHTML=(bloc?D.blocs.map(b=>['b-'+b.id,b.short]):D.conts.map(c=>[c.id,c.name]))
     .map(([id,n])=>'<button class="chip'+(id===AB_CONT.c?' on':'')+'" data-c="'+id+'">'+abEsc(n)+'</button>').join('')
     +'<span class="chip-gap"></span><button class="chip'+((AB_CONT.c==='cmp'||AB_CONT.c==='bcmp')?' on':'')+'" data-c="'+(bloc?'bcmp':'cmp')+'">항목별 비교</button>'
@@ -138,9 +172,10 @@ AB_ON_ENTER['/cont']=function(key){
 function abContView(){
   const box=document.getElementById('cont-view');if(!box)return;
   const k=AB_CONT.c;
-  box.innerHTML=k==='cmp'?abContCompare(false):k==='bcmp'?abContCompare(true)
+  box.innerHTML=k.indexOf('city')===0?abCityView(k.split('-')[1]||'2025'):k==='cmp'?abContCompare(false):k==='bcmp'?abContCompare(true)
     :k.indexOf('o-')===0?abAllianceOne(k.slice(2)):cnIsBloc(k)?abBlocOne(k.slice(2)):abContOne(k);
   cnMountMaps(box);
+  if(typeof cyMountMaps==='function')cyMountMaps(box);
   box.querySelectorAll('.at-jump a').forEach(a=>a.addEventListener('click',e=>{
     e.preventDefault();abScrollTo(a.getAttribute('href').slice(1));}));
   const sel=document.getElementById('cn-sel');
@@ -242,7 +277,7 @@ function abContCompare(bloc){
 function abContOne(c){
   const D=CONT_DATA,P=D.pop[c],U=D.urban[c],Mg=D.migrants[c],cont=D.conts.find(x=>x.id===c);
   const ids=D.conts.map(x=>x.id),rk=get=>cnRank(ids,get,c),rt=get=>cnRankTxt(rk(get),'대륙');
-  const G={pop:'',urb:'',mig:'',food:'',pow:'',min:'',en:''};
+  const G={pop:'',urb:'',city:'',mig:'',food:'',pow:'',min:'',en:''};
   const yrs=['1950','1970','1990','2010','2023'];
 
   /* 인구 */
@@ -307,13 +342,13 @@ function abContOne(c){
   const fp=D.food.prod;
   const fr=Object.keys(fp).filter(k=>fp[k][c]!=null&&fp[k][c]>0).map(k=>({p:fp[k],rk:rk(x=>fp[k][x]||0)}))
     .sort((a,b)=>(a.rk?a.rk.r:9)-(b.rk?b.rk.r:9)||b.p[c]-a.p[c]);
-  G.food+=cnSec('cn-food1','생산량과 대륙 순위','2024년(팜유 2023년)','FAOSTAT 지역 합계',
+  G.food+=cnSec('cn-food1','생산량과 대륙 순위','2023년','FAOSTAT 지역 합계',
     cnRankTable(['품목','생산량','세계 비중','6개 대륙 중'],fr.map(r=>[r.p.label,fmtN(r.p[c],0)+'<small>'+abEsc(r.p.unit)+'</small>',r.rk,
       r.p.world?{p:r.p[c]/r.p.world*100,t:cnPct(r.p[c]/r.p.world*100)}:null])));
-  G.food+=cnSec('cn-food2','곡물 무역','2024년 · 만 톤','FAOSTAT 지역 합계',
+  G.food+=cnSec('cn-food2','곡물 무역','2023년 · 만 톤','FAOSTAT 지역 합계',
     '<div class="card pad cn-tbw"><table class="cn-tb"><thead><tr><th></th><th>수출</th><th>순위</th><th>수입</th><th>순위</th></tr></thead><tbody>'
     +Object.keys(D.food.trade).map(k=>{const t=D.food.trade[k][c],rx=rk(x=>D.food.trade[k][x].exp||0),rm=rk(x=>D.food.trade[k][x].imp||0);
-      return '<tr><td>'+abEsc(k)+'</td><td>'+fmtN(t.exp,0)+'</td><td>'+cnPill(rx)+'</td><td>'+fmtN(t.imp,0)+'</td><td>'+cnPill(rm)+'</td></tr>';}).join('')
+      return '<tr><td>'+cnItemIc(k)+abEsc(k)+'</td><td>'+fmtN(t.exp,0)+'</td><td>'+cnPill(rx)+'</td><td>'+fmtN(t.imp,0)+'</td><td>'+cnPill(rm)+'</td></tr>';}).join('')
     +'</tbody></table><p class="cn-unit">대륙 안 나라끼리 주고받은 양도 들어 있어, 대륙 전체의 수출·수입이 서로 맞지 않는다.</p></div>');
 
   /* 전력 */
@@ -344,9 +379,10 @@ function abContOne(c){
     +'<b>'+firsts.length+'개</b><span>생산 1위 품목·광물</span>'
     +'</div></div>'
     +(firsts.length?'<div class="cn-firsts"><b>대륙 1위</b>'+firsts.map(f=>'<span>'+abEsc(f)+'</span>').join('')+'</div>':'');
-  const GRP=[['pop','인구'],['urb','도시화'],['mig','이주·난민'],['food','농축산물'],['pow','전력'],['min','광물'],['en','에너지']];
-  h+='<div class="at-jump">'+GRP.map(([k,n])=>'<a href="#cn-g-'+k+'">'+n+'</a>').join('')+'</div>';
-  GRP.forEach(([k,n])=>{if(G[k])h+=cnGrp('cn-g-'+k,n,G[k]);});
+  G.city=typeof cyContSection==='function'?cyContSection(c):'';
+  const GRP=[['pop','인구','people'],['urb','도시화','city'],['city','대도시','city'],['mig','이주·난민','move'],['food','농축산물','grain'],['pow','전력','bolt'],['min','광물','ore'],['en','에너지','flame']];
+  h+='<div class="at-jump">'+GRP.filter(([k])=>G[k]).map(([k,n,ic])=>'<a href="#cn-g-'+k+'">'+cnIc(ic)+n+'</a>').join('')+'</div>';
+  GRP.forEach(([k,n,ic])=>{if(G[k])h+=cnGrp('cn-g-'+k,n,G[k],ic);});
   return h;
 }
 
@@ -402,7 +438,7 @@ function abBlocOne(id){
     return rows.length?cnRankTable(head,rows.map(r=>[r.l,fmtN(r.v,0)+'<small>'+abEsc(r.u)+'</small>',r.rk,
       cnVsTop(r.v,ids.map(x=>B(x).agg[r.k]||0))])):'<p class="none">자료 없음</p>';
   };
-  G.food+=cnSec('bl-food','농축산물 생산·무역','2024년','FAOSTAT · 회원국 합계',sec('농축산물',['품목','생산량','1위 대비',CONT_DATA.blocs.length+'개 블록 중'])+'<div class="cn-row"></div>'+sec('곡물 무역',['곡물','양','1위 대비',CONT_DATA.blocs.length+'개 블록 중']));
+  G.food+=cnSec('bl-food','농축산물 생산·무역','2023년','FAOSTAT · 회원국 합계',sec('농축산물',['품목','생산량','1위 대비',CONT_DATA.blocs.length+'개 블록 중'])+'<div class="cn-row"></div>'+sec('곡물 무역',['곡물','양','1위 대비',CONT_DATA.blocs.length+'개 블록 중']));
   G.en+=cnSec('bl-en','에너지','2024년 · TWh','Energy Institute 등 · 회원국 합계',sec('에너지',['항목','양','1위 대비',CONT_DATA.blocs.length+'개 블록 중']));
   const el=b.el,es=el?el.reduce((a,c)=>a+c,0):0;
   if(es>0)G.pow+=cnSec('bl-pow','전력 생산','2024년','Ember · IRENA · 회원국 합계',
@@ -420,9 +456,9 @@ function abBlocOne(id){
     +'<b>'+(b.intra!=null?fmtN(b.intra)+'%':'—')+'</b><span>역내 무역 비중</span>'
     +'</div></div>'
     +'<p class="cn-note">모든 값은 회원국 값을 더한 합계다(평균이 아니다). 회원국이 다른 블록과 겹칠 수 있다.</p>';
-  const GRP=[['mem','회원국'],['eco','규모와 무역'],['food','농축산물'],['en','에너지'],['pow','전력'],['min','광물']];
-  h+='<div class="at-jump">'+GRP.filter(([k])=>G[k]).map(([k,n])=>'<a href="#bl-g-'+k+'">'+n+'</a>').join('')+'</div>';
-  GRP.forEach(([k,n])=>{if(G[k])h+=cnGrp('bl-g-'+k,n,G[k]);});
+  const GRP=[['mem','회원국','flag'],['eco','규모와 무역','coin'],['food','농축산물','grain'],['en','에너지','flame'],['pow','전력','bolt'],['min','광물','ore']];
+  h+='<div class="at-jump">'+GRP.filter(([k])=>G[k]).map(([k,n,ic])=>'<a href="#bl-g-'+k+'">'+cnIc(ic)+n+'</a>').join('')+'</div>';
+  GRP.forEach(([k,n,ic])=>{if(G[k])h+=cnGrp('bl-g-'+k,n,G[k],ic);});
   return h;
 }
 

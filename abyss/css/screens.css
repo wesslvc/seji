@@ -829,3 +829,69 @@ body{text-rendering:optimizeLegibility;word-break:keep-all}
 .card .cn-legend{margin-bottom:0}
 #s-cont .at-grp>h4.sec:first-child{margin-top:0}
 @media (max-width:620px){.cn-lines text{font-size:14px}.cn-lines .lv{font-size:14px}}
+
+/* ── 아이콘 — 묶음 머리글·빠른 이동·칸 이름·품목 ── */
+.cn-ic{display:inline-flex;width:1.1em;height:1.1em;margin-right:.4rem;vertical-align:-.18em;color:var(--ac);flex:none}
+.cn-ic svg{width:100%;height:100%}
+.stat .k .cn-ic{width:1em;height:1em;margin-right:.3rem;opacity:.9}
+.at-jump a .cn-ic{margin-right:.3rem}
+.cn-seg .cn-ic{color:inherit;margin-right:.3rem}
+#s-cont .at-gh:has(.cn-ic)::before{display:none}
+#s-cont .at-gh .cn-ic{width:1.25em;height:1.25em}
+h4.sec .cn-ic{width:1em;height:1em}
+.cn-rk td:first-child .cn-ic{color:var(--tx3);width:1.05em;height:1.05em}
+.cn-rk tr.first td:first-child .cn-ic{color:var(--ac)}
+.cn-mode{flex-wrap:wrap}
+
+/* ── 도시 ── */
+.cy-years{margin:0 0 .8rem}
+.cy-map{background:var(--bg)}
+.cy-dot{stroke:var(--sf,#fff);stroke-width:1.5;opacity:.82;cursor:pointer;transition:opacity .15s}
+.cy-dot:hover{opacity:1;stroke:var(--tx)}
+.cy-dot.cap{stroke:var(--tx);stroke-width:2.6}
+.cy-lab{font-size:24px;font-weight:600;fill:var(--tx);paint-order:stroke;stroke:var(--bg);stroke-width:5px;stroke-linejoin:round;pointer-events:none}
+@media (max-width:620px){#cy-map-w .cy-lab{display:none}}
+.cy-tb td:first-child{width:3rem}
+.cy-tb td:nth-child(2){text-align:left;white-space:normal}
+.cy-tb .cy-name{display:flex;align-items:center;gap:.45rem;color:var(--tx);text-decoration:none}
+.cy-tb .cy-name b{font-weight:600}
+.cy-tb .cy-name small{color:var(--tx3);font-size:var(--fs-xs);margin-left:.1rem}
+.cy-tb td.cn-barc{width:24%}
+.cy-tb td.cn-barc .cn-sh{width:100%}
+.cy-up{color:var(--ok,#188038);font-weight:600}
+.cy-dn{color:var(--wr);font-weight:600}
+.cy-new{color:var(--ac);font-size:var(--fs-xs);font-weight:600}
+.cy-race{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem}
+@media (max-width:860px){.cy-race{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.cy-race ol{list-style:none;margin:.4rem 0 0;padding:0;counter-reset:r}
+.cy-race li{counter-increment:r;display:flex;align-items:center;gap:.4rem;padding:.32rem 0 .32rem .5rem;border-left:3px solid var(--cc);
+  font-size:var(--fs-sm);border-bottom:1px solid var(--hair,var(--bd))}
+.cy-race li:last-child{border-bottom:0}
+.cy-race li::before{content:counter(r);color:var(--tx3);font-size:var(--fs-xs);width:1.1rem;font-variant-numeric:tabular-nums}
+.cy-race li span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cy-race li b{font-weight:600;font-variant-numeric:tabular-nums}
+.cy-mega{display:grid;gap:.9rem}
+.cy-mg{display:grid;grid-template-columns:7.5rem 1fr;row-gap:.2rem;align-items:center}
+.cy-mg-k{grid-row:span 3;font-size:var(--fs-sm);color:var(--tx2)}
+.cy-mg-b{display:flex;align-items:center;gap:.45rem;font-size:var(--fs-xs)}
+.cy-mg-b i{display:block;height:.5rem;min-width:2px;border-radius:999px}
+.cy-mg-b b{font-weight:600;font-variant-numeric:tabular-nums}
+.cy-mg-b.y1975 i,.cn-legend i.cy-k1975{background:var(--c8)}
+.cy-mg-b.y2025 i,.cn-legend i.cy-k2025{background:var(--ac)}
+.cy-mg-b.y2050 i,.cn-legend i.cy-k2050{background:color-mix(in srgb,var(--ac) 40%,var(--land))}
+.cy-st{display:grid;grid-template-columns:8.5rem 1fr 3rem;gap:.7rem;align-items:center;padding:.4rem 0}
+.cy-st-k{font-size:var(--fs-sm);color:var(--tx)}
+.cy-st-k small{display:block;color:var(--tx3);font-size:var(--fs-xs)}
+.cy-st-b{display:flex;height:1rem;border-radius:4px;overflow:hidden;gap:1px}
+.cy-st-b i{display:block}
+.cy-st-v{text-align:right;font-weight:600;font-size:var(--fs-sm);font-variant-numeric:tabular-nums}
+@media (max-width:620px){.cy-st{grid-template-columns:5.5rem 1fr 2.4rem;gap:.45rem}.cy-mg{grid-template-columns:5.5rem 1fr}}
+.map-wrap circle.cy-dot{opacity:.82;pointer-events:auto}
+.map-wrap circle.cy-dot:hover{opacity:1}
+.map-wrap.cy-map .landxx.cr{fill:var(--land)}
+.map-wrap.cy-map .landxx.cr:hover{fill:var(--map-hover)}
+.map-wrap.cy-map .landxx:hover{fill:var(--land)}
+.cy-race{align-items:start}
+.cy-race>.card{margin:0}
+#s-cont .cy-race>.card{margin:0}
+@media (max-width:620px){.cy-tb th:nth-child(4),.cy-tb td.cn-barc{display:none}.cy-tb .cy-name small{display:none}}

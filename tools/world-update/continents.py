@@ -3,7 +3,7 @@
 사용: python3 -I continents.py <수집 폴더> abyss/js/continent-data.js
   대륙 구분은 UN 지리 지역(아프리카·아시아·유럽·라틴 아메리카·앵글로아메리카=북부 아메리카·오세아니아)이다.
   · 인구·출생/사망·연령·순이동: UN WPP 2024 지역 행        · 도시화: UN WUP 2025 지역 행
-  · 국제 이주자: UN DESA 2024 지역 행(거주 지역 · 출신 지역)  · 농축산·곡물 무역: FAOSTAT 지역 행(2024)
+  · 국제 이주자: UN DESA 2024 지역 행(거주 지역 · 출신 지역)  · 농축산·곡물 무역: FAOSTAT 지역 행(2023)
   · 전력(Ember)·난민(UNHCR)·광물(World Mining Data): 원천에 대륙 행이 없거나 UN 구분과 달라, 나라 값을 UN 지역에
     넣어 '합산'했다(평균이 아니다). · 에너지: Energy Institute 권역(북아메리카·중남미·유럽·CIS·중동·아프리카·아시아태평양)을 쓰되,
     러시아는 유럽에 넣고, 나머지 CIS와 중동은 '건조 아시아(중동·CIS)' 하나로 합쳤다 — 대륙과 경계가 달라 대륙에 억지로 끼워 맞추지는 않았다.
@@ -88,7 +88,7 @@ for r in rows:
     if isinstance(r[4],int) and r[4] in ID2K and isinstance(r[6],int) and r[6] in ID2K:orig[ID2K[r[4]]][ID2K[r[6]]]=r[yo]
 D['migrants']={k:{'stock':mst.get(k),'pct':R(mpct.get(k),2),'fromOrigin':orig[k]} for k in ID2K.values()}
 
-# ── FAOSTAT 2024 지역 행 ──
+# ── FAOSTAT 2023 지역 행 ──
 FA={'af':['Africa'],'as':['Asia'],'eu':['Europe'],'an':['Northern America'],'oc':['Oceania'],'la':['Central America','South America','Caribbean'],'world':['World']}
 PROD={'wheat':('15','Production','t',1e4,'밀'),'rice':('27','Production','t',1e4,'쌀(벼)'),'maize':('56','Production','t',1e4,'옥수수'),
       'cassava':('125','Production','t',1e4,'카사바'),'coffee':('656','Production','t',1e4,'커피 생두'),'cocoa':('661','Production','t',1e4,'카카오'),
@@ -106,7 +106,8 @@ def fao(zname,wanted,years):
                 out[(r['Item Code'],r['Element'],r['Area'],r['Year'])]=float(r['Value'])
     return out
 want={(v[0],v[1]) for v in PROD.values()}
-fp=fao('Production_Crops_Livestock_E_All_Data_(Normalized).zip',want,{'2024'})
+FY='2023'   # FAOSTAT 연도 — 수특과 같은 해
+fp=fao('Production_Crops_Livestock_E_All_Data_(Normalized).zip',want,{FY})
 def region(d,item,el,key,year,div):
     s=0;ok=False
     for a in FA[key]:
@@ -115,17 +116,17 @@ def region(d,item,el,key,year,div):
     return R(s/div,1) if ok else None
 D['food']={'prod':{}}
 for key,(item,el,unit,div,label) in PROD.items():
-    D['food']['prod'][key]={'label':label,'unit':'만 두' if unit=='An' else '만 톤','year':2024,
-      'world':region(fp,item,el,'world','2024',div),**{k:region(fp,item,el,k,'2024',div) for k in ID2K.values()}}
-# 팜유는 2024년 값이 아직 없어 2023년
-fp2=fao('Production_Crops_Livestock_E_All_Data_(Normalized).zip',{('257','Production')},{'2023'})
-D['food']['prod']['palm']={'label':'팜유','unit':'만 톤','year':2023,'world':region(fp2,'257','Production','world','2023',1e4),**{k:region(fp2,'257','Production',k,'2023',1e4) for k in ID2K.values()}}
+    D['food']['prod'][key]={'label':label,'unit':'만 두' if unit=='An' else '만 톤','year':int(FY),
+      'world':region(fp,item,el,'world',FY,div),**{k:region(fp,item,el,k,FY,div) for k in ID2K.values()}}
+# 팜유
+fp2=fao('Production_Crops_Livestock_E_All_Data_(Normalized).zip',{('257','Production')},{FY})
+D['food']['prod']['palm']={'label':'팜유','unit':'만 톤','year':int(FY),'world':region(fp2,'257','Production','world',FY,1e4),**{k:region(fp2,'257','Production',k,FY,1e4) for k in ID2K.values()}}
 tw=[('15','Export quantity'),('15','Import quantity'),('30','Export quantity'),('30','Import quantity'),('56','Export quantity'),('56','Import quantity')]
-ft=fao('Trade_CropsLivestock_E_All_Data_(Normalized).zip',set(tw),{'2024'})
+ft=fao('Trade_CropsLivestock_E_All_Data_(Normalized).zip',set(tw),{FY})
 D['food']['trade']={}
 for item,lab in(('15','밀'),('30','쌀(도정 환산)'),('56','옥수수')):
-    D['food']['trade'][lab]={k:{'exp':region(ft,item,'Export quantity',k,'2024',1e4),'imp':region(ft,item,'Import quantity',k,'2024',1e4)} for k in ID2K.values()}
-    D['food']['trade'][lab]['world']={'exp':region(ft,item,'Export quantity','world','2024',1e4),'imp':region(ft,item,'Import quantity','world','2024',1e4)}
+    D['food']['trade'][lab]={k:{'exp':region(ft,item,'Export quantity',k,FY,1e4),'imp':region(ft,item,'Import quantity',k,FY,1e4)} for k in ID2K.values()}
+    D['food']['trade'][lab]['world']={'exp':region(ft,item,'Export quantity','world',FY,1e4),'imp':region(ft,item,'Import quantity','world',FY,1e4)}
 
 # ── Ember 2024 전력 (나라 합산) ──
 EM={'Coal':'석탄','Gas':'가스','Other Fossil':'기타 화석','Nuclear':'원자력','Hydro':'수력','Solar':'태양광','Wind':'풍력','Bioenergy':'바이오','Other Renewables':'기타 재생'}
@@ -236,7 +237,7 @@ for iso3,k in iso2cont.items():
     c=pycountry.countries.get(alpha_3=iso3)
     if c and k:D['members'].setdefault(k,[]).append(c.alpha_2.lower())
 D['members']={k:sorted(v) for k,v in D['members'].items()}
-D['blocNote']='회원국 값의 합계 — 인구 UN WPP 2025, GDP UN 통계국 2024, 나머지는 world-data.js(FAOSTAT 2024·EI 2024·WTO 2024 등)'
+D['blocNote']='회원국 값의 합계 — 인구 UN WPP 2025, GDP UN 통계국 2024, 나머지는 world-data.js(FAOSTAT 2023·EI 2024·WTO 2024 등)'
 
 open(OUT,'w',encoding='utf-8').write('/* 대륙별 통계 — tools/world-update/continents.py 가 만든다(직접 고치지 말 것). 출처와 방법은 그 파일 머리말 */\nconst CONT_DATA='+json.dumps(D,ensure_ascii=False,separators=(',',':'))+';\n')
 print('ok',os.path.getsize(OUT),'Ember 매칭 안 된 나라:',D['powerMissing'][:10])

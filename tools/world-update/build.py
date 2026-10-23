@@ -271,8 +271,9 @@ for i in W:
     elif 'el' in OLD[i]:W[i]['el']=OLD[i]['el'];W[i]['el_year']=OLD[i].get('el_year');kept+=1   # Ember에 없는 나라는 IRENA 2023 유지
 done('el',n,f'Ember 2024 + IRENA 2024(석유·지열·해양) (+IRENA 2023 유지 {kept}개국)')
 
-# ── FAOSTAT 2024 : 생산 · 사육두수 · 곡물 수출입 (+ 새 작물·육류) ──
-def fao_rows(zname,items,elements,years=('2024',)):
+# ── FAOSTAT 2023 : 생산 · 사육두수 · 곡물 수출입 (+ 새 작물·육류) — 수특과 같은 해 ──
+FY='2023'
+def fao_rows(zname,items,elements,years=(FY,)):
     z=zipfile.ZipFile(P('fao',zname));nm=next(x for x in z.namelist() if x.endswith('(Normalized).csv'))
     with io.TextIOWrapper(z.open(nm),encoding='latin-1') as h:
         for r in csv.DictReader(h):
@@ -284,16 +285,15 @@ allk=list(PRODK.values())+list(HEAD.values())
 for k in allk:
     for i in W:W[i].pop(k,None)
 cn={k:0 for k in allk}
-for r in fao_rows('Production_Crops_Livestock_E_All_Data_(Normalized).zip',set(PRODK)|set(HEAD),{'Production','Stocks'},years=('2024','2023')):
+for r in fao_rows('Production_Crops_Livestock_E_All_Data_(Normalized).zip',set(PRODK)|set(HEAD),{'Production','Stocks'}):
     i=m49_iso2(r['Area Code (M49)'])
     if not i:continue
     ic=r['Item Code'];v=float(r['Value'])
-    if r['Year']=='2023' and ic!='257':continue   # 팜유만 2023년(FAOSTAT에 2024년 값이 아직 없다)
     if ic in HEAD and r['Element']=='Stocks' and r['Unit']=='An':k=HEAD[ic]
     elif ic in PRODK and r['Element']=='Production' and r['Unit']=='t':k=PRODK[ic]
     else:continue
     if put(k,i,v/1e4):cn[k]+=1
-for k,v in cn.items():done(k,v,'FAOSTAT 2024(만 톤·만 두)')
+for k,v in cn.items():done(k,v,'FAOSTAT 2023(만 톤·만 두)')
 TR={'15':('whx','whm'),'30':('rix','rim'),'56':('cox','com')}   # 쌀 무역은 '도정 환산 쌀'(30)
 for k in [x for p in TR.values() for x in p]:
     for i in W:W[i].pop(k,None)
@@ -303,7 +303,7 @@ for r in fao_rows('Trade_CropsLivestock_E_All_Data_(Normalized).zip',set(TR),{'E
     if not i or r['Unit']!='t':continue
     k=TR[r['Item Code']][0 if r['Element'].startswith('Export') else 1]
     if put(k,i,float(r['Value'])/1e4):cn[k]+=1
-for k,v in cn.items():done(k,v,'FAOSTAT 무역 2024(만 톤)')
+for k,v in cn.items():done(k,v,'FAOSTAT 무역 2023(만 톤)')
 
 # ── World Mining Data 2023 : 광물 (다이아몬드는 Kimberley Process 유지) ──
 WMD_NAME={'Bosnia-Herzegovina':'ba','Congo, Rep.':'cg','Congo, D.R.':'cd','Korea, North':'kp','Korea, South':'kr','Russia':'ru',"Cote d'Ivoire":'ci'}

@@ -267,7 +267,7 @@ const AB_METRICS=[
    ['corn','옥수수 생산량','co','만 톤'],['cattle','소 사육두수','ct','만 두'],
    ['sheep','양 사육두수','sh','만 두'],['pig','돼지 사육두수','pg','만 두']]
     .forEach(([id,nm,k,unit])=>{
-      AB_METRICS.push({id:id,cat:'농축산물',name:nm,unit:unit,src:'FAOSTAT · 2024년',
+      AB_METRICS.push({id:id,cat:'농축산물',name:nm,unit:unit,src:'FAOSTAT · 2023년',
         f:i=>{const v=wd(i)[k];return v!=null?v:null;}});
     });
   [['coffee','커피 생두 생산량','cof','만 톤'],['cotton','목화 생산량(씨앗 목화)','ctn','만 톤'],
@@ -276,17 +276,17 @@ const AB_METRICS=[
    ['olive','올리브 생산량','oli','만 톤'],['grape','포도 생산량','grp','만 톤'],['dates','대추야자 생산량','dat','만 톤'],
    ['beef','소고기 생산량','bef','만 톤'],['pork','돼지고기 생산량','prk','만 톤'],['mutton','양고기 생산량','mtn','만 톤']]
     .forEach(([id,nm,k,unit])=>{
-      AB_METRICS.push({id:id,cat:'농축산물',name:nm,unit:unit,src:k==='pal'?'FAOSTAT · 2023년':'FAOSTAT · 2024년',
+      AB_METRICS.push({id:id,cat:'농축산물',name:nm,unit:unit,src:'FAOSTAT · 2023년',
         f:i=>{const v=wd(i)[k];return v!=null?v:null;}});
     });
-  /* 곡물 수출입 — FAOSTAT 무역 2024년. 쌀은 도정 환산량이다. 예전엔 USDA 마켓이어
+  /* 곡물 수출입 — FAOSTAT 무역 2023년. 쌀은 도정 환산량이다. 예전엔 USDA 마켓이어
      값이었는데 생산량(FAOSTAT)과 출처가 갈려 통일했다. EU 역내 거래가 들어 있다 */
   [['wheat','밀','whx','whm'],['rice','쌀','rix','rim'],['corn','옥수수','cox','com']]
     .forEach(([key,nm,xk,mk])=>{
       AB_METRICS.push({id:key+'GExp',cat:'농축산물',name:nm+' 수출량',unit:'만 톤',
-        src:'FAOSTAT 무역 · 2024년',f:i=>{const v=wd(i)[xk];return v!=null?v:null;}});
+        src:'FAOSTAT 무역 · 2023년',f:i=>{const v=wd(i)[xk];return v!=null?v:null;}});
       AB_METRICS.push({id:key+'GImp',cat:'농축산물',name:nm+' 수입량',unit:'만 톤',
-        src:'FAOSTAT 무역 · 2024년',f:i=>{const v=wd(i)[mk];return v!=null?v:null;}});
+        src:'FAOSTAT 무역 · 2023년',f:i=>{const v=wd(i)[mk];return v!=null?v:null;}});
     });
   /* 주요 광물 — World Mining Data 2023년. 다이아몬드만 출처가 다르다(Kimberley Process,
      왜 다른지는 world-data.js 머리말 참고) */
