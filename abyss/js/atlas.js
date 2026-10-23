@@ -63,13 +63,34 @@ function abAtlasList(){
 }
 
 /* 값 + 순위 한 칸 */
+/* 칸 이름 앞 아이콘 — 대륙 화면과 같은 규칙(품목이면 품목 아이콘·원소 기호, 아니면 칸 이름으로) */
+function abStatIc(name){
+  if(typeof cnItemIc!=='function')return '';
+  return cnItemIc(name)||cnKIc(name);
+}
+/* 값 글자를 숫자와 단위로 나눈다 — 단위는 작게 써서 긴 값이 '…'로 잘리지 않게 하고,
+   1,000이 넘는 숫자는 쉼표를 넣고 소수점은 버린다 */
+function abValHtml(v,unit){
+  const s=abFmt(v,unit),m=s.match(/^(-?[\d,.]+)\s*(.*)$/);
+  if(!m)return abEsc(s);
+  let n=m[1];const x=parseFloat(n.replace(/,/g,''));
+  if(n.indexOf(',')<0&&isFinite(x)&&Math.abs(x)>=1000)n=Math.round(x).toLocaleString('ko-KR');
+  return abEsc(n)+(m[2]?'<small class="cn-u">'+abEsc(m[2])+'</small>':'');
+}
 function abStatCell(id,iso){
   const m=abMetric(id);if(!m)return '';
-  const r=abRankOf(id,iso);
-  if(!r)return '<div class="stat"><div class="k">'+abEsc(m.name)+'</div><div class="v">—</div></div>';
-  return '<div class="stat"><div class="k">'+abEsc(m.name)+'</div>'
-    +'<div class="v">'+abEsc(abFmt(r.v,m.unit))+'</div>'
+  const r=abRankOf(id,iso),k='<div class="k">'+abStatIc(m.name)+abEsc(m.name)+'</div>';
+  if(!r)return '<div class="stat">'+k+'<div class="v">—</div></div>';
+  return '<div class="stat">'+k
+    +'<div class="v">'+abValHtml(r.v,m.unit)+'</div>'
     +'<div class="r">'+r.n+'개국 중 '+r.rank+'위</div></div>';
+}
+/* 작은 묶음 — 아이콘 + 이름 아래에 칸들. 값 있는 칸이 하나도 없으면 묶음째 뺀다 */
+function abSubGrid(title,ic,ids,iso,always){
+  const have=ids.filter(id=>{const m=abMetric(id);return m&&(always||m.f(iso)!=null);});
+  if(!have.length)return '';
+  return '<div class="at-sub">'+(typeof cnIc==='function'?cnIc(ic):'')+abEsc(title)+'</div>'
+    +'<div class="grid g-3">'+have.map(id=>abStatCell(id,iso)).join('')+'</div>';
 }
 /* 구성비 막대 */
 /* 막대는 항목마다 다른 색으로 칠한다. 전부 같은 색이면 길이만 남고
@@ -299,11 +320,10 @@ function abAtlasShow(iso){
      항목별로 도감(항목 도감→에너지 자원)에서 확인할 수 있게 뒀다 */
   if(wdt&&(wdt.cp!=null||wdt.op!=null||wdt.gp!=null||wdt.cc!=null||wdt.oc!=null||wdt.gc!=null)){
     G.econ+='<h4 class="sec" id="at-eres">에너지 자원'
-      +abSecEm('1차에너지 환산 · TWh · Energy Institute·EIA','도감에서 항목별 출처 확인')+'</h4><div class="grid g-3">'
-      +['coalProd','coalCons','coalSelf','oilProd','oilCons','oilSelf','gasProd','gasCons','gasSelf',
-        'coalExp','coalImp','gasExp','gasImp','oilExp','oilImp','coalRes']
-        .map(id=>abStatCell(id,iso)).join('')
-      +'</div>';
+      +abSecEm('1차에너지 환산 · TWh · Energy Institute·EIA','도감에서 항목별 출처 확인')+'</h4>'
+      +abSubGrid('석탄','coal',['coalProd','coalCons','coalSelf','coalExp','coalImp','coalRes'],iso)
+      +abSubGrid('석유','fuel',['oilProd','oilCons','oilSelf','oilExp','oilImp'],iso)
+      +abSubGrid('천연가스','flame',['gasProd','gasCons','gasSelf','gasExp','gasImp'],iso);
   }
   /* 무역 — 수입은 뺀다. 이 나라가 세계에 무엇을 파는지가 그 나라 산업의
      얼굴이고, 수입은 상대적으로 덜 특징적이라 한 화면에 둘 다 넣으면
@@ -327,14 +347,15 @@ function abAtlasShow(iso){
   if(!blocs.length&&allis.length)
     G.econ+='<h4 class="sec" id="at-bloc">경제 블록·연맹'+abSecEm(null,'각 기구 공식 회원 목록')+'</h4>';
   if(blocs.length)
-    G.econ+='<h4 class="sec" id="at-bloc">경제 블록'+abSecEm(null,'회원국은 각 기구 공식 목록 · 역내 무역은 UNCTADstat 2024년')+'</h4><div class="grid g-2">'
+    G.econ+='<h4 class="sec" id="at-bloc">경제 블록'+abSecEm(null,'회원국은 각 기구 공식 목록 · 역내 무역은 UNCTADstat 2024년')+'</h4><div class="grid at-blocs">'
       +blocs.map(b=>{
         const s=abBlocSum(b);
         return '<div class="stat"><div class="k">'+abEsc(b.name)+'</div>'
           +'<div class="v">'+(b.intra?b.intra.share.toFixed(1)+'%':'—')+'</div>'
           +'<div class="r">역내 무역 비중'+(b.intra?'':' · 자료 없음')+'</div>'
           +'<div class="r muted">회원국 '+s.n+'개국 · 인구 '+abEsc(abFmt(s.pop,'명'))+(b.note?' · '+abEsc(b.note):'')+'</div>'
-          +(b.euro?'<div class="r">'+(b.euro.indexOf(iso)>=0?'유로존 — 유로 사용':'유로 미사용 — 자국 통화')+'</div>':'')+'</div>';
+          +(b.euro?'<div class="r">'+(b.euro.indexOf(iso)>=0?'유로존 — 유로 사용':'유로 미사용 — 자국 통화')+'</div>':'')
+          +(b.hq?'<div class="r muted">★ 본부 '+abEsc(b.hq.city)+'('+abEsc(abName(b.hq.iso))+')</div>':'')+'</div>';
       }).join('')+'</div>';
   if(allis.length)
     G.econ+='<p class="cn-allis">가입 연맹 '+allis.map(x=>'<a class="tag link" href="#/cont?o-'+x.id+'">'+abEsc(x.short)+'</a>').join('')+'</p>';
@@ -342,12 +363,13 @@ function abAtlasShow(iso){
      단위가 다른 절대량이라 원그래프 대신 '규모와 위치'와 같은 값+순위 칸을 쓴다.
      커피·목화·곡물 수출입은 나는(파는) 나라가 적어 광물처럼 값 있는 나라만 */
   if(wdt&&(wdt.wh!=null||wdt.ri!=null||wdt.co!=null||wdt.ct!=null||wdt.sh!=null)){
-    const cropExtra=['coffee','cotton','cassava','cocoa','tea','rubber','palmOil','sugarcane','olive','grape','dates','beef','pork','mutton','wheatGExp','wheatGImp','riceGExp','riceGImp','cornGExp','cornGImp']
-      .filter(id=>{const m=abMetric(id);return m&&m.f(iso)!=null;});
-    G.econ+='<h4 class="sec" id="at-crop">주요 농축산물'+abSecEm(null,abSrcOf(['wheat']))+'</h4><div class="grid g-3">'
-      +['wheat','rice','corn','cattle','sheep','pig'].map(id=>abStatCell(id,iso)).join('')
-      +cropExtra.map(id=>abStatCell(id,iso)).join('')
-      +'</div>';
+    /* 고기 생산량은 넣지 않는다 — 가축은 사육두수로 본다 */
+    G.econ+='<h4 class="sec" id="at-crop">주요 농축산물'+abSecEm(null,abSrcOf(['wheat']))+'</h4>'
+      +abSubGrid('곡물','grain',['wheat','rice','corn'],iso,true)
+      +abSubGrid('곡물 무역','ship',['wheatGExp','wheatGImp','riceGExp','riceGImp','cornGExp','cornGImp'],iso)
+      +abSubGrid('가축','cow',['cattle','sheep','pig'],iso,true)
+      +abSubGrid('기호·공예 작물','coffee',['coffee','cocoa','tea','sugarcane','cotton','rubber','palmOil','cassava'],iso)
+      +abSubGrid('과일','fruit',['grape','olive','dates'],iso);
   }
   /* 주요 광물 — 아홉 가지 다 나는 나라는 없으니, 이 나라가 값을 가진
      항목만 추려서 보여 준다(빈 칸이 줄줄이 뜨는 걸 막는다). 다이아몬드만
@@ -357,9 +379,8 @@ function abAtlasShow(iso){
       .filter(id=>{const m=abMetric(id);return m&&m.f(iso)!=null;});
     if(minIds.length)
       G.econ+='<h4 class="sec" id="at-min">주요 광물'+abSecEm('2023년',abSrcOf(['iron_ore']))+'</h4><div class="grid g-3">'
-        +minIds.map(id=>abStatCell(id,iso)
-          +(id==='diamond'?'<p class="ct-note src-note">'+abEsc(abMetric('diamond').src)+'</p>':'')).join('')
-        +'</div>';
+        +minIds.map(id=>abStatCell(id,iso)).join('')
+        +'</div>'+(minIds.indexOf('diamond')>=0?'<p class="ct-note">다이아몬드: '+abEsc(abMetric('diamond').src)+'</p>':'');
   }
 
   /* 기후 — 나라 전체를 하나의 순위로 묶지 않는다. 관측소를 평균 내면 넓은

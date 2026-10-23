@@ -900,3 +900,23 @@ h4.sec .cn-ic{width:1em;height:1em}
   border:1.5px solid var(--ac);border-radius:4px;color:var(--ac);font-size:.8em;font-weight:700;letter-spacing:-.01em;vertical-align:.08em;
   font-family:ui-sans-serif,system-ui,sans-serif}
 .cn-rk tr.first .cn-el{background:var(--ac);color:var(--sf,#fff)}
+/* 본부 표지 */
+.cn-hq polygon{fill:#f5b400;stroke:var(--tx);stroke-width:1.2;vector-effect:non-scaling-stroke}
+.cn-hq text{font-weight:700;fill:var(--tx);paint-order:stroke;stroke:var(--bg);stroke-width:4px;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.cn-hq{pointer-events:none}
+.cn-star{color:#f5b400;margin-right:.3rem;font-size:1.05em}
+.cn-hq-k{color:var(--tx2)}
+/* 기타 연맹 고르기 — 성격별 줄 */
+.cn-al-grp{display:grid;gap:.45rem;margin:0 0 1.4rem}
+.cn-al-grp>div{display:grid;grid-template-columns:8.5rem 1fr;align-items:center;gap:.6rem}
+.cn-al-grp>div>span{font-size:var(--fs-xs);color:var(--tx3)}
+.cn-al-grp .chips{margin:0}
+@media (max-width:620px){.cn-al-grp>div{grid-template-columns:1fr;gap:.2rem}}
+/* 아틀라스 작은 묶음 */
+.at-sub{display:flex;align-items:center;font-size:var(--fs-sm);font-weight:600;color:var(--tx2);margin:1.1rem 0 .55rem}
+.at-sub:first-of-type{margin-top:.2rem}
+.at-sub .cn-ic{width:1.15em;height:1.15em}
+h4.sec+.at-sub{margin-top:.2rem}
+.stat .v small.cn-u{font-size:var(--fs-sm);color:var(--tx3);margin-left:.3rem;font-weight:400;letter-spacing:0}
+#s-cont .cn-al-grp .chips{margin:0}
+.grid.at-blocs,.grid.at-blocs:has(>.stat){grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}

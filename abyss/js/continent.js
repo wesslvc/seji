@@ -37,6 +37,7 @@ const CN_IC={
   cow:'<path d="M3.5 6c1.6 0 3.1.6 4.2 1.6h8.6c1.1-1 2.6-1.6 4.2-1.6-.3 2-1.6 3.4-3.2 3.7V14a5.3 5.3 0 0 1-10.6 0V9.7C5.1 9.4 3.8 8 3.5 6z"/><ellipse cx="12" cy="15.8" rx="3" ry="2"/><path d="M10.9 15.8h.01M13.1 15.8h.01M9.6 11.3h.01M14.4 11.3h.01"/>',
   pig:'<circle cx="12" cy="13.2" r="7"/><ellipse cx="12" cy="15" rx="3" ry="2.1"/><path d="M11 15h.01M13 15h.01M9.4 10.8h.01M14.6 10.8h.01"/><path d="M7.3 8 5.6 3.8l4.3 2.4M16.7 8l1.7-4.2-4.3 2.4"/>',
   sheep:'<path d="M6.2 14.5a3 3 0 0 1 .3-6A3.2 3.2 0 0 1 12 6.6a3.2 3.2 0 0 1 5.4 2A3 3 0 0 1 17.6 14.5z"/><path d="M8.5 14.5v5M15.5 14.5v5"/><path d="M17.8 9.2c1.6-.4 3 .6 3 2s-1.2 2-2.5 1.8"/>',
+  mount:'<path d="M3 20l6.5-11 4 6.5 2.5-4L21 20z"/><path d="M7.6 12.2l1.9 1.6 1.7-1.5"/>',
   tent:'<path d="M3 20L12 4l9 16z"/><path d="M12 4v16M9 20l3-5 3 5"/>'
 };
 function cnIc(k){
@@ -44,15 +45,15 @@ function cnIc(k){
   return '<span class="cn-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+d+'</svg></span>';
 }
 /* 칸 이름으로 고르는 아이콘 — 앞에 있는 규칙이 먼저 */
-const CN_KIC=[[/난민/,'tent'],[/이주|순이동/,'move'],[/도시|촌락/,'city'],[/출산|출생/,'baby'],[/기대수명|사망/,'heart'],[/밀도/,'grid'],
-  [/연령|인구|회원국/,'people'],[/발전/,'bolt'],[/GDP|부가가치|수출액|수입액/,'coin'],[/무역/,'ship'],[/발전원/,'bolt']];
+const CN_KIC=[[/해발/,'mount'],[/위도/,'globe'],[/면적/,'map'],[/접경/,'flag'],[/신자|종교/,'people'],[/난민/,'tent'],[/이주|순이동/,'move'],[/도시|촌락/,'city'],[/출산|출생/,'baby'],[/기대수명|사망/,'heart'],[/밀도/,'grid'],
+  [/연령|인구|회원국/,'people'],[/발전/,'bolt'],[/GDP|부가가치|수출액|수입액/,'coin'],[/무역|수출|수입/,'ship'],[/발전원/,'bolt']];
 const cnKIc=k=>{const m=CN_KIC.find(r=>r[0].test(k));return m?cnIc(m[1]):'';};
 /* 품목 아이콘 — 농축산물·광물·에너지 */
 const CN_ITEM=[[/쌀|밀|옥수수|곡물/,'grain'],[/카사바/,'veg'],[/커피/,'coffee'],[/카카오/,'chocolate'],[/^차/,'leaf'],[/고무/,'tire'],[/팜유/,'fuel'],
   [/사탕수수/,'sprout'],[/목화/,'shirt'],[/올리브|대추야자/,'fruit'],[/포도/,'wine'],[/소 사육/,'cow'],[/돼지 사육/,'pig'],[/양 사육/,'sheep'],[/석탄/,'coal'],[/석유|원유/,'fuel'],
-  [/가스/,'flame']];
+  [/가스/,'flame'],[/다이아몬드/,'gem']];
 /* 광물은 그림 대신 원소 기호 — 보크사이트는 알루미늄 광석이라 Al, 크롬은 Cr₂O₃ 기준이지만 Cr */
-const CN_EL=[[/철광석/,'Fe'],[/보크사이트/,'Al'],[/구리/,'Cu'],[/^금$/,'Au'],[/^은$/,'Ag'],[/주석/,'Sn'],[/코발트/,'Co'],[/망간/,'Mn'],[/크롬/,'Cr']];
+const CN_EL=[[/철광석/,'Fe'],[/보크사이트/,'Al'],[/구리/,'Cu'],[/^금( |$)/,'Au'],[/^은( |$)/,'Ag'],[/주석/,'Sn'],[/코발트/,'Co'],[/망간/,'Mn'],[/크롬/,'Cr']];
 const cnItemIc=k=>{const e=CN_EL.find(r=>r[0].test(k));if(e)return '<span class="cn-el" aria-hidden="true">'+e[1]+'</span>';
   const m=CN_ITEM.find(r=>r[0].test(k));return m?cnIc(m[1]):'';};
 /* 고기 생산량은 대륙·블록 화면에서 뺀다(사육두수만 남긴다) */
@@ -421,10 +422,10 @@ function abBlocOne(id){
   const A=b.agg,cov=k=>(b.cover[k]||0)<b.n?'회원국 '+(b.cover[k]||0)+'/'+b.n+'개국 자료':'';
   const pc=A.pop?A.gdp*1e8/(A.pop*1e6):null;
   const G={mem:'',eco:'',food:'',en:'',pow:'',min:''};
-  const euro=((typeof BLOC_DATA!=='undefined'?BLOC_DATA:[]).find(x=>x.id===id)||{}).euro;
+  const BD=(typeof BLOC_DATA!=='undefined'?BLOC_DATA:[]).find(x=>x.id===id)||{},euro=BD.euro;
   G.mem+=cnMapHtml(euro?[{isos:euro,cls:'m1',label:'유로존(유로 사용) '+euro.length+'개국'},
       {isos:b.members.filter(i=>euro.indexOf(i)<0),cls:'m2',label:'유로 미사용 '+(b.n-euro.length)+'개국'}]
-    :[{isos:b.members,cls:'m1',label:'회원국 '+b.n+'개국'}]);
+    :[{isos:b.members,cls:'m1',label:'회원국 '+b.n+'개국'}],BD);
   G.mem+='<div class="taglist flags">'+b.members.map(i=>'<a class="tag'+(DICT_DATA[i]?' link':'')+'"'
     +(DICT_DATA[i]?' href="#/atlas?'+i+'"':'')+'>'+(typeof abFlag==='function'?abFlag(i,20):'')+abEsc(typeof abName==='function'?abName(i):i)+'</a>').join('')+'</div>';
   G.eco+=cnSec('bl-eco','규모와 무역','인구 2025 · GDP·무역 2024','UN WPP · UN 통계국 · WTO · UNCTAD',
@@ -461,6 +462,7 @@ function abBlocOne(id){
     +'<b>'+fmtUSD(A.gdp)+'</b><span>GDP · '+rt(x=>B(x).agg.gdp)+'</span>'
     +'<b>'+fmtUSD(A.tx)+'</b><span>상품 수출 · '+rt(x=>B(x).agg.tx)+'</span>'
     +'<b>'+(b.intra!=null?fmtN(b.intra)+'%':'—')+'</b><span>역내 무역 비중</span>'
+    +cnHqCap(BD)
     +'</div></div>'
     +'<p class="cn-note">모든 값은 회원국 값을 더한 합계다(평균이 아니다). 회원국이 다른 블록과 겹칠 수 있다.</p>';
   const GRP=[['mem','회원국','flag'],['eco','규모와 무역','coin'],['food','농축산물','grain'],['en','에너지','flame'],['pow','전력','bolt'],['min','광물','ore']];
@@ -472,9 +474,24 @@ function abBlocOne(id){
 /* ═══════════ 회원국 지도 ═══════════
    국가 아틀라스·접경국과 같은 세계지도(img/world.svg)를 쓴다. 그룹마다 다른 색으로 칠하고
    회원국이 한눈에 들어오게 그 범위로 확대해 둔다(휠·드래그로 옮길 수 있다). */
-function cnMapHtml(groups){
-  return '<div class="map-wrap cn-map" data-g="'+abEsc(JSON.stringify(groups.map(g=>[g.isos,g.cls])))+'"></div>'
-    +'<div class="cn-legend">'+groups.map(g=>'<span><i class="'+g.cls+'"></i>'+abEsc(g.label)+'</span>').join('')+'</div>';
+function cnMapHtml(groups,org){
+  const hq=org&&org.hq;
+  return '<div class="map-wrap cn-map" data-g="'+abEsc(JSON.stringify(groups.map(g=>[g.isos,g.cls])))+'"'
+    +(hq?' data-hq="'+abEsc(JSON.stringify([hq.ll,hq.city]))+'"':'')+'></div>'
+    +'<div class="cn-legend">'+groups.map(g=>'<span><i class="'+g.cls+'"></i>'+abEsc(g.label)+'</span>').join('')
+    +(org?'<span class="cn-hq-k">'+(hq?'<b class="cn-star">★</b>본부 '+abEsc(hq.city)+'('+abEsc(typeof abName==='function'?abName(hq.iso):hq.iso)+')'
+      +(hq.note?' · '+abEsc(hq.note):''):abEsc(org.hqNote||''))+'</span>':'')+'</div>';
+}
+/* 본부 표시 — 별 모양 표지와 도시 이름. 확대 배율에 맞춰 크기를 잡는다 */
+function cnDrawHq(el){
+  if(!el.dataset.hq||typeof cyXY!=='function')return;
+  const svg=el.querySelector('svg');if(!svg)return;
+  const [ll,city]=JSON.parse(el.dataset.hq),[x,y]=cyXY(ll[0],ll[1]),NS='http://www.w3.org/2000/svg';
+  const vw=+(svg.getAttribute('viewBox')||'0 0 2754 1398').split(/\s+/)[2]||2754,r=Math.max(6,vw/90);
+  const g=document.createElementNS(NS,'g');g.setAttribute('class','cn-hq');
+  const pts=[];for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rr=i%2?r*.45:r;pts.push((x+rr*Math.cos(a)).toFixed(1)+','+(y+rr*Math.sin(a)).toFixed(1));}
+  g.innerHTML='<polygon points="'+pts.join(' ')+'"/><text x="'+(x+r*1.2).toFixed(1)+'" y="'+(y+r*.4).toFixed(1)+'" style="font-size:'+(r*1.25).toFixed(1)+'px">'+abEsc(city)+'</text>';
+  svg.appendChild(g);
 }
 function cnMountMaps(box){
   if(typeof abMapMount!=='function')return;
@@ -484,6 +501,7 @@ function cnMountMaps(box){
       const all=[];
       groups.forEach(([isos,cls])=>isos.forEach(i=>{all.push(i);el.querySelectorAll('[data-iso="'+i+'"]').forEach(p=>p.classList.add(cls));}));
       cnMapFocus(el,all);
+      cnDrawHq(el);
     });
   });
 }
@@ -510,16 +528,27 @@ function cnMapFocus(el,isos){
   x=Math.min(V.w-w,Math.max(0,x));y=Math.min(V.h-h,Math.max(0,y));
   svg.setAttribute('viewBox',x+' '+y+' '+w+' '+h);
 }
+/* 머리 카드의 본부 줄 */
+const cnHqCap=o=>o.hq?'<b>'+abEsc(o.hq.city)+'</b><span>본부 · '+abEsc(typeof abName==='function'?abName(o.hq.iso):o.hq.iso)+'</span>'
+  :o.hqNote?'<b>없음</b><span>본부</span>':'';
+/* 기타 연맹을 성격별로 묶어 고르게 한다 */
+const CN_AL_GRP=[['국제기구',['un','wto']],['경제 협력·자유 무역',['oecd','apec','rcep','cptpp','efta','andean','ecowas']],
+  ['자원',['opec']],['지역 협력',['au','arab','gcc','saarc','cis','sco']],['군사 동맹',['nato']],['협의체',['g7','g20','brics']]];
 /* ═══════════ 기타 연맹 — 지도로 회원국만 ═══════════ */
 function abAllianceOne(id){
   const a=ALLIANCE_DATA.find(x=>x.id===id)||ALLIANCE_DATA[0];
   const nm=i=>typeof abName==='function'?abName(i):i;
   const inBloc=CONT_DATA.blocs.filter(b=>a.members.some(i=>b.members.indexOf(i)>=0));
-  let h='<div class="chips cn-sub-chips">'+ALLIANCE_DATA.map(x=>'<a class="chip'+(x.id===a.id?' on':'')+'" href="#/cont?o-'+x.id+'">'+abEsc(x.short)+'</a>').join('')+'</div>';
+  const chip=x=>'<a class="chip'+(x.id===a.id?' on':'')+'" href="#/cont?o-'+x.id+'">'+abEsc(x.short)+'</a>';
+  const seen={};
+  let h='<div class="cn-al-grp">'+CN_AL_GRP.map(([g,ids])=>'<div><span>'+abEsc(g)+'</span><div class="chips">'
+      +ids.map(i=>ALLIANCE_DATA.find(x=>x.id===i)).filter(Boolean).map(x=>{seen[x.id]=1;return chip(x);}).join('')+'</div></div>').join('')
+    +(ALLIANCE_DATA.some(x=>!seen[x.id])?'<div><span>기타</span><div class="chips">'+ALLIANCE_DATA.filter(x=>!seen[x.id]).map(chip).join('')+'</div></div>':'')+'</div>';
   h+='<div class="ct-head cn-head"><div class="ct-id"><div><div class="ct-rg">'+abEsc(a.kind)+' · 회원 '+a.members.length+'개</div>'
     +'<h3>'+abEsc(a.short)+'</h3><div class="ct-en">'+abEsc(a.name)+'</div></div></div>'
-    +(a.note?'<div class="ct-cap"><b>'+abEsc(a.note)+'</b><span>참고</span></div>':'')+'</div>';
-  h+=cnMapHtml([{isos:a.members,cls:'m1',label:a.short+' 회원 '+a.members.length+'개'}]);
+    +'<div class="ct-cap"><b>'+a.members.length+'개</b><span>회원</span>'+cnHqCap(a)+'</div></div>'
+    +(a.note?'<p class="cn-note">'+abEsc(a.note)+'</p>':'');
+  h+=cnMapHtml([{isos:a.members,cls:'m1',label:a.short+' 회원 '+a.members.length+'개'}],a);
   h+='<h4 class="sec">회원'+abSecEm(a.members.length+'개','2026년 10월 기준')+'</h4><div class="taglist flags">'
     +a.members.slice().sort((x,y)=>nm(x).localeCompare(nm(y),'ko')).map(i=>'<a class="tag'+(DICT_DATA[i]?' link':'')+'"'+(DICT_DATA[i]?' href="#/atlas?'+i+'"':'')+'>'
       +(typeof abFlag==='function'?abFlag(i,20):'')+abEsc(nm(i))+'</a>').join('')+'</div>';
