@@ -12,7 +12,7 @@ const cnCell=(k,v,u,sub)=>'<div class="stat"><div class="k">'+abEsc(k)+'</div><d
   +(u?'<small class="cn-u">'+abEsc(u)+'</small>':'')+'</div>'+(sub?'<div class="r muted">'+abEsc(sub)+'</div>':'')+'</div>';
 const cnName=id=>(CONT_DATA.conts.find(c=>c.id===id)||{}).name||id;
 /* 대륙과 가장 가까운 EI 권역 — 에너지 표에서 그 줄에 표시만 한다(값을 옮겨 오지는 않는다) */
-const CN_EI={af:['아프리카'],as:['아시아태평양','중동','CIS'],eu:['유럽','CIS'],la:['중남미'],an:['북아메리카(멕시코 포함)'],oc:['아시아태평양']};
+const CN_EI={af:['아프리카'],as:['아시아태평양','건조 아시아(중동·CIS)'],eu:['유럽'],la:['중남미'],an:['북아메리카(멕시코 포함)'],oc:['아시아태평양']};
 
 /* 세로 막대 — 해마다 값(인구 추이 등). max를 주면 대륙끼리 길이를 견줄 수 있다 */
 function cnCols(pts,max,unit,d){
@@ -236,7 +236,7 @@ function abContEnergy(c){
       +'</tbody></table></div>';
   };
   return cnSec('cn-en','권역별 생산과 소비','2024년','Energy Institute Statistical Review 2025',
-      '<p class="cn-note">권역은 Energy Institute가 정한 구분이라 대륙과 경계가 다르다(북아메리카에 멕시코, 중동·CIS는 따로).'
+      '<p class="cn-note">권역은 Energy Institute 구분을 따르되 중동과 CIS(러시아 포함)는 건조 아시아로 묶었다. 대륙과 경계가 다르다(북아메리카에 멕시코 포함).'
       +(mine.length?' 이 대륙과 가장 가까운 권역을 짙게 표시했다.':'')+' 굵은 값은 그 연료의 1위 권역.</p>'
       +'<div class="grid g-2">'+table('Prod','생산')+table('Cons','소비')+'</div>');
 }

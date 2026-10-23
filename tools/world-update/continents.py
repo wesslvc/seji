@@ -5,8 +5,8 @@
   · 인구·출생/사망·연령·순이동: UN WPP 2024 지역 행        · 도시화: UN WUP 2025 지역 행
   · 국제 이주자: UN DESA 2024 지역 행(거주 지역 · 출신 지역)  · 농축산·곡물 무역: FAOSTAT 지역 행(2024)
   · 전력(Ember)·난민(UNHCR)·광물(World Mining Data): 원천에 대륙 행이 없거나 UN 구분과 달라, 나라 값을 UN 지역에
-    넣어 '합산'했다(평균이 아니다). · 에너지: Energy Institute가 주는 권역(북아메리카·중남미·유럽·CIS·중동·아프리카·
-    아시아태평양)을 그대로 싣는다 — 대륙과 경계가 달라 억지로 끼워 맞추지 않았다.
+    넣어 '합산'했다(평균이 아니다). · 에너지: Energy Institute 권역(북아메리카·중남미·유럽·CIS·중동·아프리카·아시아태평양)을 쓰되,
+    중동과 CIS는 '건조 아시아(중동·CIS)' 하나로 합쳤다 — 대륙과 경계가 달라 대륙에 억지로 끼워 맞추지는 않았다.
   '라틴 아메리카'의 FAOSTAT 값은 중앙아메리카+남아메리카+카리브 지역 행의 합이다.
 """
 import csv,gzip,io,json,os,re,sys,zipfile
@@ -177,11 +177,14 @@ def eitab(name):
     hi=next(i for i,r in enumerate(rows) if r and len(r)>1 and isinstance(r[1],(int,float)) and r[1]>=1960);yc=[j for j,x in enumerate(rows[hi]) if x==2024][0]
     return {str(r[0]).strip():r[yc] for r in rows[hi+1:] if r[0] and isinstance(r[yc],(int,float))}
 EJ=277.78
-D['energy']={'year':2024,'regions':[x[1] for x in RG],'unit':'TWh','note':'Energy Institute Statistical Review 2025의 권역 구분(대륙과 경계가 다르다)'}
+D['energy']={'year':2024,'regions':['북아메리카(멕시코 포함)','중남미','유럽','건조 아시아(중동·CIS)','아프리카','아시아태평양'],'unit':'TWh','note':'Energy Institute Statistical Review 2025의 권역 구분(대륙과 경계가 다르다)'}
 for key,sheet,mul in(('coalProd','Coal Production - EJ',EJ),('gasProd','Gas Production - EJ',EJ),('oilProd','Oil Production - tonnes',11.63),
                      ('coalCons','Coal Consumption - EJ',EJ),('gasCons','Gas Consumption - EJ',EJ),('oilCons','Oil Consumption - EJ',EJ)):
     t=eitab(sheet);w=t['Total World']
-    D['energy'][key]={'world':round(w*mul),**{lab:round(t[nm]*mul) for nm,lab in RG if nm in t}}
+    row={lab:t[nm]*mul for nm,lab in RG if nm in t}
+    # 중동과 CIS는 '건조 아시아'로 묶는다(세계지리 교과의 지역 구분 — 러시아도 CIS라 여기에 든다)
+    row['건조 아시아(중동·CIS)']=row.pop('중동',0)+row.pop('CIS',0)
+    D['energy'][key]={'world':round(w*mul),**{k:round(v) for k,v in row.items()}}
 
 open(OUT,'w',encoding='utf-8').write('/* 대륙별 통계 — tools/world-update/continents.py 가 만든다(직접 고치지 말 것). 출처와 방법은 그 파일 머리말 */\nconst CONT_DATA='+json.dumps(D,ensure_ascii=False,separators=(',',':'))+';\n')
 print('ok',os.path.getsize(OUT),'Ember 매칭 안 된 나라:',D['powerMissing'][:10])
