@@ -696,11 +696,59 @@ body{text-rendering:optimizeLegibility;word-break:keep-all}
 .st-ox-res p.ok{color:var(--okt,#2e9e6b)}.st-ox-res p.bad{color:var(--wr)}
 .st-ox-res i{font-style:normal;color:var(--tx2);font-size:var(--fs-sm)}
 
-/* 대륙 통계 */
-.ct-tb{width:100%;border-collapse:collapse;font-size:var(--fs-sm)}
-.ct-tb th,.ct-tb td{padding:.38rem .5rem;border-bottom:1px solid var(--hair);text-align:right}
-.ct-tb th:first-child,.ct-tb td:first-child{text-align:left;color:var(--tx2)}
-.ct-tb th{color:var(--tx3);font-weight:400;font-size:var(--fs-xs)}
-.ct-sub{margin:.7rem 0 .35rem;color:var(--tx2);font-size:var(--fs-sm)}
-.sec-em{margin-left:.5rem;color:var(--tx3);font-size:var(--fs-xs);font-weight:400}
-#s-cont .field select{width:100%;padding:.6rem .7rem}
+/* 대륙 통계 — 국가 아틀라스와 같은 뼈대(.ct-head, .at-jump, .at-grp)에 표·막대만 더한다 */
+#s-cont .chips{margin-bottom:1.4rem}
+.cn-head{margin-bottom:1.2rem}
+.cn-row{margin-top:1rem}
+.cn-inner{gap:1rem;align-content:start}
+#s-cont .grid+.card,#s-cont .card+.card{margin-top:1rem}
+#s-cont .grid>.card,#s-cont .grid>.grid{margin-top:0}
+#s-cont .grid.cn-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+#s-cont .grid.cn-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media (max-width:760px){#s-cont .grid.cn-4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+#s-cont .cn-inner{align-content:stretch}
+.cn-row>.card{display:flex;flex-direction:column}
+.cn-cols{max-height:240px}
+#s-cont .bar-v{white-space:nowrap}
+#s-cont .card+.at-grp{margin-top:2.2rem}
+.stat .v .cn-u{font-size:var(--fs-sm);color:var(--tx3);margin-left:.3rem;letter-spacing:0;font-weight:400}
+.cn-unit,.cn-note{font-size:var(--fs-xs);color:var(--tx3);margin:.6rem 0 0;line-height:1.55}
+.cn-note{margin:0 0 .9rem}
+.cn-gap{height:1.6rem}
+/* 세로 막대 */
+.cn-cols{width:100%;height:auto;display:block}
+.cn-cols rect{fill:var(--sf3,var(--bd2))}
+.cn-cols rect.on{fill:var(--ac)}
+.cn-cols text{font-size:10.5px;text-anchor:middle;font-variant-numeric:tabular-nums}
+.cn-cols .cv{fill:var(--tx2)}
+.cn-cols .cx{fill:var(--tx3)}
+.cn-cols line{stroke:var(--bd);stroke-width:1}
+/* 연령 띠 */
+.cn-age{display:flex;height:.55rem;border-radius:999px;overflow:hidden;margin-top:.9rem;gap:2px}
+.cn-age i{display:block}
+/* 표 */
+.cn-tbw{overflow-x:auto}
+.cn-tb{width:100%;border-collapse:collapse;font-size:var(--fs-sm);font-variant-numeric:tabular-nums}
+.cn-tb th,.cn-tb td{padding:.5rem .55rem;border-bottom:1px solid var(--hair,var(--bd));text-align:right;white-space:nowrap}
+.cn-tb th:first-child,.cn-tb td:first-child{text-align:left;color:var(--tx2)}
+.cn-tb thead th{color:var(--tx3);font-weight:500;font-size:var(--fs-xs);border-bottom-color:var(--bd2)}
+.cn-tb tbody tr:last-child td{border-bottom:0}
+.cn-tb td small{margin-left:.25rem;color:var(--tx3);font-size:.72em}
+.cn-tb td:last-child{color:var(--tx)}
+.cn-tb .cn-tb-sep td{border-top:1px solid var(--bd2);color:var(--tx3)}
+.cn-tb .pos{color:var(--ac)}
+.cn-tb .neg{color:var(--tx3)}
+.cn-share td:last-child{display:flex;align-items:center;justify-content:flex-end;gap:.5rem}
+.cn-sh{display:inline-block;width:4.2rem;height:.4rem;border-radius:999px;background:var(--sf2);overflow:hidden}
+.cn-sh i{display:block;height:100%;background:var(--ac)}
+.cn-en td.top{font-weight:700;color:var(--tx)}
+.cn-en tr.mine td{background:color-mix(in srgb,var(--ac) 12%,transparent)}
+.cn-en tr.mine td:first-child{color:var(--tx);font-weight:600}
+/* 비교 */
+.cn-pick{display:flex;align-items:center;gap:.8rem;margin-bottom:1rem}
+.cn-pick label{font-size:var(--fs-xs);color:var(--tx3);flex:none}
+.cn-field{flex:1;padding:0 1rem}
+.cn-field select{flex:1;min-width:0;background:none;border:0;outline:none;color:var(--tx);font:inherit;padding:.6rem 0;cursor:pointer}
+.bar-row[data-c]{cursor:pointer;border-radius:var(--r-sm,6px)}
+.bar-row[data-c]:hover{background:var(--sf2)}
+@media (max-width:620px){.cn-tb th,.cn-tb td{padding:.45rem .4rem}.cn-sh{width:2.6rem}}
