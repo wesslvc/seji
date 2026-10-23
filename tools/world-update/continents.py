@@ -166,7 +166,10 @@ for nm,lab in MIN.items():
         k=iso2cont.get(a3)
         if k:s[k]+=float(r[yc])
     t=sum(s.values())
-    D['minerals'][lab]={'unit':unit,'year':2023,'total':round(t),**{k:round(v) for k,v in s.items()},'share':{k:R(v/t*100) for k,v in s.items()} if t else {}}
+    if unit=='kg':div,u=1000,'톤'
+    elif t>=1e7:div,u=1e4,'만 톤'
+    else:div,u=1,'톤'
+    D['minerals'][lab]={'unit':u,'year':2023,'total':R(t/div,1),**{k:R(v/div,1) for k,v in s.items()},'share':{k:R(v/t*100) for k,v in s.items()} if t else {}}
 
 # ── Energy Institute 2025판 권역 (EI 구분 그대로) ──
 ei=openpyxl.load_workbook(P('ei','ei.xlsx'),read_only=True,data_only=True)
@@ -185,6 +188,47 @@ for key,sheet,mul in(('coalProd','Coal Production - EJ',EJ),('gasProd','Gas Prod
     # 중동과 CIS는 '건조 아시아'로 묶는다(세계지리 교과의 지역 구분 — 러시아도 CIS라 여기에 든다)
     row['건조 아시아(중동·CIS)']=row.pop('중동',0)+row.pop('CIS',0)
     D['energy'][key]={'world':round(w*mul),**{k:round(v) for k,v in row.items()}}
+
+# ── 경제 블록 — 회원국 값을 더한 합계. 회원 목록은 abyss/js/bloc-data.js 와 같은 것을 읽는다 ──
+WD=os.path.join(os.path.dirname(os.path.abspath(OUT)),'world-data.js')
+wtxt=open(WD,encoding='utf-8').read();WDATA=json.loads(re.search(r'^const WORLD_DATA=(\{.*\});\s*$',wtxt,flags=re.M).group(1))
+btxt=open(os.path.join(os.path.dirname(os.path.abspath(OUT)),'bloc-data.js'),encoding='utf-8').read()
+BL=[]
+for m in re.finditer(r"\{id:'(\w+)',name:'([^']+)',short:'([^']+)',\s*members:\[([^\]]*)\],\s*intra:(\{[^}]*\}|null)",btxt):
+    intra=None
+    if m.group(5)!='null':
+        mm=re.search(r'share:([\d.]+)',m.group(5));intra=float(mm.group(1)) if mm else None
+    BL.append({'id':m.group(1),'name':m.group(2),'short':m.group(3),'members':re.findall(r"'(\w+)'",m.group(4)),'intra':intra})
+# 인구(WPP 2025, 백만 명) · GDP(UN 통계국 2024, 억 달러)는 원천의 나라 값을 더한다
+pop2={}
+with gzip.open(P('un','WPP2024_Demographic_Indicators_Medium.csv.gz'),'rt',encoding='utf-8-sig') as h:
+    for r in csv.DictReader(h):
+        if r['Time']=='2025' and r['LocTypeName']=='Country/Area' and r['ISO3_code']:
+            c=pycountry.countries.get(alpha_3=r['ISO3_code'])
+            if c:pop2[c.alpha_2.lower()]=float(r['TPopulation1July'])/1000
+gdp2={}
+ws=openpyxl.load_workbook(P('unsd','Download-GDPcurrent-USD-countries.xlsx'),read_only=True,data_only=True).worksheets[0]
+rr=list(ws.iter_rows(values_only=True));hi=next(i for i,r in enumerate(rr) if r and r[0]=='CountryID');yc2=list(rr[hi]).index(2024)
+for r in rr[hi+1:]:
+    if r[2]=='Gross Domestic Product (GDP)' and isinstance(r[0],int) and r[yc2]:
+        c=pycountry.countries.get(numeric=str(r[0]).zfill(3))
+        if c:gdp2[c.alpha_2.lower()]=float(r[yc2])/1e8
+KEYS=['wh','ri','co','cas','cof','cca','tea','rub','pal','suc','ctn','oli','grp','dat','bef','prk','mtn','ct','pg','sh',
+      'whx','whm','rix','rim','cox','com','cp','gp','op','cc','gc','oc','ox','om','cx','cm','gx','gm',
+      'ior','bux','cop','gld','slv','tin','cbt','mng','chr','tx','tm','mva','rfo','rfh','mig']
+D['blocs']=[]
+for b in BL:
+    agg={'pop':0.0,'gdp':0.0};cov={'pop':0,'gdp':0};el=[0.0]*10;elc=0
+    for i in b['members']:
+        if i in pop2:agg['pop']+=pop2[i];cov['pop']+=1
+        if i in gdp2:agg['gdp']+=gdp2[i];cov['gdp']+=1
+        w=WDATA.get(i,{})
+        for k in KEYS:
+            if k in w:agg[k]=agg.get(k,0)+w[k];cov[k]=cov.get(k,0)+1
+        if w.get('el'):el=[a+b2 for a,b2 in zip(el,w['el'])];elc+=1
+    agg={k:R(v,1) for k,v in agg.items()}
+    D['blocs'].append({**b,'n':len(b['members']),'agg':agg,'cover':cov,'el':[R(x,1) for x in el],'elCover':elc})
+D['blocNote']='회원국 값의 합계 — 인구 UN WPP 2025, GDP UN 통계국 2024, 나머지는 world-data.js(FAOSTAT 2024·EI 2024·WTO 2024 등)'
 
 open(OUT,'w',encoding='utf-8').write('/* 대륙별 통계 — tools/world-update/continents.py 가 만든다(직접 고치지 말 것). 출처와 방법은 그 파일 머리말 */\nconst CONT_DATA='+json.dumps(D,ensure_ascii=False,separators=(',',':'))+';\n')
 print('ok',os.path.getsize(OUT),'Ember 매칭 안 된 나라:',D['powerMissing'][:10])

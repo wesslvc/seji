@@ -752,3 +752,20 @@ body{text-rendering:optimizeLegibility;word-break:keep-all}
 .bar-row[data-c]{cursor:pointer;border-radius:var(--r-sm,6px)}
 .bar-row[data-c]:hover{background:var(--sf2)}
 @media (max-width:620px){.cn-tb th,.cn-tb td{padding:.45rem .4rem}.cn-sh{width:2.6rem}}
+
+/* 대륙·블록 — 위쪽 갈래 전환과 순위 표 */
+.cn-mode{display:inline-flex;gap:.25rem;padding:.25rem;border:1px solid var(--bd2);border-radius:var(--r-full);background:var(--sf)}
+.cn-seg{border:0;background:transparent;color:var(--tx2);font:inherit;font-size:var(--fs-sm);padding:.45rem 1.1rem;border-radius:var(--r-full);cursor:pointer}
+.cn-seg.on{background:var(--btn);color:#fff;font-weight:600}
+#s-cont .cn-mode+.chips{margin-top:.8rem}
+.cn-rk td:nth-child(2){color:var(--tx)}
+.cn-rk td:last-child{color:var(--tx2)}
+.cn-rkb{font-weight:700;color:var(--tx);font-variant-numeric:tabular-nums}
+.cn-rk td:last-child small{color:var(--tx3);margin-left:.1rem}
+.cn-rk .cn-sub{display:block;font-size:.7rem;color:var(--tx3);margin-top:.1rem}
+.cn-rk tr.first td{background:color-mix(in srgb,var(--ac) 10%,transparent)}
+.cn-rk tr.first .cn-rkb{color:var(--ac)}
+.cn-en sup{font-size:.62em;color:var(--tx3);margin-left:.15rem;vertical-align:.45em}
+.cn-en td.top sup{color:var(--ac)}
+.cn-firsts{font-size:var(--fs-sm);color:var(--tx2);margin:-.4rem 0 1.1rem;line-height:1.6}
+.cn-firsts b{color:var(--ac);margin-right:.4rem}
