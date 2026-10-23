@@ -273,8 +273,7 @@ const AB_METRICS=[
   [['coffee','커피 생두 생산량','cof','만 톤'],['cotton','목화 생산량(씨앗 목화)','ctn','만 톤'],
    ['cassava','카사바 생산량','cas','만 톤'],['cocoa','카카오 생산량','cca','만 톤'],['tea','차 생산량','tea','만 톤'],
    ['rubber','천연고무 생산량','rub','만 톤'],['palmOil','팜유 생산량','pal','만 톤'],['sugarcane','사탕수수 생산량','suc','만 톤'],
-   ['olive','올리브 생산량','oli','만 톤'],['grape','포도 생산량','grp','만 톤'],['dates','대추야자 생산량','dat','만 톤'],
-   ['beef','소고기 생산량','bef','만 톤'],['pork','돼지고기 생산량','prk','만 톤'],['mutton','양고기 생산량','mtn','만 톤']]
+   ['olive','올리브 생산량','oli','만 톤'],['grape','포도 생산량','grp','만 톤'],['dates','대추야자 생산량','dat','만 톤']]
     .forEach(([id,nm,k,unit])=>{
       AB_METRICS.push({id:id,cat:'농축산물',name:nm,unit:unit,src:'FAOSTAT · 2023년',
         f:i=>{const v=wd(i)[k];return v!=null?v:null;}});
