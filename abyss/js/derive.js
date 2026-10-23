@@ -288,6 +288,12 @@ const AB_METRICS=[
       AB_METRICS.push({id:key+'GImp',cat:'농축산물',name:nm+' 수입량',unit:'만 톤',
         src:'FAOSTAT 무역 · 2023년',f:i=>{const v=wd(i)[mk];return v!=null?v:null;}});
     });
+  /* 곡물 소비량 — FAOSTAT 식량수급표 2023 국내 공급량(식용·사료·가공 포함). 쌀은 벼 환산 */
+  [['wheatCons','밀 소비량','whd'],['riceCons','쌀 소비량(벼 환산)','rid'],['cornCons','옥수수 소비량','cod']]
+    .forEach(([id,nm,k])=>{
+      AB_METRICS.push({id:id,cat:'농축산물',name:nm,unit:'만 톤',src:'FAOSTAT 식량수급표 · 2023년',
+        f:i=>{const v=wd(i)[k];return v!=null?v:null;}});
+    });
   /* 주요 광물 — World Mining Data 2023년. 다이아몬드만 출처가 다르다(Kimberley Process,
      왜 다른지는 world-data.js 머리말 참고) */
   [['iron_ore','철광석 생산량(철 함유량)','ior','만 톤','World Mining Data · 2023년'],

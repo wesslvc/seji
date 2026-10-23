@@ -304,6 +304,16 @@ for r in fao_rows('Trade_CropsLivestock_E_All_Data_(Normalized).zip',set(TR),{'E
     k=TR[r['Item Code']][0 if r['Element'].startswith('Export') else 1]
     if put(k,i,float(r['Value'])/1e4):cn[k]+=1
 for k,v in cn.items():done(k,v,'FAOSTAT 무역 2023(만 톤)')
+# 곡물 소비량 — FAOSTAT 식량수급표(FBS) 2023 '국내 공급량'(생산+수입−수출±재고, 사료·가공 포함). 쌀은 벼 환산
+CONS={'2511':'whd','2807':'rid','2514':'cod'}
+for k in CONS.values():
+    for i in W:W[i].pop(k,None)
+cn={k:0 for k in CONS.values()}
+for r in fao_rows('FoodBalanceSheets_E_All_Data_(Normalized).zip',set(CONS),{'Domestic supply quantity'}):
+    i=m49_iso2(r['Area Code (M49)'])
+    if not i or r['Unit'] not in('1000 t','1000 tonnes'):continue
+    if put(CONS[r['Item Code']],i,float(r['Value'])/10):cn[CONS[r['Item Code']]]+=1
+for k,v in cn.items():done(k,v,'FAOSTAT 식량수급표 2023 국내 공급량(만 톤)')
 
 # ── World Mining Data 2023 : 광물 (다이아몬드는 Kimberley Process 유지) ──
 WMD_NAME={'Bosnia-Herzegovina':'ba','Congo, Rep.':'cg','Congo, D.R.':'cd','Korea, North':'kp','Korea, South':'kr','Russia':'ru',"Cote d'Ivoire":'ci'}

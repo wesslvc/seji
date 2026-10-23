@@ -26,7 +26,7 @@ function abStatN(id){
 }
 /* 통계 id(STAT_SETS) → 전체 순위(AB_METRICS) */
 const AB_ST_MAP={rel_chr:'rel0',rel_isl:'rel1',rel_hin:'rel3',rel_bud:'rel2',
-  ric_prod:'rice',ric_exp:'riceGExp',ric_imp:'riceGImp',
+  ric_prod:'rice',ric_exp:'riceGExp',ric_imp:'riceGImp',ric_cons:'riceCons',whe_cons:'wheatCons',cor_cons:'cornCons',
   whe_prod:'wheat',whe_exp:'wheatGExp',whe_imp:'wheatGImp',
   cor_prod:'corn',cor_exp:'cornGExp',cor_imp:'cornGImp',
   liv_cat:'cattle',liv_shp:'sheep',liv_pig:'pig',

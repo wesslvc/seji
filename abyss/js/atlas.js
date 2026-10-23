@@ -366,6 +366,7 @@ function abAtlasShow(iso){
     /* 고기 생산량은 넣지 않는다 — 가축은 사육두수로 본다 */
     G.econ+='<h4 class="sec" id="at-crop">주요 농축산물'+abSecEm(null,abSrcOf(['wheat']))+'</h4>'
       +abSubGrid('곡물','grain',['wheat','rice','corn'],iso,true)
+      +abSubGrid('곡물 소비','grain',['wheatCons','riceCons','cornCons'],iso)
       +abSubGrid('곡물 무역','ship',['wheatGExp','wheatGImp','riceGExp','riceGImp','cornGExp','cornGImp'],iso)
       +abSubGrid('가축','cow',['cattle','sheep','pig'],iso,true)
       +abSubGrid('기호·공예 작물','coffee',['coffee','cocoa','tea','sugarcane','cotton','rubber','palmOil','cassava'],iso)
