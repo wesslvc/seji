@@ -72,23 +72,25 @@ function abContInit(){
     const b=e.target.closest('.chip');if(!b)return;location.hash='#/cont?'+b.dataset.c;
   });
 }
-const cnIsBloc=k=>k==='bcmp'||k.indexOf('b-')===0;
+const cnIsBloc=k=>k==='bcmp'||k.indexOf('b-')===0||k.indexOf('o-')===0;
 AB_ON_ENTER['/cont']=function(key){
   const k=(key.split('?')[1]||'').trim(),D=CONT_DATA;
-  if(k==='cmp'||k==='bcmp'||D.conts.some(c=>c.id===k)||D.blocs.some(b=>'b-'+b.id===k))AB_CONT.c=k;
+  if(k==='cmp'||k==='bcmp'||D.conts.some(c=>c.id===k)||D.blocs.some(b=>'b-'+b.id===k)||ALLIANCE_DATA.some(a=>'o-'+a.id===k))AB_CONT.c=k;
   const bloc=cnIsBloc(AB_CONT.c);
   document.querySelectorAll('#cont-mode .cn-seg').forEach(x=>x.classList.toggle('on',(x.dataset.m==='b')===bloc));
   const tabs=document.getElementById('cont-tabs');
   tabs.innerHTML=(bloc?D.blocs.map(b=>['b-'+b.id,b.short]):D.conts.map(c=>[c.id,c.name]))
     .map(([id,n])=>'<button class="chip'+(id===AB_CONT.c?' on':'')+'" data-c="'+id+'">'+abEsc(n)+'</button>').join('')
-    +'<span class="chip-gap"></span><button class="chip'+((AB_CONT.c==='cmp'||AB_CONT.c==='bcmp')?' on':'')+'" data-c="'+(bloc?'bcmp':'cmp')+'">항목별 비교</button>';
+    +'<span class="chip-gap"></span><button class="chip'+((AB_CONT.c==='cmp'||AB_CONT.c==='bcmp')?' on':'')+'" data-c="'+(bloc?'bcmp':'cmp')+'">항목별 비교</button>'
+    +(bloc?'<button class="chip'+(AB_CONT.c.indexOf('o-')===0?' on':'')+'" data-c="o-'+ALLIANCE_DATA[0].id+'">기타 연맹</button>':'');
   abContView();
 };
 function abContView(){
   const box=document.getElementById('cont-view');if(!box)return;
   const k=AB_CONT.c;
   box.innerHTML=k==='cmp'?abContCompare(false):k==='bcmp'?abContCompare(true)
-    :cnIsBloc(k)?abBlocOne(k.slice(2)):abContOne(k);
+    :k.indexOf('o-')===0?abAllianceOne(k.slice(2)):cnIsBloc(k)?abBlocOne(k.slice(2)):abContOne(k);
+  cnMountMaps(box);
   box.querySelectorAll('.at-jump a').forEach(a=>a.addEventListener('click',e=>{
     e.preventDefault();abScrollTo(a.getAttribute('href').slice(1));}));
   const sel=document.getElementById('cn-sel');
@@ -321,6 +323,10 @@ function abBlocOne(id){
   const A=b.agg,cov=k=>(b.cover[k]||0)<b.n?'회원국 '+(b.cover[k]||0)+'/'+b.n+'개국 자료':'';
   const pc=A.pop?A.gdp*1e8/(A.pop*1e6):null;
   const G={mem:'',eco:'',food:'',en:'',pow:'',min:''};
+  const euro=((typeof BLOC_DATA!=='undefined'?BLOC_DATA:[]).find(x=>x.id===id)||{}).euro;
+  G.mem+=cnMapHtml(euro?[{isos:euro,cls:'m1',label:'유로존(유로 사용) '+euro.length+'개국'},
+      {isos:b.members.filter(i=>euro.indexOf(i)<0),cls:'m2',label:'유로 미사용 '+(b.n-euro.length)+'개국'}]
+    :[{isos:b.members,cls:'m1',label:'회원국 '+b.n+'개국'}]);
   G.mem+='<div class="taglist flags">'+b.members.map(i=>'<a class="tag'+(DICT_DATA[i]?' link':'')+'"'
     +(DICT_DATA[i]?' href="#/atlas?'+i+'"':'')+'>'+(typeof abFlag==='function'?abFlag(i,20):'')+abEsc(typeof abName==='function'?abName(i):i)+'</a>').join('')+'</div>';
   G.eco+=cnSec('bl-eco','규모와 무역','인구 2025 · GDP·무역 2024','UN WPP · UN 통계국 · WTO · UNCTAD',
@@ -340,14 +346,14 @@ function abBlocOne(id){
       .sort((a,b2)=>(a.rk?a.rk.r:9)-(b2.rk?b2.rk.r:9)||b2.v-a.v);
     return rows.length?cnRankTable(head,rows.map(r=>[r.l,fmtN(r.v,0)+'<small>'+abEsc(r.u)+'</small>',r.rk,''])):'<p class="none">자료 없음</p>';
   };
-  G.food+=cnSec('bl-food','농축산물 생산·무역','2024년','FAOSTAT · 회원국 합계',sec('농축산물',['품목','생산량','5개 블록 중'])+'<div class="cn-row"></div>'+sec('곡물 무역',['곡물','양','5개 블록 중']));
-  G.en+=cnSec('bl-en','에너지','2024년 · TWh','Energy Institute 등 · 회원국 합계',sec('에너지',['항목','양','5개 블록 중']));
+  G.food+=cnSec('bl-food','농축산물 생산·무역','2024년','FAOSTAT · 회원국 합계',sec('농축산물',['품목','생산량',CONT_DATA.blocs.length+'개 블록 중'])+'<div class="cn-row"></div>'+sec('곡물 무역',['곡물','양',CONT_DATA.blocs.length+'개 블록 중']));
+  G.en+=cnSec('bl-en','에너지','2024년 · TWh','Energy Institute 등 · 회원국 합계',sec('에너지',['항목','양',CONT_DATA.blocs.length+'개 블록 중']));
   const el=b.el,es=el?el.reduce((a,c)=>a+c,0):0;
   if(es>0)G.pow+=cnSec('bl-pow','전력 생산','2024년','Ember · IRENA · 회원국 합계',
     '<div class="grid cn-2">'+cnCell('발전량',fmtN(es,0),'TWh',rt(x=>{const e=B(x).el;return e?e.reduce((a,c)=>a+c,0):null;}))
     +cnCell('자료 있는 회원국',b.elCover+'/'+b.n,'개국')+'</div>'
     +'<div class="card pad cn-row">'+abIconPie(EL_NAME.map((nm,k)=>({label:nm+' '+fmtN(el[k],0)+' TWh',v:el[k]/es*100,icon:elIcon(k),color:EL_ICON_COLOR[k]||'var(--c8)'})).filter(r=>r.v>0))+'</div>');
-  G.min+=cnSec('bl-min','광물 생산량','2023년','World Mining Data · 회원국 합계',sec('광물',['광물','생산량','5개 블록 중']));
+  G.min+=cnSec('bl-min','광물 생산량','2023년','World Mining Data · 회원국 합계',sec('광물',['광물','생산량',CONT_DATA.blocs.length+'개 블록 중']));
 
   let h='<div class="ct-head cn-head"><div class="ct-id"><div><div class="ct-rg">경제 블록 · 회원국 '+b.n+'개국</div>'
     +'<h3>'+abEsc(b.short)+'</h3><div class="ct-en">'+abEsc(b.name)+'</div></div></div>'
@@ -361,5 +367,64 @@ function abBlocOne(id){
   const GRP=[['mem','회원국'],['eco','규모와 무역'],['food','농축산물'],['en','에너지'],['pow','전력'],['min','광물']];
   h+='<div class="at-jump">'+GRP.filter(([k])=>G[k]).map(([k,n])=>'<a href="#bl-g-'+k+'">'+n+'</a>').join('')+'</div>';
   GRP.forEach(([k,n])=>{if(G[k])h+='<section class="at-grp" id="bl-g-'+k+'"><h3 class="at-gh">'+n+'</h3>'+G[k]+'</section>';});
+  return h;
+}
+
+/* ═══════════ 회원국 지도 ═══════════
+   국가 아틀라스·접경국과 같은 세계지도(img/world.svg)를 쓴다. 그룹마다 다른 색으로 칠하고
+   회원국이 한눈에 들어오게 그 범위로 확대해 둔다(휠·드래그로 옮길 수 있다). */
+function cnMapHtml(groups){
+  return '<div class="map-wrap cn-map" data-g="'+abEsc(JSON.stringify(groups.map(g=>[g.isos,g.cls])))+'"></div>'
+    +'<div class="cn-legend">'+groups.map(g=>'<span><i class="'+g.cls+'"></i>'+abEsc(g.label)+'</span>').join('')+'</div>';
+}
+function cnMountMaps(box){
+  if(typeof abMapMount!=='function')return;
+  box.querySelectorAll('.cn-map').forEach(el=>{
+    const groups=JSON.parse(el.dataset.g||'[]');
+    abMapMount(el).then(()=>{
+      const all=[];
+      groups.forEach(([isos,cls])=>isos.forEach(i=>{all.push(i);el.querySelectorAll('[data-iso="'+i+'"]').forEach(p=>p.classList.add(cls));}));
+      cnMapFocus(el,all);
+    });
+  });
+}
+/* 회원국이 다 들어오게 확대 — 나라마다 가장 큰 조각(본토)만 센다. 프랑스령 기아나·레위니옹 같은
+   멀리 떨어진 해외 영토까지 세면 EU 지도가 세계 지도만큼 넓어진다 */
+function cnMapFocus(el,isos){
+  const svg=el.querySelector('svg');if(!svg)return;
+  let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9,n=0;
+  isos.forEach(i=>{
+    let best=null,ba=0;
+    el.querySelectorAll('[data-iso="'+i+'"] path,path[data-iso="'+i+'"]').forEach(p=>{
+      let b;try{b=p.getBBox();}catch(e){return;}
+      const ar=b.width*b.height;if(ar>ba){ba=ar;best=b;}
+    });
+    if(!best)return;n++;
+    x0=Math.min(x0,best.x);y0=Math.min(y0,best.y);x1=Math.max(x1,best.x+best.width);y1=Math.max(y1,best.y+best.height);
+  });
+  if(!n)return;
+  const V={w:2754,h:1398},ratio=V.w/V.h;
+  let w=(x1-x0)*1.25,h=(y1-y0)*1.25;
+  if(w/h<ratio)w=h*ratio;else h=w/ratio;
+  w=Math.min(V.w,Math.max(V.w/10,w));h=w/ratio;
+  let x=(x0+x1)/2-w/2,y=(y0+y1)/2-h/2;
+  x=Math.min(V.w-w,Math.max(0,x));y=Math.min(V.h-h,Math.max(0,y));
+  svg.setAttribute('viewBox',x+' '+y+' '+w+' '+h);
+}
+/* ═══════════ 기타 연맹 — 지도로 회원국만 ═══════════ */
+function abAllianceOne(id){
+  const a=ALLIANCE_DATA.find(x=>x.id===id)||ALLIANCE_DATA[0];
+  const nm=i=>typeof abName==='function'?abName(i):i;
+  const inBloc=CONT_DATA.blocs.filter(b=>a.members.some(i=>b.members.indexOf(i)>=0));
+  let h='<div class="chips cn-sub-chips">'+ALLIANCE_DATA.map(x=>'<a class="chip'+(x.id===a.id?' on':'')+'" href="#/cont?o-'+x.id+'">'+abEsc(x.short)+'</a>').join('')+'</div>';
+  h+='<div class="ct-head cn-head"><div class="ct-id"><div><div class="ct-rg">'+abEsc(a.kind)+' · 회원 '+a.members.length+'개</div>'
+    +'<h3>'+abEsc(a.short)+'</h3><div class="ct-en">'+abEsc(a.name)+'</div></div></div>'
+    +(a.note?'<div class="ct-cap"><b>'+abEsc(a.note)+'</b><span>참고</span></div>':'')+'</div>';
+  h+=cnMapHtml([{isos:a.members,cls:'m1',label:a.short+' 회원 '+a.members.length+'개'}]);
+  h+='<h4 class="sec">회원'+abSecEm(a.members.length+'개','2026년 10월 기준')+'</h4><div class="taglist flags">'
+    +a.members.slice().sort((x,y)=>nm(x).localeCompare(nm(y),'ko')).map(i=>'<a class="tag'+(DICT_DATA[i]?' link':'')+'"'+(DICT_DATA[i]?' href="#/atlas?'+i+'"':'')+'>'
+      +(typeof abFlag==='function'?abFlag(i,20):'')+abEsc(nm(i))+'</a>').join('')+'</div>';
+  if(inBloc.length)h+='<p class="cn-note" style="margin-top:1rem">겹치는 경제 블록: '+inBloc.map(b=>'<a href="#/cont?b-'+b.id+'">'+abEsc(b.short)+'</a> '
+    +a.members.filter(i=>b.members.indexOf(i)>=0).length+'개국').join(' · ')+'</p>';
   return h;
 }

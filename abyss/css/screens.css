@@ -769,3 +769,18 @@ body{text-rendering:optimizeLegibility;word-break:keep-all}
 .cn-en td.top sup{color:var(--ac)}
 .cn-firsts{font-size:var(--fs-sm);color:var(--tx2);margin:-.4rem 0 1.1rem;line-height:1.6}
 .cn-firsts b{color:var(--ac);margin-right:.4rem}
+
+/* 회원국 지도 */
+.cn-map{margin-top:.4rem;background:var(--bg)}
+.map-wrap.cn-map .landxx.m1{fill:var(--ac)}
+.map-wrap.cn-map .landxx.m2{fill:var(--c3)}
+.cn-legend{display:flex;flex-wrap:wrap;gap:.4rem 1.1rem;margin:.6rem 0 1.2rem;font-size:var(--fs-xs);color:var(--tx2)}
+.cn-legend i{display:inline-block;width:.75rem;height:.75rem;border-radius:3px;margin-right:.35rem;vertical-align:-1px}
+.cn-legend i.m1{background:var(--ac)}.cn-legend i.m2{background:var(--c3)}
+.cn-sub-chips{margin:0 0 1.2rem}
+.cn-note a{color:var(--ac)}
+.cn-allis{display:flex;flex-wrap:wrap;align-items:center;gap:.35rem;margin:.9rem 0 0;font-size:var(--fs-xs);color:var(--tx3)}
+.cn-allis .tag{margin:0}
+/* 코스타리카(cr)는 퀴즈의 정답 표시 클래스(.cr)와 이름이 같아 회원국이 아닌데도 칠해진다 — 회원국 지도에서는 되돌린다 */
+.map-wrap.cn-map .landxx.cr:not(.m1):not(.m2){fill:var(--land)}
+.map-wrap.cn-map .landxx.cr:not(.m1):not(.m2):hover{fill:var(--map-hover)}
