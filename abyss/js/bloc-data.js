@@ -35,7 +35,7 @@ const ALLIANCE_DATA=[
  {id:'apec',name:'아시아·태평양 경제 협력체',short:'APEC',kind:'지역 경제 협력',
   members:['au','bn','ca','cl','cn','hk','id','jp','kr','my','mx','nz','pg','pe','ph','ru','sg','tw','th','us','vn'],note:'21개 회원 경제(홍콩·타이완 포함)'},
  {id:'opec',name:'석유 수출국 기구',short:'OPEC',kind:'자원 카르텔',
-  members:['dz','cg','gq','ga','ir','iq','kw','ly','ng','sa','ae','ve'],note:'앙골라는 2024년 1월 탈퇴'},
+  members:['dz','cg','gq','ga','ir','iq','kw','ly','ng','sa','ve'],note:'앙골라(2024년 1월)·아랍에미리트 탈퇴'},
  {id:'gcc',name:'걸프 협력 회의',short:'GCC',kind:'지역 협력',members:['bh','kw','om','qa','sa','ae']},
  {id:'efta',name:'유럽 자유 무역 연합',short:'EFTA',kind:'자유 무역 협정',members:['is','li','no','ch']},
  {id:'andean',name:'안데스 공동체',short:'CAN',kind:'관세 동맹',members:['bo','co','ec','pe']},

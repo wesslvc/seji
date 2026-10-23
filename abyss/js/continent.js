@@ -9,7 +9,7 @@
    경제 블록: 회원국 값을 더한 합계(인구 UN WPP, GDP UN 통계국, 나머지 world-data.js).
    주소: #/cont?as(대륙) · #/cont?cmp(대륙 비교) · #/cont?b-eu(블록) · #/cont?bcmp(블록 비교)
    ═══════════════════════════════════════════════════════════════════════════ */
-const AB_CONT={c:'as',m:0,bm:0};
+const AB_CONT={c:'as',m:0,bm:2};
 const fmtN=(v,d=1)=>v==null?'—':Number(v).toLocaleString('ko-KR',{maximumFractionDigits:d});
 /* 억 달러 → 1만 억(=1조)이 넘으면 조 달러로 */
 const fmtUSD=v=>v==null?'—':v>=10000?fmtN(v/10000,2)+'조 달러':fmtN(v,0)+'억 달러';
@@ -19,6 +19,11 @@ const cnCell=(k,v,u,rank,sub)=>'<div class="stat"><div class="k">'+abEsc(k)+'</d
   +(u?'<small class="cn-u">'+abEsc(u)+'</small>':'')+'</div>'
   +(rank?'<div class="r">'+abEsc(rank)+'</div>':'')+(sub?'<div class="r muted">'+abEsc(sub)+'</div>':'')+'</div>';
 const cnSec=(id,t,note,src,body)=>'<h4 class="sec" id="'+id+'">'+t+abSecEm(note,src)+'</h4>'+body;
+/* 묶음 하나 — 첫 소제목이 묶음 이름과 같으면 묶음 머리글은 빼서 같은 말이 두 번 나오지 않게 */
+const cnGrp=(id,n,body)=>'<section class="at-grp" id="'+id+'">'
+  +(new RegExp('^<h4 class="sec" id="[^"]*">'+n.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'<').test(body)?'':'<h3 class="at-gh">'+n+'</h3>')+body+'</section>';
+/* 세계 비중 글자 — 1% 아래는 0%로 보이지 않게 */
+const cnPct=p=>p==null?'':p<1&&p>0?'1% 미만':fmtN(p,0)+'%';
 const cnName=id=>(CONT_DATA.conts.find(c=>c.id===id)||{}).name||id;
 /* 여러 곳 가운데 몇 위인지 — 같은 값은 같은 순위. 값 없는 곳은 세지 않는다 */
 function cnRank(ids,get,id){
@@ -26,7 +31,9 @@ function cnRank(ids,get,id){
   const me=rows.find(r=>r.x===id);if(!me)return null;
   return {r:1+rows.filter(r=>r.v>me.v).length,n:rows.length};
 }
-const cnRankTxt=(rk,what)=>rk?rk.n+'개 '+what+' 중 '+rk.r+'위':'';
+const cnRankTxt=(rk,what)=>rk&&rk.n>1?rk.n+'개 '+what+' 중 '+rk.r+'위':'';
+/* 순위 알약 — 1위는 채운 강조색, 2위는 옅은 강조색 */
+const cnPill=rk=>rk&&rk.n>1?'<span class="cn-pill'+(rk.r<3?' r'+rk.r:'')+'">'+rk.r+'위<small>/'+rk.n+'</small></span>':'—';
 const CN_EI={af:['아프리카'],as:['아시아태평양','건조 아시아(중동·CIS)'],eu:['유럽(러시아 포함)'],la:['중남미'],an:['북아메리카(멕시코 포함)'],oc:['아시아태평양']};
 
 /* 세로 막대 — 해마다 값. max를 주면 대륙끼리 높이를 견줄 수 있다 */
@@ -51,12 +58,55 @@ function cnBars(rows,max){
     +Math.max(1.5,Math.min(100,(r[1]||0)/max*100)).toFixed(1)+'%;background:'+AB_SERIES[i%AB_SERIES.length]
     +'"></i></span><span class="bar-v">'+abEsc(r[2])+'</span></div>').join('')+'</div>';
 }
-/* 순위 표 — [이름, 값 글자, 순위, 덧말] 줄. 1위 줄은 강조 */
+/* 순위 표 — [이름, 값 글자, 순위, 막대{p:0~100, t:글자}] 줄. 1위 줄은 강조 */
 function cnRankTable(head,rows){
   return '<div class="card pad cn-tbw"><table class="cn-tb cn-rk"><thead><tr>'+head.map(h=>'<th>'+abEsc(h)+'</th>').join('')+'</tr></thead><tbody>'
     +rows.map(r=>'<tr'+(r[2]&&r[2].r===1?' class="first"':'')+'><td>'+abEsc(r[0])+'</td><td>'+r[1]+'</td>'
-      +'<td>'+(r[2]?'<b class="cn-rkb">'+r[2].r+'위</b><small>/'+r[2].n+'</small>':'—')+(r[3]?'<small class="cn-sub">'+abEsc(r[3])+'</small>':'')+'</td></tr>').join('')
+      +'<td class="cn-barc">'+(r[3]?'<span class="cn-sh"><i style="width:'+Math.max(1,Math.min(100,r[3].p)).toFixed(1)+'%"></i></span><small>'+abEsc(r[3].t)+'</small>':'')+'</td>'
+      +'<td>'+cnPill(r[2])+'</td></tr>').join('')
     +'</tbody></table></div>';
+}
+/* 1위와 견준 막대 — 1위는 2위의 몇 배인지, 나머지는 1위의 몇 %인지 */
+function cnVsTop(v,all){
+  const s=all.slice().sort((a,b)=>b-a),top=s[0]||1;
+  if(v>=top){const r=s[1]?v/s[1]:null;return {p:100,t:r?'2위의 '+fmtN(r,r>=10?0:1)+'배':'단독'};}
+  const p=v/top*100;return {p,t:'1위의 '+cnPct(p)};
+}
+/* 꺾은선 — series [{label,color,pts:{year:v}}], 연도 축은 같다. 마지막 값을 끝에 적는다 */
+function cnLines(years,series,unit){
+  const W=520,H=180,L=34,R=88,T=12,B=26;
+  const all=[];series.forEach(s=>years.forEach(y=>{const v=s.pts[y];if(v!=null)all.push(v);}));
+  let lo=Math.min(0,Math.min.apply(null,all)),hi=Math.max.apply(null,all);
+  const step=hi-lo>30?10:5;hi=Math.ceil(hi/step)*step;lo=Math.floor(lo/step)*step;
+  const X=i=>L+i*(W-L-R)/(years.length-1),Y=v=>T+(hi-v)/(hi-lo||1)*(H-T-B);
+  let g='';
+  for(let v=lo;v<=hi;v+=step)g+='<line class="gl" x1="'+L+'" x2="'+(W-R)+'" y1="'+Y(v).toFixed(1)+'" y2="'+Y(v).toFixed(1)+'"/><text class="ya" x="'+(L-6)+'" y="'+(Y(v)+3.5).toFixed(1)+'">'+v+'</text>';
+  years.forEach((y,i)=>g+='<text class="xa" x="'+X(i).toFixed(1)+'" y="'+(H-6)+'">'+y+'</text>');
+  const ends=[];
+  series.forEach(s=>{
+    const pts=years.map((y,i)=>s.pts[y]==null?null:[X(i),Y(s.pts[y])]).filter(Boolean);
+    g+='<polyline fill="none" stroke="'+s.color+'" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" points="'+pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')+'"/>'
+      +pts.map(p=>'<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="3" fill="'+s.color+'"/>').join('');
+    const last=pts[pts.length-1];
+    if(last)ends.push({x:last[0]+8,y:last[1]+4,s});
+  });
+  /* 끝 글자가 겹치지 않게 위아래로 13px씩 벌린다 */
+  ends.sort((a,b)=>a.y-b.y).forEach((e,i)=>{if(i&&e.y-ends[i-1].y<13)e.y=ends[i-1].y+13;});
+  ends.forEach(e=>g+='<text class="lv" x="'+e.x+'" y="'+e.y.toFixed(1)+'" fill="'+e.s.color+'">'+fmtN(e.s.pts[years[years.length-1]])+' '+abEsc(e.s.short||'')+'</text>');
+  return '<svg class="cn-lines" viewBox="0 0 '+W+' '+H+'" role="img">'+g+'</svg>'
+    +'<div class="cn-legend sm">'+series.map(s=>'<span><i style="background:'+s.color+'"></i>'+abEsc(s.label)+'</span>').join('')+'</div>'
+    +(unit?'<p class="cn-unit">단위: '+abEsc(unit)+'</p>':'');
+}
+
+/* 위아래로 갈라지는 막대 — 순이동처럼 음수가 있는 값 */
+function cnNetMig(pts){
+  const W=320,H=170,mid=H/2,max=Math.max.apply(null,pts.map(p=>Math.abs(p[1]||0)))||1,bw=(W-44)/pts.length;
+  return '<svg class="cn-cols cn-div" viewBox="0 0 '+W+' '+(H+20)+'" role="img">'
+    +pts.map((p,i)=>{const v=p[1]||0,h=Math.max(1.5,Math.abs(v)/max*(mid-22)),x=22+i*bw+bw*.2,w=bw*.6,y=v>=0?mid-h:mid;
+      return '<rect class="'+(v>=0?'pos':'neg')+'" x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+h.toFixed(1)+'" rx="3"/>'
+        +'<text class="cv" x="'+(x+w/2).toFixed(1)+'" y="'+(v>=0?y-5:y+h+12).toFixed(1)+'">'+fmtN(v,0)+'</text>'
+        +'<text class="cx" x="'+(x+w/2).toFixed(1)+'" y="'+(H+14)+'">'+p[0]+'</text>';}).join('')
+    +'<line x1="18" x2="'+(W-18)+'" y1="'+mid+'" y2="'+mid+'"/></svg>';
 }
 
 /* ═══════════ 초기화·라우팅 ═══════════ */
@@ -180,8 +230,11 @@ function abContCompare(bloc){
   return '<div class="cn-pick"><label for="cn-sel">항목</label><div class="field cn-field"><select id="cn-sel">'+opts+'</select></div></div>'
     +'<div class="card pad"><div class="card-t">'+abEsc(m.label)+' <em>'+abEsc(m.unit)+' · 큰 순서 · 줄을 누르면 그 '+(bloc?'블록':'대륙')+'으로</em></div>'
     +cnBars(rows.map((r,k)=>[(k+1)+'위 '+r.n,Math.abs(r.v),show(r.v),r.go]),max)
-    +(bloc?'<p class="cn-unit">회원국 값의 합계 — 회원국이 겹친다(예: 멕시코는 OECD·USMCA). 회원국 자료가 일부만 있으면 그만큼만 더했다.</p>':'')
+    +(bloc?'<p class="cn-unit">회원국 값의 합계다. 회원국 자료가 일부만 있으면 그만큼만 더했다.</p>':'')
     +'</div>'
+    +'<div class="card pad cn-row"><div class="card-t">지도로 보기 <em>순위가 높을수록 짙게</em></div>'
+    +cnMapHtml(rows.map((r,k)=>({isos:bloc?(D.blocs.find(b=>b.id===r.id)||{}).members||[]:(D.members||{})[r.id]||[],
+      cls:'q'+(bloc?[1,2,4,6][k]:k+1),label:(k+1)+'위 '+r.n+' '+show(r.v)})))+'</div>'
     +(bloc?'':'<section class="at-grp" id="cn-g-en"><h3 class="at-gh">에너지</h3>'+abContEnergy(null)+'</section>');
 }
 
@@ -219,14 +272,16 @@ function abContOne(c){
     +cnCell('자연 증가율',fmtN(P.nat['2023']),'‰',rt(x=>D.pop[x].nat['2023']),'2023년')
     +cnCell('순이동',fmtN(P.netmig['2025'],0),'천 명',rt(x=>D.pop[x].netmig['2025']),'2025년 · 순이동률 '+fmtN(P.cnmr)+'‰')
     +'</div>'
-    +'<div class="card pad cn-tbw cn-row"><table class="cn-tb"><thead><tr><th>‰</th>'+yrs.map(y=>'<th>'+y+'</th>').join('')+'</tr></thead><tbody>'
-    +[['출생률','cbr'],['사망률','cdr'],['자연 증가율','nat']].map(r=>'<tr><td>'+r[0]+'</td>'
-      +yrs.map(y=>'<td>'+fmtN(P[r[1]][y])+'</td>').join('')+'</tr>').join('')
-    +'<tr class="cn-tb-sep"><td>순이동<small>천 명</small></td>'+['1950','1970','1990','2010','2025'].map(y=>'<td>'+fmtN(P.netmig[y],0)+'</td>').join('')+'</tr>'
-    +'</tbody></table><p class="cn-unit">순이동의 마지막 칸은 2025년. 양수면 들어오는 사람이 더 많다.</p></div>');
+    +'<div class="grid g-2 cn-row">'
+    +'<div class="card pad"><div class="card-t">출생률과 사망률 <em>‰ · 두 선의 간격이 자연 증가율</em></div>'
+      +cnLines(yrs,[{label:'조출생률',short:'출생',color:'var(--c1)',pts:P.cbr},{label:'조사망률',short:'사망',color:'var(--c8)',pts:P.cdr},
+        {label:'자연 증가율',short:'자연증가',color:'var(--c3)',pts:P.nat}],'‰')+'</div>'
+    +'<div class="card pad"><div class="card-t">순이동 <em>천 명 · 양수면 들어오는 사람이 더 많다</em></div>'
+      +cnNetMig(['1950','1970','1990','2010','2025'].map(y=>[y,P.netmig[y]]))+'</div>'
+    +'</div>');
 
   /* 도시 */
-  G.urb+=cnSec('cn-urb','도시화','국가별 도시 정의 기준','UN 세계 도시화 전망 2025',
+  G.urb+=cnSec('cn-urb','도시화율과 도시·촌락 인구','국가별 도시 정의 기준','UN 세계 도시화 전망 2025',
     '<div class="grid g-2 cn-row">'
     +'<div class="card pad"><div class="card-t">도시화율의 변화 <em>% · 2025년 '+rt(x=>D.urban[x].pct['2025'])+'</em></div>'+cnCols(D.years.map(y=>[y,U.pct[y]]),100,'%',1)+'</div>'
     +'<div class="grid cn-2 cn-inner">'
@@ -253,12 +308,12 @@ function abContOne(c){
   const fr=Object.keys(fp).filter(k=>fp[k][c]!=null&&fp[k][c]>0).map(k=>({p:fp[k],rk:rk(x=>fp[k][x]||0)}))
     .sort((a,b)=>(a.rk?a.rk.r:9)-(b.rk?b.rk.r:9)||b.p[c]-a.p[c]);
   G.food+=cnSec('cn-food1','생산량과 대륙 순위','2024년(팜유 2023년)','FAOSTAT 지역 합계',
-    cnRankTable(['품목','생산량','6개 대륙 중'],fr.map(r=>[r.p.label,fmtN(r.p[c],0)+'<small>'+abEsc(r.p.unit)+'</small>',r.rk,
-      r.p.world?'세계 '+fmtN(r.p[c]/r.p.world*100,0)+'%':''])));
+    cnRankTable(['품목','생산량','세계 비중','6개 대륙 중'],fr.map(r=>[r.p.label,fmtN(r.p[c],0)+'<small>'+abEsc(r.p.unit)+'</small>',r.rk,
+      r.p.world?{p:r.p[c]/r.p.world*100,t:cnPct(r.p[c]/r.p.world*100)}:null])));
   G.food+=cnSec('cn-food2','곡물 무역','2024년 · 만 톤','FAOSTAT 지역 합계',
     '<div class="card pad cn-tbw"><table class="cn-tb"><thead><tr><th></th><th>수출</th><th>순위</th><th>수입</th><th>순위</th></tr></thead><tbody>'
     +Object.keys(D.food.trade).map(k=>{const t=D.food.trade[k][c],rx=rk(x=>D.food.trade[k][x].exp||0),rm=rk(x=>D.food.trade[k][x].imp||0);
-      return '<tr><td>'+abEsc(k)+'</td><td>'+fmtN(t.exp,0)+'</td><td>'+(rx?rx.r+'위':'—')+'</td><td>'+fmtN(t.imp,0)+'</td><td>'+(rm?rm.r+'위':'—')+'</td></tr>';}).join('')
+      return '<tr><td>'+abEsc(k)+'</td><td>'+fmtN(t.exp,0)+'</td><td>'+cnPill(rx)+'</td><td>'+fmtN(t.imp,0)+'</td><td>'+cnPill(rm)+'</td></tr>';}).join('')
     +'</tbody></table><p class="cn-unit">대륙 안 나라끼리 주고받은 양도 들어 있어, 대륙 전체의 수출·수입이 서로 맞지 않는다.</p></div>');
 
   /* 전력 */
@@ -275,7 +330,7 @@ function abContOne(c){
   const mk=Object.keys(D.minerals).filter(k=>D.minerals[k][c]>0).map(k=>({k,m:D.minerals[k],rk:rk(x=>D.minerals[k][x]||0)}))
     .sort((a,b)=>(a.rk?a.rk.r:9)-(b.rk?b.rk.r:9));
   G.min+=cnSec('cn-min','광물 생산량과 대륙 순위','2023년','World Mining Data · 나라 합산',
-    cnRankTable(['광물','생산량','6개 대륙 중'],mk.map(r=>[r.k,fmtN(r.m[c],1)+'<small>'+abEsc(r.m.unit)+'</small>',r.rk,'세계 '+fmtN(r.m.share[c],0)+'%'])));
+    cnRankTable(['광물','생산량','세계 비중','6개 대륙 중'],mk.map(r=>[r.k,fmtN(r.m[c],1)+'<small>'+abEsc(r.m.unit)+'</small>',r.rk,{p:r.m.share[c],t:cnPct(r.m.share[c])}])));
 
   G.en=abContEnergy(c);
 
@@ -288,10 +343,10 @@ function abContOne(c){
     +'<b>'+fmtN(pw.total,0)+' TWh</b><span>발전량 · '+rt(x=>D.power[x].total)+'</span>'
     +'<b>'+firsts.length+'개</b><span>생산 1위 품목·광물</span>'
     +'</div></div>'
-    +(firsts.length?'<p class="cn-firsts"><b>대륙 1위</b> '+firsts.map(abEsc).join(' · ')+'</p>':'');
+    +(firsts.length?'<div class="cn-firsts"><b>대륙 1위</b>'+firsts.map(f=>'<span>'+abEsc(f)+'</span>').join('')+'</div>':'');
   const GRP=[['pop','인구'],['urb','도시화'],['mig','이주·난민'],['food','농축산물'],['pow','전력'],['min','광물'],['en','에너지']];
   h+='<div class="at-jump">'+GRP.map(([k,n])=>'<a href="#cn-g-'+k+'">'+n+'</a>').join('')+'</div>';
-  GRP.forEach(([k,n])=>{if(G[k])h+='<section class="at-grp" id="cn-g-'+k+'"><h3 class="at-gh">'+n+'</h3>'+G[k]+'</section>';});
+  GRP.forEach(([k,n])=>{if(G[k])h+=cnGrp('cn-g-'+k,n,G[k]);});
   return h;
 }
 
@@ -342,18 +397,19 @@ function abBlocOne(id){
     +cnCell('난민 수용',fmtN((A.rfh||0)/1e4,1),'만 명',rt(x=>B(x).agg.rfh),cov('rfh'))
     +'</div>');
   const sec=(grp,head)=>{
-    const rows=CN_BK.filter(r=>r[0]===grp&&A[r[1]]>0).map(([g,k,l,u])=>({l,u,v:A[k],rk:rk(x=>B(x).agg[k]||0)}))
+    const rows=CN_BK.filter(r=>r[0]===grp&&A[r[1]]>0).map(([g,k,l,u])=>({k,l,u,v:A[k],rk:rk(x=>B(x).agg[k]||0),top:Math.max.apply(null,ids.map(x=>B(x).agg[k]||0))}))
       .sort((a,b2)=>(a.rk?a.rk.r:9)-(b2.rk?b2.rk.r:9)||b2.v-a.v);
-    return rows.length?cnRankTable(head,rows.map(r=>[r.l,fmtN(r.v,0)+'<small>'+abEsc(r.u)+'</small>',r.rk,''])):'<p class="none">자료 없음</p>';
+    return rows.length?cnRankTable(head,rows.map(r=>[r.l,fmtN(r.v,0)+'<small>'+abEsc(r.u)+'</small>',r.rk,
+      cnVsTop(r.v,ids.map(x=>B(x).agg[r.k]||0))])):'<p class="none">자료 없음</p>';
   };
-  G.food+=cnSec('bl-food','농축산물 생산·무역','2024년','FAOSTAT · 회원국 합계',sec('농축산물',['품목','생산량',CONT_DATA.blocs.length+'개 블록 중'])+'<div class="cn-row"></div>'+sec('곡물 무역',['곡물','양',CONT_DATA.blocs.length+'개 블록 중']));
-  G.en+=cnSec('bl-en','에너지','2024년 · TWh','Energy Institute 등 · 회원국 합계',sec('에너지',['항목','양',CONT_DATA.blocs.length+'개 블록 중']));
+  G.food+=cnSec('bl-food','농축산물 생산·무역','2024년','FAOSTAT · 회원국 합계',sec('농축산물',['품목','생산량','1위 대비',CONT_DATA.blocs.length+'개 블록 중'])+'<div class="cn-row"></div>'+sec('곡물 무역',['곡물','양','1위 대비',CONT_DATA.blocs.length+'개 블록 중']));
+  G.en+=cnSec('bl-en','에너지','2024년 · TWh','Energy Institute 등 · 회원국 합계',sec('에너지',['항목','양','1위 대비',CONT_DATA.blocs.length+'개 블록 중']));
   const el=b.el,es=el?el.reduce((a,c)=>a+c,0):0;
   if(es>0)G.pow+=cnSec('bl-pow','전력 생산','2024년','Ember · IRENA · 회원국 합계',
     '<div class="grid cn-2">'+cnCell('발전량',fmtN(es,0),'TWh',rt(x=>{const e=B(x).el;return e?e.reduce((a,c)=>a+c,0):null;}))
     +cnCell('자료 있는 회원국',b.elCover+'/'+b.n,'개국')+'</div>'
     +'<div class="card pad cn-row">'+abIconPie(EL_NAME.map((nm,k)=>({label:nm+' '+fmtN(el[k],0)+' TWh',v:el[k]/es*100,icon:elIcon(k),color:EL_ICON_COLOR[k]||'var(--c8)'})).filter(r=>r.v>0))+'</div>');
-  G.min+=cnSec('bl-min','광물 생산량','2023년','World Mining Data · 회원국 합계',sec('광물',['광물','생산량',CONT_DATA.blocs.length+'개 블록 중']));
+  G.min+=cnSec('bl-min','광물 생산량','2023년','World Mining Data · 회원국 합계',sec('광물',['광물','생산량','1위 대비',CONT_DATA.blocs.length+'개 블록 중']));
 
   let h='<div class="ct-head cn-head"><div class="ct-id"><div><div class="ct-rg">경제 블록 · 회원국 '+b.n+'개국</div>'
     +'<h3>'+abEsc(b.short)+'</h3><div class="ct-en">'+abEsc(b.name)+'</div></div></div>'
@@ -366,7 +422,7 @@ function abBlocOne(id){
     +'<p class="cn-note">모든 값은 회원국 값을 더한 합계다(평균이 아니다). 회원국이 다른 블록과 겹칠 수 있다.</p>';
   const GRP=[['mem','회원국'],['eco','규모와 무역'],['food','농축산물'],['en','에너지'],['pow','전력'],['min','광물']];
   h+='<div class="at-jump">'+GRP.filter(([k])=>G[k]).map(([k,n])=>'<a href="#bl-g-'+k+'">'+n+'</a>').join('')+'</div>';
-  GRP.forEach(([k,n])=>{if(G[k])h+='<section class="at-grp" id="bl-g-'+k+'"><h3 class="at-gh">'+n+'</h3>'+G[k]+'</section>';});
+  GRP.forEach(([k,n])=>{if(G[k])h+=cnGrp('bl-g-'+k,n,G[k]);});
   return h;
 }
 

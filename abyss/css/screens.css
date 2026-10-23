@@ -767,8 +767,9 @@ body{text-rendering:optimizeLegibility;word-break:keep-all}
 .cn-rk tr.first .cn-rkb{color:var(--ac)}
 .cn-en sup{font-size:.62em;color:var(--tx3);margin-left:.15rem;vertical-align:.45em}
 .cn-en td.top sup{color:var(--ac)}
-.cn-firsts{font-size:var(--fs-sm);color:var(--tx2);margin:-.4rem 0 1.1rem;line-height:1.6}
-.cn-firsts b{color:var(--ac);margin-right:.4rem}
+.cn-firsts{display:flex;flex-wrap:wrap;align-items:center;gap:.35rem;margin:-.4rem 0 1.2rem;font-size:var(--fs-xs)}
+.cn-firsts b{color:var(--ac);font-size:var(--fs-sm);margin-right:.35rem}
+.cn-firsts span{padding:.2rem .6rem;border-radius:var(--r-full);background:color-mix(in srgb,var(--ac) 10%,transparent);color:var(--tx)}
 
 /* 회원국 지도 */
 .cn-map{margin-top:.4rem;background:var(--bg)}
@@ -782,5 +783,49 @@ body{text-rendering:optimizeLegibility;word-break:keep-all}
 .cn-allis{display:flex;flex-wrap:wrap;align-items:center;gap:.35rem;margin:.9rem 0 0;font-size:var(--fs-xs);color:var(--tx3)}
 .cn-allis .tag{margin:0}
 /* 코스타리카(cr)는 퀴즈의 정답 표시 클래스(.cr)와 이름이 같아 회원국이 아닌데도 칠해진다 — 회원국 지도에서는 되돌린다 */
-.map-wrap.cn-map .landxx.cr:not(.m1):not(.m2){fill:var(--land)}
-.map-wrap.cn-map .landxx.cr:not(.m1):not(.m2):hover{fill:var(--map-hover)}
+.map-wrap.cn-map .landxx.cr:not(.m1):not(.m2):not(.q1):not(.q2):not(.q3):not(.q4):not(.q5):not(.q6){fill:var(--land)}
+.map-wrap.cn-map .landxx.cr:not(.m1):not(.m2):not(.q1):not(.q2):not(.q3):not(.q4):not(.q5):not(.q6):hover{fill:var(--map-hover)}
+
+/* ── 다듬기: 묶음 머리글과 소제목 사이를 좁히고, 묶음 머리글을 조금 더 또렷하게 ── */
+#s-cont .at-grp{margin-top:3rem}
+#s-cont .at-gh{font-size:var(--fs-sm);color:var(--tx2);letter-spacing:.02em;margin-bottom:0}
+#s-cont .at-gh+h4.sec{margin-top:.5rem}
+#s-cont .at-gh+.map-wrap{margin-top:.8rem}
+/* 순위 표 — 한 줄에 이름·값·막대·순위 */
+.cn-rk td{padding-top:.55rem;padding-bottom:.55rem}
+.cn-rk td.cn-barc{width:32%;text-align:left}
+.cn-rk td.cn-barc .cn-sh{width:calc(100% - 5.2rem);min-width:3rem;height:.45rem;vertical-align:middle}
+.cn-rk td.cn-barc small{display:inline-block;min-width:4.6rem;margin-left:.6rem;color:var(--tx3);font-size:var(--fs-xs);vertical-align:middle}
+.cn-rk tr.first td{background:none}
+.cn-rk tr.first td:first-child{color:var(--tx);font-weight:600}
+.cn-pill{display:inline-flex;align-items:baseline;gap:.1rem;padding:.12rem .55rem;border-radius:var(--r-full);
+  background:var(--sf2);color:var(--tx2);font-weight:600;font-size:var(--fs-xs);font-variant-numeric:tabular-nums}
+.cn-pill small{font-weight:400;opacity:.7;margin:0}
+.cn-pill.r1{background:var(--btn);color:#fff}
+.cn-pill.r2{background:color-mix(in srgb,var(--ac) 18%,transparent);color:var(--ac)}
+.cn-tb td .cn-pill small{color:inherit;font-size:.85em}
+@media (max-width:620px){
+  .cn-rk td.cn-barc{width:auto}
+  .cn-rk td.cn-barc .cn-sh{display:none}
+  .cn-rk td.cn-barc small{min-width:0;margin:0}
+}
+/* 꺾은선·갈라지는 막대 */
+.cn-lines{width:100%;height:auto;display:block}
+.cn-lines .gl{stroke:var(--bd);stroke-width:1}
+.cn-lines text{font-size:10.5px;font-variant-numeric:tabular-nums}
+.cn-lines .ya{fill:var(--tx3);text-anchor:end}
+.cn-lines .xa{fill:var(--tx3);text-anchor:middle}
+.cn-lines .lv{font-weight:600;font-size:11px}
+.cn-div rect.pos{fill:var(--ac)}
+.cn-div rect.neg{fill:var(--c8)}
+.cn-legend.sm{margin:.5rem 0 0}
+/* 순위 지도 — 1위가 가장 짙다 */
+.map-wrap.cn-map .landxx.q1,.cn-legend i.q1{fill:var(--ac);background:var(--ac)}
+.map-wrap.cn-map .landxx.q2,.cn-legend i.q2{fill:color-mix(in srgb,var(--ac) 80%,var(--land));background:color-mix(in srgb,var(--ac) 80%,var(--land))}
+.map-wrap.cn-map .landxx.q3,.cn-legend i.q3{fill:color-mix(in srgb,var(--ac) 62%,var(--land));background:color-mix(in srgb,var(--ac) 62%,var(--land))}
+.map-wrap.cn-map .landxx.q4,.cn-legend i.q4{fill:color-mix(in srgb,var(--ac) 46%,var(--land));background:color-mix(in srgb,var(--ac) 46%,var(--land))}
+.map-wrap.cn-map .landxx.q5,.cn-legend i.q5{fill:color-mix(in srgb,var(--ac) 32%,var(--land));background:color-mix(in srgb,var(--ac) 32%,var(--land))}
+.map-wrap.cn-map .landxx.q6,.cn-legend i.q6{fill:color-mix(in srgb,var(--ac) 20%,var(--land));background:color-mix(in srgb,var(--ac) 20%,var(--land))}
+.card .cn-legend{margin-bottom:0}
+#s-cont .at-grp>h4.sec:first-child{margin-top:0}
+@media (max-width:620px){.cn-lines text{font-size:14px}.cn-lines .lv{font-size:14px}}

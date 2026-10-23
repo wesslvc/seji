@@ -230,6 +230,12 @@ for b in BL:
         if w.get('el'):el=[a+b2 for a,b2 in zip(el,w['el'])];elc+=1
     agg={k:R(v,1) for k,v in agg.items()}
     D['blocs'].append({**b,'n':len(b['members']),'agg':agg,'cover':cov,'el':[R(x,1) for x in el],'elCover':elc})
+# 지도 색칠용 — 대륙마다 속한 나라(ISO alpha-2 소문자, WPP 지역 계층 기준)
+D['members']={}
+for iso3,k in iso2cont.items():
+    c=pycountry.countries.get(alpha_3=iso3)
+    if c and k:D['members'].setdefault(k,[]).append(c.alpha_2.lower())
+D['members']={k:sorted(v) for k,v in D['members'].items()}
 D['blocNote']='회원국 값의 합계 — 인구 UN WPP 2025, GDP UN 통계국 2024, 나머지는 world-data.js(FAOSTAT 2024·EI 2024·WTO 2024 등)'
 
 open(OUT,'w',encoding='utf-8').write('/* 대륙별 통계 — tools/world-update/continents.py 가 만든다(직접 고치지 말 것). 출처와 방법은 그 파일 머리말 */\nconst CONT_DATA='+json.dumps(D,ensure_ascii=False,separators=(',',':'))+';\n')
