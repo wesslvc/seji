@@ -77,7 +77,7 @@ function abCityView(y){
     +'<div class="chips cy-years">'+CY_YEARS.map(x=>'<a class="chip'+(x===yr?' on':'')+'" href="#/cont?city-'+x+'">'+x+(x==='2050'?' 전망':'')+'</a>').join('')+'</div>'
     +cyMapHtml('cy-map-w',yr)
     +'<div class="cn-legend">'+conts.map(c=>'<span><i style="background:'+CY_CONT_COLOR[c.id]+'"></i>'+abEsc(c.name)+' '+(inTop[c.id]||0)+'곳</span>').join('')
-    +'<span class="muted">원 크기 = 인구 · 테두리 = 수도</span></div>';
+    +'<span class="muted">원 크기는 인구, 테두리가 있는 원은 수도</span></div>';
 
   /* 상위 30 */
   const t30=top.slice(0,30),pmax=cyPop(t30[0],yr)||1,base=yr==='1975'?null:CY_YEARS[CY_YEARS.indexOf(yr)-1];
@@ -96,7 +96,7 @@ function abCityView(y){
   G.race+=cnSec('cy-race',cnIc('chart')+'상위 10개 도시의 변천','1975~2050년','UN 세계 도시화 전망 2025',
     '<div class="cy-race">'+CY_YEARS.map(x=>'<div class="card pad"><div class="card-t">'+x+'년'+(x==='2050'?' <em>전망</em>':'')+'</div><ol>'
       +cyTop(x,10).map(c=>'<li style="--cc:'+(CY_CONT_COLOR[cyCont(c.iso)]||'var(--c8)')+'">'+cyFlag(c.iso)+'<span>'+abEsc(c.n)+'</span><b>'+fmtN(cyPop(c,x)/1000,1)+'</b></li>').join('')
-      +'</ol></div>').join('')+'</div><p class="cn-unit">숫자는 백만 명. 점 색은 대륙.</p>');
+      +'</ol></div>').join('')+'</div><p class="cn-unit">숫자는 백만 명, 색은 대륙입니다.</p>');
 
   /* 대륙별 거대 도시 수 */
   const megaOf=(k,x)=>{const a=S.classes[k];return a&&a[x]?a[x].n[7]:0;};
@@ -115,14 +115,14 @@ function abCityView(y){
   G.cls+=cnSec('cy-cls',cnIc('chart')+'도시 규모별 인구 구성',yr+'년 · 5만 명 이상 도시','UN 세계 도시화 전망 2025',
     '<div class="card pad">'+row('world','세계')+conts.map(c=>row(c.id,c.name)).join('')
     +'<div class="cn-legend sm">'+S.classLabels.map((l,i)=>'<span><i style="background:'+CC[i]+'"></i>'+l+'</span>').join('')+'</div>'
-    +'<p class="cn-unit">오른쪽 숫자는 1000만 명 이상 도시에 사는 사람의 비율.</p></div>');
+    +'<p class="cn-unit">오른쪽 숫자는 1000만 명 이상 도시에 사는 사람의 비율입니다.</p></div>');
 
   /* 가장 빨리 큰 도시 — 2025 상위 100 중 2000→2025 증가율 */
   const gr=cyTop('2025').filter(c=>c.pop['2000']>=1000).map(c=>({...c,g:(c.pop['2025']/c.pop['2000']-1)*100})).sort((a,b)=>b.g-a.g).slice(0,10);
-  G.grow+=cnSec('cy-grow',cnIc('up')+'가장 빨리 커진 도시','2000→2025년 · 2000년에 이미 100만 명이 넘던 2025년 상위 100개 도시 중','UN 세계 도시화 전망 2025',
+  G.grow+=cnSec('cy-grow',cnIc('up')+'가장 빨리 커진 도시','2000→2025년 · 2000년에 100만 명이 넘던 100대 도시 중','UN 세계 도시화 전망 2025',
     '<div class="card pad">'+cnBars(gr.map(c=>[c.n+' ('+cyCN(c.iso)+')',c.g,'+'+fmtN(c.g,0)+'%',null]),gr[0].g)+'</div>');
 
-  let h='<div class="ct-head cn-head"><div class="ct-id"><div><div class="ct-rg">UN 세계 도시화 전망 2025 · 도시(위성 기준 고밀도 시가지)</div>'
+  let h='<div class="ct-head cn-head"><div class="ct-id"><div><div class="ct-rg">UN 세계 도시화 전망 2025</div>'
     +'<h3>세계의 도시</h3><div class="ct-en">'+yr+'년'+(yr==='2050'?' 전망':'')+'</div></div></div>'
     +'<div class="ct-cap">'
     +'<b>'+mega+'곳</b><span>인구 1000만 명 이상 도시</span>'
@@ -130,7 +130,7 @@ function abCityView(y){
     +'<b>'+abEsc(first.n)+'</b><span>가장 큰 도시 · '+cyMan(cyPop(first,yr))+'만 명</span>'
     +'<b>'+fmtN(W[yr].n.reduce((s,v)=>s+v,0),0)+'곳</b><span>5만 명 이상 도시</span>'
     +'</div></div>'
-    +'<p class="cn-note">UN이 위성 격자로 잡은 \'도시\'(1km²당 1,500명 이상이 이어진 5만 명 이상 시가지) 기준이라, 행정 구역으로 센 도시 인구와 다르다(예: 자카르타·다카가 도쿄보다 크게 나온다).</p>';
+    +'<p class="cn-note">여기서 도시는 위성 사진으로 본 시가지(1km²당 1,500명 이상이 이어진 5만 명 이상 지역)입니다. 행정 구역 인구와 달라서 자카르타나 다카가 도쿄보다 크게 나옵니다.</p>';
   const GRP=[['map','지도','map'],['rank','상위 도시','city'],['race','순위 변천','chart'],['mega','거대 도시','people'],['cls','규모별','chart'],['grow','성장','up']];
   h+='<div class="at-jump">'+GRP.map(([k,n,ic])=>'<a href="#cy-g-'+k+'">'+cnIc(ic)+n+'</a>').join('')+'</div>';
   GRP.forEach(([k])=>{if(G[k])h+='<section class="at-grp" id="cy-g-'+k+'">'+G[k]+'</section>';});
@@ -150,9 +150,9 @@ function cyContSection(c){
     +cnCell('세계 100대 도시',n100,'곳',rk(x=>cyTop('2025').filter(y=>cyCont(y.iso)===x).length))
     +cnCell('5만 명 이상 도시',fmtN(a['2025'].n.reduce((s,v)=>s+v,0),0),'곳',rk(x=>S.classes[x]['2025'].n.reduce((s,v)=>s+v,0)))
     +'</div>'
-    +(n100?'<div class="card pad cn-row"><div class="card-t">'+cnIc('map')+'세계 100대 도시 가운데 이 대륙의 도시 <em>2025년 · 원 크기 = 인구</em></div>'+cyMapHtml('cy-map-'+c,'2025',c)+'</div>':'')
+    +(n100?'<div class="card pad cn-row"><div class="card-t">'+cnIc('map')+'세계 100대 도시 중 이 대륙 <em>2025년 · 원 크기는 인구</em></div>'+cyMapHtml('cy-map-'+c,'2025',c)+'</div>':'')
     +'<div class="card pad cn-row"><div class="card-t">가장 큰 도시 <em>2025년 · 만 명</em></div>'
-    +(tops.length?cnBars(tops.map(x=>[x.n+' ('+cyCN(x.iso)+')',cyPop(x,'2025'),cyMan(cyPop(x,'2025')),null]),cyPop(tops[0],'2025')):'<p class="none">세계 100대 도시 안에 드는 도시가 없다</p>')
+    +(tops.length?cnBars(tops.map(x=>[x.n+' ('+cyCN(x.iso)+')',cyPop(x,'2025'),cyMan(cyPop(x,'2025')),null]),cyPop(tops[0],'2025')):'<p class="none">세계 100대 도시에 드는 곳이 없습니다</p>')
     +'</div>'
-    +'<p class="cn-unit"><a href="#/cont?city">세계 도시 통계 전체 보기 →</a></p>');
+    +'<p class="cn-unit"><a href="#/cont?city">세계 도시 통계 보기 →</a></p>');
 }
