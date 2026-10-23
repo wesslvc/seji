@@ -5,7 +5,7 @@
    ───────────────────────────────────────────────────────────────────────────
    자료는 continent-data.js(tools/world-update/continents.py 가 만든다). 대륙은 UN 지리 지역이다.
    대륙: 인구·도시·이주자·농축산은 원천의 지역 행, 전력·난민·광물은 나라 값을 대륙에 합산.
-   에너지는 Energy Institute 권역(중동·CIS는 건조 아시아로 묶음).
+   에너지는 Energy Institute 권역(러시아는 유럽, 나머지 CIS·중동은 건조 아시아).
    경제 블록: 회원국 값을 더한 합계(인구 UN WPP, GDP UN 통계국, 나머지 world-data.js).
    주소: #/cont?as(대륙) · #/cont?cmp(대륙 비교) · #/cont?b-eu(블록) · #/cont?bcmp(블록 비교)
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -27,7 +27,7 @@ function cnRank(ids,get,id){
   return {r:1+rows.filter(r=>r.v>me.v).length,n:rows.length};
 }
 const cnRankTxt=(rk,what)=>rk?rk.n+'개 '+what+' 중 '+rk.r+'위':'';
-const CN_EI={af:['아프리카'],as:['아시아태평양','건조 아시아(중동·CIS)'],eu:['유럽'],la:['중남미'],an:['북아메리카(멕시코 포함)'],oc:['아시아태평양']};
+const CN_EI={af:['아프리카'],as:['아시아태평양','건조 아시아(중동·CIS)'],eu:['유럽(러시아 포함)'],la:['중남미'],an:['북아메리카(멕시코 포함)'],oc:['아시아태평양']};
 
 /* 세로 막대 — 해마다 값. max를 주면 대륙끼리 높이를 견줄 수 있다 */
 function cnCols(pts,max,unit,d){
@@ -308,7 +308,7 @@ function abContEnergy(c){
       +'</tbody></table></div>';
   };
   return cnSec('cn-en','권역별 생산과 소비','2024년','Energy Institute Statistical Review 2025',
-      '<p class="cn-note">권역은 Energy Institute 구분을 따르되 중동과 CIS(러시아 포함)는 건조 아시아로 묶었다. 대륙과 경계가 다르다(북아메리카에 멕시코 포함).'
+      '<p class="cn-note">권역은 Energy Institute 구분을 따르되 러시아는 유럽에 넣고, 나머지 CIS(카자흐스탄 등)와 중동은 건조 아시아로 묶었다. 대륙과 경계가 다르다(북아메리카에 멕시코 포함).'
       +(mine.length?' 이 대륙과 가장 가까운 권역을 짙게 표시했다.':'')+'</p>'
       +'<div class="grid g-2">'+table('Prod','생산')+table('Cons','소비')+'</div>');
 }

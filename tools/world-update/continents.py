@@ -6,7 +6,7 @@
   · 국제 이주자: UN DESA 2024 지역 행(거주 지역 · 출신 지역)  · 농축산·곡물 무역: FAOSTAT 지역 행(2024)
   · 전력(Ember)·난민(UNHCR)·광물(World Mining Data): 원천에 대륙 행이 없거나 UN 구분과 달라, 나라 값을 UN 지역에
     넣어 '합산'했다(평균이 아니다). · 에너지: Energy Institute 권역(북아메리카·중남미·유럽·CIS·중동·아프리카·아시아태평양)을 쓰되,
-    중동과 CIS는 '건조 아시아(중동·CIS)' 하나로 합쳤다 — 대륙과 경계가 달라 대륙에 억지로 끼워 맞추지는 않았다.
+    러시아는 유럽에 넣고, 나머지 CIS와 중동은 '건조 아시아(중동·CIS)' 하나로 합쳤다 — 대륙과 경계가 달라 대륙에 억지로 끼워 맞추지는 않았다.
   '라틴 아메리카'의 FAOSTAT 값은 중앙아메리카+남아메리카+카리브 지역 행의 합이다.
 """
 import csv,gzip,io,json,os,re,sys,zipfile
@@ -180,13 +180,15 @@ def eitab(name):
     hi=next(i for i,r in enumerate(rows) if r and len(r)>1 and isinstance(r[1],(int,float)) and r[1]>=1960);yc=[j for j,x in enumerate(rows[hi]) if x==2024][0]
     return {str(r[0]).strip():r[yc] for r in rows[hi+1:] if r[0] and isinstance(r[yc],(int,float))}
 EJ=277.78
-D['energy']={'year':2024,'regions':['북아메리카(멕시코 포함)','중남미','유럽','건조 아시아(중동·CIS)','아프리카','아시아태평양'],'unit':'TWh','note':'Energy Institute Statistical Review 2025의 권역 구분(대륙과 경계가 다르다)'}
+D['energy']={'year':2024,'regions':['북아메리카(멕시코 포함)','중남미','유럽(러시아 포함)','건조 아시아(중동·CIS)','아프리카','아시아태평양'],'unit':'TWh','note':'Energy Institute Statistical Review 2025의 권역 구분(대륙과 경계가 다르다)'}
 for key,sheet,mul in(('coalProd','Coal Production - EJ',EJ),('gasProd','Gas Production - EJ',EJ),('oilProd','Oil Production - tonnes',11.63),
                      ('coalCons','Coal Consumption - EJ',EJ),('gasCons','Gas Consumption - EJ',EJ),('oilCons','Oil Consumption - EJ',EJ)):
     t=eitab(sheet);w=t['Total World']
     row={lab:t[nm]*mul for nm,lab in RG if nm in t}
-    # 중동과 CIS는 '건조 아시아'로 묶는다(세계지리 교과의 지역 구분 — 러시아도 CIS라 여기에 든다)
-    row['건조 아시아(중동·CIS)']=row.pop('중동',0)+row.pop('CIS',0)
+    # 러시아는 유럽으로 옮기고, 나머지 CIS와 중동은 '건조 아시아'로 묶는다(세계지리 교과의 지역 구분)
+    ru=t.get('Russian Federation',0)*mul
+    row['유럽(러시아 포함)']=row.pop('유럽',0)+ru
+    row['건조 아시아(중동·CIS)']=row.pop('중동',0)+row.pop('CIS',0)-ru
     D['energy'][key]={'world':round(w*mul),**{k:round(v) for k,v in row.items()}}
 
 # ── 경제 블록 — 회원국 값을 더한 합계. 회원 목록은 abyss/js/bloc-data.js 와 같은 것을 읽는다 ──
