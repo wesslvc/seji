@@ -34,6 +34,9 @@ const CN_IC={
   baby:'<circle cx="12" cy="8" r="4"/><path d="M5 21c.5-4 3.4-7 7-7s6.5 3 7 7"/><path d="M10.6 7.6h.1M13.3 7.6h.1"/>',
   grid:'<rect x="3.5" y="3.5" width="17" height="17" rx="1.5"/><path d="M3.5 9.2h17M3.5 14.8h17M9.2 3.5v17M14.8 3.5v17"/>',
   globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 2.5 15 0 18M12 3c-2.5 2.5-2.5 15 0 18"/>',
+  cow:'<path d="M3.5 6c1.6 0 3.1.6 4.2 1.6h8.6c1.1-1 2.6-1.6 4.2-1.6-.3 2-1.6 3.4-3.2 3.7V14a5.3 5.3 0 0 1-10.6 0V9.7C5.1 9.4 3.8 8 3.5 6z"/><ellipse cx="12" cy="15.8" rx="3" ry="2"/><path d="M10.9 15.8h.01M13.1 15.8h.01M9.6 11.3h.01M14.4 11.3h.01"/>',
+  pig:'<circle cx="12" cy="13.2" r="7"/><ellipse cx="12" cy="15" rx="3" ry="2.1"/><path d="M11 15h.01M13 15h.01M9.4 10.8h.01M14.6 10.8h.01"/><path d="M7.3 8 5.6 3.8l4.3 2.4M16.7 8l1.7-4.2-4.3 2.4"/>',
+  sheep:'<path d="M6.2 14.5a3 3 0 0 1 .3-6A3.2 3.2 0 0 1 12 6.6a3.2 3.2 0 0 1 5.4 2A3 3 0 0 1 17.6 14.5z"/><path d="M8.5 14.5v5M15.5 14.5v5"/><path d="M17.8 9.2c1.6-.4 3 .6 3 2s-1.2 2-2.5 1.8"/>',
   tent:'<path d="M3 20L12 4l9 16z"/><path d="M12 4v16M9 20l3-5 3 5"/>'
 };
 function cnIc(k){
@@ -46,9 +49,14 @@ const CN_KIC=[[/난민/,'tent'],[/이주|순이동/,'move'],[/도시|촌락/,'ci
 const cnKIc=k=>{const m=CN_KIC.find(r=>r[0].test(k));return m?cnIc(m[1]):'';};
 /* 품목 아이콘 — 농축산물·광물·에너지 */
 const CN_ITEM=[[/쌀|밀|옥수수|곡물/,'grain'],[/카사바/,'veg'],[/커피/,'coffee'],[/카카오/,'chocolate'],[/^차/,'leaf'],[/고무/,'tire'],[/팜유/,'fuel'],
-  [/사탕수수/,'sprout'],[/목화/,'shirt'],[/올리브|대추야자/,'fruit'],[/포도/,'wine'],[/고기|사육/,'meat'],[/석탄/,'coal'],[/석유|원유/,'fuel'],
-  [/가스/,'flame'],[/금$|^금|은$|^은/,'gem'],[/철광석|보크사이트|망간|크롬/,'ore'],[/구리|주석|코발트/,'metal']];
-const cnItemIc=k=>{const m=CN_ITEM.find(r=>r[0].test(k));return m?cnIc(m[1]):'';};
+  [/사탕수수/,'sprout'],[/목화/,'shirt'],[/올리브|대추야자/,'fruit'],[/포도/,'wine'],[/소 사육/,'cow'],[/돼지 사육/,'pig'],[/양 사육/,'sheep'],[/석탄/,'coal'],[/석유|원유/,'fuel'],
+  [/가스/,'flame']];
+/* 광물은 그림 대신 원소 기호 — 보크사이트는 알루미늄 광석이라 Al, 크롬은 Cr₂O₃ 기준이지만 Cr */
+const CN_EL=[[/철광석/,'Fe'],[/보크사이트/,'Al'],[/구리/,'Cu'],[/^금$/,'Au'],[/^은$/,'Ag'],[/주석/,'Sn'],[/코발트/,'Co'],[/망간/,'Mn'],[/크롬/,'Cr']];
+const cnItemIc=k=>{const e=CN_EL.find(r=>r[0].test(k));if(e)return '<span class="cn-el" aria-hidden="true">'+e[1]+'</span>';
+  const m=CN_ITEM.find(r=>r[0].test(k));return m?cnIc(m[1]):'';};
+/* 고기 생산량은 대륙·블록 화면에서 뺀다(사육두수만 남긴다) */
+const CN_MEAT=['beef','pork','mutton'];
 /* 묶음 하나 — 첫 소제목이 묶음 이름과 같으면 묶음 머리글은 빼서 같은 말이 두 번 나오지 않게 */
 function cnGrp(id,n,body,ic){
   const m=body.match(/^<h4 class="sec"[^>]*>(.*?)(<em|<\/h4>)/),txt=m?m[1].replace(/<[^>]+>/g,'').trim():'';
@@ -207,7 +215,7 @@ function cnContMetrics(){
   add('이주·난민','난민 발생(출신 기준)','만 명',c=>D.refugees.origin[c]/1e4,1);
   add('이주·난민','난민 수용','만 명',c=>D.refugees.host[c]/1e4,1);
   add('전력','발전량(2024)','TWh',c=>D.power[c].total,0);
-  Object.keys(D.food.prod).forEach(k=>{const p=D.food.prod[k];
+  Object.keys(D.food.prod).filter(k=>CN_MEAT.indexOf(k)<0).forEach(k=>{const p=D.food.prod[k];
     add('농축산물',p.label+(p.unit==='만 두'?'':' 생산량'),p.unit,c=>p[c],0);});
   Object.keys(D.food.trade).forEach(k=>{
     add('곡물 무역',k+' 수출량','만 톤',c=>D.food.trade[k][c].exp,0);
@@ -221,8 +229,7 @@ const CN_BK=[
   ['농축산물','cas','카사바 생산량','만 톤'],['농축산물','cof','커피 생두 생산량','만 톤'],['농축산물','cca','카카오 생산량','만 톤'],
   ['농축산물','tea','차 생산량','만 톤'],['농축산물','rub','천연고무 생산량','만 톤'],['농축산물','pal','팜유 생산량','만 톤'],
   ['농축산물','suc','사탕수수 생산량','만 톤'],['농축산물','ctn','씨앗 목화 생산량','만 톤'],['농축산물','oli','올리브 생산량','만 톤'],
-  ['농축산물','grp','포도 생산량','만 톤'],['농축산물','dat','대추야자 생산량','만 톤'],['농축산물','bef','소고기 생산량','만 톤'],
-  ['농축산물','prk','돼지고기 생산량','만 톤'],['농축산물','mtn','양고기 생산량','만 톤'],['농축산물','ct','소 사육두수','만 두'],
+  ['농축산물','grp','포도 생산량','만 톤'],['농축산물','dat','대추야자 생산량','만 톤'],['농축산물','ct','소 사육두수','만 두'],
   ['농축산물','pg','돼지 사육두수','만 두'],['농축산물','sh','양 사육두수','만 두'],
   ['곡물 무역','whx','밀 수출량','만 톤'],['곡물 무역','whm','밀 수입량','만 톤'],['곡물 무역','rix','쌀 수출량','만 톤'],
   ['곡물 무역','rim','쌀 수입량','만 톤'],['곡물 무역','cox','옥수수 수출량','만 톤'],['곡물 무역','com','옥수수 수입량','만 톤'],
@@ -340,7 +347,7 @@ function abContOne(c){
 
   /* 농축산물 — 생산량 총합과 대륙 순위 */
   const fp=D.food.prod;
-  const fr=Object.keys(fp).filter(k=>fp[k][c]!=null&&fp[k][c]>0).map(k=>({p:fp[k],rk:rk(x=>fp[k][x]||0)}))
+  const fr=Object.keys(fp).filter(k=>CN_MEAT.indexOf(k)<0&&fp[k][c]!=null&&fp[k][c]>0).map(k=>({p:fp[k],rk:rk(x=>fp[k][x]||0)}))
     .sort((a,b)=>(a.rk?a.rk.r:9)-(b.rk?b.rk.r:9)||b.p[c]-a.p[c]);
   G.food+=cnSec('cn-food1','생산량과 대륙 순위','2023년','FAOSTAT 지역 합계',
     cnRankTable(['품목','생산량','세계 비중','6개 대륙 중'],fr.map(r=>[r.p.label,fmtN(r.p[c],0)+'<small>'+abEsc(r.p.unit)+'</small>',r.rk,

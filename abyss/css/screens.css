@@ -839,7 +839,7 @@ body{text-rendering:optimizeLegibility;word-break:keep-all}
 #s-cont .at-gh:has(.cn-ic)::before{display:none}
 #s-cont .at-gh .cn-ic{width:1.25em;height:1.25em}
 h4.sec .cn-ic{width:1em;height:1em}
-.cn-rk td:first-child .cn-ic{color:var(--tx3);width:1.05em;height:1.05em}
+.cn-rk td:first-child .cn-ic{color:var(--tx3);width:1.3em;height:1.3em}
 .cn-rk tr.first td:first-child .cn-ic{color:var(--ac)}
 .cn-mode{flex-wrap:wrap}
 
@@ -895,3 +895,8 @@ h4.sec .cn-ic{width:1em;height:1em}
 .cy-race>.card{margin:0}
 #s-cont .cy-race>.card{margin:0}
 @media (max-width:620px){.cy-tb th:nth-child(4),.cy-tb td.cn-barc{display:none}.cy-tb .cy-name small{display:none}}
+/* 광물 원소 기호 칸 */
+.cn-el{display:inline-flex;align-items:center;justify-content:center;min-width:1.7em;height:1.45em;padding:0 .2em;margin-right:.45rem;
+  border:1.5px solid var(--ac);border-radius:4px;color:var(--ac);font-size:.8em;font-weight:700;letter-spacing:-.01em;vertical-align:.08em;
+  font-family:ui-sans-serif,system-ui,sans-serif}
+.cn-rk tr.first .cn-el{background:var(--ac);color:var(--sf,#fff)}
