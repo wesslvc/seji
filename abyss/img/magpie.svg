@@ -1,17 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
 <title>Geogl3</title>
-<defs><clipPath id="cg"><circle cx="262" cy="350" r="135"/></clipPath></defs>
-<circle cx="262" cy="350" r="135" fill="#1f3157" stroke="none" stroke-width="0"/>
-<g clip-path="url(#cg)" stroke="#2f4878" stroke-width="3" opacity="1"><ellipse cx="262" cy="350" rx="62" ry="135"/><path d="M127 350H397M138 288H386M138 412H386"/></g>
-<g transform="translate(300 220) scale(.8) rotate(-7 0 0) translate(-400 -352)"><defs>
-    <path id="sil" d="M494 175L468 165C462 150 450 141 436 141C418 141 405 153 403 170C394 190 372 210 340 236C310 260 282 280 258 296C200 322 120 350 38 376C33 378 34 385 40 384C120 370 200 352 262 336C290 346 330 356 368 352C420 346 462 310 470 262C474 236 474 204 468 186C474 182 482 178 494 175Z"/>
-    <clipPath id="cs"><use href="#sil"/></clipPath>
-  </defs>
-  <use href="#sil" fill="#efe9e0"/>
-  <g clip-path="url(#cs)">
-    <path d="M406 178L380 140L230 250L10 350L10 420L262 336C304 328 352 314 378 296C398 280 406 256 406 232C406 214 406 196 406 178Z" fill="#6585c2"/>
-    <path d="M10 340H74V420H10Z" fill="#efe9e0"/>
-    <path d="M380 120H500V177C476 179 451 184 429 190C413 195 401 201 390 196Z" fill="#111827"/>
-  </g>
+<defs><clipPath id="cg"><circle cx="262" cy="362" r="128"/></clipPath></defs>
+<circle cx="262" cy="362" r="128" fill="#1f3157" stroke="none" stroke-width="0"/>
+<g clip-path="url(#cg)" stroke="#2f4878" stroke-width="3" opacity="1"><ellipse cx="262" cy="362" rx="58" ry="128"/><path d="M134 362H390M144 304H380M144 420H380"/></g>
+<g transform="translate(300 232) scale(0.74) rotate(-8) translate(-440 -462)"><defs>
+  <path id="sil" d="M640 215L585 206C570 198 556 196 544 198C524 202 510 214 506 232C502 250 500 268 495 288C478 310 452 330 424 350C400 368 378 384 356 398C336 412 320 424 300 430C260 438 200 442 150 444C126 445 108 446 100 446C94 448 94 458 100 460C130 470 170 482 210 486C250 488 290 482 320 476C350 470 380 466 410 464C450 460 490 452 516 438C544 420 558 390 562 356C566 326 568 300 570 280C572 260 576 240 581 226L640 215Z"/>
+  <clipPath id="cs"><use href="#sil"/></clipPath>
+</defs>
+<use href="#sil" fill="#ece8e1"/>
+<g clip-path="url(#cs)">
+  <path d="M496 352C512 350 518 362 512 380C504 404 486 424 458 440C432 456 400 466 370 470L80 490L80 380L300 380C320 402 340 404 360 398C410 382 456 362 496 352Z" fill="#5a8fca"/>
+  <path d="M80 420H112L124 490H80Z" fill="#ece8e1"/>
+  <path d="M470 170H660V262C620 266 590 270 572 276C548 284 516 290 490 286C484 284 478 276 470 262Z" fill="#10161f"/>
+</g>
 </g>
 </svg>
