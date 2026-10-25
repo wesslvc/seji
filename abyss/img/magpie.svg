@@ -1,23 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
-  <title>Geogl3</title>
-  <defs>
-    <clipPath id="g"><circle cx="256" cy="256" r="216"/></clipPath>
-    <clipPath id="h"><circle cx="402" cy="196" r="29"/></clipPath>
-    <clipPath id="t"><path id="tp" d="M320 290C238 332 130 386 22 434C134 418 238 376 308 318Z"/></clipPath>
+<title>Geogl3</title>
+<defs><clipPath id="cg"><circle cx="262" cy="350" r="135"/></clipPath></defs>
+<circle cx="262" cy="350" r="135" fill="#1f3157" stroke="none" stroke-width="0"/>
+<g clip-path="url(#cg)" stroke="#2f4878" stroke-width="3" opacity="1"><ellipse cx="262" cy="350" rx="62" ry="135"/><path d="M127 350H397M138 288H386M138 412H386"/></g>
+<g transform="translate(300 220) scale(.8) rotate(-7 0 0) translate(-400 -352)"><defs>
+    <path id="sil" d="M494 175L468 165C462 150 450 141 436 141C418 141 405 153 403 170C394 190 372 210 340 236C310 260 282 280 258 296C200 322 120 350 38 376C33 378 34 385 40 384C120 370 200 352 262 336C290 346 330 356 368 352C420 346 462 310 470 262C474 236 474 204 468 186C474 182 482 178 494 175Z"/>
+    <clipPath id="cs"><use href="#sil"/></clipPath>
   </defs>
-  <circle cx="256" cy="256" r="216" fill="#dfe7f2"/>
-  <g clip-path="url(#g)" stroke="#cbd7e8" stroke-width="3">
-    <ellipse cx="256" cy="256" rx="110" ry="216"/>
-    <path d="M40 256H472"/>
+  <use href="#sil" fill="#efe9e0"/>
+  <g clip-path="url(#cs)">
+    <path d="M406 178L380 140L230 250L10 350L10 420L262 336C304 328 352 314 378 296C398 280 406 256 406 232C406 214 406 196 406 178Z" fill="#6585c2"/>
+    <path d="M10 340H74V420H10Z" fill="#efe9e0"/>
+    <path d="M380 120H500V177C476 179 451 184 429 190C413 195 401 201 390 196Z" fill="#111827"/>
   </g>
-  <g transform="translate(256 256) scale(1.02) translate(-262 -250)">
-    <path d="M332 292C314 350 270 402 210 432C250 390 274 346 292 300Z" fill="#4d6aa3"/>
-    <use href="#tp" fill="#6f8fc6"/>
-    <g clip-path="url(#t)"><path d="M0 390L84 382L76 450L0 460Z" fill="#f6f3ee"/></g>
-    <ellipse cx="352" cy="256" rx="70" ry="33" transform="rotate(-38 352 256)" fill="#fbf8f2"/>
-    <circle cx="402" cy="196" r="29" fill="#fbf8f2"/>
-    <g clip-path="url(#h)"><path d="M360 150H450V199C432 197 412 201 396 208C386 213 378 220 372 228H360Z" fill="#0f1726"/></g>
-    <path d="M427 191L452 199L427 207Z" fill="#0f1726"/>
-    <path d="M364 244C314 170 232 112 120 70C154 146 208 222 302 284Z" fill="#6f8fc6"/>
-  </g>
+</g>
 </svg>

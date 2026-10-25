@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+<title>Geogl3</title>
+<defs><clipPath id="cg"><circle cx="262" cy="350" r="135"/></clipPath></defs>
+<circle cx="262" cy="350" r="135" fill="none" stroke="#1f3157" stroke-width="7"/>
+<g clip-path="url(#cg)" stroke="#1f3157" stroke-width="3" opacity="0.5"><ellipse cx="262" cy="350" rx="62" ry="135"/><path d="M127 350H397M138 288H386M138 412H386"/></g>
+<g transform="translate(300 220) scale(.8) rotate(-7 0 0) translate(-400 -352)"><defs>
+    <path id="sil" d="M494 175L468 165C462 150 450 141 436 141C418 141 405 153 403 170C394 190 372 210 340 236C310 260 282 280 258 296C200 322 120 350 38 376C33 378 34 385 40 384C120 370 200 352 262 336C290 346 330 356 368 352C420 346 462 310 470 262C474 236 474 204 468 186C474 182 482 178 494 175Z"/>
+    <clipPath id="cs"><use href="#sil"/></clipPath>
+  </defs>
+  <use href="#sil" fill="#efe9e0"/>
+  <g clip-path="url(#cs)">
+    <path d="M406 178L380 140L230 250L10 350L10 420L262 336C304 328 352 314 378 296C398 280 406 256 406 232C406 214 406 196 406 178Z" fill="#6585c2"/>
+    <path d="M10 340H74V420H10Z" fill="#efe9e0"/>
+    <path d="M380 120H500V177C476 179 451 184 429 190C413 195 401 201 390 196Z" fill="#111827"/>
+  </g>
+</g>
+</svg>
