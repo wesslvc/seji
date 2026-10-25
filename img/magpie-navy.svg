@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <title>Geogl3</title>
+  <defs>
+    <clipPath id="mk-g"><circle cx="256" cy="256" r="216"/></clipPath>
+    <clipPath id="mk-b"><path id="mk-body" d="M466 201L436 214C432 258 406 312 352 332C322 343 296 342 276 334C300 304 330 274 350 240C350 190 370 156 404 155C430 156 444 174 448 190Z"/></clipPath>
+  </defs>
+  <circle cx="256" cy="256" r="216" fill="#1f3157"/>
+  <g clip-path="url(#mk-g)" stroke="#2b4371" stroke-width="3">
+    <ellipse cx="256" cy="256" rx="110" ry="216"/>
+    <path d="M40 256H472"/>
+  </g>
+  <g transform="translate(256 256) scale(.96) translate(-292 -246)">
+    <path d="M302 318C222 352 130 392 40 424C140 408 236 372 300 342Z" fill="#7896ca"/>
+    <use href="#mk-body" fill="#f5f2eb"/>
+    <g clip-path="url(#mk-b)"><path d="M330 120H480V204C440 202 398 214 354 252H330Z" fill="#0f1726"/></g>
+    <path d="M356 252C306 168 222 104 108 62C144 150 204 234 292 296Z" fill="#7896ca"/>
+  </g>
+</svg>

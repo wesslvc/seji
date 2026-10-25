@@ -1,32 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
   <title>Geogl3</title>
   <defs>
-    <clipPath id="mk-globe"><circle cx="256" cy="256" r="216"/></clipPath>
-    <clipPath id="mk-head"><circle cx="392" cy="198" r="42"/></clipPath>
-    <clipPath id="mk-tail"><path d="M314 300C232 332 132 376 34 424C140 414 242 378 304 332Z"/></clipPath>
+    <clipPath id="mk-g"><circle cx="256" cy="256" r="216"/></clipPath>
+    <clipPath id="mk-b"><path id="mk-body" d="M466 201L436 214C432 258 406 312 352 332C322 343 296 342 276 334C300 304 330 274 350 240C350 190 370 156 404 155C430 156 444 174 448 190Z"/></clipPath>
   </defs>
-  <!-- 지구: 바탕 원과 경위선 -->
-  <circle cx="256" cy="256" r="216" fill="#1f3157"/>
-  <g clip-path="url(#mk-globe)" stroke="#2f4878" stroke-width="2.5">
-    <ellipse cx="256" cy="256" rx="96" ry="216"/>
-    <ellipse cx="256" cy="256" rx="176" ry="216"/>
-    <path d="M256 40V472M40 256H472M66 156H446M66 356H446"/>
+  <circle cx="256" cy="256" r="216" fill="#7d9bcf"/>
+  <g clip-path="url(#mk-g)" stroke="#91acd8" stroke-width="3">
+    <ellipse cx="256" cy="256" rx="110" ry="216"/>
+    <path d="M40 256H472"/>
   </g>
-  <!-- 물까치 -->
-  <g transform="translate(256 256) scale(.96) translate(-296 -252)">
-    <!-- 아래 날개 -->
-    <path d="M326 304C306 364 258 416 196 446C238 402 262 356 280 308Z" fill="#4d6aa3"/>
-    <!-- 꼬리 -->
-    <path d="M314 300C232 332 132 376 34 424C140 414 242 378 304 332Z" fill="#88a5d3"/>
-    <g clip-path="url(#mk-tail)"><path d="M20 380L100 372L90 440L20 450Z" fill="#f5f2eb"/></g>
-    <!-- 몸통 -->
-    <ellipse cx="342" cy="268" rx="82" ry="56" transform="rotate(-36 342 268)" fill="#f5f2eb"/>
-    <circle cx="392" cy="198" r="44.5" fill="#f5f2eb"/>
-    <g clip-path="url(#mk-head)"><path d="M340 140H450V204C428 199 404 202 386 212C372 220 360 232 352 246H340Z" fill="#0f1726"/></g>
-    <path d="M432 190L462 201L432 211Z" fill="#0f1726"/>
-    <circle cx="410" cy="189" r="4" fill="#f5f2eb"/>
-    <!-- 위 날개 -->
-    <path d="M356 252C306 168 222 104 108 62C144 150 204 234 292 296Z" fill="#7393c8"/>
-    <path d="M306 286C256 248 212 200 180 146C224 194 272 232 336 264Z" fill="#dfe7f3"/>
+  <g transform="translate(256 256) scale(.96) translate(-292 -246)">
+    <path d="M302 318C222 352 130 392 40 424C140 408 236 372 300 342Z" fill="#1f3157"/>
+    <use href="#mk-body" fill="#f5f2eb"/>
+    <g clip-path="url(#mk-b)"><path d="M330 120H480V204C440 202 398 214 354 252H330Z" fill="#0f1726"/></g>
+    <path d="M356 252C306 168 222 104 108 62C144 150 204 234 292 296Z" fill="#1f3157"/>
   </g>
 </svg>
