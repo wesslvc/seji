@@ -1,18 +1,23 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
   <title>Geogl3</title>
   <defs>
-    <clipPath id="mk-g"><circle cx="256" cy="256" r="216"/></clipPath>
-    <clipPath id="mk-b"><path id="mk-body" d="M466 201L436 214C432 258 406 312 352 332C322 343 296 342 276 334C300 304 330 274 350 240C350 190 370 156 404 155C430 156 444 174 448 190Z"/></clipPath>
+    <clipPath id="g"><circle cx="256" cy="256" r="216"/></clipPath>
+    <clipPath id="h"><circle cx="402" cy="196" r="29"/></clipPath>
+    <clipPath id="t"><path id="tp" d="M320 290C238 332 130 386 22 434C134 418 238 376 308 318Z"/></clipPath>
   </defs>
-  <circle cx="256" cy="256" r="216" fill="#7d9bcf"/>
-  <g clip-path="url(#mk-g)" stroke="#91acd8" stroke-width="3">
+  <circle cx="256" cy="256" r="216" fill="#dfe7f2"/>
+  <g clip-path="url(#g)" stroke="#cbd7e8" stroke-width="3">
     <ellipse cx="256" cy="256" rx="110" ry="216"/>
     <path d="M40 256H472"/>
   </g>
-  <g transform="translate(256 256) scale(.96) translate(-292 -246)">
-    <path d="M302 318C222 352 130 392 40 424C140 408 236 372 300 342Z" fill="#1f3157"/>
-    <use href="#mk-body" fill="#f5f2eb"/>
-    <g clip-path="url(#mk-b)"><path d="M330 120H480V204C440 202 398 214 354 252H330Z" fill="#0f1726"/></g>
-    <path d="M356 252C306 168 222 104 108 62C144 150 204 234 292 296Z" fill="#1f3157"/>
+  <g transform="translate(256 256) scale(1.02) translate(-262 -250)">
+    <path d="M332 292C314 350 270 402 210 432C250 390 274 346 292 300Z" fill="#4d6aa3"/>
+    <use href="#tp" fill="#6f8fc6"/>
+    <g clip-path="url(#t)"><path d="M0 390L84 382L76 450L0 460Z" fill="#f6f3ee"/></g>
+    <ellipse cx="352" cy="256" rx="70" ry="33" transform="rotate(-38 352 256)" fill="#fbf8f2"/>
+    <circle cx="402" cy="196" r="29" fill="#fbf8f2"/>
+    <g clip-path="url(#h)"><path d="M360 150H450V199C432 197 412 201 396 208C386 213 378 220 372 228H360Z" fill="#0f1726"/></g>
+    <path d="M427 191L452 199L427 207Z" fill="#0f1726"/>
+    <path d="M364 244C314 170 232 112 120 70C154 146 208 222 302 284Z" fill="#6f8fc6"/>
   </g>
 </svg>
