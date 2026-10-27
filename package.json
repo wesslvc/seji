@@ -1,0 +1,27 @@
+{
+  "name": "seji",
+  "version": "1.0.0",
+  "description": "Geogl3 — 위에서 내려다보는 지리 퀴즈",
+  "main": "index.html",
+  "scripts": {
+    "build:analytics": "esbuild src/analytics.js --bundle --outfile=js/analytics.js --format=iife --minify",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wesslvc/seji.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/wesslvc/seji/issues"
+  },
+  "homepage": "https://github.com/wesslvc/seji#readme",
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}
