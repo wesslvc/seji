@@ -1322,3 +1322,14 @@ body.pen-on #pen-cv{pointer-events:auto;cursor:crosshair}
 .ct-pin.miss .cq-pin-c{fill:#f28b82;animation:shk .35s ease}
 #ctq-box .bq-type input:disabled{opacity:.55}
 #ctq-box .btn:disabled{opacity:.45;cursor:default}
+/* 도시 맞히기 돋보기 — 붙어 있는 점을 눌렀을 때 그 자리를 확대해 보여 주고 다시 고르게 한다 */
+#ctq-lens{position:fixed;z-index:60;width:168px;display:none;flex-direction:column;align-items:center;gap:.35rem;pointer-events:auto}
+#ctq-lens.on{display:flex;animation:ctlIn .2s var(--ease)}
+#ctq-lens svg{width:168px;height:168px;border-radius:50%;background:var(--bg);border:2px solid var(--ac);box-shadow:var(--shadow2);overflow:hidden}
+#ctq-lens .ctl-land{fill:var(--land);stroke:var(--map-line);stroke-width:1;vector-effect:non-scaling-stroke}
+#ctq-lens .ctl-hit{fill:transparent}
+#ctq-lens .ctl-c{fill:#c9cdd3;stroke:#161e2b;transition:fill .15s var(--ease)}
+#ctq-lens .ctl-dot{cursor:pointer}
+@media (hover:hover){#ctq-lens .ctl-dot:hover .ctl-c{fill:#e8d5ff}}
+#ctq-lens .ctl-cap{font-size:.72rem;font-weight:600;color:var(--tx);background:var(--sf);border:1px solid var(--bd);border-radius:999px;padding:.2rem .6rem;white-space:nowrap;box-shadow:var(--shadow)}
+@keyframes ctlIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:none}}

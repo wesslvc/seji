@@ -57,7 +57,7 @@ const ctqCur=()=>CTQ.idx<CTQ.order.length?CT_LOC[CTQ.order[CTQ.idx]]:null;
 
 /* ══════════ 화면 ══════════ */
 function ctqEnter(){
-  cqInitMapPath();
+  cqInitMapPath();ctqLensClose();
   CTQ.busy=false;CTQ.stage='find';CTQ.locOk=false;CTQ.tries=CTQ_TRIES;
   ctqRenderPins();ctqFitAll();ctqUpdateHead();
   if(!ctqCur()){ctqEnd();return;}
@@ -137,19 +137,73 @@ function ctqFocusOn(l){
 }
 
 /* ══════════ ① 위치 찾기 ══════════ */
-/* 누른 자리에서 가장 가까운 점을 고른다 — 점끼리 붙어 있으면(서울·평양) 누르는 범위가 겹쳐서
-   맨 위에 그려진 점이 대신 잡히기 때문. 화면에서 28px 안에 있는 아직 안 끝난 점 가운데 가장 가까운 것 */
+/* 누른 자리 둘레 28px 안의 아직 안 끝난 점들을 고른다. 하나뿐이거나 한 점을 정확히 눌렀으면 바로 그 점,
+   여러 점이 붙어 있어(로마·바티칸, 홍콩·선전) 어느 쪽인지 애매하면 그 자리를 확대한 돋보기를 띄워
+   그 안에서 다시 고르게 한다 — 붙은 점을 잘못 눌러 기회를 잃지 않게 */
 function ctqPickAt(cx,cy){
   const ov=document.getElementById('cq-pins-ov');if(!ov)return;
+  if(CTQ.busy||CTQ.stage!=='find')return;
   const r=ov.getBoundingClientRect();
-  let best=null,bd=28*28;
+  const near=[];
   ov.querySelectorAll('.ct-pin.open').forEach(g=>{
     const sx=+g.dataset.mx*_s+_x+r.left,sy=+g.dataset.my*_s+_y+r.top;
-    const d=(sx-cx)*(sx-cx)+(sy-cy)*(sy-cy);
-    if(d<bd){bd=d;best=g;}
+    const d=Math.hypot(sx-cx,sy-cy);
+    if(d<28)near.push({g,d});
   });
-  if(best)ctqPick(+best.dataset.id);
+  if(!near.length)return;
+  near.sort((a,b)=>a.d-b.d);
+  const d1=near[0].d;
+  const cands=near.filter(n=>n.d<d1+16);
+  if(cands.length<2||(d1<3&&cands[1].d>=9)){ctqPick(+near[0].g.dataset.id);return;}
+  ctqLensOpen(cands.map(n=>+n.g.dataset.id),cx,cy);
 }
+/* ── 돋보기 ── 누른 자리에 둥근 창을 띄우고, 후보 점들이 넉넉히 떨어져 보이도록 확대해 그린다.
+   지도 모양(육지)도 같이 그려 어디쯤인지 알 수 있게. 이름은 쓰지 않는다(답이 보이면 안 되니까) */
+const CTQ_LENS=168;
+function ctqLensEl(){
+  let el=document.getElementById('ctq-lens');if(el)return el;
+  el=document.createElement('div');el.id='ctq-lens';
+  el.innerHTML='<svg viewBox="0 0 1 1" preserveAspectRatio="xMidYMid meet"><path class="ctl-land"/><g class="ctl-dots"></g></svg><div class="ctl-cap">가까운 점이 여럿 — 하나를 고르세요</div>';
+  const land=el.querySelector('.ctl-land');
+  if(typeof CQ_MAP_D!=='undefined')land.setAttribute('d',CQ_MAP_D);
+  ['pointerdown','touchstart','mousedown','wheel'].forEach(t=>el.addEventListener(t,e=>e.stopPropagation(),{passive:true}));
+  document.body.appendChild(el);
+  return el;
+}
+function ctqLensOpen(ids,cx,cy){
+  const el=ctqLensEl();
+  const pts=ids.map(id=>{const l=CT_LOC[id];const [mx,my]=cqLonLatToMain(l.lon,l.lat);return {id,mx,my};});
+  /* 배율은 가장 가까운 두 점이 30px 넘게 떨어지게. 후보가 다 들어오면 가운데에, 다 안 들어오면 그 두 점 가운데에 맞춘다 */
+  let mp=Infinity,pa=pts[0],pb=pts[1];
+  for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){const d=Math.hypot(pts[i].mx-pts[j].mx,pts[i].my-pts[j].my);if(d<mp){mp=d;pa=pts[i];pb=pts[j];}}
+  let ax=pts.reduce((a,p)=>a+p.mx,0)/pts.length,ay=pts.reduce((a,p)=>a+p.my,0)/pts.length;
+  const ext=Math.max(...pts.map(p=>Math.hypot(p.mx-ax,p.my-ay)),0.02);
+  let k=ext/58; /* 화면 1px에 해당하는 지도 단위 */
+  if(mp/k<30){k=Math.max(mp,0.01)/30;ax=(pa.mx+pb.mx)/2;ay=(pa.my+pb.my)/2;}
+  const half=k*CTQ_LENS/2;
+  const svg=el.querySelector('svg');
+  svg.setAttribute('viewBox',(ax-half)+' '+(ay-half)+' '+(half*2)+' '+(half*2));
+  const dots=el.querySelector('.ctl-dots');
+  dots.innerHTML=pts.map(p=>'<g class="ctl-dot" data-id="'+p.id+'" transform="translate('+p.mx+','+p.my+')">'
+    +'<circle class="ctl-hit" r="'+(14*k)+'"/><circle class="ctl-c" r="'+(7*k)+'" stroke-width="'+(1.5*k)+'"/></g>').join('');
+  dots.querySelectorAll('.ctl-dot').forEach(g=>g.addEventListener('click',e=>{
+    e.stopPropagation();const id=+g.dataset.id;ctqLensClose();ctqPick(id);}));
+  /* 누른 자리 위쪽에 띄우되 화면 밖으로 나가지 않게 */
+  const W=window.innerWidth,H=window.innerHeight,S=CTQ_LENS;
+  let left=Math.min(Math.max(cx-S/2,8),W-S-8);
+  let top=cy-S-28;if(top<8)top=Math.min(cy+28,H-S-36);
+  el.style.left=left+'px';el.style.top=top+'px';
+  el.classList.remove('on');void el.offsetWidth;el.classList.add('on');
+  CTQ.lens={x:_x,y:_y,s:_s};
+  setTimeout(()=>document.addEventListener('pointerdown',ctqLensOutside,true),0);
+}
+function ctqLensOutside(e){const el=document.getElementById('ctq-lens');if(el&&!el.contains(e.target))ctqLensClose();}
+function ctqLensClose(){
+  document.removeEventListener('pointerdown',ctqLensOutside,true);
+  const el=document.getElementById('ctq-lens');if(el)el.classList.remove('on');
+  CTQ.lens=null;
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&CTQ.lens)ctqLensClose();});
 function ctqPick(id){
   const l=ctqCur();
   if(!l||CTQ.busy||CTQ.stage!=='find'||CTQ.status[id])return;
@@ -166,6 +220,7 @@ function ctqPick(id){
   ctqFb('그 점이 아니에요 — '+CTQ.tries+'번 더 고를 수 있어요','ng');
 }
 function ctqToName(){
+  ctqLensClose();
   const l=ctqCur();if(!l)return;
   CTQ.stage='name';CTQ.tries=CTQ_TRIES;
   const pin=ctqPin(l.id);
@@ -227,6 +282,7 @@ function ctqResolve(ok){
 
 /* ══════════ 끝 ══════════ */
 function ctqEnd(){
+  ctqLensClose();
   const el=document.getElementById('ctq-end');if(!el)return;
   const done=CTQ.cor+CTQ.wr;
   document.getElementById('ctq-escore').textContent=CTQ.pts+'점';
@@ -249,6 +305,7 @@ function ctqFinishNow(){ctqEnd();}
     _orig();
     if(mapMode==='city'){
       cqPinsRender();
+      if(CTQ.lens&&(CTQ.lens.x!==_x||CTQ.lens.y!==_y||CTQ.lens.s!==_s))ctqLensClose();
       const cw=document.getElementById('cq-world-svg');
       if(cw)cw.style.transform='translate3d('+_x+'px,'+_y+'px,0) scale('+_s+')';
     }
