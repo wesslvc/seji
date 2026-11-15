@@ -1317,3 +1317,8 @@ body.pen-on #pen-cv{pointer-events:auto;cursor:crosshair}
 .ct-pin{cursor:default}
 #ctq-end{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:800;display:none;align-items:center;justify-content:center}
 #ctq-end.on{display:flex}
+.ct-hit{fill:transparent;stroke:none}
+.ct-pin.open{cursor:pointer}
+.ct-pin.open:hover .cq-pin-c{fill:#e8d5ff;r:6}
+.ctq-hint{color:var(--tx2);font-weight:500}
+#ctq-box .bq-skip:disabled{opacity:.4;cursor:default}

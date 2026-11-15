@@ -185,9 +185,9 @@ const LD_SLIDES=[
   dd:{L:'하 · 특징 뚜렷한 국가만 (2점)',M:'중 · 모든 국가 · 힌트 있음 (4점)',H:'상 · 힌트 없음 (6점)'}, esub:true},
  {act:'worlddict', ic:'dict', mc:'#d3bb92', tt:'세지 위키', ds:'국가별 수도·인구·GDP·기후·수출·에너지·종교·접경국 정보를 한눈에 봐요. 설명은 누구나 수정을 제안할 수 있어요.', pts:'모두가 만드는 사전', dict:true},
  /* 3×3 배치를 흐트러뜨리지 않도록 맨 아래 가로 한 칸으로 붙인다 */
- {act:'city', ic:'pin', mc:'#9cc3a0', tt:'세계 도시 맞히기', wide:true, diff:'ctdiff',
-  ds:'지도에 점으로 찍힌 세계 주요 도시 250여 곳을 특징 한 줄만 보고 이름을 써서 맞혀요. 맞힌 도시는 지도에 이름이 적혀요. 출제 대륙은 세부 옵션에서 고를 수 있어요.',
-  pts:'1 · 2 · 3점', dd:{L:'하 · 점 위치 + 나라 + 특징 (1점)',M:'중 · 점 위치 + 특징 (2점)',H:'상 · 특징만, 위치는 맞힌 뒤 공개 (3점)'}},
+ {act:'city', ic:'pin', mc:'#9cc3a0', tt:'세계 도시 맞히기', wide:true,
+  ds:'지도에 세계 주요 도시 250여 곳이 점으로 찍혀 있어요. 아무 점이나 누르면 그 도시의 특징이 나오고, 이름을 써서 맞혀요(나라 이름은 알려 주지 않아요). 맞힌 도시는 지도에 이름이 적혀요. 출제 대륙은 세부 옵션에서 고를 수 있어요.',
+  pts:'도시당 3점'},
  {act:'suteuk', ic:'book', mc:'#cc9fa8', tt:'9모대비 수특퀴즈', wide:true,
   ds:'수특지엽 1~4강과 「이것이 수특 정리다」 특강 자료 01~25에 나온 내용만 물어봐요. 지도에 찍힌 지점의 기후 그래프 고르기, 순서 직접 입력, 지도 클릭 등 외운 대로 써야 풀리는 형태예요. 아래에서 주제·형식을 골라 그 부분만 집중해서 풀 수 있어요. 암기법은 힌트 버튼을 눌러야 보이고, 보면 그 문항 배점이 절반이 돼요. 틀린 문항은 오답노트 PDF로 저장할 수 있어요.',
   pts:'문항당 3점'}
@@ -197,13 +197,13 @@ const TRADE_DD={
  m:{L:'하 · 주요국만 · 힌트 있음 (3점)',M:'중 · 모든 국가 · 힌트 있음 (6점)',H:'상 · 힌트 없음 (9점)'}
 };
 
-const LD={sel:new Set(),bdiff:'M',rdiff:'M',ediff:'M',tdiff:'M',kdiff:'M',vdiff:'M',cldiff:'M',ctdiff:'M',sqcat:new Set(),sqfmt:new Set(),esub:'all',tkind:'x'};
+const LD={sel:new Set(),bdiff:'M',rdiff:'M',ediff:'M',tdiff:'M',kdiff:'M',vdiff:'M',cldiff:'M',sqcat:new Set(),sqfmt:new Set(),esub:'all',tkind:'x'};
 const LD_ESUB_LABEL={all:'전체',ff:'화석연료만',re:'신재생만'};
 const LD_SAVE_KEY='g3_ld_v1';
 function ldSave(){
   try{
     localStorage.setItem(LD_SAVE_KEY,JSON.stringify({
-      sel:[...LD.sel],bdiff:LD.bdiff,rdiff:LD.rdiff,ediff:LD.ediff,tdiff:LD.tdiff,kdiff:LD.kdiff,vdiff:LD.vdiff,cldiff:LD.cldiff,ctdiff:LD.ctdiff,sqcat:[...LD.sqcat],sqfmt:[...LD.sqfmt],esub:LD.esub,tkind:LD.tkind,
+      sel:[...LD.sel],bdiff:LD.bdiff,rdiff:LD.rdiff,ediff:LD.ediff,tdiff:LD.tdiff,kdiff:LD.kdiff,vdiff:LD.vdiff,cldiff:LD.cldiff,sqcat:[...LD.sqcat],sqfmt:[...LD.sqfmt],esub:LD.esub,tkind:LD.tkind,
       conts:[...document.querySelectorAll('.ld-cont-cb')].filter(c=>c.checked).map(c=>c.value),
       big:!!(document.getElementById('ld-big')||{}).checked,
       noisle:!!(document.getElementById('ld-noisle')||{}).checked,
@@ -224,7 +224,6 @@ function ldRestore(){
   if(['L','M'].includes(d.kdiff))LD.kdiff=d.kdiff;
   if(['L','M','H'].includes(d.vdiff))LD.vdiff=d.vdiff;
   if(['L','M','H'].includes(d.cldiff))LD.cldiff=d.cldiff;
-  if(['L','M','H'].includes(d.ctdiff))LD.ctdiff=d.ctdiff;
   if(Array.isArray(d.sqcat))LD.sqcat=new Set(d.sqcat);
   if(Array.isArray(d.sqfmt))LD.sqfmt=new Set(d.sqfmt);
   return d;
@@ -423,7 +422,7 @@ function startFromLanding(){
   if(acts.includes('texp')||acts.includes('timp'))key+='_d'+(LD.tdiff||'M');
   if(acts.includes('river'))key+='_v'+(LD.vdiff||'M');
   if(acts.includes('climate'))key+='_cl'+(LD.cldiff||'M');
-  if(acts.includes('city'))key+='_ct'+(LD.ctdiff||'M');
+  if(acts.includes('city'))key+='_city';
   if(acts.includes('suteuk')){
     key+='_sq';
     if(LD.sqcat.size)key+='_sqc'+[...LD.sqcat].sort().join('+');
@@ -3289,6 +3288,7 @@ function initMap(){
                (핀 오버레이가 ui-map 안에 있어 지도 터치 핸들러를 그대로 통과해 들어온다) */
             const pinG=el.closest?el.closest('.cq-pin'):null;
             if(pinG&&mapMode==='climate'){hit=true;try{cqTryPin(+pinG.dataset.li);}catch(err){}}
+            else if(pinG&&mapMode==='city'){hit=true;try{ctqPickAt(touch.clientX,touch.clientY);}catch(err){}}
             else{
             const cel=findCountryEl(el);
             if(cel){const iso=iso4el(cel);if(iso){hit=true;
