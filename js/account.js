@@ -32,7 +32,7 @@ function hasStoredSession() {
  * 게임 종료 시 window.SejiAccount.submitScore(...) 로 점수를 전송한다.
  */
 
-const CAT_NAME = { name: '나라이름', border: '접경국', rborder: '접경국쓰기', religion: '종교', texp: '수출구조', timp: '수입구조', tenergy: '에너지', korea: '한국지리', river: '하천', climate: '기후', suteuk: '수특퀴즈', stat: '통계순위' };
+const CAT_NAME = { name: '나라이름', border: '접경국', rborder: '접경국쓰기', religion: '종교', texp: '수출구조', timp: '수입구조', tenergy: '에너지', korea: '한국지리', river: '하천', climate: '기후', suteuk: '수특퀴즈', stat: '통계순위', city: '도시' };
 const CONT_KO = { as: '아시아', eu: '유럽', af: '아프리카', na: '북아메리카', sa: '남아메리카', oc: '오세아니아' };
 function scopeContinents(scope) {
   if (scope === 'korea') return [];
@@ -574,7 +574,7 @@ async function openMenuData() {
   // 유형별
   const catBox = document.getElementById('acct-cat-stats');
   catBox.innerHTML = '';
-  const cats = ['name', 'border', 'rborder', 'religion', 'texp', 'timp', 'tenergy', 'river', 'climate', 'korea', 'suteuk', 'stat'];
+  const cats = ['name', 'border', 'rborder', 'religion', 'texp', 'timp', 'tenergy', 'river', 'climate', 'korea', 'suteuk', 'stat', 'city'];
   const has = cats.filter((c) => graded.some((r) => r.category === c));
   if (!has.length) catBox.innerHTML = `<div style="font-size:.78rem;color:var(--tx2)">아직 기록이 없어요.</div>`;
   has.forEach((c) => {

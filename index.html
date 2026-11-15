@@ -16,7 +16,7 @@
 <link rel="icon" href="img/magpie-64.png?v=20260917d">
 <link rel="apple-touch-icon" href="img/magpie-192.png?v=20260917d">
 <script>(function(){try{var m=localStorage.getItem('seji_theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');document.documentElement.dataset.theme=m;}catch(e){}})();</script>
-<link rel="stylesheet" href="css/main.css?v=20261021a">
+<link rel="stylesheet" href="css/main.css?v=20261115a">
 <link rel="stylesheet" href="css/tokens.css?v=28">
 </head>
 <body>
@@ -99,6 +99,7 @@
           <tr><td>수출구조 (하·중·상)</td><td>2 · 4 · 6점</td></tr>
           <tr><td>수입구조 (하·중·상)</td><td>3 · 6 · 9점</td></tr>
           <tr><td>한국지리 시·군</td><td>1점</td></tr>
+          <tr><td>세계 도시 (하·중·상)</td><td>1 · 2 · 3점</td></tr>
           <tr><td>9모대비 수특퀴즈</td><td>문항당 3점 (힌트 사용 시 1점)</td></tr>
         </table>
       </div>
@@ -206,6 +207,25 @@
     <div class="cq-l-hint">Af 열대우림 · Am 열대몬순 · Aw 사바나 · BW 사막 · BS 스텝 · Cs 지중해성 · Cfa 온난습윤 · Cfb 서안해양성 · Cw 온대겨울건조 · Df 냉대습윤 · Dw 냉대겨울건조 · ET 툰드라 · EF 빙설</div>
   </div>
 </div>
+<!-- 세계 도시 맞히기: 하단 문제 독 (지도·점은 기후 맞히기와 같은 #cq-world-svg · #cq-pins-ov) -->
+<div id="ctq-box">
+  <div class="cq-head">
+    <div id="ctq-title">1 / 1곳</div>
+    <div class="cq-stats"><span>정답 <b id="ctq-cor">0</b></span><span>오답 <b id="ctq-wr">0</b></span><span>점수 <b id="ctq-pts">0</b></span></div>
+    <button class="tq-hbtn danger" type="button" title="도시 맞히기 초기화" onclick="ctqReset()"><span data-ic="reset"></span></button>
+  </div>
+  <div class="cq-progress"><div class="cq-pf" id="ctq-pf"></div></div>
+  <div class="ctq-q" id="ctq-q"></div>
+  <div class="bq-type">
+    <input type="text" id="ctq-input" placeholder="도시 이름 입력" autocomplete="off"/>
+    <button class="btn bp" type="button" onclick="ctqSubmit()">확인</button>
+  </div>
+  <div class="bq-foot">
+    <div class="ctq-dots"><i id="ctq-d0"></i><i id="ctq-d1"></i><i id="ctq-d2"></i></div>
+    <div class="bq-fb" id="ctq-fb"></div>
+    <button class="bq-skip" type="button" onclick="ctqSkip()">모르겠어요</button>
+  </div>
+</div>
 <!-- 세지 위키 -->
 <div id="wd-screen">
   <div class="wd-top">
@@ -273,6 +293,18 @@
     </div>
     <button class="reb" onclick="shareLastResult()">결과 자랑하기</button>
     <button class="reb secondary" onclick="document.getElementById('cq-end').classList.remove('on');runPendingReset()">다시 시작</button>
+  </div>
+</div>
+<div id="ctq-end">
+  <div class="rq-end-card">
+    <h1>세계 도시 맞히기 완료!</h1>
+    <div class="esc" id="ctq-escore">0점</div>
+    <div class="eg" style="grid-template-columns:1fr 1fr">
+      <div class="est"><div class="esv" style="color:var(--okt)" id="ctq-e1">0</div><div class="esl">정답</div></div>
+      <div class="est"><div class="esv" style="color:var(--wr)" id="ctq-e2">0</div><div class="esl">오답</div></div>
+    </div>
+    <button class="reb" onclick="shareLastResult()">결과 자랑하기</button>
+    <button class="reb secondary" onclick="document.getElementById('ctq-end').classList.remove('on');runPendingReset();if(SESSION.cur==='city')ctqEnter()">다시 시작</button>
   </div>
 </div>
 <!-- 하천 완료 -->
@@ -4928,8 +4960,10 @@
 <script src="js/rivers-data.js?v=20260917d"></script>
 <script src="js/climate-data.js?v=20261105b"></script>
 <script src="js/climate-map-data.js?v=20260917d"></script>
-<script src="js/app.js?v=20261021a"></script>
+<script src="js/app.js?v=20261115a"></script>
 <script src="js/climate.js?v=20260917d"></script>
+<script src="js/city-data.js?v=1"></script>
+<script src="js/cityquiz.js?v=2"></script>
 <script src="js/pen.js?v=2"></script>
 <script src="js/chipgrid.js?v=2"></script>
 <script src="js/dict-data.js?v=20260923c"></script>
@@ -4942,7 +4976,7 @@
 <!-- ════════════════════════════════════════════════════════════
      계정 · 소셜로그인 · 랭킹 (Supabase) — 빌드/명령어 불필요, 이 파일만으로 동작
      ▼▼▼ 여기 두 줄만 본인 Supabase 값으로 바꾸면 끝 ▼▼▼ -->
-<script type="module" src="js/account.js?v=20260917d"></script>
+<script type="module" src="js/account.js?v=20261115a"></script>
 <!-- 숨은 입구 — 홈 맨 아래에서 더 내려가면 Abyss 로 -->
 <script src="js/dive.js?v=20260917d"></script>
 

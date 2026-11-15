@@ -1293,3 +1293,27 @@ body.pen-on #pen-cv{pointer-events:auto;cursor:crosshair}
 #pen-bar.on #pen-toggle{background:var(--btn);border-color:transparent;color:#fff}
 .pen-c{width:26px;height:26px;border-radius:50%;border:2px solid var(--sf);box-shadow:0 0 0 1px var(--bd);cursor:pointer;padding:0}
 .pen-c.on{box-shadow:0 0 0 2px var(--tx)}
+
+/* ── 세계 도시 맞히기 ── 지도·점은 기후 맞히기의 것을 쓰고, 문제 독만 따로 */
+#ctq-box{position:absolute;left:0;right:0;bottom:0;z-index:14;display:none;flex-direction:column;gap:.45rem;background:color-mix(in srgb,var(--sf) 97%,transparent);border-top:1px solid var(--bd);backdrop-filter:blur(10px);box-shadow:0 -4px 18px rgba(0,0,0,.35);padding:.6rem .75rem .75rem}
+#ctq-box.on{display:flex;animation:fadeUp .3s var(--ease)}
+#ctq-title{font-size:.76rem;font-weight:700;color:var(--tx)}
+.ctq-q{font-size:.95rem;line-height:1.5;color:var(--tx);font-weight:600;min-height:2.9em}
+.ctq-cc{display:inline-block;font-size:.68rem;font-weight:700;color:var(--ac,#8ab4f8);border:1px solid currentColor;border-radius:999px;padding:0 .45rem;margin-right:.45rem;vertical-align:2px}
+.ctq-dots{display:flex;gap:.3rem;flex-shrink:0}
+.ctq-dots i{display:block;width:.5rem;height:.5rem;border-radius:50%;background:#81c995;transition:background .2s}
+.ctq-dots i.used{background:var(--bd)}
+#ctq-box .bq-foot{display:flex;align-items:center;gap:.6rem}
+#ctq-box .bq-foot .bq-fb{flex:1;min-width:0}
+/* 도시 점 — 기후 핀보다 작게. 맞힌 곳은 초록, 놓친 곳은 빨강, 지금 문제는 보라로 크게 */
+.ct-pin .cq-pin-c{fill:#c9cdd3;stroke:#161e2b;stroke-width:1}
+.ct-pin.ok .cq-pin-c{fill:#81c995}
+.ct-pin.ng .cq-pin-c{fill:#f28b82}
+.ct-pin.active .cq-pin-c{fill:#c58af9;r:8;stroke-width:2}
+.ct-pin .cq-pin-t.side{font-size:10.5px}
+.ct-pin.ng .cq-pin-t.side{fill:#ffd2cd}
+.ct-pin.just .cq-pin-c{r:7}
+.ct-pin.just .cq-pin-t.side{font-size:13px}
+.ct-pin{cursor:default}
+#ctq-end{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:800;display:none;align-items:center;justify-content:center}
+#ctq-end.on{display:flex}
