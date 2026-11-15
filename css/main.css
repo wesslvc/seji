@@ -495,9 +495,9 @@ body.in-session #rq-screen,body.in-session #kr-screen,body.in-session #tq-screen
 .bq-skip{padding:.32rem .7rem;background:transparent;border:1px solid var(--bd);border-radius:4px;color:var(--tx2);font-family:var(--font-sans);font-size:.76rem;cursor:pointer}
 .bq-skip:hover{color:var(--tx);border-color:var(--tx2)}
 .bq-type{display:flex;gap:.5rem;margin-bottom:.5rem}
-.bq-type #bq-gi,.bq-type #rbq-gi,.bq-type #cq-l-input{flex:1;padding:.55rem .8rem;background:var(--sf2);border:1px solid var(--bd);border-radius:999px;color:var(--tx);font-size:.92rem;font-family:var(--font-sans);outline:none;padding-left:1.05rem}
-.bq-type #bq-gi:focus,.bq-type #rbq-gi:focus,.bq-type #cq-l-input:focus{border-color:var(--ac)}
-.bq-type #bq-gi.shake,.bq-type #rbq-gi.shake,.bq-type #cq-l-input.shake{animation:shk .35s ease;border-color:var(--wr)}
+.bq-type #bq-gi,.bq-type #rbq-gi,.bq-type #cq-l-input,.bq-type #ctq-input{flex:1;padding:.55rem .8rem;background:var(--sf2);border:1px solid var(--bd);border-radius:999px;color:var(--tx);font-size:.92rem;font-family:var(--font-sans);outline:none;padding-left:1.05rem}
+.bq-type #bq-gi:focus,.bq-type #rbq-gi:focus,.bq-type #cq-l-input:focus,.bq-type #ctq-input:focus{border-color:var(--ac)}
+.bq-type #bq-gi.shake,.bq-type #rbq-gi.shake,.bq-type #cq-l-input.shake,.bq-type #ctq-input.shake{animation:shk .35s ease;border-color:var(--wr)}
 .bq-type .btn{flex:0 0 auto;padding:.55rem 1.1rem}
 body.bq-nomap #ui-map,body.bq-nomap #ui-mob-bar{display:none!important}
 body.bq-nomap #bq-box,body.bq-nomap #rbq-box{position:fixed;top:46%;left:50%;transform:translate(-50%,-50%);width:min(460px,92vw)}
@@ -1295,16 +1295,9 @@ body.pen-on #pen-cv{pointer-events:auto;cursor:crosshair}
 .pen-c.on{box-shadow:0 0 0 2px var(--tx)}
 
 /* ── 세계 도시 맞히기 ── 지도·점은 기후 맞히기의 것을 쓰고, 문제 독만 따로 */
-#ctq-box{position:absolute;left:0;right:0;bottom:0;z-index:14;display:none;flex-direction:column;gap:.45rem;background:color-mix(in srgb,var(--sf) 97%,transparent);border-top:1px solid var(--bd);backdrop-filter:blur(10px);box-shadow:0 -4px 18px rgba(0,0,0,.35);padding:.6rem .75rem .75rem}
+#ctq-box{position:absolute;left:0;right:0;bottom:0;z-index:14;display:none;flex-direction:column;gap:.4rem;background:color-mix(in srgb,var(--sf) 97%,transparent);border-top:1px solid var(--bd);backdrop-filter:blur(10px);box-shadow:0 -4px 18px rgba(0,0,0,.35);padding:.6rem .75rem .75rem}
 #ctq-box.on{display:flex;animation:fadeUp .3s var(--ease)}
 #ctq-title{font-size:.76rem;font-weight:700;color:var(--tx)}
-.ctq-q{font-size:.95rem;line-height:1.5;color:var(--tx);font-weight:600;min-height:2.9em}
-.ctq-cc{display:inline-block;font-size:.68rem;font-weight:700;color:var(--ac,#8ab4f8);border:1px solid currentColor;border-radius:999px;padding:0 .45rem;margin-right:.45rem;vertical-align:2px}
-.ctq-dots{display:flex;gap:.3rem;flex-shrink:0}
-.ctq-dots i{display:block;width:.5rem;height:.5rem;border-radius:50%;background:#81c995;transition:background .2s}
-.ctq-dots i.used{background:var(--bd)}
-#ctq-box .bq-foot{display:flex;align-items:center;gap:.6rem}
-#ctq-box .bq-foot .bq-fb{flex:1;min-width:0}
 /* 도시 점 — 기후 핀보다 작게. 맞힌 곳은 초록, 놓친 곳은 빨강, 지금 문제는 보라로 크게 */
 .ct-pin .cq-pin-c{fill:#c9cdd3;stroke:#161e2b;stroke-width:1}
 .ct-pin.ok .cq-pin-c{fill:#81c995}
@@ -1312,13 +1305,19 @@ body.pen-on #pen-cv{pointer-events:auto;cursor:crosshair}
 .ct-pin.active .cq-pin-c{fill:#c58af9;r:8;stroke-width:2}
 .ct-pin .cq-pin-t.side{font-size:10.5px}
 .ct-pin.ng .cq-pin-t.side{fill:#ffd2cd}
-.ct-pin.just .cq-pin-c{r:7}
-.ct-pin.just .cq-pin-t.side{font-size:13px}
 .ct-pin{cursor:default}
 #ctq-end{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:800;display:none;align-items:center;justify-content:center}
 #ctq-end.on{display:flex}
 .ct-hit{fill:transparent;stroke:none}
 .ct-pin.open{cursor:pointer}
 .ct-pin.open:hover .cq-pin-c{fill:#e8d5ff;r:6}
-.ctq-hint{color:var(--tx2);font-weight:500}
 #ctq-box .bq-skip:disabled{opacity:.4;cursor:default}
+/* 도시 맞히기 독 — 기후 맞히기(하) 패널과 같은 짜임: 안내 한 줄 · 특징 · 기회 점 · 입력 · 피드백 */
+.ctq-clue{font-size:.95rem;font-weight:600;line-height:1.5;color:var(--tx);text-align:center;min-height:1.5em}
+.ctq-clue:empty{display:none}
+#ctq-box .bq-q{margin-bottom:0}
+#ctq-box .bq-dots{margin:0}
+#ctq-box .bq-type{margin-bottom:0}
+#ctq-box.idle .bq-dots{visibility:hidden}
+#ctq-box .bq-type input:disabled{opacity:.55}
+#ctq-box .btn:disabled{opacity:.45;cursor:default}

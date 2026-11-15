@@ -102,22 +102,37 @@ function ctqPick(id){
   const pin=document.querySelector('#cq-pins-ov .ct-pin[data-id="'+id+'"]');
   if(pin){pin.classList.add('active');pin.parentNode.appendChild(pin);}
   ctqShowPrompt();
+  ctqFocusOn(l);
+}
+/* 고른 점을 지도 가운데로 부드럽게 옮긴다(다른 모드가 나라를 고르면 그쪽으로 옮겨 가는 것과 같은 움직임).
+   너무 멀리 빠져 있으면 주변 지형이 보이는 정도까지만 당기고, 이미 충분히 확대돼 있으면 배율은 그대로 */
+function ctqFocusOn(l){
+  const mw=document.getElementById('ui-map');if(!mw)return;
+  const dock=document.getElementById('ctq-box');
+  const availH=Math.max(mw.clientHeight-(dock?dock.clientHeight:0),80);
+  const [mx,my]=cqLonLatToMain(l.lon,l.lat);
+  const want=Math.min(mw.clientWidth,availH)/(isMobile?380:560);
+  const sc=Math.min(Math.max(_s,want),9);
+  animateTo(mw.clientWidth/2-mx*sc,availH/2-my*sc,sc,380);
 }
 function ctqShowPrompt(){
   const l=ctqSelLoc();
-  const q=document.getElementById('ctq-q'),inp=document.getElementById('ctq-input'),fb=document.getElementById('ctq-fb');
-  const skip=document.getElementById('ctq-skip');
-  if(fb){fb.textContent='';fb.className='bq-fb';}
+  const box=document.getElementById('ctq-box');
+  const lead=document.getElementById('ctq-lead'),q=document.getElementById('ctq-q');
+  const inp=document.getElementById('ctq-input'),ok=document.getElementById('ctq-ok'),skip=document.getElementById('ctq-skip');
+  const fb=document.getElementById('ctq-fb');if(fb){fb.textContent='';fb.className='bq-fb';}
+  if(box)box.classList.toggle('idle',!l);
   if(!l){
-    if(q)q.innerHTML='<span class="ctq-hint">지도에서 아직 이름이 없는 점을 눌러 보세요</span>';
-    if(inp){inp.value='';inp.disabled=true;}
-    if(skip)skip.disabled=true;
-    ctqUpdateDots(true);
+    if(lead)lead.textContent='지도에서 이름이 없는 점을 눌러 도시를 고르세요';
+    if(q)q.textContent='';
+    if(inp){inp.value='';inp.disabled=true;inp.placeholder='점을 먼저 고르세요';}
+    if(ok)ok.disabled=true;if(skip)skip.disabled=true;
     return;
   }
-  if(q)q.innerHTML='<span class="ctq-clue">'+l.clue+'</span>';
-  if(inp){inp.value='';inp.disabled=false;setTimeout(()=>{try{inp.focus();}catch(e){}},30);}
-  if(skip)skip.disabled=false;
+  if(lead)lead.textContent='고른 도시는 어디일까요?';
+  if(q)q.textContent=l.clue;
+  if(inp){inp.value='';inp.disabled=false;inp.placeholder='도시 이름 입력';setTimeout(()=>{try{inp.focus();}catch(e){}},30);}
+  if(ok)ok.disabled=false;if(skip)skip.disabled=false;
   ctqUpdateDots();
 }
 function ctqUpdateHead(){
@@ -128,8 +143,9 @@ function ctqUpdateHead(){
   set('ui-rem',Math.max(n-done,0));set('ui-cor',CTQ.cor);set('ui-rev',CTQ.wr); /* 머리글의 남은·정답·오답 */
   const pf=document.getElementById('ctq-pf');if(pf)pf.style.width=(n?done/n*100:0)+'%';
 }
-function ctqUpdateDots(off){
-  for(let i=0;i<CTQ_TRIES;i++){const d=document.getElementById('ctq-d'+i);if(d)d.classList.toggle('used',!!off||i>=CTQ.tries);}
+/* 남은 기회 — 접경국·기후 퀴즈와 같은 점(틀린 만큼 빨갛게) */
+function ctqUpdateDots(){
+  for(let i=0;i<CTQ_TRIES;i++){const d=document.getElementById('ctq-d'+i);if(d)d.classList.toggle('ng',i<CTQ_TRIES-CTQ.tries);}
 }
 /* 처음엔 출제 범위의 도시가 모두 들어오게 맞추고, 그다음부터는 사용자가 움직인 대로 둔다 */
 function ctqFitAll(){
@@ -164,9 +180,8 @@ function ctqSubmit(){
   if(CTQ.tries<=0){ctqResolve(false);return;}
   const fb=document.getElementById('ctq-fb');
   if(fb){fb.textContent='아니에요 — '+CTQ.tries+'번 더 쓸 수 있어요';fb.className='bq-fb ng';}
+  inp.classList.remove('shake');void inp.offsetWidth;inp.classList.add('shake');
   inp.select();
-  const pin=document.querySelector('#cq-pins-ov .ct-pin.active');
-  if(pin){pin.classList.remove('shake-ng');void pin.getBBox();pin.classList.add('shake-ng');}
 }
 function ctqSkip(){if(ctqSelLoc()&&!CTQ.busy)ctqResolve(false);}
 function ctqResolve(ok){
@@ -176,18 +191,18 @@ function ctqResolve(ok){
   if(ok){CTQ.cor++;CTQ.pts+=CTQ_PER;if(typeof playCorrectSound==='function')playCorrectSound();}
   else CTQ.wr++;
   ctqSave();
-  const inp=document.getElementById('ctq-input');if(inp)inp.disabled=true;
+  const inp=document.getElementById('ctq-input');if(inp){inp.disabled=true;inp.classList.remove('shake');}
+  const ok2=document.getElementById('ctq-ok');if(ok2)ok2.disabled=true;
   const fb=document.getElementById('ctq-fb');
   if(fb){fb.textContent=(ok?'정답! ':'정답은 ')+l.ko+' · '+cqCountryName(l.cc);fb.className='bq-fb '+(ok?'ok':'ng');}
   const pin=document.querySelector('#cq-pins-ov .ct-pin[data-id="'+l.id+'"]');
   if(pin){
-    pin.classList.remove('active','open');pin.classList.add(ok?'ok':'ng','just');
+    pin.classList.remove('active','open');pin.classList.add(ok?'ok':'ng');
     pin.insertAdjacentHTML('beforeend','<text class="cq-pin-t side" x="7" y="0">'+l.ko+'</text>');
   }
   ctqUpdateHead();
   setTimeout(()=>{
     if(SESSION.cur!=='city')return;
-    if(pin)pin.classList.remove('just');
     CTQ.sel=null;CTQ.busy=false;
     if(ctqDone()>=CTQ.ids.length){ctqEnd();return;}
     ctqShowPrompt();
