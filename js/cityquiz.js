@@ -9,7 +9,7 @@
 const CT_LOC=CITY_Q.map((r,i)=>({id:i,ko:r[0],en:r[1],cc:r[2],cont:r[3],lat:r[4],lon:r[5],clue:r[6],alt:r[7]?r[7].split('|'):[]}));
 const CTQ_TRIES=3, CTQ_LOC_PTS=1, CTQ_NAME_PTS=2, CTQ_PER=CTQ_LOC_PTS+CTQ_NAME_PTS;
 const CTQ={saveKey:'ctq_all',order:[],idx:0,status:{},stage:'find',locOk:false,tries:CTQ_TRIES,
-  pts:0,cor:0,wr:0,locCor:0,recorded:false,isRetry:false,busy:false};
+  pts:0,cor:0,wr:0,locCor:0,recorded:false,isRetry:false,busy:false,missed:[],lastPick:-1,lastPickT:0};
 function ctqPoolFor(filterKey){
   const parts=(filterKey||'').split('_');
   const contPart=parts.find(p=>/^[a-z]{2}(\+[a-z]{2})*$/.test(p)&&p!=='all');
@@ -58,7 +58,7 @@ const ctqCur=()=>CTQ.idx<CTQ.order.length?CT_LOC[CTQ.order[CTQ.idx]]:null;
 /* ══════════ 화면 ══════════ */
 function ctqEnter(){
   cqInitMapPath();ctqLensClose();
-  CTQ.busy=false;CTQ.stage='find';CTQ.locOk=false;CTQ.tries=CTQ_TRIES;
+  CTQ.busy=false;CTQ.stage='find';CTQ.locOk=false;CTQ.tries=CTQ_TRIES;CTQ.missed=[];
   ctqRenderPins();ctqFitAll();ctqUpdateHead();
   if(!ctqCur()){ctqEnd();return;}
   ctqShowStage();
@@ -207,20 +207,27 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&CTQ.lens)ctqLensClo
 function ctqPick(id){
   const l=ctqCur();
   if(!l||CTQ.busy||CTQ.stage!=='find'||CTQ.status[id])return;
+  /* 두 번 누르기·더블클릭이 연달아 들어오면 한 번으로 친다 */
+  const now=Date.now();if(id===CTQ.lastPick&&now-CTQ.lastPickT<450)return;
+  CTQ.lastPick=id;CTQ.lastPickT=now;
   if(id===l.id){
     CTQ.locOk=true;CTQ.locCor++;CTQ.pts+=CTQ_LOC_PTS;
     if(typeof playCorrectSound==='function')playCorrectSound();
     ctqFb('');ctqToName();return;
   }
+  const pin=ctqPin(id);
+  const shake=()=>{if(pin){pin.classList.remove('miss');void pin.getBBox();pin.classList.add('miss');setTimeout(()=>pin.classList.remove('miss'),700);}};
+  /* 이 문제에서 이미 틀린 점을 또 누르면 기회를 깎지 않는다 */
+  if(CTQ.missed.includes(id)){shake();ctqFb('이미 아니라고 한 점이에요 — 다른 점을 골라 보세요','ng');return;}
+  CTQ.missed.push(id);
   CTQ.tries--;ctqUpdateDots();
   if(typeof playWrongSound==='function')playWrongSound();
-  const pin=ctqPin(id);
-  if(pin){pin.classList.remove('miss');void pin.getBBox();pin.classList.add('miss');setTimeout(()=>pin.classList.remove('miss'),700);}
+  shake();
   if(CTQ.tries<=0){CTQ.locOk=false;ctqFb('여기였어요','ng');ctqToName();return;}
   ctqFb('그 점이 아니에요 — '+CTQ.tries+'번 더 고를 수 있어요','ng');
 }
 function ctqToName(){
-  ctqLensClose();
+  ctqLensClose();CTQ.missed=[];
   const l=ctqCur();if(!l)return;
   CTQ.stage='name';CTQ.tries=CTQ_TRIES;
   const pin=ctqPin(l.id);
@@ -241,6 +248,9 @@ function ctqSubmit(){
   const inp=document.getElementById('ctq-input');if(!inp)return;
   const val=inp.value.trim();if(!val)return;
   if(ctqMatch(val,l)){ctqResolve(true);return;}
+  const nv=ctqNorm(val);
+  if(CTQ.missed.includes(nv)){ctqFb('이미 써 본 답이에요 — 다른 이름을 써 보세요','ng');inp.select();return;}
+  CTQ.missed.push(nv);
   CTQ.tries--;ctqUpdateDots();
   if(typeof playWrongSound==='function')playWrongSound();
   if(CTQ.tries<=0){ctqResolve(false);return;}
@@ -274,7 +284,7 @@ function ctqResolve(ok){
   ctqUpdateHead();
   setTimeout(()=>{
     if(SESSION.cur!=='city')return;
-    CTQ.busy=false;CTQ.stage='find';CTQ.locOk=false;CTQ.tries=CTQ_TRIES;
+    CTQ.busy=false;CTQ.stage='find';CTQ.locOk=false;CTQ.tries=CTQ_TRIES;CTQ.missed=[];
     if(!ctqCur()){ctqEnd();return;}
     ctqShowStage();
   },ok?900:1500);
