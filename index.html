@@ -16,7 +16,7 @@
 <link rel="icon" href="img/magpie-64.png?v=20260917d">
 <link rel="apple-touch-icon" href="img/magpie-192.png?v=20260917d">
 <script>(function(){try{var m=localStorage.getItem('seji_theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');document.documentElement.dataset.theme=m;}catch(e){}})();</script>
-<link rel="stylesheet" href="css/main.css?v=20261115c">
+<link rel="stylesheet" href="css/main.css?v=20261115e">
 <link rel="stylesheet" href="css/tokens.css?v=28">
 </head>
 <body>
@@ -99,7 +99,7 @@
           <tr><td>수출구조 (하·중·상)</td><td>2 · 4 · 6점</td></tr>
           <tr><td>수입구조 (하·중·상)</td><td>3 · 6 · 9점</td></tr>
           <tr><td>한국지리 시·군</td><td>1점</td></tr>
-          <tr><td>세계 도시 맞히기</td><td>도시당 3점</td></tr>
+          <tr><td>세계 도시 맞히기</td><td>위치 1점 + 이름 2점</td></tr>
           <tr><td>9모대비 수특퀴즈</td><td>문항당 3점 (힌트 사용 시 1점)</td></tr>
         </table>
       </div>
@@ -215,7 +215,7 @@
     <button class="tq-hbtn danger" type="button" title="도시 맞히기 초기화" onclick="ctqReset()"><span data-ic="reset"></span></button>
   </div>
   <div class="cq-progress"><div class="cq-pf" id="ctq-pf"></div></div>
-  <div class="bq-q" id="ctq-lead">지도에서 이름이 없는 점을 눌러 도시를 고르세요</div>
+  <div class="bq-q" id="ctq-lead">이 도시를 지도에서 찾아 점을 누르세요</div>
   <div class="ctq-clue" id="ctq-q"></div>
   <div class="bq-dots" id="ctq-dots"><div class="bq-dot" id="ctq-d0"></div><div class="bq-dot" id="ctq-d1"></div><div class="bq-dot" id="ctq-d2"></div></div>
   <div class="bq-type">
@@ -4961,10 +4961,10 @@
 <script src="js/rivers-data.js?v=20260917d"></script>
 <script src="js/climate-data.js?v=20261105b"></script>
 <script src="js/climate-map-data.js?v=20260917d"></script>
-<script src="js/app.js?v=20261115c"></script>
+<script src="js/app.js?v=20261115d"></script>
 <script src="js/climate.js?v=20260917d"></script>
 <script src="js/city-data.js?v=1"></script>
-<script src="js/cityquiz.js?v=6"></script>
+<script src="js/cityquiz.js?v=7"></script>
 <script src="js/pen.js?v=2"></script>
 <script src="js/chipgrid.js?v=2"></script>
 <script src="js/dict-data.js?v=20260923c"></script>

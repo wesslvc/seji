@@ -1310,7 +1310,7 @@ body.pen-on #pen-cv{pointer-events:auto;cursor:crosshair}
 #ctq-end.on{display:flex}
 .ct-hit{fill:transparent;stroke:none}
 .ct-pin.open{cursor:pointer}
-.ct-pin.open:hover .cq-pin-c{fill:#e8d5ff;r:6}
+@media (hover:hover){.ct-pin.open:hover .cq-pin-c{fill:#e8d5ff;r:6}}
 #ctq-box .bq-skip:disabled{opacity:.4;cursor:default}
 /* 도시 맞히기 독 — 기후 맞히기(하) 패널과 같은 짜임: 안내 한 줄 · 특징 · 기회 점 · 입력 · 피드백 */
 .ctq-clue{font-size:.95rem;font-weight:600;line-height:1.5;color:var(--tx);text-align:center;min-height:1.5em}
@@ -1318,6 +1318,7 @@ body.pen-on #pen-cv{pointer-events:auto;cursor:crosshair}
 #ctq-box .bq-q{margin-bottom:0}
 #ctq-box .bq-dots{margin:0}
 #ctq-box .bq-type{margin-bottom:0}
-#ctq-box.idle .bq-dots{visibility:hidden}
+/* 틀린 점을 누르면 그 점이 잠깐 빨갛게 흔들린다 */
+.ct-pin.miss .cq-pin-c{fill:#f28b82;animation:shk .35s ease}
 #ctq-box .bq-type input:disabled{opacity:.55}
 #ctq-box .btn:disabled{opacity:.45;cursor:default}
