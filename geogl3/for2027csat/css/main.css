@@ -453,6 +453,9 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 .ld-score-tb td:last-child{text-align:right;color:var(--gd);font-weight:600;white-space:nowrap}
 #ld-guest-note{margin-top:.2rem;font-size:.7rem;color:var(--gd);text-align:center;line-height:1.5;opacity:.85}
 #ld-guest-note b{color:var(--gd)}
+#ld-archive-note{margin-top:.5rem;font-size:.74rem;color:var(--tx2);text-align:center;line-height:1.6;border:1px solid var(--bd);border-radius:10px;padding:.5rem .7rem;background:color-mix(in srgb,var(--sf) 80%,transparent)}
+#ld-archive-note b{color:var(--gd)}
+#ld-archive-note a{color:var(--ac);font-weight:700;text-decoration:none}
 @media(max-width:560px){
   .g3-logo{font-size:2.4rem}
   .ld-grid{gap:.4rem}

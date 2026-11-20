@@ -1,15 +1,65 @@
 {
   "cleanUrls": true,
   "redirects": [
-    { "source": "/trip", "destination": "/", "permanent": false },
-    { "source": "/trip/", "destination": "/", "permanent": false },
-    { "source": "/earth", "destination": "/geogl3/for2027csat/earth/", "permanent": false },
-    { "source": "/earth/", "destination": "/geogl3/for2027csat/earth/", "permanent": false },
-    { "source": "/f1", "destination": "/geogl3/for2027csat/f1/", "permanent": false },
-    { "source": "/f1/", "destination": "/geogl3/for2027csat/f1/", "permanent": false }
+    {
+      "source": "/trip",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/trip/",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/earth",
+      "destination": "/geogl3/for2027csat/earth/",
+      "permanent": false
+    },
+    {
+      "source": "/earth/",
+      "destination": "/geogl3/for2027csat/earth/",
+      "permanent": false
+    },
+    {
+      "source": "/f1",
+      "destination": "/geogl3/for2027csat/f1/",
+      "permanent": false
+    },
+    {
+      "source": "/f1/",
+      "destination": "/geogl3/for2027csat/f1/",
+      "permanent": false
+    },
+    {
+      "source": "/abyss",
+      "destination": "/geogl3/for2027csat/abyss/",
+      "permanent": false
+    },
+    {
+      "source": "/abyss/:path*",
+      "destination": "/geogl3/for2027csat/abyss/:path*",
+      "permanent": false
+    }
   ],
   "headers": [
-    { "source": "/geogl3/for2027csat/img/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=604800, immutable" }] },
-    { "source": "/geogl3/for2027csat/js/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400" }] }
+    {
+      "source": "/geogl3/for2027csat/img/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=604800, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/geogl3/for2027csat/js/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        }
+      ]
+    }
   ]
 }

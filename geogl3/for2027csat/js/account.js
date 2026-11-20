@@ -3,6 +3,43 @@ const SUPABASE_URL = 'https://brgvpmpqvqhdjsnrxzhh.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJyZ3ZwbXBxdnFoZGpzbnJ4emhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1MTg3NzAsImV4cCI6MjA5ODA5NDc3MH0.8IAvwa1PRbgatUiBRPWLXizSrGIoO__p9XEm3qIsrxo';
 /* ============================================================== */
 
+/* ══════════ 보관 모드 (2027 수능 대비판) ══════════
+   2026-11 수능이 끝나 이 판은 보관한다. 기록·랭킹·위키는 data/archive 의 고정 파일에서 읽고,
+   새 점수·위키 편집은 받지 않는다. 로그인(구글)은 그대로 — 로그인하면 자기 기록이 보인다.
+   개인 기록(records.json)은 사용자 id로만 풀리는 AES-GCM 암호문이라, 파일을 받아도 남의 기록은 못 연다.
+   공개 파일(public.json)의 사람 구분은 다른 소금으로 만든 가명(pid)이라 기록 파일과 이어지지 않는다. */
+const ARCHIVE = true;
+const ARCH_BASE = '/geogl3/for2027csat/data/archive/';
+let _archPubP = null, _archRecP = null, _archMine = undefined, _archPid = null;
+const _hex = (b) => Array.from(new Uint8Array(b)).map((x) => x.toString(16).padStart(2, '0')).join('');
+const _sha = (t) => crypto.subtle.digest('SHA-256', new TextEncoder().encode(t));
+function archPub() {
+  return _archPubP || (_archPubP = fetch(ARCH_BASE + 'public.json').then((r) => r.json())
+    .catch(() => ({ leaderboard: [], totals: {}, wiki_facts: [], wiki_history: [], wiki_comments: [], wiki_views: [] })));
+}
+async function archPidOf(uid) { return 'p' + _hex(await _sha('geogl3-pub:' + uid)).slice(0, 14); }
+async function archMine(uid) {
+  if (!uid) return null;
+  if (_archMine !== undefined && _archMine && _archMine._uid === uid) return _archMine;
+  try {
+    _archRecP = _archRecP || fetch(ARCH_BASE + 'records.json').then((r) => r.json());
+    const all = await _archRecP;
+    const blob = all.r[_hex(await _sha('geogl3-archive-id:' + uid))];
+    _archPid = await archPidOf(uid);
+    if (!blob) { _archMine = null; return null; }
+    const [iv, ct] = blob.split('.').map((b) => Uint8Array.from(atob(b), (c) => c.charCodeAt(0)));
+    const key = await crypto.subtle.importKey('raw', await _sha('geogl3-archive-key:' + uid), 'AES-GCM', false, ['decrypt']);
+    const out = JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct)));
+    out._uid = uid; _archMine = out; return out;
+  } catch (e) { console.error('[Geogl3] 보관 기록 열기 실패', e); _archMine = null; return null; }
+}
+let _archToastT = 0;
+function archNotice() {
+  const now = Date.now(); if (now - _archToastT < 4000) return; _archToastT = now;
+  toast('보관된 2027 수능 대비판이에요 — 계속 플레이할 수 있지만 점수는 더 오르지 않아요');
+}
+const archOff = (what) => { toast('보관 모드라 ' + what + '은(는) 닫혀 있어요'); return false; };
+
 const supabaseEnabled = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY && !SUPABASE_URL.includes('YOUR'));
 
 /* 초기 로딩 가속: Supabase SDK는 '필요할 때' 동적 로드 (게스트는 아예 안 받음) */
@@ -462,6 +499,13 @@ async function loadProfile() {
   await ensureSB();
   if (!supabase) { profile = null; return; }
   const uid = session.user.id;
+  if (ARCHIVE) {
+    const rec = await archMine(uid);
+    const meta = session.user.user_metadata || {};
+    profile = rec && rec.profile ? { id: uid, ...rec.profile, _archived: true }
+      : { id: uid, nickname: (meta.name || meta.full_name || 'player').slice(0, 20), avatar_url: meta.avatar_url || meta.picture || null, _archived: false };
+    return;
+  }
   let { data } = await supabase.from('profiles').select('*').eq('id', uid).maybeSingle();
   if (!data) {
     // 최초 로그인: 기본 프로필 생성
@@ -655,6 +699,7 @@ function onAvatarPick(e) {
 }
 
 async function saveProfile() {
+  if (ARCHIVE) { archOff('프로필 수정'); return; }
   if (!session) return;
   await ensureSB();
   if (!supabase) return;
@@ -689,6 +734,7 @@ async function saveProfile() {
 /* ──────────────── 랭킹 · 통계 ──────────────── */
 async function myScores() {
   if (!session) return [];
+  if (ARCHIVE) { const rec = await archMine(session.user.id); return (rec && rec.scores) || []; }
   await ensureSB();
   if (!supabase) return [];
   const { data } = await supabase
@@ -721,10 +767,14 @@ async function openRanking() {
   document.querySelectorAll('#acct-rank-conts .rank-tab').forEach((x) => x.classList.toggle('on', x.dataset.cont === 'all'));
   document.querySelectorAll('#acct-rank-sorts .rank-tab').forEach((x) => x.classList.toggle('on', x.dataset.sort === 'best'));
   document.getElementById('acct-rank-list').innerHTML = `<div class="acct-empty">불러오는 중…</div>`;
+  let data, error;
+  if (ARCHIVE) { data = (await archPub()).leaderboard.map((r) => ({ ...r, user_id: r.pid })); if (session) await archMine(session.user.id); }
+  else {
   await ensureSB();
   if (!supabase) return;
   // 랭킹은 집계 전용 보안 함수(RPC)로만 받음 — 테이블 직접 덤프 불가
-  const { data, error } = await supabase.rpc('app_leaderboard');
+  ({ data, error } = await supabase.rpc('app_leaderboard'));
+  }
   if (error) { document.getElementById('acct-rank-list').innerHTML = `<div class="acct-empty">랭킹 불러오기 실패 (SQL 함수 미적용 — SETUP 참고)</div>`; return; }
   _rankScores = data || [];
   _rankProfs = {};
@@ -763,7 +813,7 @@ function contAccuracy(r, cont) {
 function renderRanking() {
   const list = document.getElementById('acct-rank-list');
   if (!_rankScores) { list.innerHTML = `<div class="acct-empty">불러오는 중…</div>`; return; }
-  const myId = session?.user?.id;
+  const myId = ARCHIVE ? _archPid : session?.user?.id;
   const unified = (_rankMode === 'unified');
   let rows;
   if (unified) {
@@ -829,6 +879,7 @@ function escapeHtml(s) {
 /* ──────────────── 점수 제출 (게임에서 호출) ──────────────── */
 let _lastSubmit = { sig: '', t: 0 };
 async function submitScore({ category, correct, total, accuracy, scope, points, maxPoints, isRetry, contStats }) {
+  if (ARCHIVE) { archNotice(); return; }
   if (!session) return; // 비로그인 시 무시
   if (!total) return;
   // 종료 함수가 중복 호출돼도 한 번만 기록 (3초 내 동일 결과 무시)
@@ -926,6 +977,7 @@ function wikiRequireLogin() {
   return false;
 }
 async function wikiSubmitEdit(iso, text) {
+  if (ARCHIVE) return archOff('위키 편집');
   if (!wikiRequireLogin()) return false;
   await ensureSB();
   /* 들어오는 순간 문체를 '합니다체'로 맞춘다 — 사전 원문과 말투가 섞이지 않게 */
@@ -936,7 +988,7 @@ async function wikiSubmitEdit(iso, text) {
   return true;
 }
 async function wikiMyEdits(iso) {
-  if (!session) return [];
+  if (ARCHIVE || !session) return [];
   await ensureSB();
   if (!supabase) return [];
   let q = supabase.from('wiki_edits').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false });
@@ -946,6 +998,7 @@ async function wikiMyEdits(iso) {
   return data || [];
 }
 async function wikiPendingList() {
+  if (ARCHIVE) return [];
   await ensureSB();
   if (!supabase) return [];
   const { data, error } = await supabase.rpc('wiki_pending_edits');
@@ -956,9 +1009,13 @@ async function wikiPendingList() {
 let _wikiFactsCache = null;
 async function wikiApprovedFacts() {
   if (_wikiFactsCache) return _wikiFactsCache;
+  let data, error;
+  if (ARCHIVE) data = (await archPub()).wiki_facts;
+  else {
   await ensureSB();
   if (!supabase) return {};
-  const { data, error } = await supabase.rpc('wiki_facts_all');
+  ({ data, error } = await supabase.rpc('wiki_facts_all'));
+  }
   if (error) { console.error('[세지위키] wiki_facts_all 실패:', error); return {}; }
   const map = {};
   (data || []).forEach((r) => { map[r.iso] = { fact: r.fact, nickname: r.user_nickname, avatarUrl: r.user_avatar, updatedAt: r.updated_at }; });
@@ -970,9 +1027,13 @@ async function wikiApprovedFacts() {
 let _wikiHistoryCache = null;
 async function wikiFactHistory() {
   if (_wikiHistoryCache) return _wikiHistoryCache;
+  let data, error;
+  if (ARCHIVE) data = (await archPub()).wiki_history.map((r) => ({ ...r, user_id: r.pid }));
+  else {
   await ensureSB();
   if (!supabase) return {};
-  const { data, error } = await supabase.rpc('wiki_fact_history_all');
+  ({ data, error } = await supabase.rpc('wiki_fact_history_all'));
+  }
   if (error) { console.error('[세지위키] wiki_fact_history_all 실패:', error); return {}; }
   const map = {};
   (data || []).forEach((r) => {
@@ -982,6 +1043,7 @@ async function wikiFactHistory() {
   return map;
 }
 async function wikiApprove(id) {
+  if (ARCHIVE) return archOff('위키 승인');
   await ensureSB();
   const { error } = await supabase.rpc('approve_wiki_edit', { edit_id: id });
   if (error) { toast('승인 실패: ' + (error.message || '')); return false; }
@@ -991,6 +1053,7 @@ async function wikiApprove(id) {
   return true;
 }
 async function wikiReject(id, note) {
+  if (ARCHIVE) return archOff('위키 반려');
   await ensureSB();
   const { error } = await supabase.rpc('reject_wiki_edit', { edit_id: id, note: note || null });
   if (error) { toast('반려 실패: ' + (error.message || '')); return false; }
@@ -998,6 +1061,7 @@ async function wikiReject(id, note) {
   return true;
 }
 async function wikiAddComment(iso, body, parentId) {
+  if (ARCHIVE) return archOff('댓글 쓰기');
   if (!wikiRequireLogin()) return false;
   await ensureSB();
   const payload = { iso, user_id: session.user.id, body };
@@ -1008,6 +1072,7 @@ async function wikiAddComment(iso, body, parentId) {
   return true;
 }
 async function wikiListComments(iso) {
+  if (ARCHIVE) return (await archPub()).wiki_comments.filter((c) => c.iso === iso).map((c) => ({ ...c, user_id: c.pid }));
   await ensureSB();
   if (!supabase) return [];
   const { data, error } = await supabase.rpc('wiki_comments_for', { p_iso: iso });
@@ -1015,12 +1080,14 @@ async function wikiListComments(iso) {
   return data || [];
 }
 async function wikiEditComment(id, body) {
+  if (ARCHIVE) return archOff('댓글 수정');
   await ensureSB();
   const { error } = await supabase.from('wiki_comments').update({ body, updated_at: new Date().toISOString() }).eq('id', id);
   if (error) { toast('댓글 수정 실패: ' + (error.message || '')); return false; }
   return true;
 }
 async function wikiDeleteComment(id) {
+  if (ARCHIVE) return archOff('댓글 삭제');
   await ensureSB();
   const { error } = await supabase.from('wiki_comments').delete().eq('id', id);
   if (!error) _wikiCommentCountsCache = null;
@@ -1030,6 +1097,7 @@ async function wikiDeleteComment(id) {
 let _wikiCommentCountsCache = null;
 async function wikiCommentCounts() {
   if (_wikiCommentCountsCache) return _wikiCommentCountsCache;
+  if (ARCHIVE) { const m = {}; (await archPub()).wiki_comments.forEach((c) => { m[c.iso] = (m[c.iso] || 0) + 1; }); return (_wikiCommentCountsCache = m); }
   await ensureSB();
   if (!supabase) return {};
   const { data, error } = await supabase.rpc('wiki_comment_counts_all');
@@ -1041,6 +1109,7 @@ async function wikiCommentCounts() {
 }
 /* 국가 상세 페이지를 열 때마다 호출 — 조회수 +1(게스트 포함, 로그인 여부 무관) */
 async function wikiRecordView(iso) {
+  if (ARCHIVE) return;
   await ensureSB();
   if (!supabase) return;
   const { error } = await supabase.rpc('wiki_record_view', { p_iso: iso });
@@ -1051,6 +1120,7 @@ async function wikiRecordView(iso) {
 let _wikiViewCountsCache = null;
 async function wikiViewCounts() {
   if (_wikiViewCountsCache) return _wikiViewCountsCache;
+  if (ARCHIVE) { const m = {}; (await archPub()).wiki_views.forEach((r) => { m[r.iso] = Number(r.views); }); return (_wikiViewCountsCache = m); }
   await ensureSB();
   if (!supabase) return {};
   const { data, error } = await supabase.rpc('wiki_view_counts_all');
@@ -1062,6 +1132,8 @@ async function wikiViewCounts() {
 }
 /* 프로필사진 클릭 시: 그 사람이 승인받은 기여 목록(국가·내용·개수) */
 async function wikiUserContributions(userId) {
+  if (ARCHIVE) return (await archPub()).wiki_history.filter((r) => r.pid === userId)
+    .map((r) => ({ id: r.id, iso: r.iso, proposed_fact: r.proposed_fact, reviewed_at: r.reviewed_at, nickname: r.nickname, avatar_url: r.avatar_url }));
   await ensureSB();
   if (!supabase) return [];
   const { data, error } = await supabase.rpc('wiki_user_contributions', { target_user: userId });
@@ -1072,6 +1144,13 @@ async function wikiUserContributions(userId) {
 /* 자랑하기 카드용: 닉네임·프사·총점·랭킹 */
 async function getShareInfo() {
   if (!session) return null;
+  if (ARCHIVE) {
+    await archMine(session.user.id);
+    const t = (await archPub()).totals || {};
+    const mine = t[_archPid] || 0;
+    return { nickname: (profile && profile.nickname) || '플레이어', avatarUrl: (profile && profile.avatar_url) || null,
+      totalPoints: mine, rank: Object.values(t).filter((v) => v > mine).length + 1, users: Object.keys(t).length };
+  }
   await ensureSB();
   if (!supabase) return null;
   try {
@@ -1094,8 +1173,9 @@ async function getShareInfo() {
 }
 window.SejiAccount = {
   submitScore, isLoggedIn: () => !!session, getShareInfo,
-  isAdmin: () => !!(profile && profile.is_admin),
-  myUserId: () => (session && session.user.id) || null,
+  isAdmin: () => !ARCHIVE && !!(profile && profile.is_admin),
+  myUserId: () => (ARCHIVE ? _archPid : (session && session.user.id)) || null,
+  isArchive: () => ARCHIVE,
   promptLogin: () => open('acct-login'),
   wikiSubmitEdit, wikiMyEdits, wikiPendingList, wikiApprovedFacts, wikiFactHistory,
   wikiApprove, wikiReject, wikiAddComment, wikiListComments, wikiEditComment, wikiDeleteComment,

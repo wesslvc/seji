@@ -51,7 +51,7 @@
   function surface(){
     if(going)return;
     going=true;clearTimeout(decayTimer);
-    const go=()=>{location.href='/geogl3/for2027csat/?surface=1';};
+    const go=()=>{location.href='../?surface=1';};
     if(reduced){go();return;}
     const l=document.createElement('div');
     l.id='surface';

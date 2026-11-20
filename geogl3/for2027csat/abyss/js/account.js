@@ -19,6 +19,22 @@ const SUPABASE_URL='https://brgvpmpqvqhdjsnrxzhh.supabase.co';
 const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJyZ3ZwbXBxdnFoZGpzbnJ4emhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1MTg3NzAsImV4cCI6MjA5ODA5NDc3MH0.8IAvwa1PRbgatUiBRPWLXizSrGIoO__p9XEm3qIsrxo';
 
 let sb=null, sbP=null, session=null, profile=null;
+/* 보관 모드(2027 수능 대비판) — 본편 js/account.js 와 같은 고정 파일에서 읽고, 계정에 더 올리지 않는다 */
+const ARCHIVE=true, ARCH_BASE='/geogl3/for2027csat/data/archive/';
+const _hex=b=>Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');
+const _sha=t=>crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));
+let _archRec;
+async function archMine(uid){
+  if(_archRec!==undefined)return _archRec;
+  try{
+    const all=await fetch(ARCH_BASE+'records.json').then(r=>r.json());
+    const blob=all.r[_hex(await _sha('geogl3-archive-id:'+uid))];
+    if(!blob)return (_archRec=null);
+    const [iv,ct]=blob.split('.').map(b=>Uint8Array.from(atob(b),c=>c.charCodeAt(0)));
+    const key=await crypto.subtle.importKey('raw',await _sha('geogl3-archive-key:'+uid),'AES-GCM',false,['decrypt']);
+    return (_archRec=JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ct))));
+  }catch(e){return (_archRec=null);}
+}
 function ensureSB(){
   if(sb)return Promise.resolve(sb);
   if(!sbP)sbP=import('https://esm.sh/@supabase/supabase-js@2').then(({createClient})=>{
@@ -167,6 +183,9 @@ let pushTimer={};
 
 async function pullSets(){
   if(!session)return;
+  if(ARCHIVE){const rec=await archMine(session.user.id);
+    if(rec&&rec.sets){if(rec.sets[KEY.wrong])abSetAdopt('wrong',rec.sets[KEY.wrong]);if(rec.sets[KEY.fav])abSetAdopt('fav',rec.sets[KEY.fav]);}
+    return;}
   const {data,error}=await sb.from('user_data').select('key,data')
     .eq('user_id',session.user.id).in('key',[KEY.wrong,KEY.fav]);
   if(error)return;
@@ -178,7 +197,7 @@ async function pullSets(){
   AB_SETS.forEach(n=>pushNow(n));
 }
 async function pushNow(name){
-  if(!session||!sb)return;
+  if(ARCHIVE||!session||!sb)return; /* 보관 모드: 이 기기에만 저장 */
   const local=abSetLoad(name);
   /* 서버 것을 다시 읽어 합친다 — 다른 기기에서 그 사이에 넣은 것을 지우지
      않으려면 이 한 번이 필요하다 */
@@ -198,6 +217,8 @@ window.abSyncPush=function(name){
 
 async function loadProfile(){
   if(!session)return;
+  if(ARCHIVE){const rec=await archMine(session.user.id);const m=session.user.user_metadata||{};
+    profile=rec&&rec.profile?rec.profile:{nickname:m.name||m.full_name||'계정',avatar_url:m.avatar_url||m.picture||null};return;}
   const {data}=await sb.from('profiles').select('nickname,avatar_url')
     .eq('id',session.user.id).maybeSingle();
   profile=data||null;
