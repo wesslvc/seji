@@ -2,7 +2,7 @@
 'use strict';
 const $=(s,r)=>(r||document).querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const flagURL=c=>'/flags/'+c.iso+'.svg';
+const flagURL=c=>'/geogl3/for2027csat/flags/'+c.iso+'.svg';
 const MON=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
 const KIND={avg:'평균기온',max:'평균 최고기온',min:'평균 최저기온'};
 
@@ -133,7 +133,7 @@ function renderHome(){
     +'<h1>서킷마다 <em>날씨</em>는<br>이렇게 다릅니다</h1>'
     +'<p>FIA Grade 1 서킷 '+nNa+'곳의 월별 기온·강수 그래프. 몇 월에 몇 도 이상(이하)인 곳만 모아 보고, 카드 이미지로 내려받으세요.</p>'
     +'<div class="stats"><div><b>'+nNa+'</b><span>서킷</span></div><div><b>'+NCUR+'</b><span>2026 시즌</span></div><div><b>'+NPAST+'</b><span>과거 F1 개최지</span></div><div><b>'+NOTH+'</b><span>F1 미개최</span></div></div>'
-    +CAR+'<img class="car-img" src="/f1/img/car.png?v=2" alt="" hidden onload="this.hidden=false;this.parentNode.querySelector(\'.car\').remove()" onerror="this.remove()">'+'<div class="strip"></div></section>'
+    +CAR+'<img class="car-img" src="/geogl3/for2027csat/f1/img/car.png?v=2" alt="" hidden onload="this.hidden=false;this.parentNode.querySelector(\'.car\').remove()" onerror="this.remove()">'+'<div class="strip"></div></section>'
     +'<section class="panel"><h2>월별 기온으로 걸러 보기</h2><p class="sub">달 · 기온 기준 · 이상/이하 · 온도를 고르면 아래 목록이 바로 바뀝니다.</p>'
     +'<div class="row"><label>달</label><div class="mgrid" id="mg">'+MON.map((n,i)=>'<button class="chip" data-m="'+i+'">'+n+'</button>').join('')+'<button class="chip off" data-m="-1">끄기</button></div></div>'
     +'<div class="row"><label>기준</label><div class="seg">'+Object.keys(KIND).map(k=>'<button data-k="'+k+'">'+KIND[k]+'</button>').join('')+'</div>'
@@ -246,7 +246,7 @@ async function downloadCard(c,hl,btn){
   const t0=btn.innerHTML;btn.disabled=true;btn.textContent='만드는 중…';
   try{
     try{await document.fonts.load('800 40px Pretendard');await document.fonts.load('600 20px Pretendard');}catch(e){}
-    const flag=await loadImg(flagURL(c)),logo=await loadImg('/f1/img/logo.png?v=1');
+    const flag=await loadImg(flagURL(c)),logo=await loadImg('/geogl3/for2027csat/f1/img/logo.png?v=1');
     const W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d'),S=c.S;
     x.fillStyle='#0b0b0d';x.fillRect(0,0,W,H);
     const g=x.createRadialGradient(W*.85,0,0,W*.85,0,W*.9);g.addColorStop(0,'#3a0907');g.addColorStop(.55,'#17080a');g.addColorStop(1,'#0b0b0d');x.fillStyle=g;x.fillRect(0,0,W,H);

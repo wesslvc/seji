@@ -65,7 +65,7 @@
     if(diving) return;
     diving = true;
     clearTimeout(decayTimer);
-    const go = ()=>{ location.href = 'abyss/?dive=1'; };
+    const go = ()=>{ location.href = '/abyss/?dive=1'; };
     if(reduced){ go(); return; }
     const l = makeLayer();
     /* 한 프레임 뒤에 켜야 0 → 1 로 차오르는 것으로 보인다 */

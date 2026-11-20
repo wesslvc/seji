@@ -81,3 +81,15 @@ const LINKS=[
 const CITY_FARE={tokyo:{base:180,perKm:22,max:400},osaka:{base:190,perKm:25,max:400},kyoto:{base:230,perKm:20,max:400},
   fukuoka:{base:210,perKm:25,max:400},sapporo:{base:210,perKm:25,max:400},naha:{base:230,perKm:30,max:400}};
 const TAXI={base:500,perKm:420}; /* 일본 대도시 택시 대략치 */
+
+/* 공항 안 출발·도착 지점(철도역·버스 승강장, 대략) — 경로 검색을 공항 한가운데가 아니라 여기서 시작한다 */
+const AIRPORT_GATE={NRT:[140.3858,35.7637],HND:[139.7686,35.5444],KIX:[135.2437,34.4326],ITM:[135.4419,34.7845],
+  NGO:[136.8143,34.8584],FUK:[130.4475,33.5856],CTS:[141.6501,42.7882],OKA:[127.6522,26.2064],
+  HIJ:[132.9195,34.4367],KMQ:[136.4085,36.3940],OIT:[131.7370,33.4790]};
+/* 국내선을 탈 때 쓰는 도시별 공항 */
+const DOM_AIRPORT={tokyo:'HND',osaka:'ITM',sapporo:'CTS',fukuoka:'FUK',naha:'OKA',nagoya:'NGO',hiroshima:'HIJ',kanazawa:'KMQ'};
+/* 경로 검색에 쓰는 공항 철도역(Transitous 정류장 ID) — 좌표만 주면 공항 섬 안 보행로가 끊겨 경로가 안 나오는 곳이 있다 */
+const AIRPORT_STOP={KIX:['jp-japan-rail_3162',[135.24355,34.4358]],NRT:['jp-tokyo-rail_NaritaAirportTerminal1',[140.38614,35.76531]],
+  HND:['jp-japan-rail_8290',[139.76865,35.54389]],HND_DOM:['jp-japan-rail_6071',[139.78609,35.54985]],
+  ITM:['jp-japan-rail_9894',[135.442,34.79138]],NGO:['jp-japan-rail_8850',[136.81618,34.85994]],FUK:['jp-japan-rail_7761',[130.44818,33.59732]],
+  CTS:['jp-japan-rail_369',[141.68086,42.78781]],OKA:['jp-japan-rail_10849',[127.65221,26.20649]],HIJ:['jp-hiroden_23650 2',[132.91881,34.44]]};

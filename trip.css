@@ -126,3 +126,35 @@ input:focus,select:focus{outline:2px solid var(--ac2);border-color:var(--ac)}
   #hub-name{display:none}
   .brand p{display:none}
 }
+
+/* ── 항공편 ── */
+.air h3{font-size:.76rem;color:var(--tx2);margin:12px 2px 6px}
+.fl{background:var(--sf2);border-radius:12px;padding:10px 11px}
+.fl-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;font-size:.86rem}
+.fl-h .ic{color:var(--air)}
+.fl-h small{color:var(--tx2);font-size:.74rem;width:100%;padding-left:20px}
+.fl-in{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:6px;margin-top:8px}
+.fl-in.sm{margin:8px 0 0}
+.fl-in input{padding:6px 8px;font-size:.84rem}
+.fl-find{margin-top:8px;border:1px solid var(--bd);background:var(--sf);border-radius:9px;padding:6px 10px;font-size:.78rem;font-weight:700;cursor:pointer;color:var(--ac)}
+.fl-find:hover{border-color:var(--ac)}
+.fl-list{display:grid;gap:5px;margin-top:6px}
+.fopt{display:flex;gap:8px;align-items:baseline;text-align:left;border:1px solid var(--bd);background:var(--sf);border-radius:9px;padding:7px 10px;cursor:pointer;font-size:.82rem}
+.fopt:hover{border-color:var(--ac)}
+.fopt span{margin-left:auto;color:var(--tx2)}
+.mut{color:var(--tx3);font-size:.74rem}
+.flr{margin:4px 0 4px 56px;background:#f4f0ff;border-radius:10px;padding:8px 10px}
+.flr .st{font-size:.82rem;margin-top:4px;font-variant-numeric:tabular-nums}
+
+/* ── 실제 경로(구간별) ── */
+.trip{margin-left:56px;border-left:2px solid var(--bd);padding:4px 0 6px 14px;display:grid;gap:5px}
+.trip.est{border-left-style:dashed}
+.lg{font-size:.8rem;line-height:1.4}
+.lg.walk{color:var(--tx2);display:flex;gap:8px}
+.ln{display:inline-block;color:#fff;font-weight:800;font-size:.76rem;border-radius:6px;padding:2px 7px;margin-right:6px;text-shadow:0 0 2px rgba(0,0,0,.35)}
+.lg .st{font-size:.8rem;font-variant-numeric:tabular-nums;margin-top:2px}
+.tsum{font-size:.76rem;font-weight:700;color:var(--tx);padding-top:2px}
+.spin{display:inline-block;width:10px;height:10px;border:2px solid var(--bd);border-top-color:var(--ac);border-radius:50%;animation:sp 0.8s linear infinite;vertical-align:-1px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.pt.leave .t{color:var(--warn)}
+.note a{color:var(--tx2)}

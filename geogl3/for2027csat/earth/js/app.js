@@ -649,7 +649,7 @@ let _egT=[];
 $('#theme-toggle').onclick=()=>{
   /* 이스터에그: 탭 간격 0.3초 이내로 6번 연타하면 지오글 홈으로. 연타 중엔 첫 번째만 테마를 바꿔 번쩍이지 않게 한다 */
   const n=Date.now();if(_egT.length&&n-_egT[_egT.length-1]>300)_egT=[];_egT.push(n);
-  if(_egT.length>=6){_egT=[];portalGo('/');return;}
+  if(_egT.length>=6){_egT=[];portalGo('/geogl3/for2027csat/');return;}
   if(_egT.length===1)applyTheme(document.documentElement.dataset.theme==='light'?'dark':'light');
 };
 applyTheme(document.documentElement.dataset.theme||'dark');
