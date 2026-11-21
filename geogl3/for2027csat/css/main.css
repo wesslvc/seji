@@ -453,6 +453,13 @@ body.mob-mode #kr-ov{align-items:flex-start;padding-top:.8rem;padding-bottom:0}
 .ld-score-tb td:last-child{text-align:right;color:var(--gd);font-weight:600;white-space:nowrap}
 #ld-guest-note{margin-top:.2rem;font-size:.7rem;color:var(--gd);text-align:center;line-height:1.5;opacity:.85}
 #ld-guest-note b{color:var(--gd)}
+.ld-abyss{display:grid;grid-template-columns:1fr auto;gap:.15rem .8rem;align-items:center;margin-top:.6rem;padding:.8rem 1rem;border-radius:14px;text-decoration:none;
+  background:linear-gradient(160deg,#16314a 0%,#0c1c2c 55%,#060f18 100%);color:#dfe9f2;border:1px solid #1d3b57;box-shadow:0 4px 18px rgba(6,15,24,.25)}
+.ld-abyss:hover{border-color:#3f6f99}
+.ld-abyss .ab-t{font-size:.95rem;font-weight:700;letter-spacing:.01em}
+.ld-abyss .ab-t b{color:#8fd0ff}
+.ld-abyss .ab-d{grid-column:1;font-size:.72rem;color:#9fb6c9;line-height:1.5}
+.ld-abyss .ab-go{grid-column:2;grid-row:1/3;font-size:.78rem;font-weight:700;color:#8fd0ff;white-space:nowrap}
 #ld-archive-note{margin-top:.5rem;font-size:.74rem;color:var(--tx2);text-align:center;line-height:1.6;border:1px solid var(--bd);border-radius:10px;padding:.5rem .7rem;background:color-mix(in srgb,var(--sf) 80%,transparent)}
 #ld-archive-note b{color:var(--gd)}
 #ld-archive-note a{color:var(--ac);font-weight:700;text-decoration:none}

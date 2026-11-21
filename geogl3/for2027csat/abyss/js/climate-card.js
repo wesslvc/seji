@@ -19,7 +19,7 @@ function abccLoadMap(){
   if(typeof CQ_MAP_D!=='undefined')return Promise.resolve();
   if(_abccMap)return _abccMap;
   _abccMap=new Promise((ok,no)=>{const s=document.createElement('script');
-    s.src='js/climate-map-data.js';s.onload=ok;s.onerror=no;document.head.appendChild(s);});
+    s.src='../js/climate-map-data.js';s.onload=ok;s.onerror=no;document.head.appendChild(s);});
   return _abccMap;
 }
 function abccImg(src){
@@ -97,7 +97,7 @@ function abccMap(c,st,X,Y,W,H){
 async function abClimateCardPNG(iso,st){
   await abccLoadMap();
   if(document.fonts&&document.fonts.ready)await document.fonts.ready;
-  const flag=await abccImg('flags/'+iso+'.svg');
+  const flag=await abccImg('../flags/'+iso+'.svg');
   const {W,PAD}=ABCC, IW=W-PAD*2;
   const cv=document.createElement('canvas'), c=cv.getContext('2d');
   /* 높이는 그래프 길이에 따라 달라지므로 먼저 한 번 재 본다 */

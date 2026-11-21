@@ -9,29 +9,13 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
    개인 기록(records.json)은 사용자 id로만 풀리는 AES-GCM 암호문이라, 파일을 받아도 남의 기록은 못 연다.
    공개 파일(public.json)의 사람 구분은 다른 소금으로 만든 가명(pid)이라 기록 파일과 이어지지 않는다. */
 const ARCHIVE = true;
-const ARCH_BASE = '/geogl3/for2027csat/data/archive/';
-let _archPubP = null, _archRecP = null, _archMine = undefined, _archPid = null;
-const _hex = (b) => Array.from(new Uint8Array(b)).map((x) => x.toString(16).padStart(2, '0')).join('');
-const _sha = (t) => crypto.subtle.digest('SHA-256', new TextEncoder().encode(t));
-function archPub() {
-  return _archPubP || (_archPubP = fetch(ARCH_BASE + 'public.json').then((r) => r.json())
-    .catch(() => ({ leaderboard: [], totals: {}, wiki_facts: [], wiki_history: [], wiki_comments: [], wiki_views: [] })));
-}
-async function archPidOf(uid) { return 'p' + _hex(await _sha('geogl3-pub:' + uid)).slice(0, 14); }
+import { archPub, archPidOf, archMine as archMineRaw } from './archive.js?v=1';
+let _archPid = null;
+/* 내 기록을 열면서 공개 파일에서 쓰는 내 가명(pid)도 같이 정해 둔다(랭킹에서 '나' 표시용) */
 async function archMine(uid) {
   if (!uid) return null;
-  if (_archMine !== undefined && _archMine && _archMine._uid === uid) return _archMine;
-  try {
-    _archRecP = _archRecP || fetch(ARCH_BASE + 'records.json').then((r) => r.json());
-    const all = await _archRecP;
-    const blob = all.r[_hex(await _sha('geogl3-archive-id:' + uid))];
-    _archPid = await archPidOf(uid);
-    if (!blob) { _archMine = null; return null; }
-    const [iv, ct] = blob.split('.').map((b) => Uint8Array.from(atob(b), (c) => c.charCodeAt(0)));
-    const key = await crypto.subtle.importKey('raw', await _sha('geogl3-archive-key:' + uid), 'AES-GCM', false, ['decrypt']);
-    const out = JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct)));
-    out._uid = uid; _archMine = out; return out;
-  } catch (e) { console.error('[Geogl3] 보관 기록 열기 실패', e); _archMine = null; return null; }
+  _archPid = await archPidOf(uid);
+  return archMineRaw(uid);
 }
 let _archToastT = 0;
 function archNotice() {

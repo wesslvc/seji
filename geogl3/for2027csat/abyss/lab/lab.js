@@ -2,7 +2,7 @@
    화면 라이브러리(daisyUI / Web Awesome)만 갈아 끼우고 자료·순위·대륙 요약 계산은
    어비스 본 코드(derive.js)를 그대로 쓴다. 표시(HTML)는 각 페이지가 맡는다. */
 function abEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function abFlag(iso,px){return '<img class="flag" src="../flags/'+iso+'.svg" alt="" loading="lazy" width="'+px+'" height="'+Math.round(px*0.67)+'" onerror="this.style.visibility=\'hidden\'">';}
+function abFlag(iso,px){return '<img class="flag" src="../../flags/'+iso+'.svg" alt="" loading="lazy" width="'+px+'" height="'+Math.round(px*0.67)+'" onerror="this.style.visibility=\'hidden\'">';}
 function abTerrOn(){return false;}
 function abPool(){return Object.keys(DICT_DATA).filter(i=>!abIsTerr(i));}
 

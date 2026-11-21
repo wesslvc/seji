@@ -67,7 +67,7 @@ function abThemeInit(){abApplyTheme(document.documentElement.dataset.theme||'dar
 /* 국기 — 본편과 같은 파일을 쓴다. 대표색으로 화면을 물들이는 건 본편의 몫이라
    여기서는 그림만 띄운다. */
 function abFlag(iso,px,cls){
-  return '<img class="flag'+(cls?' '+cls:'')+'" src="flags/'+iso+'.svg" alt="" '
+  return '<img class="flag'+(cls?' '+cls:'')+'" src="../flags/'+iso+'.svg" alt="" '
     +'loading="lazy" width="'+px+'" height="'+Math.round(px*0.67)+'" '
     +'onerror="this.style.visibility=\'hidden\'">';
 }

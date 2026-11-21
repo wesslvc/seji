@@ -20,21 +20,8 @@ const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 
 let sb=null, sbP=null, session=null, profile=null;
 /* 보관 모드(2027 수능 대비판) — 본편 js/account.js 와 같은 고정 파일에서 읽고, 계정에 더 올리지 않는다 */
-const ARCHIVE=true, ARCH_BASE='/geogl3/for2027csat/data/archive/';
-const _hex=b=>Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');
-const _sha=t=>crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));
-let _archRec;
-async function archMine(uid){
-  if(_archRec!==undefined)return _archRec;
-  try{
-    const all=await fetch(ARCH_BASE+'records.json').then(r=>r.json());
-    const blob=all.r[_hex(await _sha('geogl3-archive-id:'+uid))];
-    if(!blob)return (_archRec=null);
-    const [iv,ct]=blob.split('.').map(b=>Uint8Array.from(atob(b),c=>c.charCodeAt(0)));
-    const key=await crypto.subtle.importKey('raw',await _sha('geogl3-archive-key:'+uid),'AES-GCM',false,['decrypt']);
-    return (_archRec=JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ct))));
-  }catch(e){return (_archRec=null);}
-}
+import { archMine } from '../../js/archive.js?v=1';
+const ARCHIVE=true;
 function ensureSB(){
   if(sb)return Promise.resolve(sb);
   if(!sbP)sbP=import('https://esm.sh/@supabase/supabase-js@2').then(({createClient})=>{
@@ -131,7 +118,7 @@ function mountOverlays(){
     +'<h2 id="ab-menu-nm">계정</h2>'
     +'<p class="sub" id="ab-menu-sub"></p>'
     +'<a class="ab-btn light" href="#/review" data-close>오답·즐겨찾기 보기</a>'
-    +'<a class="ab-btn ghost" href="https://geogl3.xyz" target="_blank" rel="noreferrer">본편 지오글에서 프로필·랭킹 보기</a>'
+    +'<a class="ab-btn ghost" href="../">본편 지오글에서 기록·랭킹 보기</a>'
     +'<button class="ab-btn ghost" id="ab-out">로그아웃</button></div></div>');
   menu.addEventListener('click',e=>{
     if(e.target.dataset.close!==undefined||e.target===menu)closeAll();

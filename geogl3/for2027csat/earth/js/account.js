@@ -10,6 +10,9 @@
 const SUPABASE_URL='https://brgvpmpqvqhdjsnrxzhh.supabase.co';
 const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJyZ3ZwbXBxdnFoZGpzbnJ4emhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1MTg3NzAsImV4cCI6MjA5ODA5NDc3MH0.8IAvwa1PRbgatUiBRPWLXizSrGIoO__p9XEm3qIsrxo';
 const KEY='earth_wrong';
+/* 보관 모드(2027 수능 대비판) — 오답 노트는 보관 파일에서 불러오고, 계정에 더 올리지 않는다 */
+import { archMine } from '../../js/archive.js?v=1';
+const ARCHIVE=true;
 
 let sb=null,sbP=null,session=null,profile=null,pushT=null;
 function ensureSB(){
@@ -71,7 +74,7 @@ function mountOverlays(){
   const menu=el('<div class="ea-ov" id="ea-menu"><div class="ea-card">'
     +'<button class="ea-x" data-close aria-label="닫기">&#10005;</button><h2 id="ea-menu-nm">계정</h2><p class="sub" id="ea-menu-sub"></p>'
     +'<a class="ea-btn light" href="#/wrong" data-close>오답 노트 보기</a>'
-    +'<a class="ea-btn ghost" href="https://geogl3.xyz" target="_blank" rel="noreferrer">지오글 본편에서 프로필 보기</a>'
+    +'<a class="ea-btn ghost" href="/geogl3/for2027csat/">지오글 본편에서 기록·랭킹 보기</a>'
     +'<button class="ea-btn ghost" id="ea-out">로그아웃</button></div></div>');
   menu.addEventListener('click',e=>{if(e.target.dataset.close!==undefined||e.target===menu)closeAll();});
   menu.querySelector('#ea-out').addEventListener('click',signOut);
@@ -105,12 +108,13 @@ async function signOut(){
 /* 오답 노트 주고받기 */
 async function pull(){
   if(!session)return;
+  if(ARCHIVE){const rec=await archMine(session.user.id);if(rec&&rec.sets&&rec.sets[KEY])window.earthSetAdopt(rec.sets[KEY]);return;}
   const {data,error}=await sb.from('user_data').select('data').eq('user_id',session.user.id).eq('key',KEY).maybeSingle();
   if(!error&&data&&data.data)window.earthSetAdopt(data.data);
   await pushNow();
 }
 async function pushNow(){
-  if(!session||!sb)return;
+  if(ARCHIVE||!session||!sb)return; /* 보관 모드: 이 기기에만 저장 */
   const local=window.earthSetLoad();
   const {data}=await sb.from('user_data').select('data').eq('user_id',session.user.id).eq('key',KEY).maybeSingle();
   const merged=data&&data.data?window.earthSetMerge(local,data.data):local;
@@ -121,6 +125,8 @@ window.earthSyncPush=()=>{if(!session)return;clearTimeout(pushT);pushT=setTimeou
 window.earthIsLoggedIn=()=>!!session;
 async function loadProfile(){
   if(!session)return;
+  if(ARCHIVE){const rec=await archMine(session.user.id);const m=session.user.user_metadata||{};
+    profile=rec&&rec.profile?rec.profile:{nickname:m.name||m.full_name||'계정',avatar_url:m.avatar_url||m.picture||null};return;}
   const {data}=await sb.from('profiles').select('nickname,avatar_url').eq('id',session.user.id).maybeSingle();profile=data||null;
 }
 async function initAuth(){
