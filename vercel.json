@@ -2,6 +2,11 @@
   "cleanUrls": true,
   "redirects": [
     {
+      "source": "/abyss/",
+      "destination": "/geogl3/for2027csat/abyss/",
+      "permanent": false
+    },
+    {
       "source": "/trip",
       "destination": "/",
       "permanent": false
